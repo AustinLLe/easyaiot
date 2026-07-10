@@ -53,6 +53,11 @@ export function getBasicColumns(): BasicColumn[] {
       },
     },
     {
+      title: '进度',
+      dataIndex: 'progress',
+      width: 240,
+    },
+    {
       title: '创建时间',
       dataIndex: 'created_at',
       width: 180,
@@ -116,4 +121,3 @@ function formatDateTime(dateString: string): string {
     return dateString;
   }
 }
-

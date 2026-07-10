@@ -31,6 +31,19 @@
             class="status-badge"
           />
         </template>
+        <template v-else-if="column.dataIndex === 'progress'">
+          <div class="export-progress-cell">
+            <a-progress
+              :percent="getProgressPercent(record)"
+              :status="getProgressStatus(record.status)"
+              size="small"
+            />
+            <div class="progress-meta">
+              <span>{{ getStageText(record) }}</span>
+              <span v-if="getElapsedText(record)">耗时 {{ getElapsedText(record) }}</span>
+            </div>
+          </div>
+        </template>
         <template v-else-if="column.dataIndex === 'created_at'">
           <div class="time-cell">
             <ClockCircleOutlined />
@@ -107,7 +120,7 @@
 </template>
 
 <script lang="ts" setup name="ModelExport">
-import { reactive, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { reactive, ref, onMounted, onUnmounted } from 'vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from './Data';
@@ -128,7 +141,6 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
-import { message } from 'ant-design-vue';
 
 defineOptions({ name: 'ModelExport' });
 
@@ -180,7 +192,7 @@ const exportLoading = reactive({
   onnx: false,
   openvino: false,
 });
-const pollingIntervals = ref<Map<number | string, NodeJS.Timeout>>(new Map());
+const pollingIntervals = ref<Map<number | string, ReturnType<typeof setInterval>>>(new Map());
 const modelsLoading = ref(false);
 const modelsLoaded = ref(false);
 
@@ -196,7 +208,7 @@ function handleClickSwap() {
 }
 
 function handleSuccess() {
-  reload({ page: 0 });
+  reload();
   cardListReload();
 }
 
@@ -272,6 +284,66 @@ const loadModels = async () => {
   }
 };
 
+const activeExportStatuses = ['PENDING', 'PROCESSING'];
+
+function isActiveExport(record: any): boolean {
+  return activeExportStatuses.includes(record?.status);
+}
+
+function getProgressPercent(record: any): number {
+  if (record?.status === 'COMPLETED') {
+    return 100;
+  }
+  const progress = Number(record?.progress ?? 0);
+  if (Number.isNaN(progress)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(Math.round(progress), 100));
+}
+
+function getProgressStatus(status: string): 'normal' | 'active' | 'success' | 'exception' {
+  if (status === 'COMPLETED') {
+    return 'success';
+  }
+  if (status === 'FAILED') {
+    return 'exception';
+  }
+  if (status === 'PROCESSING') {
+    return 'active';
+  }
+  return 'normal';
+}
+
+function formatDuration(seconds?: number): string {
+  if (seconds === undefined || seconds === null || Number.isNaN(Number(seconds))) {
+    return '';
+  }
+  const totalSeconds = Math.max(0, Math.round(Number(seconds)));
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainSeconds = totalSeconds % 60;
+  if (minutes <= 0) {
+    return `${remainSeconds}秒`;
+  }
+  return `${minutes}分${remainSeconds.toString().padStart(2, '0')}秒`;
+}
+
+function getElapsedText(record: any): string {
+  return formatDuration(record?.elapsed_seconds ?? record?.processing_time);
+}
+
+function getStageText(record: any): string {
+  if (record?.status === 'FAILED') {
+    return record?.message || record?.error || '导出失败';
+  }
+  return record?.stage || record?.message || statusLabels[record?.status] || '--';
+}
+
+function syncPollingForItems(items: any[]) {
+  items.filter(isActiveExport).forEach((item) => {
+    startPolling(item.id);
+  });
+}
+
 // 导出列表API
 const getExportListApi = async (params: any) => {
   try {
@@ -311,6 +383,8 @@ const getExportListApi = async (params: any) => {
         model_version: modelVersion,
       };
     });
+
+    syncPollingForItems(items);
     
     return {
       success: true,
@@ -404,7 +478,7 @@ const handleExportConfirm = async (data: {
     // transformResponseHook 会在 code === 0 时返回 data 部分
     // 所以 res 应该是 { task_id, export_id, ... } 格式
     if (res) {
-      createMessage.success('导出任务已提交，请稍后刷新查看');
+      createMessage.success('导出任务已提交，列表将自动刷新进度');
       
       // 关闭弹框
       closeExportModal();
@@ -415,10 +489,10 @@ const handleExportConfirm = async (data: {
       // 开始轮询状态
       const taskId = res.task_id;
       const exportId = res.export_id;
-      if (taskId) {
-        startPollingByTaskId(taskId);
-      } else if (exportId) {
-        startPolling(exportId);
+      if (exportId) {
+        startPolling(exportId, true);
+      } else if (taskId) {
+        startPolling(taskId, true);
       }
     } else {
       throw new Error('导出失败');
@@ -435,69 +509,51 @@ const handleExportConfirm = async (data: {
   }
 };
 
-// 状态轮询（通过export_id）
-const startPolling = (exportId: number) => {
-  if (pollingIntervals.value.has(exportId)) {
-    clearInterval(pollingIntervals.value.get(exportId)!);
+function stopPolling(key: number | string) {
+  const interval = pollingIntervals.value.get(key);
+  if (interval) {
+    clearInterval(interval);
+    pollingIntervals.value.delete(key);
+  }
+}
+
+async function pollExportStatus(key: number | string) {
+  try {
+    const statusRes = await getExportStatus(key);
+    if (!statusRes) {
+      return;
+    }
+
+    handleSuccess();
+
+    if (statusRes.status === 'COMPLETED' || statusRes.status === 'FAILED') {
+      stopPolling(key);
+      if (statusRes.status === 'FAILED') {
+        createMessage.error(`导出失败: ${statusRes.error || statusRes.message || '未知错误'}`);
+      } else {
+        createMessage.success('导出完成');
+      }
+    }
+  } catch (error) {
+    console.error('状态检查失败', error);
+  }
+}
+
+function startPolling(key: number | string, runImmediately = false) {
+  if (!key || pollingIntervals.value.has(key)) {
+    return;
   }
 
-  const interval = setInterval(async () => {
-    try {
-      const statusRes = await getExportStatus(exportId);
-      
-      // transformResponseHook 会在 code === 0 时返回 data 部分
-      // 所以 statusRes 应该是 { status, ... } 格式
-      if (statusRes && (statusRes.status === 'COMPLETED' || statusRes.status === 'FAILED')) {
-        clearInterval(interval);
-        pollingIntervals.value.delete(exportId);
-        
-        if (statusRes.status === 'FAILED') {
-          createMessage.error(`导出失败: ${statusRes.error || '未知错误'}`);
-        } else {
-          createMessage.success('导出完成');
-        }
-        
-        handleSuccess();
-      }
-    } catch (error) {
-      console.error('状态检查失败', error);
-    }
-  }, 5000);
-
-  pollingIntervals.value.set(exportId, interval);
-};
-
-// 状态轮询（通过task_id）
-const startPollingByTaskId = (taskId: string) => {
-  if (pollingIntervals.value.has(taskId)) {
-    clearInterval(pollingIntervals.value.get(taskId)!);
+  if (runImmediately) {
+    pollExportStatus(key);
   }
 
-  const interval = setInterval(async () => {
-    try {
-      const statusRes = await getExportStatus(taskId);
-      
-      // transformResponseHook 会在 code === 0 时返回 data 部分
-      // 所以 statusRes 应该是 { status, ... } 格式
-      if (statusRes && (statusRes.status === 'COMPLETED' || statusRes.status === 'FAILED')) {
-        clearInterval(interval);
-        pollingIntervals.value.delete(taskId);
-        
-        if (statusRes.status === 'FAILED') {
-          createMessage.error(`导出失败: ${statusRes.error || '未知错误'}`);
-        } else {
-          createMessage.success('导出完成');
-        }
-        
-        handleSuccess();
-      }
-    } catch (error) {
-      console.error('状态检查失败', error);
-    }
-  }, 5000);
+  const interval = setInterval(() => {
+    pollExportStatus(key);
+  }, 2000);
 
-  pollingIntervals.value.set(taskId, interval);
-};
+  pollingIntervals.value.set(key, interval);
+}
 
 // 下载导出文件
 const handleDownload = async (record: any) => {
@@ -610,6 +666,31 @@ onUnmounted(() => {
     :deep(.ant-badge-status-text) {
       font-size: 13px;
       color: #1f2c3d;
+    }
+  }
+
+  .export-progress-cell {
+    min-width: 200px;
+
+    :deep(.ant-progress-text) {
+      font-size: 12px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 2px;
+      color: #667085;
+      font-size: 12px;
+      line-height: 18px;
+
+      span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 

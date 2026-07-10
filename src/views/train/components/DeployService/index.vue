@@ -266,6 +266,9 @@ const handleBatchStart = async (record) => {
     
     reload();
     cardListReload();
+    if ((result?.data || {}).code === 0) {
+      scheduleActionRefresh();
+    }
   } catch (error: any) {
     // 如果进入 catch，说明请求失败
     console.error('批量启动异常:', error);
@@ -307,6 +310,9 @@ const handleBatchRestart = async (record) => {
     }
     reload();
     cardListReload();
+    if ((result?.data || {}).code === 0) {
+      scheduleActionRefresh();
+    }
   } catch (error) {
     createMessage.error('批量重启失败');
     console.error('批量重启失败:', error);
@@ -379,6 +385,36 @@ const getStatusText = (status, runningCount) => {
 const pollingInterval = ref<number>(10000); // 默认10秒
 const pollingTimer = ref<NodeJS.Timeout | null>(null);
 const isPollingActive = ref<boolean>(true);
+const actionRefreshTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+
+const clearActionRefreshTimer = () => {
+  if (actionRefreshTimer.value) {
+    clearTimeout(actionRefreshTimer.value);
+    actionRefreshTimer.value = null;
+  }
+};
+
+const scheduleActionRefresh = (attempts = 30) => {
+  clearActionRefreshTimer();
+
+  const refreshOnce = async (remaining: number) => {
+    try {
+      await reload();
+      cardListReload();
+    } catch (error) {
+      console.error('状态刷新失败:', error);
+    }
+
+    if (remaining <= 1) {
+      actionRefreshTimer.value = null;
+      return;
+    }
+
+    actionRefreshTimer.value = setTimeout(() => refreshOnce(remaining - 1), 1000);
+  };
+
+  actionRefreshTimer.value = setTimeout(() => refreshOnce(attempts), 500);
+};
 
 const [registerTable, {reload, getForm}] = useTable({
   canResize: true,
@@ -435,6 +471,7 @@ onBeforeUnmount(() => {
     clearTimeout(pollingTimer.value);
     pollingTimer.value = null;
   }
+  clearActionRefreshTimer();
 });
 
 // 监听表格模式切换，切换到表格模式时立即刷新
@@ -497,4 +534,3 @@ watch(() => modelOptions.value, (newOptions) => {
   }
 }
 </style>
-

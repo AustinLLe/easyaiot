@@ -130,6 +130,20 @@
                 <span v-if="state.inferenceLoading">推理中...</span>
                 <span v-else>开始检测</span>
               </button>
+              <div v-if="state.activeSource === 'video' && state.inferenceLoading" class="inline-video-progress">
+                <div class="inline-progress-header">
+                  <span>{{ getVideoProgressTitle() }}</span>
+                  <span>{{ state.videoProgressPercent }}%</span>
+                </div>
+                <div class="inline-progress-bar" role="progressbar" :aria-valuenow="state.videoProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                  <div class="inline-progress-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
+                </div>
+                <div class="inline-progress-meta">
+                  <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                  <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
+                  <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
+                </div>
+              </div>
               <button class="btn btn-success" @click="state.showOriginal = true" v-if="!state.showOriginal">
                 <EyeOutlined class="icon" />
                 <span>显示原始对照</span>
@@ -273,9 +287,20 @@
                       @loadedmetadata="() => console.log('视频元数据加载成功')"
                     ></video>
                   </div>
-                  <div v-else-if="state.inferenceLoading" class="video-placeholder">
-                    <SearchOutlined class="icon" />
-                    <span>推理处理中，请稍候...</span>
+                  <div v-else-if="state.inferenceLoading" class="video-placeholder video-progress-placeholder">
+                    <SearchOutlined class="icon progress-icon" />
+                    <div class="video-progress-panel">
+                      <div class="progress-title">{{ getVideoProgressTitle() }}</div>
+                      <div class="progress-bar" role="progressbar" :aria-valuenow="state.videoProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
+                      </div>
+                      <div class="progress-meta">
+                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                        <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
+                        <span>{{ state.videoProgressPercent }}%</span>
+                        <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
+                      </div>
+                    </div>
                   </div>
                   <div v-else class="video-placeholder">
                     <SearchOutlined class="icon" />
@@ -301,9 +326,20 @@
                       @loadedmetadata="() => console.log('视频元数据加载成功')"
                     ></video>
                   </div>
-                  <div v-else-if="state.inferenceLoading" class="video-placeholder">
-                    <SearchOutlined class="icon" />
-                    <span>推理处理中，请稍候...</span>
+                  <div v-else-if="state.inferenceLoading" class="video-placeholder video-progress-placeholder">
+                    <SearchOutlined class="icon progress-icon" />
+                    <div class="video-progress-panel">
+                      <div class="progress-title">{{ getVideoProgressTitle() }}</div>
+                      <div class="progress-bar" role="progressbar" :aria-valuenow="state.videoProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
+                      </div>
+                      <div class="progress-meta">
+                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                        <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
+                        <span>{{ state.videoProgressPercent }}%</span>
+                        <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
+                      </div>
+                    </div>
                   </div>
                   <div v-else class="video-placeholder">
                     <SearchOutlined class="icon" />
@@ -396,6 +432,10 @@ interface AppState {
   currentInferenceRecordId: number | null;
   pollingTimer: number | null;
   pollingStartTime: number | null;
+  videoProcessedFrames: number;
+  videoTotalFrames: number;
+  videoProgressPercent: number;
+  videoElapsedSeconds: number;
   videoLoadError: string | null;
   videoErrorDetails: {
     type: string;
@@ -435,6 +475,10 @@ const state = reactive<AppState>({
   currentInferenceRecordId: null,
   pollingTimer: null,
   pollingStartTime: null,
+  videoProcessedFrames: 0,
+  videoTotalFrames: 0,
+  videoProgressPercent: 0,
+  videoElapsedSeconds: 0,
   videoLoadError: null,
   videoErrorDetails: null,
   inferenceHistory: [],
@@ -448,6 +492,7 @@ const state = reactive<AppState>({
 
 // 轮询超时时间（5分钟）
 const POLLING_TIMEOUT = 5 * 60 * 1000;
+const VIDEO_POLLING_TIMEOUT = 60 * 60 * 1000;
 // 轮询间隔（1秒）
 const POLLING_INTERVAL = 1000;
 
@@ -513,6 +558,59 @@ const getStartButtonDisabled = (): boolean => {
   return true;
 };
 
+const toFiniteNumber = (value: any, fallback = 0): number => {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const resetVideoInferenceProgress = () => {
+  state.videoProcessedFrames = 0;
+  state.videoTotalFrames = 0;
+  state.videoProgressPercent = 0;
+  state.videoElapsedSeconds = 0;
+};
+
+const updateVideoInferenceProgress = (taskData: any = {}) => {
+  const processedFrames = Math.max(0, Math.floor(toFiniteNumber(taskData.processed_frames, 0)));
+  const totalFrames = Math.max(0, Math.floor(toFiniteNumber(taskData.total_frames, 0)));
+  const apiProgress = toFiniteNumber(taskData.progress_percent, NaN);
+  let progressPercent = Number.isFinite(apiProgress) ? apiProgress : 0;
+
+  if (!Number.isFinite(apiProgress) && totalFrames > 0) {
+    progressPercent = (processedFrames / totalFrames) * 100;
+  } else if (!Number.isFinite(apiProgress) && taskData.status?.toUpperCase?.() === 'COMPLETED') {
+    progressPercent = 100;
+  }
+
+  state.videoProcessedFrames = processedFrames;
+  state.videoTotalFrames = totalFrames;
+  state.videoProgressPercent = Math.max(0, Math.min(100, Math.round(progressPercent)));
+
+  if (state.pollingStartTime) {
+    state.videoElapsedSeconds = Math.max(0, Math.floor((Date.now() - state.pollingStartTime) / 1000));
+  }
+};
+
+const formatVideoElapsedTime = (seconds: number): string => {
+  const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  if (minutes <= 0) {
+    return `${remainingSeconds}秒`;
+  }
+  return `${minutes}分${remainingSeconds.toString().padStart(2, '0')}秒`;
+};
+
+const getVideoProgressTitle = (): string => {
+  if (state.videoTotalFrames > 0 && state.videoProcessedFrames >= state.videoTotalFrames) {
+    return '正在生成可播放结果视频';
+  }
+  return state.videoTotalFrames > 0 ? '视频推理处理中' : '视频推理任务运行中';
+};
+
 const startDetection = async () => {
   // 检查是否有可用的模型（模型服务或模型选择）
   const hasModel = state.selectedDeployServiceId || state.selectedModelId;
@@ -534,6 +632,11 @@ const startDetection = async () => {
   state.inferenceLoading = true;
   state.detectionStatus = 'running';
   state.statusText = '推理中...';
+  state.detectionResult = null;
+  state.currentInferenceRecordId = null;
+  if (state.activeSource === 'video') {
+    resetVideoInferenceProgress();
+  }
 
   try {
     const formData = new FormData();
@@ -703,7 +806,10 @@ const startDetection = async () => {
     
     createMessage.error(errorMessage);
   } finally {
-    state.inferenceLoading = false;
+    const isAsyncVideoPolling = state.activeSource === 'video' && state.currentInferenceRecordId !== null;
+    if (!isAsyncVideoPolling) {
+      state.inferenceLoading = false;
+    }
   }
 };
 
@@ -770,6 +876,7 @@ const handleVideoUpload = (event: Event) => {
     
     state.uploadedVideoFile = file;
     state.detectionResult = null; // 清除之前的检测结果
+    resetVideoInferenceProgress();
     
     try {
       // 创建视频预览URL
@@ -847,6 +954,7 @@ const handleDeployServiceChange = () => {
   state.detectionResult = null;
   state.detectionCount = 0;
   state.averageConfidence = 0;
+  resetVideoInferenceProgress();
   stopPollingInferenceResult();
 };
 
@@ -857,6 +965,7 @@ const handleModelChange = () => {
   state.detectionResult = null;
   state.detectionCount = 0;
   state.averageConfidence = 0;
+  resetVideoInferenceProgress();
   stopPollingInferenceResult();
 };
 
@@ -866,6 +975,7 @@ const handleSourceChange = () => {
   cleanupVideoUrl();
   state.historyInputSource = null; // 清除历史记录的 input_source
   state.detectionResult = null;
+  resetVideoInferenceProgress();
   
   if (state.activeSource === 'image') {
     loadDeployServices();
@@ -1068,7 +1178,8 @@ const startPollingInferenceResult = (recordId: number) => {
   // 设置定时轮询
   state.pollingTimer = window.setInterval(() => {
     // 检查超时
-    if (state.pollingStartTime && Date.now() - state.pollingStartTime > POLLING_TIMEOUT) {
+    const timeoutMs = state.activeSource === 'video' ? VIDEO_POLLING_TIMEOUT : POLLING_TIMEOUT;
+    if (state.pollingStartTime && Date.now() - state.pollingStartTime > timeoutMs) {
       stopPollingInferenceResult();
       createMessage.warning('推理任务超时，请刷新页面重试');
       state.inferenceLoading = false;
@@ -1118,6 +1229,9 @@ const pollInferenceResult = async (recordId: number) => {
     
     // 确保状态匹配（不区分大小写）
     const normalizedStatus = status?.toUpperCase();
+    if (state.activeSource === 'video') {
+      updateVideoInferenceProgress(taskData);
+    }
     
     if (normalizedStatus === 'COMPLETED') {
       // 推理完成，立即停止轮询
@@ -1155,7 +1269,10 @@ const pollInferenceResult = async (recordId: number) => {
       createMessage.error(errorMsg);
     } else if (normalizedStatus === 'PROCESSING' || normalizedStatus === 'PENDING') {
       // 仍在处理中，继续轮询
-      state.statusText = `推理处理中... (已处理 ${taskData.processed_frames || 0} 帧)`;
+      const frameText = state.videoTotalFrames > 0
+        ? `${state.videoProcessedFrames}/${state.videoTotalFrames} 帧`
+        : `已处理 ${state.videoProcessedFrames} 帧`;
+      state.statusText = `${getVideoProgressTitle()}... ${state.videoProgressPercent}% (${frameText})`;
     }
   } catch (error: any) {
     console.error('查询推理结果失败:', error);
@@ -1801,6 +1918,55 @@ body {
             }
           }
         }
+
+        .inline-video-progress {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid @border-color;
+          border-radius: 6px;
+          background: @light-bg;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .inline-progress-header,
+        .inline-progress-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          font-size: 12px;
+          color: @text-secondary;
+
+          span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        .inline-progress-header {
+          font-weight: 600;
+          color: @light-text;
+        }
+
+        .inline-progress-bar {
+          width: 100%;
+          height: 6px;
+          overflow: hidden;
+          border-radius: 6px;
+          background: @border-color;
+        }
+
+        .inline-progress-fill {
+          height: 100%;
+          border-radius: 6px;
+          background: @primary-color;
+          transition: width 0.3s ease;
+        }
       }
 
       .input-group {
@@ -2147,6 +2313,64 @@ body {
             font-size: 16px;
             color: @text-secondary;
             font-weight: 500;
+          }
+
+          &.video-progress-placeholder {
+            gap: 18px;
+            padding: 32px;
+            box-sizing: border-box;
+
+            .icon.progress-icon {
+              font-size: 48px;
+              color: @primary-color;
+              opacity: 0.85;
+              animation: spin 1.2s linear infinite;
+            }
+
+            .video-progress-panel {
+              width: 82%;
+              max-width: 420px;
+              display: flex;
+              flex-direction: column;
+              align-items: stretch;
+              gap: 12px;
+            }
+
+            .progress-title {
+              text-align: center;
+              font-size: 16px;
+              font-weight: 600;
+              color: @light-text;
+            }
+
+            .progress-bar {
+              width: 100%;
+              height: 8px;
+              overflow: hidden;
+              border-radius: 6px;
+              background: @border-color;
+            }
+
+            .progress-bar-fill {
+              height: 100%;
+              border-radius: 6px;
+              background: @primary-color;
+              transition: width 0.3s ease;
+            }
+
+            .progress-meta {
+              display: flex;
+              justify-content: center;
+              gap: 12px;
+              flex-wrap: wrap;
+
+              span {
+                font-size: 13px;
+                color: @text-secondary;
+                font-weight: 500;
+                white-space: nowrap;
+              }
+            }
           }
         }
       }

@@ -116,7 +116,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref, watch} from 'vue';
+import {onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
 import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
@@ -152,10 +152,40 @@ const props = defineProps({
 const emit = defineEmits(['getMethod', 'field-value-change', 'viewReplicas']);
 
 
-const data = ref([]);
+const data = ref<any[]>([]);
 const state = reactive({
   loading: true,
 });
+
+const serviceRefreshTimers: ReturnType<typeof setTimeout>[] = [];
+
+function clearServiceRefreshTimers() {
+  while (serviceRefreshTimers.length) {
+    const timer = serviceRefreshTimers.pop();
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
+function scheduleServiceStatusRefresh(serviceName: string, targetStatus = 'running', attempts = 30) {
+  clearServiceRefreshTimers();
+
+  const refreshOnce = async (remaining: number) => {
+    await fetch();
+
+    const service = data.value.find((item: any) => item.service_name === serviceName);
+    if (!service || service.status === targetStatus || remaining <= 1) {
+      return;
+    }
+
+    const timer = setTimeout(() => refreshOnce(remaining - 1), 1000);
+    serviceRefreshTimers.push(timer);
+  };
+
+  const timer = setTimeout(() => refreshOnce(attempts), 500);
+  serviceRefreshTimers.push(timer);
+}
 
 // 模型选项列表
 const modelOptions = ref<any[]>([]);
@@ -205,6 +235,10 @@ onMounted(async () => {
   });
   fetch();
   emit('getMethod', fetch);
+});
+
+onBeforeUnmount(() => {
+  clearServiceRefreshTimers();
 });
 
 // 监听params变化，自动刷新数据
@@ -495,7 +529,10 @@ const handleStart = async (record: any) => {
       createMessage.error(responseData?.msg || '批量启动失败');
     }
     
-    fetch();
+    await fetch();
+    if ((result?.data || {}).code === 0) {
+      scheduleServiceStatusRefresh(record.service_name, 'running');
+    }
   } catch (error: any) {
     // 如果进入 catch，说明请求失败
     console.error('批量启动异常:', error);
@@ -517,7 +554,7 @@ const handleStop = async (record: any) => {
     } else {
       createMessage.error(responseData.msg || '批量停止失败');
     }
-    fetch();
+    await fetch();
   } catch (error) {
     createMessage.error('批量停止失败');
     console.error('批量停止失败:', error);
@@ -536,7 +573,10 @@ const handleRestart = async (record: any) => {
     } else {
       createMessage.error(responseData.msg || '批量重启失败');
     }
-    fetch();
+    await fetch();
+    if ((result?.data || {}).code === 0) {
+      scheduleServiceStatusRefresh(record.service_name, 'running');
+    }
   } catch (error) {
     createMessage.error('批量重启失败');
     console.error('批量重启失败:', error);

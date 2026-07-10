@@ -42,6 +42,18 @@
                     <Tag :class="`status-tag status-${item.status?.toLowerCase()}`">{{ getStatusText(item.status) }}</Tag>
                   </div>
 
+                  <div class="export-progress">
+                    <Progress
+                      :percent="getProgressPercent(item)"
+                      :status="getProgressStatus(item.status)"
+                      size="small"
+                    />
+                    <div class="progress-detail">
+                      <span>{{ getStageText(item) }}</span>
+                      <span v-if="getElapsedText(item)">耗时 {{ getElapsedText(item) }}</span>
+                    </div>
+                  </div>
+
                   <div class="export-info">
                     <div class="info-item">
                       <span class="info-label">导出时间:</span>
@@ -80,8 +92,8 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref, computed, watch} from 'vue';
-import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
+import {onMounted, reactive, ref, watch} from 'vue';
+import {List, Popconfirm, Progress, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
@@ -216,6 +228,54 @@ function getStatusText(status: string) {
     'FAILED': '失败',
   };
   return statusMap[status] || '未知';
+}
+
+function getProgressPercent(item: any): number {
+  if (item?.status === 'COMPLETED') {
+    return 100;
+  }
+  const progress = Number(item?.progress ?? 0);
+  if (Number.isNaN(progress)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(Math.round(progress), 100));
+}
+
+function getProgressStatus(status: string): 'normal' | 'active' | 'success' | 'exception' {
+  if (status === 'COMPLETED') {
+    return 'success';
+  }
+  if (status === 'FAILED') {
+    return 'exception';
+  }
+  if (status === 'PROCESSING') {
+    return 'active';
+  }
+  return 'normal';
+}
+
+function formatDuration(seconds?: number): string {
+  if (seconds === undefined || seconds === null || Number.isNaN(Number(seconds))) {
+    return '';
+  }
+  const totalSeconds = Math.max(0, Math.round(Number(seconds)));
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainSeconds = totalSeconds % 60;
+  if (minutes <= 0) {
+    return `${remainSeconds}秒`;
+  }
+  return `${minutes}分${remainSeconds.toString().padStart(2, '0')}秒`;
+}
+
+function getElapsedText(item: any): string {
+  return formatDuration(item?.elapsed_seconds ?? item?.processing_time);
+}
+
+function getStageText(item: any): string {
+  if (item?.status === 'FAILED') {
+    return item?.message || item?.error || '导出失败';
+  }
+  return item?.stage || item?.message || getStatusText(item?.status);
 }
 
 function formatDate(dateString: string) {
@@ -383,6 +443,33 @@ function handleDownload(record: object) {
   align-items: center;
 }
 
+.export-progress {
+  margin-bottom: 10px;
+  flex-shrink: 0;
+
+  :deep(.ant-progress-text) {
+    font-size: 12px;
+  }
+}
+
+.progress-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 18px;
+  margin-top: 2px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 18px;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .export-info {
   font-size: 13px;
   color: #595959;
@@ -517,4 +604,3 @@ function handleDownload(record: object) {
   }
 }
 </style>
-

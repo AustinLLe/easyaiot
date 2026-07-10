@@ -160,10 +160,12 @@ const loadModels = async () => {
     // 将默认模型放在最前面，然后添加数据库中的模型
     // 确保即使后端返回空列表，默认模型也会显示
     modelOptions.value = [...defaultModels, ...dbModelOptions];
+    updateModelSchemaOptions();
   } catch (error) {
     console.error('加载模型列表失败', error);
     // 即使加载失败，也确保默认模型显示
     modelOptions.value = defaultModels;
+    updateModelSchemaOptions();
   }
 };
 
@@ -398,6 +400,16 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
   showActionButtonGroup: false,
 });
 
+const updateModelSchemaOptions = (disabled?: boolean) => {
+  updateSchema({
+    field: 'model_ids',
+    componentProps: {
+      options: modelOptions.value,
+      ...(disabled !== undefined ? { disabled } : {}),
+    },
+  });
+};
+
 const modalData = ref<{ type?: string; record?: AlgorithmTask }>({});
 
 const modalTitle = computed(() => {
@@ -501,7 +513,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         { field: 'device_ids', componentProps: { disabled: true } },
         { field: 'cron_expression', componentProps: { disabled: true } },
         { field: 'frame_skip', componentProps: { disabled: true } },
-        { field: 'model_ids', componentProps: { disabled: true } },
+        { field: 'model_ids', componentProps: { disabled: true, options: modelOptions.value } },
         { field: 'extract_interval', componentProps: { disabled: true } },
         { field: 'tracking_enabled', componentProps: { disabled: true } },
         { field: 'tracking_similarity_threshold', componentProps: { disabled: true } },
@@ -519,7 +531,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         { field: 'device_ids', componentProps: { disabled: false } },
         { field: 'cron_expression', componentProps: { disabled: false } },
         { field: 'frame_skip', componentProps: { disabled: false } },
-        { field: 'model_ids', componentProps: { disabled: false } },
+        { field: 'model_ids', componentProps: { disabled: false, options: modelOptions.value } },
         { field: 'extract_interval', componentProps: { disabled: false } },
         { field: 'tracking_enabled', componentProps: { disabled: false } },
         { field: 'tracking_similarity_threshold', componentProps: { disabled: false } },
@@ -539,7 +551,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       { field: 'device_ids', componentProps: { disabled: false } },
       { field: 'cron_expression', componentProps: { disabled: false } },
       { field: 'frame_skip', componentProps: { disabled: false } },
-      { field: 'model_ids', componentProps: { disabled: false } },
+      { field: 'model_ids', componentProps: { disabled: false, options: modelOptions.value } },
       { field: 'extract_interval', componentProps: { disabled: false } },
       { field: 'tracking_enabled', componentProps: { disabled: false } },
       { field: 'tracking_similarity_threshold', componentProps: { disabled: false } },

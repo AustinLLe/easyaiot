@@ -150,11 +150,27 @@ function pageSizeChange(_current: number, size: number) {
 
 const getImageUrl = (record: SnapImage) => {
   // 优先使用后台返回的 url 字段，如果没有则使用 object_name 构建
-  if (record.url) {
-    return record.url;
+  const rawUrl = record.url || (modalData.value.space_id
+    ? `/video/snap/space/${modalData.value.space_id}/image/${record.object_name}`
+    : '');
+  if (!rawUrl) return '';
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+    return rawUrl;
   }
-  if (!modalData.value.space_id) return '';
-  return `/video/snap/space/${modalData.value.space_id}/image/${record.object_name}`;
+  if (rawUrl.startsWith('/dev-api/')) {
+    return rawUrl;
+  }
+  const apiUrl = import.meta.env.VITE_GLOB_API_URL || '';
+  if (rawUrl.startsWith('/video/')) {
+    return `${apiUrl}${rawUrl}`;
+  }
+  if (rawUrl.startsWith('/api/v1/buckets')) {
+    return rawUrl;
+  }
+  if (rawUrl.startsWith('/')) {
+    return `${apiUrl}${rawUrl}`;
+  }
+  return rawUrl;
 };
 
 const formatSize = (bytes: number) => {
@@ -597,4 +613,3 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   }
 }
 </style>
-
