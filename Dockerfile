@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:22-alpine3.21 AS builder
+FROM m.daocloud.io/docker.io/library/node:22-alpine3.21 AS builder
 
 # 配置npm国内镜像源（淘宝镜像 - npmmirror.com是淘宝镜像的新地址）
 RUN npm config set registry https://registry.npmmirror.com/
@@ -38,7 +38,7 @@ COPY . .
 RUN pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log
 
 # 生产阶段
-FROM nginx:1.29.2-alpine
+FROM m.daocloud.io/docker.io/library/nginx:1.29.2-alpine
 
 # 配置国内镜像源（如果需要安装额外软件）
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
@@ -68,4 +68,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # 启动nginx（使用非daemon模式以便在容器中运行）
 CMD ["sh", "-c", "mkdir -p /app/logs && cp -af /opt/web-build-logs/. /app/logs/ && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] web-service container started\" >> /app/logs/runtime.log && nginx -g 'daemon off;'"]
-
