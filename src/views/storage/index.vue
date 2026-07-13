@@ -100,6 +100,77 @@
             </ASelect>
           </div>
         </div>
+
+        <section class="retention-schemes">
+          <div class="current-scheme">
+            <div class="current-scheme-title">
+              <span>当前生效规则</span>
+              <ATag :color="schemeState?.current.matched_scheme_id ? 'green' : 'blue'">
+                {{ schemeState?.current.matched_scheme_id ? '已匹配方案' : '实时汇总' }}
+              </ATag>
+            </div>
+            <h3>{{ schemeState?.current.name || '读取中…' }}</h3>
+            <p>{{ schemeState?.current.description }}</p>
+            <div class="current-details">
+              <ATag v-for="detail in schemeState?.current.details || []" :key="`${detail.save_time}-${detail.save_time_unit}-${detail.save_mode}`">
+                {{ detail.camera_count }} 个摄像头：{{ detail.label }}
+              </ATag>
+            </div>
+          </div>
+
+          <div class="scheme-heading">
+            <div>
+              <h3>快速启用留存方案</h3>
+              <p>启用方案只会更新留存设置；录像将在定时任务或点击“立即执行留存策略”时清理。</p>
+            </div>
+            <AButton type="dashed" @click="openCustomScheme">
+              <template #icon><PlusOutlined /></template>
+              新建自定义方案
+            </AButton>
+          </div>
+          <ASpin :spinning="schemeLoading">
+            <div class="scheme-grid">
+              <article
+                v-for="scheme in schemeState?.schemes || []"
+                :key="scheme.id"
+                class="scheme-card"
+                :class="{ active: schemeState?.current.matched_scheme_id === scheme.id }"
+              >
+                <div class="scheme-card-head">
+                  <div>
+                    <ATag v-if="scheme.recommended" color="green">推荐</ATag>
+                    <ATag v-else-if="!scheme.builtin" color="purple">自定义</ATag>
+                    <ATag v-else>预设</ATag>
+                  </div>
+                  <APopconfirm v-if="!scheme.builtin" title="确认删除这个自定义方案？" @confirm="removeScheme(scheme)">
+                    <AButton type="text" danger size="small">删除</AButton>
+                  </APopconfirm>
+                </div>
+                <h4>{{ scheme.name }}</h4>
+                <p>{{ scheme.description }}</p>
+                <div class="scheme-rules">
+                  <span v-for="(rule, index) in scheme.rules" :key="index">{{ formatSchemeRule(rule) }}</span>
+                </div>
+                <APopconfirm
+                  :title="scheme.warning || `确认将“${scheme.name}”应用到符合条件的摄像头？`"
+                  ok-text="确认启用"
+                  cancel-text="取消"
+                  @confirm="activateScheme(scheme)"
+                >
+                  <AButton
+                    block
+                    :type="schemeState?.current.matched_scheme_id === scheme.id ? 'default' : 'primary'"
+                    :disabled="schemeState?.current.matched_scheme_id === scheme.id"
+                    :loading="applyingSchemeId === scheme.id"
+                  >
+                    {{ schemeState?.current.matched_scheme_id === scheme.id ? '当前已启用' : '启用此方案' }}
+                  </AButton>
+                </APopconfirm>
+              </article>
+            </div>
+          </ASpin>
+        </section>
+
         <ATable
           :data-source="filteredPolicies"
           :columns="policyColumns"
@@ -126,8 +197,13 @@
               </ASelect>
             </template>
             <template v-else-if="column.key === 'save_time'">
-              <AInputNumber v-model:value="record.save_time" :min="0" :max="3650" :precision="0" />
-              <span class="day-unit">天</span>
+              <div class="duration-editor">
+                <AInputNumber v-model:value="record.save_time" :min="0" :max="record.save_time_unit === 'hour' ? 87600 : 3650" :precision="0" />
+                <ASelect v-model:value="record.save_time_unit" style="width: 76px">
+                  <ASelectOption value="hour">小时</ASelectOption>
+                  <ASelectOption value="day">天</ASelectOption>
+                </ASelect>
+              </div>
               <span v-if="record.save_time === 0" class="forever">永久</span>
             </template>
             <template v-else-if="column.key === 'action'">
@@ -197,22 +273,70 @@
     </ATabs>
 
     <HistoryPlayerModal @register="registerPlayerModal" />
+
+    <AModal
+      v-model:open="customSchemeOpen"
+      title="新建可复用留存方案"
+      :confirm-loading="savingCustomScheme"
+      ok-text="保存并启用"
+      cancel-text="取消"
+      @ok="saveCustomScheme"
+    >
+      <div class="custom-form">
+        <label><span>方案名称</span><AInput v-model:value="customSchemeForm.name" :maxlength="100" placeholder="例如：厂区重点摄像头保留 3 天" /></label>
+        <label><span>说明（可选）</span><ATextarea v-model:value="customSchemeForm.description" :rows="2" :maxlength="500" placeholder="说明适用场景，方便以后复用" /></label>
+        <label>
+          <span>应用范围</span>
+          <ASelect v-model:value="customSchemeForm.target">
+            <ASelectOption value="all">全部摄像头</ASelectOption>
+            <ASelectOption value="active">最近活跃的摄像头</ASelectOption>
+            <ASelectOption value="inactive">最近不活跃的摄像头</ASelectOption>
+            <ASelectOption value="selected">指定摄像头</ASelectOption>
+          </ASelect>
+        </label>
+        <label v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'">
+          <span>活跃判断窗口</span>
+          <div class="inline-field"><AInputNumber v-model:value="customSchemeForm.active_within_hours" :min="1" :max="8760" /><em>小时</em></div>
+        </label>
+        <label v-if="customSchemeForm.target === 'selected'">
+          <span>选择摄像头</span>
+          <ASelect v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像头">
+            <ASelectOption v-for="policy in recentPolicies" :key="policy.device_id" :value="policy.device_id" :label="`${policy.device_name} ${policy.device_id}`">
+              {{ policy.device_name }}
+            </ASelectOption>
+          </ASelect>
+        </label>
+        <label>
+          <span>保留时长</span>
+          <div class="inline-field">
+            <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="customSchemeForm.unit === 'hour' ? 87600 : 3650" :precision="0" />
+            <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">天</ASelectOption></ASelect>
+          </div>
+        </label>
+        <label>
+          <span>到期处理</span>
+          <ASelect v-model:value="customSchemeForm.save_mode"><ASelectOption :value="0">到期删除</ASelectOption><ASelectOption :value="1">到期归档</ASelectOption></ASelect>
+        </label>
+        <p class="form-tip">0 表示永久保留。保存后方案会出现在上方，可重复启用或删除。</p>
+      </div>
+    </AModal>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import {
-  CaretRightFilled, DatabaseOutlined, ReloadOutlined, VideoCameraOutlined,
+  CaretRightFilled, DatabaseOutlined, PlusOutlined, ReloadOutlined, VideoCameraOutlined,
 } from '@ant-design/icons-vue';
 import {
   Badge as ABadge,
   Button as AButton,
   DatePicker,
   Empty as AEmpty,
-  Input,
+  Input as AInput,
   InputNumber as AInputNumber,
+  Modal as AModal,
   Pagination as APagination,
   Popconfirm as APopconfirm,
   Progress as AProgress,
@@ -228,33 +352,51 @@ import { useMessage } from '@/hooks/web/useMessage';
 import { useModal } from '@/components/Modal';
 import HistoryPlayerModal from './components/HistoryPlayerModal.vue';
 import {
-  getRecordingHistory, getRetentionPolicies, getStorageOverview, runRetentionCleanup,
-  updateRecordSpace, type RecordingHistory, type RetentionPolicy, type StorageOverview,
+  applyRetentionScheme, createRetentionScheme, deleteRetentionScheme, getRecordingHistory,
+  getRetentionPolicies, getRetentionSchemes, getStorageOverview, runRetentionCleanup,
+  updateRecordSpace, type RecordingHistory, type RetentionPolicy, type RetentionRule,
+  type RetentionScheme, type RetentionSchemeState, type StorageOverview,
 } from '@/api/device/record';
 
 defineOptions({ name: 'StorageCenter' });
 
 const { createMessage } = useMessage();
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
-const AInputSearch = Input.Search;
+const AInputSearch = AInput.Search;
+const ATextarea = AInput.TextArea;
 const ARangePicker = DatePicker.RangePicker;
 const activeTab = ref('policy');
 const overview = ref<StorageOverview | null>(null);
 const policies = ref<RetentionPolicy[]>([]);
+const schemeState = ref<RetentionSchemeState | null>(null);
 const history = ref<RecordingHistory[]>([]);
 const overviewLoading = ref(false);
 const policyLoading = ref(false);
+const schemeLoading = ref(false);
 const historyLoading = ref(false);
 const refreshing = ref(false);
 const cleaning = ref(false);
 const savingPolicyId = ref<number | null>(null);
+const applyingSchemeId = ref<string | null>(null);
+const customSchemeOpen = ref(false);
+const savingCustomScheme = ref(false);
 const policyDeviceFilter = ref<string | undefined>();
 const historyPage = ref(1);
 const historyPageSize = 24;
 const historyTotal = ref(0);
 const historyTotalBytes = ref(0);
-const historyRange = ref<[Dayjs, Dayjs] | null>(null);
+const historyRange = ref<any>(null);
 const historyFilters = reactive({ search: '', device_id: undefined as string | undefined });
+const customSchemeForm = reactive({
+  name: '',
+  description: '',
+  target: 'all' as RetentionRule['target'],
+  active_within_hours: 24,
+  device_ids: [] as string[],
+  value: 7,
+  unit: 'day' as RetentionRule['unit'],
+  save_mode: 0 as 0 | 1,
+});
 
 const policyColumns = [
   { title: '摄像头', key: 'camera', width: 260 },
@@ -323,6 +465,12 @@ async function loadPolicies() {
   finally { policyLoading.value = false; }
 }
 
+async function loadSchemes() {
+  schemeLoading.value = true;
+  try { schemeState.value = await getRetentionSchemes() as RetentionSchemeState; }
+  finally { schemeLoading.value = false; }
+}
+
 async function loadHistory(reset = false) {
   if (reset) historyPage.value = 1;
   historyLoading.value = true;
@@ -346,18 +494,89 @@ async function loadHistory(reset = false) {
 async function refreshAll(force = false) {
   refreshing.value = force;
   try {
-    await Promise.all([loadOverview(), loadPolicies()]);
+    await Promise.all([loadOverview(), loadPolicies(), loadSchemes()]);
     if (activeTab.value === 'history') await loadHistory(force);
     if (force) createMessage.success('磁盘与录像信息已更新');
   } finally { refreshing.value = false; }
 }
 
-async function savePolicy(record: RetentionPolicy) {
+async function savePolicy(record: RetentionPolicy | Record<string, any>) {
   savingPolicyId.value = record.id;
   try {
-    await updateRecordSpace(record.id, { save_mode: record.save_mode, save_time: Number(record.save_time || 0) });
+    await updateRecordSpace(record.id, {
+      save_mode: record.save_mode,
+      save_time: Number(record.save_time || 0),
+      save_time_unit: record.save_time_unit || 'day',
+    });
     createMessage.success(`${record.device_name} 的留存策略已保存`);
+    await loadSchemes();
   } finally { savingPolicyId.value = null; }
+}
+
+function targetLabel(target: RetentionRule['target']) {
+  return { all: '全部', active: '活跃', inactive: '不活跃', selected: '指定' }[target];
+}
+
+function formatSchemeRule(rule: RetentionRule) {
+  const duration = rule.value === 0 ? '永久' : `${rule.value} ${rule.unit === 'hour' ? '小时' : '天'}`;
+  const action = rule.save_mode === 1 ? '归档' : '删除';
+  const activeWindow = rule.target === 'active' || rule.target === 'inactive'
+    ? `（${rule.active_within_hours || 24} 小时）`
+    : '';
+  return `${targetLabel(rule.target)}${activeWindow}：${duration}后${action}`;
+}
+
+async function activateScheme(scheme: RetentionScheme) {
+  applyingSchemeId.value = scheme.id;
+  try {
+    const result: any = await applyRetentionScheme(scheme.id);
+    createMessage.success(`${scheme.name}已启用，更新 ${result?.updated_count || 0} 个摄像头`);
+    await Promise.all([loadPolicies(), loadSchemes()]);
+  } finally { applyingSchemeId.value = null; }
+}
+
+function openCustomScheme() {
+  Object.assign(customSchemeForm, {
+    name: '', description: '', target: 'all', active_within_hours: 24,
+    device_ids: [], value: 7, unit: 'day', save_mode: 0,
+  });
+  customSchemeOpen.value = true;
+}
+
+async function saveCustomScheme() {
+  if (!customSchemeForm.name.trim()) {
+    createMessage.warning('请输入方案名称');
+    return;
+  }
+  if (customSchemeForm.target === 'selected' && customSchemeForm.device_ids.length === 0) {
+    createMessage.warning('请至少选择一个摄像头');
+    return;
+  }
+  savingCustomScheme.value = true;
+  try {
+    const scheme = await createRetentionScheme({
+      name: customSchemeForm.name.trim(),
+      description: customSchemeForm.description.trim(),
+      rules: [{
+        target: customSchemeForm.target,
+        value: Number(customSchemeForm.value || 0),
+        unit: customSchemeForm.unit,
+        save_mode: customSchemeForm.save_mode,
+        active_within_hours: Number(customSchemeForm.active_within_hours || 24),
+        device_ids: [...customSchemeForm.device_ids],
+      }],
+    }) as RetentionScheme;
+    await applyRetentionScheme(scheme.id);
+    customSchemeOpen.value = false;
+    createMessage.success(`自定义方案“${scheme.name}”已保存并启用`);
+    await Promise.all([loadPolicies(), loadSchemes()]);
+  } finally { savingCustomScheme.value = false; }
+}
+
+async function removeScheme(scheme: RetentionScheme) {
+  await deleteRetentionScheme(scheme.id);
+  createMessage.success(`自定义方案“${scheme.name}”已删除`);
+  await loadSchemes();
 }
 
 async function handleCleanup() {
@@ -393,7 +612,7 @@ function playHistory(item: RecordingHistory) {
 }
 
 function handleTabChange(key: string) {
-  if (key === 'history' && history.length === 0) loadHistory(true);
+  if (key === 'history' && history.value.length === 0) loadHistory(true);
 }
 
 onMounted(() => refreshAll(false));
@@ -441,7 +660,32 @@ h2 { font-size: 18px; }
 .camera-cell > span { color: #1677ff; font-size: 18px; }
 .camera-cell b, .camera-cell span, .table-sub { display: block; }
 .camera-cell span, .table-sub { color: #98a2b3; font-size: 12px; }
-.day-unit { margin-left: 6px; }.forever { margin-left: 10px; color: #1677ff; }
+.duration-editor, .inline-field { display: flex; align-items: center; gap: 8px; }
+.duration-editor :deep(.ant-input-number) { width: 116px; }
+.forever { display: inline-block; margin-top: 4px; color: #1677ff; }
+.retention-schemes { margin-bottom: 20px; }
+.current-scheme { padding: 18px 20px; border: 1px solid #b7d7ff; border-radius: 12px; background: linear-gradient(135deg, #f2f8ff, #fbfdff); }
+.current-scheme-title, .scheme-heading, .scheme-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.current-scheme-title > span { color: #475467; font-weight: 600; }
+.current-scheme h3, .scheme-heading h3, .scheme-card h4 { margin: 0; color: #182230; }
+.current-scheme h3 { margin-top: 8px; font-size: 20px; }
+.current-scheme p, .scheme-heading p, .scheme-card p { margin-top: 5px; color: #667085; }
+.current-details { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.scheme-heading { margin: 20px 0 12px; }
+.scheme-heading p { font-size: 13px; }
+.scheme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.scheme-card { display: flex; flex-direction: column; min-height: 240px; padding: 16px; border: 1px solid #e5eaf1; border-radius: 12px; background: #fff; }
+.scheme-card.active { border-color: #52c41a; box-shadow: inset 0 0 0 1px #52c41a; }
+.scheme-card h4 { margin-top: 10px; font-size: 16px; }
+.scheme-card p { min-height: 42px; font-size: 13px; line-height: 1.6; }
+.scheme-rules { display: flex; flex: 1; flex-direction: column; gap: 5px; margin: 10px 0 14px; color: #475467; font-size: 12px; }
+.scheme-rules span { padding: 6px 8px; border-radius: 6px; background: #f7f9fc; }
+.custom-form { display: grid; gap: 15px; padding-top: 8px; }
+.custom-form label { display: grid; gap: 6px; }
+.custom-form label > span { color: #344054; font-weight: 500; }
+.custom-form .inline-field :deep(.ant-input-number) { flex: 1; }
+.custom-form .inline-field em { color: #667085; font-style: normal; }
+.form-tip { margin: 0; color: #98a2b3; font-size: 12px; }
 .history-filters {
   display: grid;
   grid-template-columns: minmax(200px, 1fr) minmax(220px, 300px) minmax(300px, 360px) auto;
@@ -464,5 +708,6 @@ h2 { font-size: 18px; }
   .usage-summary { grid-template-columns: repeat(2, 1fr); }.history-filters { grid-template-columns: 1fr; }.scan-time { display: none; }
   .policy-picker { width: 100%; align-items: flex-start; flex-direction: column; }
   .camera-select { width: 100%; }
+  .scheme-heading { align-items: flex-start; flex-direction: column; }
 }
 </style>

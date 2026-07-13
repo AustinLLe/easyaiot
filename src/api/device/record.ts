@@ -21,6 +21,7 @@ export interface RecordSpace {
   bucket_name: string;
   save_mode: number; // 0:标准存储, 1:归档存储
   save_time: number; // 0:永久保存, >=7(单位:天)
+  save_time_unit?: 'hour' | 'day';
   description?: string;
   device_id?: string;
   created_at?: string;
@@ -71,6 +72,7 @@ export const updateRecordSpace = (space_id: number, data: {
   space_name?: string;
   save_mode?: number;
   save_time?: number;
+  save_time_unit?: 'hour' | 'day';
   description?: string;
 }) => {
   return commonApi('put', `${RECORD_PREFIX}/space/${space_id}`, data);
@@ -171,6 +173,44 @@ export interface RetentionPolicy extends RecordSpace {
   video_count: number;
   video_bytes: number;
   latest_recording_at?: string;
+  retention_seconds: number;
+}
+
+export interface RetentionRule {
+  target: 'all' | 'active' | 'inactive' | 'selected';
+  value: number;
+  unit: 'hour' | 'day';
+  save_mode: 0 | 1;
+  active_within_hours?: number;
+  device_ids?: string[];
+}
+
+export interface RetentionScheme {
+  id: string;
+  database_id?: number;
+  name: string;
+  description: string;
+  builtin: boolean;
+  recommended?: boolean;
+  warning?: string;
+  rules: RetentionRule[];
+}
+
+export interface RetentionSchemeState {
+  schemes: RetentionScheme[];
+  current: {
+    matched_scheme_id?: string;
+    name: string;
+    description: string;
+    camera_count: number;
+    details: Array<{
+      save_time: number;
+      save_time_unit: 'hour' | 'day';
+      save_mode: number;
+      camera_count: number;
+      label: string;
+    }>;
+  };
 }
 
 export interface RecordingHistory {
@@ -189,6 +229,20 @@ export interface RecordingHistory {
 export const getStorageOverview = () => commonApi('get', `${RECORD_PREFIX}/storage/overview`);
 
 export const getRetentionPolicies = () => commonApi('get', `${RECORD_PREFIX}/policies`);
+
+export const getRetentionSchemes = () => commonApi('get', `${RECORD_PREFIX}/retention/schemes`);
+
+export const createRetentionScheme = (data: {
+  name: string;
+  description?: string;
+  rules: RetentionRule[];
+}) => commonApi('post', `${RECORD_PREFIX}/retention/schemes`, data);
+
+export const applyRetentionScheme = (schemeId: string) =>
+  commonApi('post', `${RECORD_PREFIX}/retention/schemes/${encodeURIComponent(schemeId)}/apply`);
+
+export const deleteRetentionScheme = (schemeId: string) =>
+  commonApi('delete', `${RECORD_PREFIX}/retention/schemes/${encodeURIComponent(schemeId)}`);
 
 export const getRecordingHistory = (params: {
   pageNo?: number;
