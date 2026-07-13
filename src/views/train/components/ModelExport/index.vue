@@ -562,8 +562,15 @@ const handleDownload = async (record: any) => {
     return;
   }
 
+  // 兼容后端返回的不同字段名
+  const exportId = record.id || record.export_id || record.exportId;
+  if (!exportId) {
+    createMessage.error('导出记录ID不存在，无法下载');
+    return;
+  }
+
   try {
-    const response = await downloadExportedModel(record.id);
+    const response = await downloadExportedModel(exportId);
     
     // 处理blob响应
     let blob: Blob;

@@ -8,6 +8,7 @@ import {store} from '@/store'
 import type {AppRouteRecordRaw, Menu} from '@/router/types'
 import {asyncRoutes} from '@/router/routes'
 import dashboard from '@/router/routes/modules/dashboard'
+import storage from '@/router/routes/modules/storage'
 import {transformRouteToMenu} from '@/router/helper/menuHelper'
 import {flatMultiLevelRoutes, transformObjToRoute} from '@/router/helper/routeHelper'
 import {useI18n} from '@/hooks/web/useI18n'
@@ -221,7 +222,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = transformObjToRoute(routeList)
           //  Background routing to menu structure
           //  后台路由到菜单结构
-          const backMenuList = transformRouteToMenu([dashboard, ...routeList])
+          const backMenuList = transformRouteToMenu([dashboard, storage, ...routeList])
           console.log("backMenuList---", backMenuList);
           this.setBackMenuList(backMenuList)
           // remove meta.ignoreRoute item
@@ -230,7 +231,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = routeList.filter(routeRemoveIgnoreFilter)
           routeList = flatMultiLevelRoutes(routeList)
           console.log('routeList---', routeList);
-          routes = [dashboard, ...routeList]
+          routes = [dashboard, storage, ...routeList]
           break
       }
 

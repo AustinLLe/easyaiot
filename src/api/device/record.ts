@@ -135,3 +135,67 @@ export const syncRecordSpacesToMinio = () => {
   return commonApi('post', `${RECORD_PREFIX}/space/sync/minio`);
 };
 
+// ====================== 存储中心 ======================
+export interface StorageDisk {
+  id: string;
+  mount_point: string;
+  filesystem: string;
+  total_bytes: number;
+  used_bytes: number;
+  free_bytes: number;
+  usage_percent: number;
+  targets: Array<{ label: string; path: string; exists: boolean }>;
+}
+
+export interface StorageOverview {
+  node: {
+    id: string;
+    name: string;
+    kind: 'server' | 'development_board';
+    platform: string;
+    architecture: string;
+    status: string;
+    scanned_at: string;
+  };
+  disks: StorageDisk[];
+  recording_usage: {
+    total_bytes: number;
+    srs_bytes: number;
+    object_bytes: number;
+    archive_bytes: number;
+  };
+}
+
+export interface RetentionPolicy extends RecordSpace {
+  device_name: string;
+  video_count: number;
+  video_bytes: number;
+}
+
+export interface RecordingHistory {
+  id: string;
+  source: 'srs' | 'object';
+  device_id: string;
+  device_name: string;
+  filename: string;
+  relative_path: string;
+  size: number;
+  event_time: string;
+  url: string;
+}
+
+export const getStorageOverview = () => commonApi('get', `${RECORD_PREFIX}/storage/overview`);
+
+export const getRetentionPolicies = () => commonApi('get', `${RECORD_PREFIX}/policies`);
+
+export const getRecordingHistory = (params: {
+  pageNo?: number;
+  pageSize?: number;
+  device_id?: string;
+  search?: string;
+  start_time?: string;
+  end_time?: string;
+  refresh?: boolean;
+}) => commonApi('get', `${RECORD_PREFIX}/history`, params, {}, false);
+
+export const runRetentionCleanup = () => commonApi('post', `${RECORD_PREFIX}/cleanup/run`);
