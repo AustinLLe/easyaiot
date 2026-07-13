@@ -170,11 +170,12 @@ export interface RetentionPolicy extends RecordSpace {
   device_name: string;
   video_count: number;
   video_bytes: number;
+  latest_recording_at?: string;
 }
 
 export interface RecordingHistory {
   id: string;
-  source: 'srs' | 'object';
+  source: 'srs' | 'object' | 'archive';
   device_id: string;
   device_name: string;
   filename: string;
@@ -182,6 +183,7 @@ export interface RecordingHistory {
   size: number;
   event_time: string;
   url: string;
+  playback_url: string;
 }
 
 export const getStorageOverview = () => commonApi('get', `${RECORD_PREFIX}/storage/overview`);

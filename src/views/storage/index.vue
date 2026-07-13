@@ -6,24 +6,24 @@
         <p>查看运行节点磁盘、配置摄像头留存方式，并翻阅已保存录像</p>
       </div>
       <div class="heading-actions">
-        <a-button :loading="refreshing" @click="refreshAll(true)">
+        <AButton :loading="refreshing" @click="refreshAll(true)">
           <template #icon><ReloadOutlined /></template>
           重新扫描
-        </a-button>
-        <a-popconfirm title="立即按当前策略处理过期录像？" @confirm="handleCleanup">
-          <a-button type="primary" :loading="cleaning">立即执行留存策略</a-button>
-        </a-popconfirm>
+        </AButton>
+        <APopconfirm title="立即按当前策略处理过期录像？" @confirm="handleCleanup">
+          <AButton type="primary" :loading="cleaning">立即执行留存策略</AButton>
+        </APopconfirm>
       </div>
     </div>
 
-    <a-spin :spinning="overviewLoading">
+    <ASpin :spinning="overviewLoading">
       <section class="node-panel">
         <div class="node-title">
           <div class="node-icon"><DatabaseOutlined /></div>
           <div>
             <div class="node-name">{{ overview?.node.name || '当前录像节点' }}</div>
             <div class="node-meta">
-              <a-badge status="success" text="在线" />
+              <ABadge status="success" text="在线" />
               <span>{{ overview?.node.kind === 'development_board' ? '开发板' : '服务器' }}</span>
               <span>{{ overview?.node.platform }} · {{ overview?.node.architecture }}</span>
             </div>
@@ -40,7 +40,7 @@
               </div>
               <strong :class="usageClass(disk.usage_percent)">{{ disk.usage_percent }}%</strong>
             </div>
-            <a-progress
+            <AProgress
               :percent="disk.usage_percent"
               :show-info="false"
               :stroke-color="progressColor(disk.usage_percent)"
@@ -52,13 +52,13 @@
               <span>总计 {{ formatBytes(disk.total_bytes) }}</span>
             </div>
             <div class="target-list">
-              <a-tag v-for="target in disk.targets" :key="target.path" :color="target.exists ? 'blue' : 'default'">
+              <ATag v-for="target in disk.targets" :key="target.path" :color="target.exists ? 'blue' : 'default'">
                 {{ target.label }}
-              </a-tag>
+              </ATag>
             </div>
           </article>
         </div>
-        <a-empty v-else description="未发现可用录像磁盘" />
+        <AEmpty v-else description="未发现可用录像磁盘" />
 
         <div class="usage-summary">
           <div><span>录像总占用</span><b>{{ formatBytes(overview?.recording_usage.total_bytes) }}</b></div>
@@ -67,23 +67,46 @@
           <div><span>到期归档</span><b>{{ formatBytes(overview?.recording_usage.archive_bytes) }}</b></div>
         </div>
       </section>
-    </a-spin>
+    </ASpin>
 
-    <a-tabs v-model:active-key="activeTab" class="content-tabs" @change="handleTabChange">
-      <a-tab-pane key="policy" tab="摄像头留存策略">
+    <ATabs v-model:active-key="activeTab" class="content-tabs" :animated="false" @change="handleTabChange">
+      <ATabPane key="policy" tab="摄像头留存策略">
         <div class="tab-toolbar">
           <div>
             <h2>按摄像头配置</h2>
             <p>0 天表示永久保留；“到期归档”会将过期录像移入归档区。</p>
           </div>
-          <a-input-search v-model:value="policySearch" placeholder="搜索摄像头" allow-clear class="search-box" />
+          <div class="policy-picker">
+            <label>选择摄像头</label>
+            <ASelect
+              v-model:value="policyDeviceFilter"
+              show-search
+              allow-clear
+              option-filter-prop="label"
+              placeholder="点击选择最近使用的摄像头"
+              class="camera-select"
+            >
+              <ASelectOption
+                v-for="policy in recentPolicies"
+                :key="policy.device_id"
+                :value="policy.device_id"
+                :label="`${policy.device_name} ${policy.device_id}`"
+              >
+                <div class="camera-option">
+                  <span>{{ policy.device_name }}</span>
+                  <small>{{ policy.latest_recording_at ? `最近录像 ${formatRelativeTime(policy.latest_recording_at)}` : '暂无录像' }}</small>
+                </div>
+              </ASelectOption>
+            </ASelect>
+          </div>
         </div>
-        <a-table
+        <ATable
           :data-source="filteredPolicies"
           :columns="policyColumns"
           :loading="policyLoading"
           :row-key="(row) => row.id"
           :pagination="{ pageSize: 10, showSizeChanger: false }"
+          :scroll="{ x: 980 }"
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'camera'">
@@ -97,47 +120,59 @@
               <span class="table-sub">{{ record.video_count }} 段录像</span>
             </template>
             <template v-else-if="column.key === 'save_mode'">
-              <a-select v-model:value="record.save_mode" style="width: 128px">
-                <a-select-option :value="0">到期删除</a-select-option>
-                <a-select-option :value="1">到期归档</a-select-option>
-              </a-select>
+              <ASelect v-model:value="record.save_mode" style="width: 128px">
+                <ASelectOption :value="0">到期删除</ASelectOption>
+                <ASelectOption :value="1">到期归档</ASelectOption>
+              </ASelect>
             </template>
             <template v-else-if="column.key === 'save_time'">
-              <a-input-number v-model:value="record.save_time" :min="0" :max="3650" :precision="0" />
+              <AInputNumber v-model:value="record.save_time" :min="0" :max="3650" :precision="0" />
               <span class="day-unit">天</span>
               <span v-if="record.save_time === 0" class="forever">永久</span>
             </template>
             <template v-else-if="column.key === 'action'">
-              <a-button type="primary" size="small" :loading="savingPolicyId === record.id" @click="savePolicy(record)">
+              <AButton type="primary" size="small" :loading="savingPolicyId === record.id" @click="savePolicy(record)">
                 保存
-              </a-button>
-              <a-button type="link" size="small" @click="openDeviceHistory(record.device_id)">查看历史</a-button>
+              </AButton>
+              <AButton type="link" size="small" @click="openDeviceHistory(record.device_id)">查看历史</AButton>
             </template>
           </template>
-        </a-table>
-      </a-tab-pane>
+        </ATable>
+      </ATabPane>
 
-      <a-tab-pane key="history" tab="录像历史">
+      <ATabPane key="history" tab="录像历史">
         <div class="history-filters">
-          <a-input-search v-model:value="historyFilters.search" placeholder="摄像头、设备 ID 或文件名" allow-clear @search="loadHistory(true)" />
-          <a-select v-model:value="historyFilters.device_id" allow-clear placeholder="全部摄像头" @change="loadHistory(true)">
-            <a-select-option v-for="policy in policies" :key="policy.device_id" :value="policy.device_id">
+          <AInputSearch v-model:value="historyFilters.search" placeholder="搜索录像文件" allow-clear @search="loadHistory(true)" />
+          <ASelect
+            v-model:value="historyFilters.device_id"
+            show-search
+            allow-clear
+            option-filter-prop="label"
+            placeholder="选择摄像头"
+            @change="loadHistory(true)"
+          >
+            <ASelectOption
+              v-for="policy in recentPolicies"
+              :key="policy.device_id"
+              :value="policy.device_id"
+              :label="`${policy.device_name} ${policy.device_id}`"
+            >
               {{ policy.device_name }}
-            </a-select-option>
-          </a-select>
-          <a-range-picker v-model:value="historyRange" show-time @change="loadHistory(true)" />
-          <a-button type="primary" @click="loadHistory(true)">查询</a-button>
+            </ASelectOption>
+          </ASelect>
+          <ARangePicker v-model:value="historyRange" show-time @change="loadHistory(true)" />
+          <AButton type="primary" @click="loadHistory(true)">查询</AButton>
         </div>
 
-        <a-spin :spinning="historyLoading">
+        <ASpin :spinning="historyLoading">
           <div v-if="history.length" class="history-grid">
             <article v-for="item in history" :key="item.id" class="history-card" @click="playHistory(item)">
               <div class="history-preview">
                 <VideoCameraOutlined />
                 <span class="play-button"><CaretRightFilled /></span>
-                <a-tag class="source-tag" :color="item.source === 'srs' ? 'cyan' : 'purple'">
-                  {{ item.source === 'srs' ? '连续录像' : '平台录像' }}
-                </a-tag>
+                <ATag class="source-tag" :color="item.source === 'srs' ? 'cyan' : item.source === 'archive' ? 'orange' : 'purple'">
+                  {{ sourceLabel(item.source) }}
+                </ATag>
               </div>
               <div class="history-info">
                 <b :title="item.filename">{{ item.device_name }}</b>
@@ -146,11 +181,11 @@
               </div>
             </article>
           </div>
-          <a-empty v-else description="当前筛选条件下暂无录像" />
-        </a-spin>
+          <AEmpty v-else description="当前筛选条件下暂无录像" />
+        </ASpin>
         <div class="history-pagination">
           <span>共 {{ historyTotal }} 段，{{ formatBytes(historyTotalBytes) }}</span>
-          <a-pagination
+          <APagination
             v-model:current="historyPage"
             :page-size="historyPageSize"
             :total="historyTotal"
@@ -158,10 +193,10 @@
             @change="loadHistory(false)"
           />
         </div>
-      </a-tab-pane>
-    </a-tabs>
+      </ATabPane>
+    </ATabs>
 
-    <DialogPlayer title="录像回放" @register="registerPlayerModal" />
+    <HistoryPlayerModal @register="registerPlayerModal" />
   </div>
 </template>
 
@@ -171,9 +206,27 @@ import dayjs, { type Dayjs } from 'dayjs';
 import {
   CaretRightFilled, DatabaseOutlined, ReloadOutlined, VideoCameraOutlined,
 } from '@ant-design/icons-vue';
+import {
+  Badge as ABadge,
+  Button as AButton,
+  DatePicker,
+  Empty as AEmpty,
+  Input,
+  InputNumber as AInputNumber,
+  Pagination as APagination,
+  Popconfirm as APopconfirm,
+  Progress as AProgress,
+  Select as ASelect,
+  SelectOption as ASelectOption,
+  Spin as ASpin,
+  Table as ATable,
+  Tabs as ATabs,
+  TabPane as ATabPane,
+  Tag as ATag,
+} from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useModal } from '@/components/Modal';
-import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
+import HistoryPlayerModal from './components/HistoryPlayerModal.vue';
 import {
   getRecordingHistory, getRetentionPolicies, getStorageOverview, runRetentionCleanup,
   updateRecordSpace, type RecordingHistory, type RetentionPolicy, type StorageOverview,
@@ -183,6 +236,8 @@ defineOptions({ name: 'StorageCenter' });
 
 const { createMessage } = useMessage();
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
+const AInputSearch = Input.Search;
+const ARangePicker = DatePicker.RangePicker;
 const activeTab = ref('policy');
 const overview = ref<StorageOverview | null>(null);
 const policies = ref<RetentionPolicy[]>([]);
@@ -193,7 +248,7 @@ const historyLoading = ref(false);
 const refreshing = ref(false);
 const cleaning = ref(false);
 const savingPolicyId = ref<number | null>(null);
-const policySearch = ref('');
+const policyDeviceFilter = ref<string | undefined>();
 const historyPage = ref(1);
 const historyPageSize = 24;
 const historyTotal = ref(0);
@@ -210,11 +265,15 @@ const policyColumns = [
 ];
 
 const filteredPolicies = computed(() => {
-  const term = policySearch.value.trim().toLowerCase();
-  if (!term) return policies.value;
-  return policies.value.filter(item => item.device_name.toLowerCase().includes(term)
-    || (item.device_id || '').toLowerCase().includes(term));
+  if (!policyDeviceFilter.value) return policies.value;
+  return policies.value.filter(item => item.device_id === policyDeviceFilter.value);
 });
+
+const recentPolicies = computed(() => [...policies.value].sort((left, right) => {
+  const leftTime = left.latest_recording_at ? dayjs(left.latest_recording_at).valueOf() : 0;
+  const rightTime = right.latest_recording_at ? dayjs(right.latest_recording_at).valueOf() : 0;
+  return rightTime - leftTime || left.device_name.localeCompare(right.device_name, 'zh-CN');
+}));
 
 function formatBytes(value?: number) {
   const size = Number(value || 0);
@@ -226,6 +285,22 @@ function formatBytes(value?: number) {
 
 function formatDateTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '--';
+}
+
+function formatRelativeTime(value?: string) {
+  if (!value) return '暂无录像';
+  const minutes = Math.max(0, dayjs().diff(dayjs(value), 'minute'));
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return `${minutes} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  return `${Math.floor(hours / 24)} 天前`;
+}
+
+function sourceLabel(source: RecordingHistory['source']) {
+  if (source === 'srs') return '连续录像';
+  if (source === 'archive') return '归档录像';
+  return '平台录像';
 }
 
 function usageClass(percent: number) {
@@ -308,7 +383,13 @@ function getPlaybackUrl(path: string) {
 }
 
 function playHistory(item: RecordingHistory) {
-  openPlayerModal(true, { id: item.device_id, http_stream: getPlaybackUrl(item.url) });
+  openPlayerModal(true, {
+    url: getPlaybackUrl(item.playback_url || item.url),
+    deviceName: item.device_name,
+    eventTime: formatDateTime(item.event_time),
+    sizeText: formatBytes(item.size),
+    sourceText: sourceLabel(item.source),
+  });
 }
 
 function handleTabChange(key: string) {
@@ -350,15 +431,25 @@ h2 { font-size: 18px; }
 .usage-summary span { color: #667085; font-size: 13px; }
 .usage-summary b { margin-top: 6px; font-size: 18px; }
 .content-tabs { margin-top: 20px; padding: 4px 20px 20px; }
-.tab-toolbar { padding: 8px 0 18px; }
-.search-box { width: 280px; }
+.tab-toolbar { gap: 24px; padding: 8px 0 18px; }
+.policy-picker { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.policy-picker label { color: #475467; font-weight: 500; white-space: nowrap; }
+.camera-select { width: 360px; }
+.camera-option { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.camera-option small { color: #98a2b3; }
 .camera-cell { display: flex; align-items: center; gap: 10px; }
 .camera-cell > span { color: #1677ff; font-size: 18px; }
 .camera-cell b, .camera-cell span, .table-sub { display: block; }
 .camera-cell span, .table-sub { color: #98a2b3; font-size: 12px; }
 .day-unit { margin-left: 6px; }.forever { margin-left: 10px; color: #1677ff; }
-.history-filters { justify-content: flex-start; gap: 10px; margin-bottom: 18px; }
-.history-filters > :first-child { width: 280px; }.history-filters > :nth-child(2) { width: 200px; }
+.history-filters {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(220px, 300px) minmax(300px, 360px) auto;
+  justify-content: initial;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.history-filters > * { width: 100% !important; min-width: 0; }
 .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 .history-card { overflow: hidden; border: 1px solid #e5eaf1; border-radius: 12px; background: #fff; cursor: pointer; transition: .2s ease; }
 .history-card:hover { transform: translateY(-2px); border-color: #91caff; box-shadow: 0 8px 22px rgba(22, 119, 255, .10); }
@@ -370,6 +461,8 @@ h2 { font-size: 18px; }
 .history-pagination { margin-top: 20px; color: #667085; }
 @media (max-width: 900px) {
   .storage-page { padding: 14px; }.page-heading, .tab-toolbar { align-items: flex-start; flex-direction: column; gap: 12px; }
-  .usage-summary { grid-template-columns: repeat(2, 1fr); }.history-filters { flex-wrap: wrap; }.scan-time { display: none; }
+  .usage-summary { grid-template-columns: repeat(2, 1fr); }.history-filters { grid-template-columns: 1fr; }.scan-time { display: none; }
+  .policy-picker { width: 100%; align-items: flex-start; flex-direction: column; }
+  .camera-select { width: 100%; }
 }
 </style>
