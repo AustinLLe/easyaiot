@@ -13,7 +13,7 @@ const dashboard: AppRouteModule = {
     icon: 'clarity:dashboard-line',
     title: t('routes.dashboard.dashboard'),
     hideMenu: false,
-    hideChildrenInMenu: false,
+    hideChildrenInMenu: true,
   },
   children: [
     {
