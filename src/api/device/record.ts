@@ -21,7 +21,7 @@ export interface RecordSpace {
   bucket_name: string;
   save_mode: number; // 0:标准存储, 1:归档存储
   save_time: number; // 0:永久保存, >=7(单位:天)
-  save_time_unit?: 'hour' | 'day';
+  save_time_unit?: 'minute' | 'hour' | 'day';
   description?: string;
   device_id?: string;
   created_at?: string;
@@ -72,7 +72,7 @@ export const updateRecordSpace = (space_id: number, data: {
   space_name?: string;
   save_mode?: number;
   save_time?: number;
-  save_time_unit?: 'hour' | 'day';
+  save_time_unit?: 'minute' | 'hour' | 'day';
   description?: string;
 }) => {
   return commonApi('put', `${RECORD_PREFIX}/space/${space_id}`, data);
@@ -179,7 +179,7 @@ export interface RetentionPolicy extends RecordSpace {
 export interface RetentionRule {
   target: 'all' | 'active' | 'inactive' | 'selected';
   value: number;
-  unit: 'hour' | 'day';
+  unit: 'minute' | 'hour' | 'day';
   save_mode: 0 | 1;
   active_within_hours?: number;
   device_ids?: string[];
@@ -205,7 +205,7 @@ export interface RetentionSchemeState {
     camera_count: number;
     details: Array<{
       save_time: number;
-      save_time_unit: 'hour' | 'day';
+      save_time_unit: 'minute' | 'hour' | 'day';
       save_mode: number;
       camera_count: number;
       label: string;

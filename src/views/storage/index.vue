@@ -74,7 +74,7 @@
         <div class="tab-toolbar">
           <div>
             <h2>按摄像头配置</h2>
-            <p>0 天表示永久保留；“到期归档”会将过期录像移入归档区。</p>
+            <p>时长为 0 表示永久保留；“到期归档”会将过期录像移入归档区。</p>
           </div>
           <div class="policy-picker">
             <label>选择摄像头</label>
@@ -198,8 +198,9 @@
             </template>
             <template v-else-if="column.key === 'save_time'">
               <div class="duration-editor">
-                <AInputNumber v-model:value="record.save_time" :min="0" :max="record.save_time_unit === 'hour' ? 87600 : 3650" :precision="0" />
+                <AInputNumber v-model:value="record.save_time" :min="0" :max="retentionMax(record.save_time_unit)" :precision="0" />
                 <ASelect v-model:value="record.save_time_unit" style="width: 76px">
+                  <ASelectOption value="minute">分钟</ASelectOption>
                   <ASelectOption value="hour">小时</ASelectOption>
                   <ASelectOption value="day">天</ASelectOption>
                 </ASelect>
@@ -309,8 +310,8 @@
         <label>
           <span>保留时长</span>
           <div class="inline-field">
-            <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="customSchemeForm.unit === 'hour' ? 87600 : 3650" :precision="0" />
-            <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">天</ASelectOption></ASelect>
+            <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="retentionMax(customSchemeForm.unit)" :precision="0" />
+            <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="minute">分钟</ASelectOption><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">天</ASelectOption></ASelect>
           </div>
         </label>
         <label>
@@ -439,6 +440,10 @@ function formatRelativeTime(value?: string) {
   return `${Math.floor(hours / 24)} 天前`;
 }
 
+function retentionMax(unit?: 'minute' | 'hour' | 'day') {
+  return { minute: 5256000, hour: 87600, day: 3650 }[unit || 'day'];
+}
+
 function sourceLabel(source: RecordingHistory['source']) {
   if (source === 'srs') return '连续录像';
   if (source === 'archive') return '归档录像';
@@ -518,7 +523,8 @@ function targetLabel(target: RetentionRule['target']) {
 }
 
 function formatSchemeRule(rule: RetentionRule) {
-  const duration = rule.value === 0 ? '永久' : `${rule.value} ${rule.unit === 'hour' ? '小时' : '天'}`;
+  const unitLabel = { minute: '分钟', hour: '小时', day: '天' }[rule.unit];
+  const duration = rule.value === 0 ? '永久' : `${rule.value} ${unitLabel}`;
   const action = rule.save_mode === 1 ? '归档' : '删除';
   const activeWindow = rule.target === 'active' || rule.target === 'inactive'
     ? `（${rule.active_within_hours || 24} 小时）`

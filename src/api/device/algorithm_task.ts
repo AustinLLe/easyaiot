@@ -362,7 +362,7 @@ export interface Pusher {
   video_stream_quality: string; // low:低, medium:中, high:高
   event_alert_enabled: boolean;
   event_alert_url?: string;
-  event_alert_method: string; // http:HTTP, websocket:WebSocket, kafka:Kafka
+  event_alert_method: string; // http:HTTP, websocket:WebSocket
   event_alert_format: string; // json:JSON, xml:XML
   event_alert_headers?: any;
   event_alert_template?: any;
@@ -559,4 +559,3 @@ export const getTaskStreams = (task_id: number) => {
     `${ALGORITHM_PREFIX}/task/${task_id}/streams`
   );
 };
-
