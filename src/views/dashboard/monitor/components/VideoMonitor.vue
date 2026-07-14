@@ -484,8 +484,6 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
   try {
     // 解析RTMP地址：rtmp://server:port/path
     const url = new URL(rtmpUrl)
-    const server = url.hostname
-    const port = url.port || '1935'
     let path = url.pathname.substring(1) // 去掉开头的 /
     
     // 如果路径为空，使用默认路径
@@ -498,12 +496,25 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
       path = `${path}.flv`
     }
     
-    // 生成HTTP FLV地址（默认使用8080端口）
-    return `http://${server}:8080/${path}`
+    // SRS 流统一通过当前 WEB 网关访问，避免把 127.0.0.1 或内网地址发给浏览器。
+    return `/${path}`
   } catch (error) {
     console.error('RTMP地址转换失败:', error)
     return null
   }
+}
+
+// 兼容数据库中的旧绝对地址（例如 127.0.0.1:8080），AI 流始终走同源网关。
+const normalizeAiStreamUrl = (streamUrl: string): string => {
+  try {
+    const url = new URL(streamUrl, window.location.origin)
+    if (url.pathname.startsWith('/ai/')) {
+      return `${url.pathname}${url.search}`
+    }
+  } catch (error) {
+    console.warn('AI流地址解析失败，使用原地址:', streamUrl, error)
+  }
+  return streamUrl
 }
 
 // 查找空屏幕
@@ -532,9 +543,9 @@ const playDeviceStream = (device: any) => {
   if (streamType.value === 'ai') {
     // AI流模式：优先使用 ai_http_stream
     if (device.ai_http_stream) {
-      streamUrl = device.ai_http_stream
+      streamUrl = normalizeAiStreamUrl(device.ai_http_stream)
     } else if (device.device && device.device.ai_http_stream) {
-      streamUrl = device.device.ai_http_stream
+      streamUrl = normalizeAiStreamUrl(device.device.ai_http_stream)
     } else if (device.ai_rtmp_stream) {
       // 如果没有 ai_http_stream，尝试使用 ai_rtmp_stream 并转换
       streamUrl = convertRtmpToHttp(device.ai_rtmp_stream)
