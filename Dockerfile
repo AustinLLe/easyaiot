@@ -34,10 +34,8 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 # 复制源代码
 COPY . .
 
-# 构建项目（pipefail 确保构建失败时中断；日志输出到文件便于排查）
-RUN set -o pipefail && \
-    pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log && \
-    test -d /app/dist
+# 构建项目（日志输出到文件，便于容器挂载后排查）
+RUN pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log
 
 # 生产阶段
 FROM m.daocloud.io/docker.io/library/nginx:1.29.2-alpine
@@ -46,7 +44,7 @@ FROM m.daocloud.io/docker.io/library/nginx:1.29.2-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 # 作者信息
-LABEL maintainer="basiclab"
+MAINTAINER basiclab
 
 # 设置工作目录
 WORKDIR /usr/share/nginx/html

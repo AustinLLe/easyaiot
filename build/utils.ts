@@ -1,6 +1,22 @@
+import { existsSync, readFileSync } from 'node:fs'
 import path, { join } from 'node:path'
 import dotenv from 'dotenv'
-import { readFileSync } from 'fs-extra'
+import { loadEnv } from 'vite'
+
+const PRODUCTION_ENV_FILE = 'env.production'
+
+export function readEnvFile(fileName: string, cwd = process.cwd()): Recordable<string> {
+  const filePath = join(cwd, fileName)
+  if (!existsSync(filePath))
+    return {}
+
+  return dotenv.parse(readFileSync(filePath, { encoding: 'utf8' }))
+}
+
+export function loadProjectEnv(mode: string, root = process.cwd()): Recordable {
+  const fallback = mode === 'production' ? readEnvFile(PRODUCTION_ENV_FILE, root) : {}
+  return { ...fallback, ...loadEnv(mode, root) }
+}
 
 export function isDevFn(mode: string): boolean {
   return mode === 'development'
@@ -56,9 +72,11 @@ function getConfFiles() {
   const result = reg.exec(script)
   if (result) {
     const mode = result[1]
-    return ['.env', `.env.${mode}`]
+    return mode === 'production'
+      ? [PRODUCTION_ENV_FILE, '.env', `.env.${mode}`]
+      : ['.env', `.env.${mode}`]
   }
-  return ['.env', '.env.production']
+  return [PRODUCTION_ENV_FILE, '.env', '.env.production']
 }
 
 /**
@@ -74,16 +92,8 @@ export function getEnvConfig(
 }> {
   let envConfig = {}
 
-  for (const confFile of confFiles) {
-    try {
-      const envPath = readFileSync(join(process.cwd(), confFile), { encoding: 'utf8' })
-      const env = dotenv.parse(envPath)
-      envConfig = { ...envConfig, ...env }
-    }
-    catch (e) {
-      console.error(`Error in parsing ${confFile}`, e)
-    }
-  }
+  for (const confFile of confFiles)
+    envConfig = { ...envConfig, ...readEnvFile(confFile) }
   const reg = new RegExp(`^(${match})`)
   Object.keys(envConfig).forEach((key) => {
     if (!reg.test(key))
