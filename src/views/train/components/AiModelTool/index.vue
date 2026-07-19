@@ -4,17 +4,17 @@
     <div class="main-content">
       <!-- 左侧配置面板 -->
       <div class="left-panel" :class="{ collapsed: state.leftPanelCollapsed }">
-        <!-- 模型选择 -->
+        <!-- 算法选择 -->
         <div class="config-section">
           <div class="section-title">
             <SettingOutlined class="icon" />
-            <span>模型选择</span>
-            <ReloadOutlined class="icon refresh-icon" @click="loadModels" :class="{ spinning: state.loading }" title="刷新模型列表" />
+            <span>算法选择</span>
+            <ReloadOutlined class="icon refresh-icon" @click="loadModels" :class="{ spinning: state.loading }" title="刷新算法列表" />
           </div>
           <div class="config-options">
             <div class="input-group">
               <select class="select-field" v-model="state.selectedModelId" @change="handleModelChange">
-                <option value="">请选择模型</option>
+                <option value="">请选择算法</option>
                 <option value="yolov8">Yolov8模型</option>
                 <option value="yolov11">Yolov11模型</option>
                 <option v-for="model in state.models" :key="model.id" :value="model.id">
@@ -25,12 +25,12 @@
           </div>
         </div>
 
-        <!-- 模型服务选择（仅在图片推理时显示） -->
+        <!-- 算法服务选择（仅在图片推理时显示） -->
         <div class="config-section" v-if="state.activeSource === 'image'">
           <div class="section-title">
             <SettingOutlined class="icon" />
-            <span>模型服务</span>
-            <Tooltip title="已选择模型服务时，优先通过服务推理；否则使用下方模型列表">
+            <span>算法服务</span>
+            <Tooltip title="已选择算法服务时，优先通过服务推理；否则使用下方算法列表">
               <QuestionCircleOutlined class="icon tip-icon" />
             </Tooltip>
             <ReloadOutlined class="icon refresh-icon" @click="loadDeployServices" :class="{ spinning: state.deployServicesLoading }" title="刷新服务列表" />
@@ -38,7 +38,7 @@
           <div class="config-options">
             <div class="input-group">
               <select class="select-field" v-model="state.selectedDeployServiceId" @change="handleDeployServiceChange">
-                <option :value="null">请选择模型服务</option>
+                <option :value="null">请选择算法服务</option>
                 <option v-for="service in state.deployServices" :key="service.id" :value="service.id">
                   {{ service.model_name }}服务（v{{ service.model_version }}）
                 </option>
@@ -615,7 +615,7 @@ const startDetection = async () => {
   // 检查是否有可用的模型（模型服务或模型选择）
   const hasModel = state.selectedDeployServiceId || state.selectedModelId;
   if (!hasModel) {
-    createMessage.warning('请先选择模型或模型服务');
+    createMessage.warning('请先选择算法或算法服务');
     return;
   }
 
@@ -684,7 +684,7 @@ const startDetection = async () => {
         const clusterModelId = selectedService.model_id;
         response = await runClusterInference(clusterModelId, formData);
       } else {
-        createMessage.warning('选中的模型服务无效，将使用模型列表接口');
+        createMessage.warning('选中的算法服务无效，将使用算法列表接口');
         useClusterService = false;
       }
     }

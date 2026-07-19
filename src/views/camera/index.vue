@@ -8,6 +8,9 @@
         @tabClick="handleTabClick"
       >
         <TabPane key="1" tab="设备列表">
+          <div class="device-list-layout">
+            <DirectorySidebar ref="directorySidebarRef" @select="handleDirectorySelect" />
+            <div class="device-list-main">
               <!-- 列表模式 -->
               <BasicTable v-if="viewMode === 'table'" @register="registerTable">
                 <template #toolbar>
@@ -41,7 +44,7 @@
                 <template #bodyCell="{ column, record }">
                   <!-- 统一复制功能组件 -->
                   <template
-                    v-if="['id', 'name', 'model', 'source', 'rtmp_stream', 'http_stream', 'ai_rtmp_stream', 'ai_http_stream'].includes(column.key)">
+                    v-if="['id', 'name', 'model', 'source', 'rtmp_stream'].includes(column.key)">
             <span style="cursor: pointer" @click="handleCopy(record[column.key])"><Icon
               icon="tdesign:copy-filled" color="#4287FCFF"/> {{ record[column.key] }}</span>
                   </template>
@@ -54,9 +57,11 @@
                   </template>
 
                   <template v-else-if="column.dataIndex === 'action'">
-                    <TableAction
-                      :actions="getTableActions(record)"
-                    />
+                    <div class="camera-table-action">
+                      <TableAction
+                        :actions="getTableActions(record)"
+                      />
+                    </div>
                   </template>
                 </template>
               </BasicTable>
@@ -65,13 +70,12 @@
               <div v-else class="card-mode-wrapper">
                 <VideoCardList
                   ref="videoCardListRef"
-                  :api="getDeviceList"
+                  :api="fetchDeviceList"
                   :params="{}"
                   @view="handleCardView"
                   @edit="handleCardEdit"
                   @delete="handleCardDelete"
                   @play="handleCardPlay"
-                  @playAI="handleCardPlayAI"
                   @toggleStream="handleCardToggleStream"
                 >
                   <template #header>
@@ -106,16 +110,8 @@
               <DialogPlayer title="视频播放" @register="registerPlayerAddModel"
                             @success="handlePlayerSuccess"/>
               <VideoModal @register="registerAddModel" @success="handleSuccess"/>
-        </TabPane>
-        <TabPane key="2" tab="设备目录">
-          <DirectoryManage
-            ref="directoryManageRef"
-            @view="handleCardView"
-            @edit="handleCardEdit"
-            @delete="handleCardDelete"
-            @play="handleCardPlay"
-            @toggleStream="handleCardToggleStream"
-          />
+            </div>
+          </div>
         </TabPane>
         <TabPane key="3" tab="抓拍空间">
           <SnapSpace ref="snapSpaceRef"/>
@@ -126,9 +122,6 @@
         <TabPane key="6" tab="推流转发">
           <StreamForward ref="streamForwardRef"/>
         </TabPane>
-        <TabPane key="5" tab="算法任务">
-          <AlgorithmTask ref="algorithmTaskRef"/>
-        </TabPane>
       </Tabs>
     </div>
   </div>
@@ -136,7 +129,7 @@
 
 <script lang="ts" setup>
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
-import {useRoute} from 'vue-router';
+import {useRoute, useRouter} from 'vue-router';
 import {TabPane, Tabs} from 'ant-design-vue';
 import {BasicTable, TableAction, useTable} from '@/components/Table';
 import {useMessage} from '@/hooks/web/useMessage';
@@ -147,17 +140,18 @@ import {
   deleteDevice,
   DeviceInfo,
   getDeviceList,
+  getDirectoryDevices,
   getStreamStatus,
   refreshDevices,
   startStreamForwarding,
   stopStreamForwarding,
-  StreamStatusResponse
+  StreamStatusResponse,
+  type DeviceDirectory,
 } from '@/api/device/camera';
 import {ScanOutlined, SyncOutlined, VideoCameraAddOutlined, SwapOutlined} from '@ant-design/icons-vue';
 import DialogPlayer from "@/components/VideoPlayer/DialogPlayer.vue";
-import DirectoryManage from "./components/DirectoryManage/index.vue";
+import DirectorySidebar from "./components/DirectorySidebar/index.vue";
 import SnapSpace from "./components/SnapSpace/index.vue";
-import AlgorithmTask from "./components/AlgorithmTask/index.vue";
 import RecordSpace from "./components/RecordSpace/index.vue";
 import VideoCardList from "./components/VideoCardList/index.vue";
 import StreamForward from "./components/StreamForward/index.vue";
@@ -165,6 +159,7 @@ import StreamForward from "./components/StreamForward/index.vue";
 defineOptions({name: 'CAMERA'})
 
 const route = useRoute();
+const router = useRouter();
 
 const {createMessage} = useMessage();
 const [registerAddModel, {openModal}] = useModal();
@@ -179,8 +174,51 @@ const state = reactive({
 // 视图模式（默认卡片模式）
 const viewMode = ref<'table' | 'card'>('card');
 
-// 目录管理组件引用
-const directoryManageRef = ref();
+// 目录侧边栏引用
+const directorySidebarRef = ref();
+
+// 设备列表页选中的目录
+const selectedDirectoryId = ref<number | null>(null);
+
+// 按目录或全部加载设备列表
+const fetchDeviceList = async (params: Record<string, any> = {}) => {
+  const pageNo = params.pageNo || params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const search = params.search || params.deviceName || '';
+
+  if (selectedDirectoryId.value) {
+    const response = await getDirectoryDevices(selectedDirectoryId.value, {
+      pageNo,
+      pageSize,
+      search,
+      name: params.name || params.deviceName || '',
+      online: params.online !== undefined && params.online !== '' ? params.online : undefined,
+      model: params.model || '',
+    });
+
+    const data = response.code !== undefined ? response.data : response;
+    const total = response.code !== undefined
+      ? response.total
+      : (Array.isArray(data) ? data.length : 0);
+
+    return {
+      data: Array.isArray(data) ? data : [],
+      total: total ?? 0,
+    };
+  }
+
+  return getDeviceList({
+    pageNo,
+    pageSize,
+    search,
+    enable_forward: params.enable_forward,
+  });
+};
+
+const handleDirectorySelect = (directory: DeviceDirectory | null) => {
+  selectedDirectoryId.value = directory?.id ?? null;
+  handleSuccess();
+};
 
 // 视频卡片列表组件引用
 const videoCardListRef = ref();
@@ -190,9 +228,6 @@ const snapSpaceRef = ref();
 
 // 录像空间组件引用
 const recordSpaceRef = ref();
-
-// 算法任务组件引用
-const algorithmTaskRef = ref();
 
 // 推流转发组件引用
 const streamForwardRef = ref();
@@ -211,10 +246,6 @@ const handleTabClick = (activeKey: string) => {
   // 切换到录像空间标签页时，刷新数据
   if (activeKey === '4' && recordSpaceRef.value) {
     recordSpaceRef.value.refresh();
-  }
-  // 切换到算法任务标签页时，刷新数据
-  if (activeKey === '5' && algorithmTaskRef.value) {
-    algorithmTaskRef.value.refresh();
   }
   // 切换到推流转发标签页时，刷新数据
   if (activeKey === '6' && streamForwardRef.value) {
@@ -297,7 +328,7 @@ const [registerTable, {reload}] = useTable({
   canResize: true,
   showIndexColumn: false,
   title: '摄像头列表',
-  api: getDeviceList,
+  api: fetchDeviceList,
   columns: getBasicColumns(),
   useSearchForm: true,
   showTableSetting: false,
@@ -352,15 +383,6 @@ const getTableActions = (record) => {
       onClick: () => handlePlay(record)
     }
   ];
-
-  // 如果有AI流地址，添加查看AI流按钮
-  if (record.ai_http_stream || record.ai_rtmp_stream) {
-    actions.push({
-      icon: 'hugeicons:ai-video',
-      tooltip: '查看AI流',
-      onClick: () => handlePlayAIStream(record)
-    });
-  }
 
   // 根据流状态添加不同的操作按钮
   const currentStatus = (deviceStreamStatuses.value && deviceStreamStatuses.value[record.id]) || 'unknown';
@@ -483,16 +505,6 @@ function handlePlay(record) {
   openPlayerAddModel(true, record)
 }
 
-// 播放AI流
-function handlePlayAIStream(record) {
-  // 创建一个新的record对象，将ai_http_stream赋值给http_stream，以便播放器使用
-  const aiRecord = {
-    ...record,
-    http_stream: record.ai_http_stream || record.ai_rtmp_stream
-  };
-  openPlayerAddModel(true, aiRecord)
-}
-
 async function handleCopy(text: string) {
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(text);
@@ -513,7 +525,8 @@ const openAddModal = (type, record = null) => {
     type,
     record,
     isEdit: type === 'edit',
-    isView: type === 'view'
+    isView: type === 'view',
+    defaultDirectoryId: selectedDirectoryId.value,
   });
 };
 
@@ -524,6 +537,7 @@ const handleScanOnvif = () => {
 
 // 刷新数据
 const handleSuccess = () => {
+  directorySidebarRef.value?.refresh();
   if (viewMode.value === 'table') {
     reload();
   } else if (videoCardListRef.value) {
@@ -572,10 +586,6 @@ const handleCardPlay = (record) => {
   handlePlay(record);
 };
 
-const handleCardPlayAI = (record) => {
-  handlePlayAIStream(record);
-};
-
 const handleCardToggleStream = async (record) => {
   const currentStatus = (deviceStreamStatuses.value && deviceStreamStatuses.value[record.id]) || 'unknown';
   if (currentStatus === 'running') {
@@ -596,8 +606,12 @@ onMounted(() => {
   // startStatusCheckTimer();
   // 处理路由参数，自动切换到指定tab
   const tab = route.query.tab as string;
+  if (tab === '5') {
+    router.replace('/algorithm-task/index');
+    return;
+  }
   // 已移除 GB28181 相关 tab，旧链接回落到设备列表
-  const removedTabs = new Set(['7', '9', '10', 'gb28181']);
+  const removedTabs = new Set(['5', '7', '9', '10', 'gb28181']);
   if (tab && !removedTabs.has(tab)) {
     state.activeKey = tab;
   }
@@ -639,6 +653,35 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .device-list-layout {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    min-height: calc(100vh - 220px);
+    background: #fff;
+
+    .device-list-main {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      padding: 0 16px 16px;
+
+      .camera-table-action {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+
+        :deep([class*='-basic-table-action']) {
+          justify-content: center !important;
+        }
+      }
+
+      :deep(.camera-action-column) {
+        text-align: center !important;
+      }
+    }
   }
 
 }

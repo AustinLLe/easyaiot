@@ -1,17 +1,19 @@
 <template>
   <div>
-    <div class="model-list-toolbar">
-      <a-button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })" data-test-id="upload-local-model">
-        上传本地模型
-      </a-button>
-      <a-button type="primary" @click="openSyncModal(true)">
-        从云端同步模型到本地
-      </a-button>
-      <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
-        切换视图
-      </a-button>
-    </div>
     <BasicTable @register="registerTable" v-if="state.isTableMode">
+      <template #toolbar>
+        <div class="model-list-toolbar">
+          <a-button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })" data-test-id="upload-local-model">
+            上传本地算法
+          </a-button>
+          <a-button type="primary" @click="openSyncModal(true)">
+            从云端同步算法到本地
+          </a-button>
+          <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
+            切换视图
+          </a-button>
+        </div>
+      </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'action'">
           <TableAction
@@ -34,14 +36,6 @@
               },
               {
                 tooltip: {
-                  title: '下载模型',
-                  placement: 'top',
-                },
-                icon: 'ant-design:download-outlined',
-                onClick: handleDownload.bind(null, record),
-              },
-              {
-                tooltip: {
                   title: '删除',
                   placement: 'top',
                 },
@@ -61,12 +55,23 @@
       <ModelCardList
         :params="params"
         :api="getModelPage"
+        :model-options="modelOptions"
         @get-method="getMethod"
         @delete="handleDel"
         @view="handleView"
         @edit="handleEdit"
-        @download="handleDownload"
       >
+      <template #header>
+        <a-button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })">
+          上传本地算法
+        </a-button>
+        <a-button type="primary" @click="openSyncModal(true)">
+          从云端同步算法到本地
+        </a-button>
+        <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
+          切换视图
+        </a-button>
+      </template>
       </ModelCardList>
     </div>
     <ModelModal @register="registerAddModel" @success="handleSuccess"/>
@@ -75,7 +80,7 @@
 </template>
 
 <script lang="ts" setup name="modelManagement">
-import { reactive } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from "./data";
@@ -90,14 +95,30 @@ const { createMessage } = useMessage();
 const [registerAddModel, { openModal: openAddModal }] = useModal();
 const [registerSyncModal, { openModal: openSyncModal }] = useModal();
 
-// 给上传按钮提供明确的点击入口（仅打开 ModelModal）
-// 注意：ModelModal 内部继续负责 /model/upload 与 /model/create
-
-
 defineOptions({ name: 'ModelList' })
 
 const state = reactive({
-  isTableMode: false,
+  isTableMode: true,
+});
+
+const modelOptions = ref<any[]>([]);
+
+const loadModelOptions = async () => {
+  try {
+    const res = await getModelPage({ pageNo: 1, pageSize: 1000 });
+    const models = res.data || [];
+    modelOptions.value = models.map((model: any) => ({
+      label: `${model.name} (${model.version})`,
+      value: model.id,
+    }));
+  } catch (error) {
+    console.error('获取算法列表失败:', error);
+    modelOptions.value = [];
+  }
+};
+
+onMounted(() => {
+  loadModelOptions();
 });
 
 const params = {};
@@ -131,24 +152,48 @@ function handleClickSwap() {
 function handleSuccess() {
   reload({ page: 0 });
   cardListReload();
+  loadModelOptions();
 }
 
-const [registerTable, { reload }] = useTable({
+const [registerTable, { reload, getForm }] = useTable({
   canResize: true,
   showIndexColumn: false,
-  title: '模型管理',
-  api: getModelPage,
+  title: '算法管理',
+  api: async (params) => {
+    const requestParams = { ...params };
+    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
+      delete requestParams.model_id;
+    }
+    return getModelPage(requestParams);
+  },
   columns: getBasicColumns(),
   useSearchForm: true,
   showTableSetting: false,
   pagination: true,
-  formConfig: getFormConfig(),
+  formConfig: getFormConfig(modelOptions.value),
   fetchSetting: {
     listField: 'data',
     totalField: 'total',
   },
   rowKey: 'id',
 });
+
+watch(() => modelOptions.value, (newOptions) => {
+  if (newOptions.length > 0) {
+    const form = getForm();
+    if (form) {
+      form.updateSchema({
+        field: 'model_id',
+        componentProps: {
+          options: [
+            { label: '全部', value: '' },
+            ...newOptions,
+          ],
+        },
+      });
+    }
+  }
+}, { deep: true });
 
 const handleDelete = async (record) => {
   try {
@@ -161,106 +206,13 @@ const handleDelete = async (record) => {
   }
 };
 
-// 下载模型处理函数
-const handleDownload = async (record) => {
-  try {
-    const token = localStorage.getItem('jwt_token');
-    
-    // 优先使用后台返回的 model_path 或 onnx_model_path（MinIO 路径）
-    const modelPath = record.model_path || record.onnx_model_path;
-    
-    let downloadUrl;
-    if (modelPath) {
-      // 如果 model_path 是完整的 MinIO 路径（以 /api/v1/buckets 开头），直接使用
-      // nginx 会自动代理到 MinIO
-      if (modelPath.startsWith('/api/v1/buckets')) {
-        downloadUrl = modelPath;
-      } else if (modelPath.startsWith('http://') || modelPath.startsWith('https://')) {
-        // 如果是完整的 HTTP URL，直接使用
-        downloadUrl = modelPath;
-      } else {
-        // 如果是相对路径，可能需要添加前缀（根据实际情况调整）
-        downloadUrl = modelPath;
-      }
-    } else {
-      // 如果没有 model_path，使用后端下载接口作为备选方案
-      downloadUrl = `/api/model/${record.id}/download`;
-    }
-
-    // 使用 fetch 下载文件（支持认证头）
-    const response = await fetch(downloadUrl, {
-      method: 'GET',
-      headers: {
-        'X-Authorization': 'Bearer ' + token,
-      },
-    });
-
-    if (!response.ok) {
-      // 如果是404，尝试解析错误消息
-      if (response.status === 404) {
-        const errorData = await response.json().catch(() => ({}));
-        createMessage.warning(errorData.msg || '该模型没有可下载的文件');
-        return;
-      }
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.msg || '下载失败: ' + response.statusText);
-    }
-
-    // 获取文件 blob
-    const blob = await response.blob();
-    
-    // 从响应头获取文件名，如果没有则根据模型路径确定
-    const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = `${record.name}_${record.version || 'v1.0.0'}.pt`;
-    
-    if (contentDisposition) {
-      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-      if (fileNameMatch && fileNameMatch[1]) {
-        fileName = fileNameMatch[1].replace(/['"]/g, '');
-      }
-    } else if (modelPath) {
-      // 从 MinIO 路径中提取文件名
-      try {
-        const urlObj = new URL(modelPath, window.location.origin);
-        const prefix = urlObj.searchParams.get('prefix');
-        if (prefix) {
-          const pathParts = prefix.split('/');
-          fileName = pathParts[pathParts.length - 1] || fileName;
-        }
-      } catch (e) {
-        // 如果解析失败，根据模型类型确定扩展名
-        const fileExt = record.onnx_model_path && !record.model_path ? '.onnx' : '.pt';
-        fileName = `${record.name}_${record.version || 'v1.0.0'}${fileExt}`;
-      }
-    } else {
-      // 根据模型路径确定文件扩展名
-      const fileExt = record.onnx_model_path && !record.model_path ? '.onnx' : '.pt';
-      fileName = `${record.name}_${record.version || 'v1.0.0'}${fileExt}`;
-    }
-    
-    // 创建下载链接
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    createMessage.success('模型下载成功');
-  } catch (error) {
-    console.error('下载模型失败:', error);
-    createMessage.error('下载模型失败: ' + (error.message || '未知错误'));
-  }
-};
 </script>
 
 <style scoped>
 .model-list-toolbar {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
 }
 </style>

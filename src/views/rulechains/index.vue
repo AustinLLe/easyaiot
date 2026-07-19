@@ -116,16 +116,16 @@
 <script lang="ts" name="RuleChains">
 import {defineComponent, reactive, ref} from 'vue';
 import {BasicTable, TableAction, useTable} from '@/components/Table';
-import {getBasicColumns, getFormConfig} from './tableData';
+import {getBasicColumns, getFormConfig} from './Data';
 // import moment from 'moment';
 import {deleteflows, flowsList,} from '@/api/device/rule-chains';
 import {useGo} from '@/hooks/web/usePage';
 import {PopConfirmButton} from '@/components/Button';
 import {useMessage} from '@/hooks/web/useMessage';
 import {useModal} from '@/components/Modal';
-import Modal from './model.vue';
+import Modal from './components/RulechainModal/index.vue';
 import {useDrawer} from '@/components/Drawer';
-import Drawer from './drawer.vue';
+import Drawer from './components/RulechainDrawer/index.vue';
 import {Tag} from 'ant-design-vue';
 import RulechainCardList from "@/views/rulechains/components/CardList/RulechainCardList.vue";
 

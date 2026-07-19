@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     @register="register"
-    title="从云端同步模型到本地"
+    title="从云端同步算法到本地"
     :width="560"
     :canFullscreen="false"
     @ok="handleOk"
@@ -10,11 +10,11 @@
       type="info"
       show-icon
       class="mb-4"
-      message="在 AI 服务环境中配置 EDGE_CLOUD_MODEL_API_BASE（云端与边缘相同的模型 API 根路径，例如 https://your-cloud/admin-api/model），可选 EDGE_CLOUD_MODEL_TOKEN。"
+      message="在 AI 服务环境中配置 EDGE_CLOUD_MODEL_API_BASE（云端与边缘相同的算法 API 根路径，例如 https://your-cloud/admin-api/model），可选 EDGE_CLOUD_MODEL_TOKEN。"
     />
     <Spin :spinning="state.loading">
       <Form layout="vertical">
-        <FormItem label="选择云端模型" required>
+        <FormItem label="选择云端算法" required>
           <Select
             v-model:value="state.remoteId"
             placeholder="请先加载云端目录"
@@ -78,7 +78,7 @@ function filterOption(input: string, option: any) {
 
 async function handleOk() {
   if (state.remoteId == null) {
-    createMessage.warning('请选择要同步的云端模型');
+    createMessage.warning('请选择要同步的云端算法');
     return;
   }
   setModalProps({ confirmLoading: true });

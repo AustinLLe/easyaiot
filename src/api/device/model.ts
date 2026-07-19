@@ -88,7 +88,7 @@ export const createInferenceTask = (params) => {
 };
 
 export const updateInferenceTask = (recordId, params) => {
-  return commonApi('post', `${Api.InferenceTask}/update/${recordId}`, {data: params});
+  return commonApi('put', `${Api.InferenceTask}/update/${recordId}`, {data: params});
 };
 
 export const deleteInferenceTask = (recordId) => {
@@ -104,7 +104,7 @@ export const getInferenceTaskDetail = (recordId) => {
 };
 
 export const deleteInferenceRecord = (recordId) => {
-  return commonApi('delete', `${Api.InferenceTask}/${recordId}`);
+  return commonApi('delete', `${Api.InferenceTask}/delete/${recordId}`);
 };
 
 export const runInference = (modelId, formData) => {
@@ -146,11 +146,9 @@ export const exportModel = (modelId, format, params) => {
 
 export const downloadExportedModel = (exportId) => {
   // 下载文件需要返回blob，不使用transformResponse
-  // 模型文件可能较大，设置20分钟超时
   return defHttp.get({
     url: `${Api.Export}/download/${exportId}`,
     responseType: 'blob',
-    timeout: 20 * 60 * 1000,
     headers: {
       'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
     }
@@ -321,3 +319,4 @@ export const disableExtractor = (cameraName) => {
 export const getExtractorLogs = (cameraName, params) => {
   return commonApi('get', `${Api.DeployService}/extractor/${cameraName}/logs`, {params});
 };
+

@@ -30,7 +30,10 @@
                         placement: 'top',
                       },
                       label: '注册设备',
-                      onClick: openRegisterModal.bind(null, true, { record })
+                      onClick: () => openRegisterModal(true, {
+                        record,
+                        defaultDirectoryId: modelRef.directory_id,
+                      })
                     },
                   ]"
                 />
@@ -52,6 +55,17 @@
               placeholder="请选择摄像头类型"
               :options="state.cameraTypeList"
               @change="handleCameraTypeChange"
+            />
+          </FormItem>
+          <FormItem label="分组" name="directory_id">
+            <TreeSelect
+              v-model:value="modelRef.directory_id"
+              placeholder="请选择分组（可选）"
+              :tree-data="directoryTreeOptions"
+              allow-clear
+              tree-default-expand-all
+              :field-names="{ label: 'name', value: 'id', children: 'children' }"
+              style="width: 100%"
             />
           </FormItem>
           <!-- 自定义类型：显示完整RTSP地址输入框 -->
@@ -174,16 +188,6 @@
               </FormItem>
             </Col>
             <Col :span="12">
-              <FormItem label="AI推流地址" name="ai_rtmp_stream" v-bind=validateInfos.ai_rtmp_stream>
-                <Input v-model:value="modelRef.ai_rtmp_stream"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="AI HTTP地址" name="ai_http_stream" v-bind=validateInfos.ai_http_stream>
-                <Input v-model:value="modelRef.ai_http_stream"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
               <FormItem label="IP地址" name="ip" v-bind=validateInfos.ip>
                 <Input v-model:value="modelRef.ip"/>
               </FormItem>
@@ -236,12 +240,13 @@
 <script lang="ts" setup>
 import {computed, reactive, ref} from 'vue';
 import {BasicModal, useModal, useModalInner} from '@/components/Modal';
-import {Col, Form, FormItem, Input, Row, Select, Spin,} from 'ant-design-vue';
+import {Col, Form, FormItem, Input, Row, Select, Spin, TreeSelect} from 'ant-design-vue';
 import {CopyOutlined} from '@ant-design/icons-vue';
 import {useMessage} from '@/hooks/web/useMessage';
 import {copyText} from '@/utils/copyTextToClipboard';
 // 导入新的API函数
-import {discoverDevices, getDeviceList, registerDevice, updateDevice} from "@/api/device/camera";
+import {discoverDevices, getDeviceList, getDirectoryList, moveDeviceToDirectory, registerDevice, updateDevice} from "@/api/device/camera";
+import {convertDirectoryTreeForSelect} from "../../utils/directoryUtils";
 import {ensureDeviceStreamForwardTask} from "@/api/device/stream_forward";
 import {BasicTable, TableAction, useTable} from "@/components/Table";
 import {getOnvifBasicColumns, getOnvifFormConfig} from "./Data";
@@ -289,8 +294,6 @@ const modelRef = reactive({
   source: '',
   rtmp_stream: '',
   http_stream: '',
-  ai_rtmp_stream: '',
-  ai_http_stream: '',
   stream: 0,
   enable_forward: '',
   ip: '',
@@ -306,7 +309,32 @@ const modelRef = reactive({
   support_move: '',
   support_zoom: '',
   cameraType: 'custom', // 摄像头类型：custom, hikvision, dahua, uniview
+  directory_id: undefined as number | undefined,
 });
+
+const directoryTreeOptions = ref<any[]>([]);
+
+async function loadDirectoryOptions() {
+  try {
+    const response = await getDirectoryList();
+    const data = response.code !== undefined ? response.data : response;
+    if (data && Array.isArray(data)) {
+      directoryTreeOptions.value = convertDirectoryTreeForSelect(data);
+    } else {
+      directoryTreeOptions.value = [];
+    }
+  } catch (error) {
+    console.error('加载分组列表失败', error);
+    directoryTreeOptions.value = [];
+  }
+}
+
+async function assignDeviceToDirectory(deviceId: string | number | undefined, directoryId?: number) {
+  if (!deviceId || !directoryId) {
+    return;
+  }
+  await moveDeviceToDirectory(String(deviceId), directoryId);
+}
 
 
 const getTitle = computed(() => {
@@ -314,10 +342,12 @@ const getTitle = computed(() => {
 });
 
 const [register, {closeModal}] = useModalInner(async (data) => {
-  const {isEdit, isView, type, record} = data;
+  const {isEdit, isView, type, record, defaultDirectoryId} = data;
   state.isEdit = isEdit;
   state.isView = isView;
   state.type = type;
+
+  await loadDirectoryOptions();
 
   // 如果是新增直连设备，重置相关字段
   if (type === 'source' && !isEdit && !isView) {
@@ -329,6 +359,7 @@ const [register, {closeModal}] = useModalInner(async (data) => {
     modelRef.source = '';
     modelRef.name = '';
     modelRef.stream = 0;
+    modelRef.directory_id = defaultDirectoryId ?? undefined;
   }
 
   // 更新验证规则
@@ -600,6 +631,7 @@ function handleRegisterSuccess(value) {
   const stream = value['stream'];
   const username = value['username'];
   const password = value['password'];
+  const directoryId = value['directory_id'] as number | undefined;
   if (ip == null || ip === '') {
     createMessage.error('IP地址不能为空');
     return;
@@ -632,6 +664,15 @@ function handleRegisterSuccess(value) {
       .then(async (response) => {
         const deviceId = response?.data?.id;
         createMessage.success('设备注册成功');
+
+        if (deviceId && directoryId) {
+          try {
+            await assignDeviceToDirectory(deviceId, directoryId);
+          } catch (error) {
+            console.warn('关联分组失败:', error);
+            createMessage.warning('设备已注册，但关联分组失败');
+          }
+        }
         
         // 检查并确保推流转发任务存在
         if (deviceId) {
@@ -774,6 +815,15 @@ function handleOk() {
         const response = await registerDevice(registerData);
         const deviceId = response?.data?.id;
         createMessage.success('设备注册成功');
+
+        if (deviceId && modelRef.directory_id) {
+          try {
+            await assignDeviceToDirectory(deviceId, modelRef.directory_id);
+          } catch (error) {
+            console.warn('关联分组失败:', error);
+            createMessage.warning('设备已注册，但关联分组失败');
+          }
+        }
         
         // 检查并确保推流转发任务存在
         if (deviceId) {

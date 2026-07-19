@@ -26,23 +26,25 @@ const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url, params = {}, 
   );
 };
 
+/** 解析 VIDEO 告警接口响应（code=200, data=...） */
+function parseVideoAlertResponse(res: any) {
+  const body = res?.data ?? res;
+  if (body?.code !== undefined && body.code !== 200) {
+    throw new Error(body.message || body.msg || '请求失败');
+  }
+  if (body?.data !== undefined && body?.data !== null) {
+    return body.data;
+  }
+  return body;
+}
+
 // 告警事件（带请求去重）
 export const queryAlarmList = async (params) => {
   const url = Api.Alarm + '/page';
   return dedupeRequest(
     async () => {
       const res = await commonApi('get', url, {params}, {}, false);
-      // 后端返回格式: { code: 200, message: "success", data: { alert_list: [], total: 100 } }
-      // 当 isTransformResponse: false 时，返回的是整个 Axios 响应对象，需要访问 res.data 获取实际响应
-      // 然后访问 res.data.data 获取实际数据
-      if (res && res.data && res.data.data) {
-        return res.data.data;
-      }
-      // 兼容处理：如果结构不同，尝试直接返回 res.data
-      if (res && res.data) {
-        return res.data;
-      }
-      return res;
+      return parseVideoAlertResponse(res);
     },
     url,
     params,
@@ -59,7 +61,7 @@ export const queryAlertCameras = async () => {
     const deviceName = item.name || item.id;
     return {
       value: deviceId,
-      label: deviceName && deviceName !== deviceId ? `${deviceName} (${deviceId})` : deviceId,
+      label: String(deviceName || deviceId),
       device_id: deviceId,
       device_name: deviceName,
     };
@@ -78,8 +80,24 @@ export const deleteAlarm = (id) => {
   return commonApi('delete', `${Api.Alarm}/delete/${id}`);
 };
 
-export const getAlertCount = (params) => {
-  return commonApi('get', Api.Alarm + '/count', {device_id: params['id']});
+export const getAlertCount = async (params: {
+  group?: 'date' | 'device' | 'object';
+  begin_datetime?: string;
+  end_datetime?: string;
+  device_id?: string;
+  object?: string;
+  event?: string;
+}) => {
+  const url = Api.Alarm + '/count';
+  return dedupeRequest(
+    async () => {
+      const res = await commonApi('get', url, { params }, {}, false);
+      return parseVideoAlertResponse(res);
+    },
+    url,
+    params,
+    1000,
+  );
 };
 
 export const getAlertImage = (path) => {
@@ -126,15 +144,7 @@ export const getDashboardStatistics = async () => {
   return dedupeRequest(
     async () => {
       const res = await commonApi('get', url, {}, {}, false);
-      // 后端返回格式: { code: 200, message: "success", data: { alarm_count, today_alarm_count, camera_count, algorithm_count, model_count } }
-      if (res && res.data && res.data.data) {
-        return res.data.data;
-      }
-      // 兼容处理：如果结构不同，尝试直接返回 res.data
-      if (res && res.data) {
-        return res.data;
-      }
-      return res;
+      return parseVideoAlertResponse(res);
     },
     url,
     undefined, // 统计接口无参数

@@ -2,8 +2,18 @@
  * 设备区域检测API
  */
 import { defHttp } from '@/utils/http/axios';
+import { getAccessToken } from '@/utils/auth';
 
 const DEVICE_DETECTION_PREFIX = '/video/device-detection';
+
+/** RTSP 抽帧可能较慢，单独延长超时（全局默认 10s 不够） */
+const SNAPSHOT_REQUEST_TIMEOUT_MS = 60 * 1000;
+
+function applyVideoAuthHeaders() {
+  const token = getAccessToken();
+  if (token)
+    defHttp.setHeader({ 'X-Authorization': `Bearer ${token}` });
+}
 
 const commonApi = <T = any>(
   method: 'get' | 'post' | 'put' | 'delete',
@@ -11,13 +21,16 @@ const commonApi = <T = any>(
   params?: any,
   data?: any,
   isTransformResponse = true,
+  timeout?: number,
 ) => {
+  applyVideoAuthHeaders();
   return defHttp.request<T>(
     {
       url,
       method,
       params,
       data,
+      ...(timeout ? { timeout } : {}),
     },
     {
       isTransformResponse,
@@ -116,6 +129,7 @@ export const captureDeviceSnapshot = (device_id: string) => {
     {},
     {},
     false,
+    SNAPSHOT_REQUEST_TIMEOUT_MS,
   );
 };
 
@@ -139,6 +153,6 @@ export const updateDeviceCoverImage = (device_id: string) => {
     {},
     {},
     false,
+    SNAPSHOT_REQUEST_TIMEOUT_MS,
   );
 };
-

@@ -3,22 +3,22 @@ import {BasicColumn, FormProps} from "@/components/Table";
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
-      title: '模型ID',
+      title: '算法ID',
       dataIndex: 'id',
       width: 90,
     },
     {
-      title: '模型名称',
+      title: '算法名称',
       dataIndex: 'name',
       width: 120,
     },
     {
-      title: '模型版本',
+      title: '算法版本',
       dataIndex: 'version',
       width: 120,
     },
     {
-      title: '模型描述',
+      title: '算法描述',
       dataIndex: 'description',
       width: 180,
       customRender: ({text}) => text || '--',
@@ -39,19 +39,33 @@ export function getBasicColumns(): BasicColumn[] {
       width: 90,
       title: '操作',
       dataIndex: 'action',
+      align: 'center',
+      flag: 'ACTION',
     },
   ];
 }
 
-export function getFormConfig(): Partial<FormProps> {
+export function getFormConfig(modelOptions: any[] = []): Partial<FormProps> {
   return {
     labelWidth: 80,
     baseColProps: {span: 6},
     schemas: [
       {
-        field: `name`,
-        label: `模型名称`,
-        component: 'Input',
+        field: 'model_id',
+        label: `算法名称`,
+        component: 'Select',
+        componentProps: {
+          placeholder: '请选择算法',
+          showSearch: true,
+          allowClear: true,
+          filterOption: (input: string, option: any) => {
+            return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+          },
+          options: [
+            {label: '全部', value: ''},
+            ...modelOptions,
+          ],
+        },
       },
       {
         field: `status`,

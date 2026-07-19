@@ -34,30 +34,6 @@ export function getBasicColumns(): BasicColumn[] {
       width: 90,
     },
     {
-      title: 'MAC地址',
-      dataIndex: 'mac',
-      width: 120,
-    },
-    {
-      title: '码流索引',
-      dataIndex: 'stream',
-      width: 60,
-      customRender: ({text}) => {
-        if (text === null) {
-          return '--';
-        }
-        switch (text) {
-          case 0:
-            text = "主码流";
-            break;
-          case 1:
-            text = "子码流";
-            break;
-        }
-        return text;
-      },
-    },
-    {
       title: 'IP地址',
       dataIndex: 'ip',
       width: 120,
@@ -78,24 +54,11 @@ export function getBasicColumns(): BasicColumn[] {
       width: 70,
     },
     {
-      title: '播放地址',
-      dataIndex: 'http_stream',
-      width: 70,
-    },
-    {
-      title: 'AI推流地址',
-      dataIndex: 'ai_rtmp_stream',
-      width: 70,
-    },
-    {
-      title: 'AI HTTP地址',
-      dataIndex: 'ai_http_stream',
-      width: 70,
-    },
-    {
       width: 180,
       title: '操作',
       dataIndex: 'action',
+      align: 'center',
+      className: 'camera-action-column',
     },
   ];
 }

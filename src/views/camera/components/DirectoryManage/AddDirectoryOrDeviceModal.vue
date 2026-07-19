@@ -23,6 +23,7 @@ import {
   type DeviceDirectory,
   type DeviceInfo,
 } from '@/api/device/camera';
+import { getNextSortOrder } from '../../utils/directoryUtils';
 
 const emit = defineEmits(['success', 'register']);
 
@@ -81,17 +82,6 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       ifShow: ({ values }) => values.addType === 'directory',
     },
     {
-      field: 'sort_order',
-      label: '排序顺序',
-      component: 'InputNumber',
-      componentProps: {
-        placeholder: '请输入排序顺序',
-        min: 0,
-        defaultValue: 0,
-      },
-      ifShow: ({ values }) => values.addType === 'directory',
-    },
-    {
       field: 'device_ids',
       label: '选择摄像头',
       component: 'Select',
@@ -134,6 +124,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
 
 const parentDirectoryOptions = ref<any[]>([]);
 const deviceOptions = ref<any[]>([]);
+const directoryTreeData = ref<DeviceDirectory[]>([]);
 
 // 加载父目录选项
 const loadParentDirectoryOptions = async () => {
@@ -141,6 +132,7 @@ const loadParentDirectoryOptions = async () => {
     const response = await getDirectoryList();
     const data = response.code !== undefined ? response.data : response;
     if (data && Array.isArray(data)) {
+      directoryTreeData.value = data;
       const convertToTreeSelect = (directories: DeviceDirectory[]): any[] => {
         return directories.map((dir) => ({
           id: dir.id,
@@ -200,7 +192,7 @@ const handleSubmit = async () => {
         name: values.name,
         parent_id: values.parent_id || null,
         description: values.description,
-        sort_order: values.sort_order || 0,
+        sort_order: getNextSortOrder(values.parent_id || null, directoryTreeData.value),
       });
       const result = response.code !== undefined ? response : { code: 0, msg: '创建成功' };
       if (result.code === 0) {

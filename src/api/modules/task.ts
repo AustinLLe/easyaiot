@@ -1,8 +1,8 @@
 import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
-  // 推送历史列表查询
-  historyQuery = '/message/push/history/query',
+  // 推送历史列表查询（VIDEO 占位服务）
+  historyQuery = '/video/message/push/history/query',
 }
 const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url, params, headers = {}) => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
@@ -25,12 +25,19 @@ const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url, params, heade
 // 推送历史列表查询
 export const historyQuery = (_data) => {
   const { pageNo, pageSize, ...data } = _data;
-  // 将所有参数（包括分页参数和其他查询参数）作为 params 传递
-  return commonApi('get', Api.historyQuery, { 
+  const clean = { ...data };
+  Object.keys(clean).forEach((key) => {
+    const value = clean[key];
+    if (value === undefined || value === null || value === '')
+      delete clean[key];
+  });
+  if ('msgType' in clean && !Number.isFinite(Number(clean.msgType)))
+    delete clean.msgType;
+  return commonApi('get', Api.historyQuery, {
     params: {
       page: pageNo,
-      pageSize: pageSize,
-      ...data
-    }
+      pageSize,
+      ...clean,
+    },
   });
 };

@@ -16,7 +16,7 @@
         <template #message>
           <div class="cluster-endpoint-tip">
             <span class="tip-icon">🎉</span>
-            <span class="tip-text">请自行前往模型推理页面，可快速验证该集群实例的推理性能与响应能力，支持实时测试模型推理效果<span class="tip-icon">✨</span></span>
+            <span class="tip-text">请自行前往算法测试页面，可快速验证该集群实例的推理性能与响应能力，支持实时测试算法推理效果<span class="tip-icon">✨</span></span>
           </div>
         </template>
       </Alert>
@@ -130,7 +130,7 @@ import {
   restartDeployService,
   getDeployServiceReplicas
 } from '@/api/device/model';
-import ServiceLogsModal from '../ServiceLogsModal/ServiceLogsModal.vue';
+import ServiceLogsModal from '../ServiceLogsModal/index.vue';
 
 defineOptions({name: 'ReplicasDrawer'});
 

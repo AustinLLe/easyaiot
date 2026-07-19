@@ -6,7 +6,7 @@
 
 <script lang="ts" setup name="Details">
   import { Description, useDescription } from '@/components/Description';
-  import { detailSchmea } from '../tableData';
+  import { detailSchmea } from '../Data';
   import { watchEffect } from 'vue';
 
   const props = defineProps({

@@ -17,6 +17,17 @@
           <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
             <Input v-model:value="modelRef.name"/>
           </FormItem>
+          <FormItem label="分组" name="directory_id">
+            <TreeSelect
+              v-model:value="modelRef.directory_id"
+              placeholder="请选择分组（可选）"
+              :tree-data="directoryTreeOptions"
+              allow-clear
+              tree-default-expand-all
+              :field-names="{ label: 'name', value: 'id', children: 'children' }"
+              style="width: 100%"
+            />
+          </FormItem>
           <FormItem label="码流索引" name="stream" v-bind=validateInfos.stream>
             <Select
               placeholder="码流索引"
@@ -40,7 +51,9 @@
 <script lang="ts" setup>
 import {computed, reactive, ref} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
-import {Form, FormItem, Input, Select, Spin,} from 'ant-design-vue';
+import {Form, FormItem, Input, Select, Spin, TreeSelect} from 'ant-design-vue';
+import {getDirectoryList} from '@/api/device/camera';
+import {convertDirectoryTreeForSelect} from '../../utils/directoryUtils';
 
 defineOptions({name: 'VideoRegisterModal'})
 
@@ -58,13 +71,31 @@ const modelRef = reactive({
   stream: 0,
   username: '',
   password: '',
+  directory_id: undefined as number | undefined,
 });
+
+const directoryTreeOptions = ref<any[]>([]);
+
+async function loadDirectoryOptions() {
+  try {
+    const response = await getDirectoryList();
+    const data = response.code !== undefined ? response.data : response;
+    directoryTreeOptions.value = data && Array.isArray(data)
+      ? convertDirectoryTreeForSelect(data)
+      : [];
+  } catch (error) {
+    console.error('加载分组列表失败', error);
+    directoryTreeOptions.value = [];
+  }
+}
 
 const getTitle = computed(() => ('注册设备'));
 
-const [register, {closeModal}] = useModalInner((data) => {
-  const {record} = data;
+const [register, {closeModal}] = useModalInner(async (data) => {
+  const {record, defaultDirectoryId} = data;
   state.record = record;
+  await loadDirectoryOptions();
+  modelRef.directory_id = defaultDirectoryId ?? undefined;
 });
 
 const emits = defineEmits(['success']);

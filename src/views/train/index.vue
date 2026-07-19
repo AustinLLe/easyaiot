@@ -7,16 +7,16 @@
         :tabBarGutter="60"
         @tabClick="handleTabClick"
       >
-        <TabPane key="1" tab="模型管理">
+        <TabPane key="1" tab="算法管理">
           <ModelList></ModelList>
         </TabPane>
-        <TabPane key="2" tab="模型推理">
+        <TabPane key="2" tab="算法测试">
           <AiModelTool></AiModelTool>
         </TabPane>
-        <TabPane key="3" tab="模型导出">
+        <TabPane v-if="showExportAndDeployTabs" key="3" tab="模型导出">
           <ModelExport></ModelExport>
         </TabPane>
-        <TabPane key="4" tab="模型部署">
+        <TabPane v-if="showExportAndDeployTabs" key="4" tab="模型部署">
           <DeployService></DeployService>
         </TabPane>
       </Tabs>
@@ -34,11 +34,17 @@ import ModelExport from "@/views/train/components/ModelExport/index.vue";
 import DeployService from "@/views/train/components/DeployService/index.vue";
 defineOptions({name: 'TRAIN'})
 
+/** 设为 true 可重新显示「模型导出 / 模型部署」Tab */
+const showExportAndDeployTabs = false
+
 const route = useRoute();
 
 const state = reactive({
   activeKey: '1'
 });
+
+const visibleTabKeys = () =>
+  showExportAndDeployTabs ? ['1', '2', '3', '4'] : ['1', '2']
 
 const handleTabClick = (activeKey: string) => {
   state.activeKey = activeKey;
@@ -47,7 +53,7 @@ const handleTabClick = (activeKey: string) => {
 // 处理路由参数，自动切换到指定tab
 onMounted(() => {
   const tab = route.query.tab as string;
-  if (tab) {
+  if (tab && visibleTabKeys().includes(tab)) {
     state.activeKey = tab;
   }
 });
