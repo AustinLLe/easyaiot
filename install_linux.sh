@@ -689,6 +689,7 @@ update_service() {
     
     # 注意：前端构建现在在Docker容器内完成，重新构建镜像时会自动完成
     print_info "重新构建镜像（前端构建将在容器内自动完成）..."
+    prepare_vite_production_env
     docker build -t web-service:latest .
     
     print_info "重启服务..."
