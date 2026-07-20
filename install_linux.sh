@@ -452,6 +452,29 @@ build_frontend() {
     print_success "前端项目构建完成（此构建仅用于测试，Docker部署时会重新构建）"
 }
 
+# 将 docker-compose.yaml 中 extra_hosts 占位 IP 替换为宿主机实际地址（x86 Debian 无 GPU 部署）
+configure_extra_hosts() {
+    local compose_file="${SCRIPT_DIR}/docker-compose.yaml"
+    if [ ! -f "$compose_file" ]; then
+        print_warning "未找到 docker-compose.yaml，跳过 extra_hosts 配置"
+        return 0
+    fi
+
+    local host_ip
+    host_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    if [ -z "$host_ip" ]; then
+        host_ip=$(ip -4 route show default 2>/dev/null | awk '{print $3; exit}')
+    fi
+    if [ -z "$host_ip" ]; then
+        print_warning "无法检测宿主机 IP，保留 docker-compose.yaml 中的默认 extra_hosts"
+        return 0
+    fi
+
+    print_info "配置 extra_hosts 宿主机 IP: ${host_ip}"
+    sed -i "s/host-gateway/${host_ip}/g" "$compose_file"
+    sed -i "s/172\.18\.0\.1/${host_ip}/g" "$compose_file"
+}
+
 # 安装服务
 install_service() {
     print_info "开始安装 WEB 服务..."
@@ -467,9 +490,8 @@ install_service() {
         exit 1
     fi
     
-    # 将 host-gateway 改为宿主机实际 IP
-    HOST_IP=$(hostname -I | awk '{print $1}')
-    sed -i "s/host-gateway/${HOST_IP}/g" docker-compose.yml
+    # 配置 extra_hosts，使 web 容器能访问 host 网络模式的后端服务
+    configure_extra_hosts
 
     # 注意：前端构建现在在Docker容器内完成，不再需要在宿主机上构建
     print_info "前端构建将在Docker容器内自动完成"
