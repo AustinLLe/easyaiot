@@ -34,6 +34,9 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 # 复制源代码
 COPY . .
 
+# Vite 只自动加载 .env*；仓库使用 env.production，构建前同步一份供 import.meta.env 注入
+RUN if [ -f env.production ] && [ ! -f .env.production ]; then cp env.production .env.production; fi
+
 # 构建项目（pipefail 确保构建失败时中断；日志输出到文件便于排查）
 RUN set -o pipefail && \
     pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log && \

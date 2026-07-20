@@ -487,6 +487,16 @@ fix_config_line_endings() {
     fi
 }
 
+# Vite 构建读取 .env.production；仓库主配置为 env.production
+prepare_vite_production_env() {
+    local env_file="${SCRIPT_DIR}/env.production"
+    local dotenv_file="${SCRIPT_DIR}/.env.production"
+    if [ -f "$env_file" ]; then
+        cp -f "$env_file" "$dotenv_file"
+        print_info "已同步 env.production -> .env.production（供 Vite 构建注入）"
+    fi
+}
+
 # 安装服务
 install_service() {
     print_info "开始安装 WEB 服务..."
@@ -505,6 +515,7 @@ install_service() {
     # 配置 extra_hosts / nginx 代理地址，并修复配置文件换行符
     fix_config_line_endings
     configure_extra_hosts
+    prepare_vite_production_env
 
     # 注意：前端构建现在在Docker容器内完成，不再需要在宿主机上构建
     print_info "前端构建将在Docker容器内自动完成"
@@ -626,6 +637,7 @@ build_image() {
     
     # 注意：前端构建现在在Docker容器内完成，构建镜像时会自动完成
     print_info "前端构建将在Docker容器内自动完成"
+    prepare_vite_production_env
     
     docker build -t web-service:latest --no-cache .
     print_success "镜像构建完成"
