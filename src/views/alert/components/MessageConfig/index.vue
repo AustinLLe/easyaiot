@@ -73,9 +73,9 @@ function handleSuccess() {
   reload();
 }
 
-async function handleDelete({ id }) {
+async function handleDelete({ id, msgType }) {
   try {
-    await messageConfigDelete({ id });
+    await messageConfigDelete({ id, msgType });
     createMessage.success('删除成功');
     handleSuccess();
   }
