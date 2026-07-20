@@ -4,11 +4,18 @@ enum Api {
   NodeRed = '/nodeRed',
 }
 
+/** Node-RED Admin API 不走 IoT 网关，无需 token */
+const nodeRedOptions = {
+  isTransformResponse: false,
+  withToken: false,
+  skipSessionValidate: true,
+} as const;
+
 /**
  * @description: 规则查询
  */
 export const flowsList = () => {
-  return defHttp.get({url: Api.NodeRed + '/flows'}, {isTransformResponse: false});
+  return defHttp.get({url: Api.NodeRed + '/flows'}, nodeRedOptions);
 }
 
 /**
@@ -18,9 +25,9 @@ export const addFlows = (params) =>
   defHttp.post(
     {
       url: Api.NodeRed + '/flow',
-      params,
+      data: params,
     },
-    {isTransformResponse: false},
+    nodeRedOptions,
   );
 /**
  * @description: 获取规则链详细信息
@@ -33,7 +40,7 @@ export const getFlows = (key: string) => {
     {
       url: Api.NodeRed + '/flow/' + key,
     },
-    {isTransformResponse: false},
+    nodeRedOptions,
   );
 };
 /**
@@ -46,9 +53,9 @@ export const updateflows = (key, params) => {
   return defHttp.put(
     {
       url: Api.NodeRed + '/flow/' + key,
-      params,
+      data: params,
     },
-    {isTransformResponse: false},
+    nodeRedOptions,
   );
 };
 /**
@@ -62,6 +69,6 @@ export const deleteflows = (key) => {
     {
       url: Api.NodeRed + '/flow/' + key,
     },
-    {isTransformResponse: false},
+    nodeRedOptions,
   );
 };
