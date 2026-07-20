@@ -34,8 +34,10 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 # 复制源代码
 COPY . .
 
-# 构建项目（日志输出到文件，便于容器挂载后排查）
-RUN pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log
+# 构建项目（pipefail 确保构建失败时中断；日志输出到文件便于排查）
+RUN set -o pipefail && \
+    pnpm build 2>&1 | tee /tmp/web-build-logs/pnpm-build.log && \
+    test -f /app/dist/index.html
 
 # 生产阶段
 FROM m.daocloud.io/docker.io/library/nginx:1.29.2-alpine
@@ -66,5 +68,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://127.0.0.1/health || exit 1
 
-# 启动nginx（使用非daemon模式以便在容器中运行）
-CMD ["sh", "-c", "mkdir -p /app/logs && cp -af /opt/web-build-logs/. /app/logs/ && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] web-service container started\" >> /app/logs/runtime.log && nginx -g 'daemon off;'"]
+# 启动 nginx：先校验配置，避免静默失败导致容器反复重启
+CMD ["sh", "-c", "mkdir -p /app/logs && (cp -af /opt/web-build-logs/. /app/logs/ 2>/dev/null || true) && nginx -t && exec nginx -g 'daemon off;'"]
