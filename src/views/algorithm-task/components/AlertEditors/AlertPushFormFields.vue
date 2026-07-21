@@ -45,19 +45,33 @@
         />
       </FormItem>
 
-      <FormItem label="推送用户" required>
+      <FormItem label="推送用户（可选）">
         <ApiSelect
           v-model:value="pushModel.recipient_user_ids"
           mode="multiple"
           :api="getListSimpleUsers"
           label-field="nickname"
           value-field="id"
-          placeholder="请选择推送用户"
+          placeholder="可选择已维护邮箱/手机号的系统用户"
           placement="bottomLeft"
           :get-popup-container="selectPopupContainer"
           :dropdown-style="SELECT_DROPDOWN_STYLE"
           style="width: 100%"
         />
+      </FormItem>
+
+      <FormItem v-if="usesEmailChannel" label="收件邮箱" required>
+        <Select
+          v-model:value="emailRecipients"
+          mode="tags"
+          placeholder="请输入收件邮箱，回车添加；支持多个邮箱"
+          :token-separators="[',', ';']"
+          placement="bottomLeft"
+          :get-popup-container="selectPopupContainer"
+          :dropdown-style="SELECT_DROPDOWN_STYLE"
+          style="width: 100%"
+        />
+        <div class="field-help">系统用户没有维护邮箱时，请在这里直接填写实际收件地址。</div>
       </FormItem>
 
       <FormItem v-if="usesEmailChannel" label="发件邮箱配置" required>
@@ -183,6 +197,17 @@ const emailAccountId = computed<number | string | undefined>({
     pushModel.value.channel_config = {
       ...channelConfig,
       email: { ...email, account_id: accountId },
+    };
+  },
+});
+const emailRecipients = computed<string[]>({
+  get: () => pushModel.value.channel_config?.email?.recipients ?? [],
+  set: (recipients) => {
+    const channelConfig = pushModel.value.channel_config ?? {};
+    const email = channelConfig.email ?? { recipients: [] };
+    pushModel.value.channel_config = {
+      ...channelConfig,
+      email: { ...email, recipients },
     };
   },
 });
