@@ -71,8 +71,8 @@ export const messageConfigQuery = (params = {}) => {
 };
 
 // 根据邮件调试
-export const messageConfigMailSendTest = (tos) => {
-  return commonApi('get', `${Api.message_config_mailSendTest}?tos=${tos}`, {});
+export const messageConfigMailSendTest = (tos, accountId?) => {
+  return commonApi('get', Api.message_config_mailSendTest, { params: { tos, accountId } });
 };
 
 // 添加

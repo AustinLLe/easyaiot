@@ -218,6 +218,10 @@ function mapAlertPushToBackend(push: AlertPushDraft): BackendAlertPushConfig {
     channels: resolved.channels ?? [],
     recipient_user_ids: resolved.recipient_user_ids ?? [],
     address_profile_ids: resolved.address_profile_ids ?? [],
+    // Keep concrete recipients/phones when the push rule is submitted. The
+    // VIDEO service needs these at alert time; omitting them made every rule
+    // display-only and impossible to execute.
+    channel_config: resolved.channel_config ?? {},
     content: {
       title_template: resolved.content.title_template,
       include_fields: resolved.content.include_fields,

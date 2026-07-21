@@ -116,6 +116,7 @@ export interface BackendAlertPushConfig {
   channels: AlertPushChannel[];
   recipient_user_ids: number[];
   address_profile_ids: string[];
+  channel_config?: AlertPushChannelConfig;
   content: BackendAlertPushContent;
 }
 
