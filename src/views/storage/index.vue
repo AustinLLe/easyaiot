@@ -74,7 +74,7 @@
         <div class="tab-toolbar">
           <div>
             <h2>按摄像头配置</h2>
-            <p>时长为 0 表示永久保留；“到期归档”会将过期录像移入归档区。</p>
+            <p>关闭“保存历史”后，已完成的录像分片会删除且不进入历史；时长为 0 仍表示永久保留。</p>
           </div>
           <div class="policy-picker">
             <label>选择摄像头</label>
@@ -190,16 +190,19 @@
               <b>{{ formatBytes(record.video_bytes) }}</b>
               <span class="table-sub">{{ record.video_count }} 段录像</span>
             </template>
+            <template v-else-if="column.key === 'recording_enabled'">
+              <ASwitch v-model:checked="record.recording_enabled" checked-children="保存" un-checked-children="不保存" />
+            </template>
             <template v-else-if="column.key === 'save_mode'">
-              <ASelect v-model:value="record.save_mode" style="width: 128px">
+              <ASelect v-model:value="record.save_mode" style="width: 128px" :disabled="!record.recording_enabled">
                 <ASelectOption :value="0">到期删除</ASelectOption>
                 <ASelectOption :value="1">到期归档</ASelectOption>
               </ASelect>
             </template>
             <template v-else-if="column.key === 'save_time'">
               <div class="duration-editor">
-                <AInputNumber v-model:value="record.save_time" :min="0" :max="retentionMax(record.save_time_unit)" :precision="0" />
-                <ASelect v-model:value="record.save_time_unit" style="width: 76px">
+                <AInputNumber v-model:value="record.save_time" :min="0" :max="retentionMax(record.save_time_unit)" :precision="0" :disabled="!record.recording_enabled" />
+                <ASelect v-model:value="record.save_time_unit" style="width: 76px" :disabled="!record.recording_enabled">
                   <ASelectOption value="minute">分钟</ASelectOption>
                   <ASelectOption value="hour">小时</ASelectOption>
                   <ASelectOption value="day">天</ASelectOption>
@@ -308,6 +311,10 @@
           </ASelect>
         </label>
         <label>
+          <span>保存历史录像</span>
+          <ASwitch v-model:checked="customSchemeForm.recording_enabled" checked-children="保存" un-checked-children="不保存" />
+        </label>
+        <label>
           <span>保留时长</span>
           <div class="inline-field">
             <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="retentionMax(customSchemeForm.unit)" :precision="0" />
@@ -344,6 +351,7 @@ import {
   Select as ASelect,
   SelectOption as ASelectOption,
   Spin as ASpin,
+  Switch as ASwitch,
   Table as ATable,
   Tabs as ATabs,
   TabPane as ATabPane,
@@ -394,6 +402,7 @@ const customSchemeForm = reactive({
   target: 'all' as RetentionRule['target'],
   active_within_hours: 24,
   device_ids: [] as string[],
+  recording_enabled: true,
   value: 7,
   unit: 'day' as RetentionRule['unit'],
   save_mode: 0 as 0 | 1,
@@ -402,6 +411,7 @@ const customSchemeForm = reactive({
 const policyColumns = [
   { title: '摄像头', key: 'camera', width: 260 },
   { title: '当前占用', key: 'usage', width: 150 },
+  { title: '历史录像', key: 'recording_enabled', width: 150 },
   { title: '到期处理', key: 'save_mode', width: 170 },
   { title: '保留时长', key: 'save_time', width: 230 },
   { title: '操作', key: 'action', width: 180 },
@@ -512,6 +522,7 @@ async function savePolicy(record: RetentionPolicy | Record<string, any>) {
       save_mode: record.save_mode,
       save_time: Number(record.save_time || 0),
       save_time_unit: record.save_time_unit || 'day',
+      recording_enabled: Boolean(record.recording_enabled),
     });
     createMessage.success(`${record.device_name} 的留存策略已保存`);
     await loadSchemes();
@@ -523,6 +534,7 @@ function targetLabel(target: RetentionRule['target']) {
 }
 
 function formatSchemeRule(rule: RetentionRule) {
+  if (rule.recording_enabled === false) return `${targetLabel(rule.target)}：不保存历史录像`;
   const unitLabel = { minute: '分钟', hour: '小时', day: '天' }[rule.unit];
   const duration = rule.value === 0 ? '永久' : `${rule.value} ${unitLabel}`;
   const action = rule.save_mode === 1 ? '归档' : '删除';
@@ -544,7 +556,7 @@ async function activateScheme(scheme: RetentionScheme) {
 function openCustomScheme() {
   Object.assign(customSchemeForm, {
     name: '', description: '', target: 'all', active_within_hours: 24,
-    device_ids: [], value: 7, unit: 'day', save_mode: 0,
+    device_ids: [], recording_enabled: true, value: 7, unit: 'day', save_mode: 0,
   });
   customSchemeOpen.value = true;
 }
@@ -568,6 +580,7 @@ async function saveCustomScheme() {
         value: Number(customSchemeForm.value || 0),
         unit: customSchemeForm.unit,
         save_mode: customSchemeForm.save_mode,
+        recording_enabled: customSchemeForm.recording_enabled,
         active_within_hours: Number(customSchemeForm.active_within_hours || 24),
         device_ids: [...customSchemeForm.device_ids],
       }],
