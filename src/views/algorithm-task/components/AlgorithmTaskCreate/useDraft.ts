@@ -384,6 +384,9 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
     recipient_user_ids: push.recipient_user_ids ?? [],
     address_profile_ids: push.address_profile_ids ?? [],
     channel_profile_map: {},
+    channel_config: push.channel_config
+      ? JSON.parse(JSON.stringify(push.channel_config))
+      : {},
     content: {
       title_template: push.content.title_template,
       include_fields: push.content.include_fields,

@@ -147,7 +147,13 @@ export type AlertPushContentField =
   | 'region_name';
 
 export interface AlertPushChannelConfig {
-  email?: { recipients: string[]; subject?: string };
+  email?: {
+    recipients: string[];
+    subject?: string;
+    /** DEVICE 邮件账号 ID，对应“告警事件 → 消息配置”中的发件邮箱。 */
+    account_id?: number | string;
+    template_code?: string;
+  };
   sms?: { phones: string[] };
   wechat?: { webhook_url?: string };
   feishu?: { webhook_url?: string };
