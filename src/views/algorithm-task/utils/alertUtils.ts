@@ -587,6 +587,9 @@ export function validateAlertPush(
     if (!push.recipient_user_ids?.length && !hasDirectTarget) {
       return '请选择推送用户或填写直接收件地址';
     }
+    if (push.channels.includes('email') && directEmails.length === 0) {
+      return '请填写收件邮箱';
+    }
     if (push.channels.includes('email') && !push.channel_config?.email?.account_id) {
       return '请选择发件邮箱配置';
     }
