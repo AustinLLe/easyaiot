@@ -31,12 +31,17 @@
           <div class="scan-time">最近扫描：{{ formatDateTime(overview?.node.scanned_at) }}</div>
         </div>
 
+        <div class="disk-scope-note">
+          此处只展示实际承载录像目录的磁盘，不是服务器全部磁盘清单。整盘已用空间可能还包含同盘的
+          Docker 镜像、数据库、模型和日志；下方“录像总占用”才是录像文件自身占用。
+        </div>
+
         <div v-if="overview?.disks.length" class="disk-grid">
           <article v-for="disk in overview.disks" :key="disk.id" class="disk-card">
             <div class="disk-card-head">
               <div>
-                <div class="disk-name">磁盘 {{ disk.mount_point }}</div>
-                <div class="muted">{{ disk.filesystem }}</div>
+                <div class="disk-name">录像数据盘</div>
+                <div class="muted">容器挂载 {{ disk.mount_point }} · {{ disk.filesystem }}</div>
               </div>
               <strong :class="usageClass(disk.usage_percent)">{{ disk.usage_percent }}%</strong>
             </div>
@@ -48,8 +53,8 @@
             />
             <div class="disk-values">
               <span>可用 <b>{{ formatBytes(disk.free_bytes) }}</b></span>
-              <span>已用 {{ formatBytes(disk.used_bytes) }}</span>
-              <span>总计 {{ formatBytes(disk.total_bytes) }}</span>
+              <span>整盘已用 {{ formatBytes(disk.used_bytes) }}</span>
+              <span>磁盘容量 {{ formatBytes(disk.total_bytes) }}</span>
             </div>
             <div class="target-list">
               <ATag v-for="target in disk.targets" :key="target.path" :color="target.exists ? 'blue' : 'default'">
@@ -653,6 +658,7 @@ h2 { font-size: 18px; }
 .node-name { font-size: 17px; font-weight: 650; }
 .node-meta { display: flex; gap: 14px; margin-top: 4px; color: #667085; }
 .scan-time { margin-left: auto; color: #98a2b3; }
+.disk-scope-note { margin-top: 18px; padding: 10px 14px; border: 1px solid #d6e4ff; border-radius: 8px; color: #475467; background: #f0f6ff; font-size: 13px; line-height: 1.6; }
 .disk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 20px; }
 .disk-card { padding: 18px; border: 1px solid #e8edf3; border-radius: 12px; background: #fbfcfe; }
 .disk-card-head, .disk-values { display: flex; justify-content: space-between; align-items: center; }
