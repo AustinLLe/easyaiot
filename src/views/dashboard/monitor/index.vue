@@ -1,350 +1,562 @@
 <template>
-  <div class="monitor-dashboard">
-    <!-- 顶部头部 -->
-    <MonitorHeader :active-videos="activeVideos" />
-    
-    <!-- 主体内容 -->
-    <div class="monitor-content">
-      <!-- 左侧导航 -->
-      <MonitorSidebar 
-        :selected-device="selectedDevice"
-        @device-change="handleDeviceChange"
-        @device-play="handleDevicePlay"
-        @stream-type-change="handleStreamTypeChange"
-      />
-      
-      <!-- 中央视频监控区域 -->
-      <div class="monitor-center">
-        <VideoMonitor 
-          ref="videoMonitorRef"
-          :device="selectedDevice"
-          :video-list="videoList"
-          :dashboard-config="dashboardConfig"
-          @video-list-change="handleVideoListChange"
-        />
+  <div class="overview-dashboard">
+    <header class="dashboard-heading">
+      <div>
+        <div class="eyebrow">EASYAIOT EDGE</div>
+        <h1>首页看板</h1>
+        <p>设备、算法与告警态势实时汇总</p>
       </div>
-      
-      <!-- 右侧告警信息 -->
-      <AlarmPanel 
-        v-if="dashboardConfig.showRightAlarmPanel"
-        :alarm-list="alarmList"
-        :today-alarm-count="todayAlarmCount"
-      />
+      <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
+        <Icon icon="ant-design:reload-outlined" :size="16" />
+        {{ loading ? '刷新中' : '刷新数据' }}
+      </button>
+    </header>
+
+    <div class="period-tabs" role="tablist" aria-label="统计周期">
+      <button
+        v-for="item in periodOptions"
+        :key="item.value"
+        :class="['period-tab', { active: selectedPeriod === item.value }]"
+        role="tab"
+        :aria-selected="selectedPeriod === item.value"
+        @click="selectedPeriod = item.value"
+      >
+        {{ item.label }}
+      </button>
     </div>
+
+    <section class="metric-grid" aria-label="数据统计">
+      <article v-for="metric in metrics" :key="metric.label" class="metric-card">
+        <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+          <Icon :icon="metric.icon" :size="22" />
+        </div>
+        <div>
+          <div class="metric-label">{{ metric.label }}</div>
+          <div class="metric-value">{{ metric.value }}</div>
+          <div class="metric-hint">{{ metric.hint }}</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel algorithm-panel">
+        <div class="panel-title-row">
+          <div>
+            <span class="panel-kicker">报警统计</span>
+            <h2>算法报警占比</h2>
+          </div>
+          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+        </div>
+
+        <div v-if="algorithmRanking.length" class="donut-section">
+          <div class="donut" :style="donutStyle">
+            <div class="donut-center">
+              <strong>{{ currentPeriod.alarm_count }}</strong>
+              <span>报警总数</span>
+            </div>
+          </div>
+          <div class="legend-list">
+            <div v-for="(item, index) in algorithmRanking" :key="item.name" class="legend-row">
+              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }"></span>
+              <span class="legend-name" :title="item.name">{{ item.name }}</span>
+              <strong>{{ item.count }}</strong>
+              <span>{{ item.percentage.toFixed(1) }}%</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state">当前周期暂无算法报警</div>
+      </article>
+
+      <article class="panel video-panel">
+        <div class="panel-title-row video-title-row">
+          <div>
+            <span class="panel-kicker">中间视频</span>
+            <h2>任务实时画面</h2>
+          </div>
+          <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
+            {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
+          </span>
+        </div>
+
+        <div class="video-filters">
+          <a-select
+            v-model:value="selectedTaskId"
+            class="filter-select"
+            placeholder="选择算法任务"
+            :loading="tasksLoading"
+            :options="taskOptions"
+            @change="handleTaskChange"
+          />
+          <a-select
+            v-model:value="selectedCameraId"
+            class="filter-select"
+            placeholder="选择任务摄像头"
+            :disabled="!selectedTaskId"
+            :options="cameraOptions"
+          />
+          <a-select
+            v-model:value="selectedAlgorithm"
+            class="filter-select"
+            placeholder="选择任务算法"
+            :disabled="!selectedTaskId"
+            :options="algorithmOptions"
+          />
+        </div>
+
+        <div class="video-stage">
+          <Jessibuca
+            v-if="currentStreamUrl"
+            :key="currentStreamUrl"
+            :play-url="currentStreamUrl"
+            :has-audio="false"
+            class="video-player"
+          />
+          <div v-else class="video-placeholder">
+            <div class="camera-orbit">
+              <Icon icon="ant-design:video-camera-outlined" :size="42" />
+            </div>
+            <strong>{{ videoPlaceholderTitle }}</strong>
+            <span>从任务中选择摄像头和算法后显示 AI 视频流</span>
+          </div>
+          <div v-if="selectedCamera" class="video-caption">
+            <span>{{ selectedCamera.device_name || selectedCamera.device_id }}</span>
+            <span>{{ selectedAlgorithm || '原始视频' }}</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel ranking-panel">
+        <div class="panel-title-row ranking-title-row">
+          <div>
+            <span class="panel-kicker">摄像头报警排行</span>
+            <h2>{{ rankingMode === 'camera' ? '摄像头排行' : '摄像头分组排行' }}</h2>
+          </div>
+          <div class="mode-toggle">
+            <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
+            <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
+          </div>
+        </div>
+
+        <div v-if="displayRanking.length" class="ranking-list">
+          <div v-for="(item, index) in displayRanking.slice(0, 8)" :key="`${rankingMode}-${item.name}`" class="ranking-row">
+            <span :class="['rank-number', { top: index < 3 }]">{{ index + 1 }}</span>
+            <div class="rank-content">
+              <div class="rank-meta">
+                <span :title="item.name">{{ item.name }}</span>
+                <strong>{{ item.count }} 次</strong>
+              </div>
+              <div class="rank-track">
+                <span :style="{ width: `${rankingWidth(item.count)}%` }"></span>
+              </div>
+              <small v-if="rankingMode === 'camera'">{{ item.directory_name || '未分组' }}</small>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state">当前周期暂无摄像头报警</div>
+      </article>
+    </section>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import MonitorHeader from './components/Header.vue'
-import MonitorSidebar from './components/Sidebar.vue'
-import VideoMonitor from './components/VideoMonitor.vue'
-import AlarmPanel from './components/AlarmPanel.vue'
-import { useMessage } from '@/hooks/web/useMessage'
-import { queryAlarmList, getDashboardStatistics } from '@/api/device/calculate'
+import { computed, onMounted, ref } from 'vue'
+import { Icon } from '@/components/Icon'
+import Jessibuca from '@/components/Player/module/jessibuca.vue'
+import { getDashboardStatistics } from '@/api/device/calculate'
 import {
-  getMonitorDashboardConfig,
-  MONITOR_DASHBOARD_CONFIG_EVENT,
-  type MonitorDashboardConfig,
-} from './config'
+  getTaskStreams,
+  listAlgorithmTasks,
+  type AlgorithmTask,
+  type CameraStreamInfo,
+} from '@/api/device/algorithm_task'
+import { useMessage } from '@/hooks/web/useMessage'
 
-defineOptions({
-  name: 'MonitorDashboard'
+defineOptions({ name: 'MonitorDashboard' })
+
+type PeriodKey = 'today' | 'week' | 'month'
+type RankingMode = 'camera' | 'directory'
+
+interface RankingItem {
+  name: string
+  count: number
+  percentage: number
+  device_id?: string
+  directory_name?: string
+}
+
+interface PeriodStatistics {
+  label: string
+  alarm_count: number
+  active_camera_count: number
+  active_algorithm_count: number
+  algorithm_ranking: RankingItem[]
+  camera_ranking: RankingItem[]
+  directory_ranking: RankingItem[]
+}
+
+const emptyPeriod = (label: string): PeriodStatistics => ({
+  label,
+  alarm_count: 0,
+  active_camera_count: 0,
+  active_algorithm_count: 0,
+  algorithm_ranking: [],
+  camera_ranking: [],
+  directory_ranking: [],
 })
 
 const { createMessage } = useMessage()
-const videoMonitorRef = ref<InstanceType<typeof VideoMonitor> | null>(null)
+const loading = ref(false)
+const tasksLoading = ref(false)
+const selectedPeriod = ref<PeriodKey>('today')
+const rankingMode = ref<RankingMode>('camera')
+const periodOptions = [
+  { label: '今日', value: 'today' as PeriodKey },
+  { label: '本周', value: 'week' as PeriodKey },
+  { label: '本月', value: 'month' as PeriodKey },
+]
+const chartColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#64748b']
 
-// 选中的设备
-const selectedDevice = ref<any>({
-  id: '1',
-  name: '华南小区西四路23号',
-  location: ''
+const statistics = ref({
+  alarm_count: 0,
+  camera_count: 0,
+  algorithm_count: 0,
+  model_count: 0,
+  periods: {
+    today: emptyPeriod('今日'),
+    week: emptyPeriod('本周'),
+    month: emptyPeriod('本月'),
+  } as Record<PeriodKey, PeriodStatistics>,
 })
 
-// 视频列表
-const videoList = ref([
-  { id: '1', url: '', name: '主视频' },
-  { id: '2', url: '', name: '视频1' },
-  { id: '3', url: '', name: '视频2' },
-  { id: '4', url: '', name: '视频3' },
-  { id: '5', url: '', name: '视频4' },
-  { id: '6', url: '', name: '视频5' },
-  { id: '7', url: '', name: '视频6' }
+const tasks = ref<AlgorithmTask[]>([])
+const taskStreams = ref<CameraStreamInfo[]>([])
+const selectedTaskId = ref<number>()
+const selectedCameraId = ref<string>()
+const selectedAlgorithm = ref<string>()
+
+const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.value] || emptyPeriod('当前'))
+const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
+const displayRanking = computed(() => (
+  rankingMode.value === 'camera'
+    ? currentPeriod.value.camera_ranking || []
+    : currentPeriod.value.directory_ranking || []
+))
+
+const metrics = computed(() => [
+  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, hint: '报警事件总量', icon: 'ant-design:alert-outlined', color: '#ef4444' },
+  { label: '活跃摄像头', value: currentPeriod.value.active_camera_count, hint: `设备总数 ${statistics.value.camera_count}`, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
+  { label: '触发算法', value: currentPeriod.value.active_algorithm_count, hint: `任务总数 ${statistics.value.algorithm_count}`, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
+  { label: '模型总数', value: statistics.value.model_count, hint: '已接入算法模型', icon: 'ant-design:cluster-outlined', color: '#22c55e' },
 ])
 
-// 正在播放的视频列表
-const activeVideos = ref<any[]>([])
-
-// 告警列表
-const alarmList = ref<any[]>([])
-
-// 今日告警次数
-const todayAlarmCount = ref(0)
-const dashboardConfig = ref<MonitorDashboardConfig>(getMonitorDashboardConfig())
-
-// 加载告警列表
-const loadAlarmList = async () => {
-  try {
-    const response = await queryAlarmList({
-      pageNo: 1,
-      pageSize: dashboardConfig.value.rightAlarmPageSize,
-    })
-    
-    if (response && response.alert_list) {
-      // 处理告警数据，确保格式正确
-      alarmList.value = response.alert_list.map((item: any) => {
-        // 优先使用 image_url（后台返回的 minio URL），如果没有则使用 image_path
-        let imageUrl = item.image_url || item.image_path || null
-        
-        // 处理告警级别
-        let level = item.level || '告警'
-        if (!item.level) {
-          // 根据event类型设置默认级别
-          if (item.event && (item.event.includes('火') || item.event.includes('fire'))) {
-            level = '一级'
-          } else if (item.event && (item.event.includes('烟') || item.event.includes('smoke'))) {
-            level = '二级'
-          } else {
-            level = '三级'
-          }
-        }
-        
-        // 处理告警类型
-        let type = 'default'
-        if (item.event) {
-          if (item.event.includes('火') || item.event.includes('fire')) {
-            type = 'fire'
-          } else if (item.event.includes('烟') || item.event.includes('smoke')) {
-            type = 'smoke'
-          } else if (item.event.includes('入侵') || item.event.includes('intrusion')) {
-            type = 'intrusion'
-          }
-        }
-        
-        return {
-          id: item.id || item.alert_id,
-          type: type,
-          title: item.event || item.title || '未知事件',
-          level: level,
-          location: item.device_name || item.location || '未知设备',
-          time: item.time || item.alert_time || item.created_at || '',
-          image: imageUrl,
-          device_name: item.device_name,
-          device_id: item.device_id,
-          task_type: item.task_type,
-          information: item.information
-        }
-      })
-    } else {
-      alarmList.value = []
-    }
-  } catch (error) {
-    console.error('加载告警列表失败', error)
-    createMessage.error('加载告警列表失败')
-    alarmList.value = []
-  }
-}
-
-// 加载今日告警次数
-const loadTodayAlarmCount = async () => {
-  try {
-    const statsResponse = await getDashboardStatistics()
-    if (statsResponse) {
-      todayAlarmCount.value = statsResponse.today_alarm_count || 0
-    } else {
-      todayAlarmCount.value = 0
-    }
-  } catch (error) {
-    console.error('加载今日告警次数失败', error)
-    todayAlarmCount.value = 0
-  }
-}
-
-// 刷新定时器
-let refreshTimer: any = null
-let delayTimer: any = null
-let isMounted = false
-
-const getRefreshIntervalMs = () => dashboardConfig.value.refreshIntervalSeconds * 1000
-
-const handleDashboardConfigChange = () => {
-  dashboardConfig.value = getMonitorDashboardConfig()
-  Promise.all([
-    loadAlarmList(),
-    loadTodayAlarmCount()
-  ]).catch(error => {
-    console.error('配置变更后刷新失败', error)
+const donutStyle = computed(() => {
+  if (!algorithmRanking.value.length)
+    return {}
+  let cursor = 0
+  const stops = algorithmRanking.value.map((item, index) => {
+    const start = cursor
+    cursor += item.percentage
+    return `${chartColors[index % chartColors.length]} ${start}% ${cursor}%`
   })
-}
-
-// 动态添加样式，隐藏顶部导航栏、标签页和左侧菜单，让大屏覆盖整个屏幕
-onMounted(() => {
-  isMounted = true
-  
-  const style = document.createElement('style')
-  style.id = 'monitor-dashboard-style'
-  style.textContent = `
-    .ant-layout-header,
-    .layout-multiple-header,
-    .layout-tabs,
-    .layout-footer {
-      display: none !important;
-    }
-    .ant-layout-sider,
-    .layout-sider-wrapper {
-      display: none !important;
-    }
-    .ant-layout-content,
-    .layout-content {
-      padding: 0 !important;
-      margin: 0 !important;
-      height: 100vh !important;
-      overflow: hidden !important;
-    }
-    .ant-layout-main {
-      height: 100vh !important;
-      overflow: hidden !important;
-      margin-left: 0 !important;
-    }
-  `
-  document.head.appendChild(style)
-  window.addEventListener(MONITOR_DASHBOARD_CONFIG_EVENT, handleDashboardConfigChange)
-  window.addEventListener('storage', handleDashboardConfigChange)
-  
-  // 初始加载告警列表和今日告警次数（使用 Promise.all 确保同时发起，但去重机制会确保只发送一次请求）
-  Promise.all([
-    loadAlarmList(),
-    loadTodayAlarmCount()
-  ]).catch(error => {
-    console.error('初始加载失败', error)
-  })
-  
-  // 错峰刷新：延迟3秒开始，每5秒刷新一次告警列表和今日告警次数（3秒、8秒、13秒...）
-  delayTimer = setTimeout(() => {
-    // 检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    Promise.all([
-      loadAlarmList(),
-      loadTodayAlarmCount()
-    ]).catch(error => {
-      console.error('刷新数据失败', error)
-    })
-    
-    // 再次检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    refreshTimer = setInterval(() => {
-      // 每次执行前检查组件是否仍然挂载
-      if (!isMounted) {
-        if (refreshTimer) {
-          clearInterval(refreshTimer)
-          refreshTimer = null
-        }
-        return
-      }
-      
-      Promise.all([
-        loadAlarmList(),
-        loadTodayAlarmCount()
-      ]).catch(error => {
-        console.error('定时刷新失败', error)
-      })
-    }, getRefreshIntervalMs())
-  }, 3000)
+  return { background: `conic-gradient(${stops.join(', ')})` }
 })
 
-onUnmounted(() => {
-  isMounted = false
-  
-  const style = document.getElementById('monitor-dashboard-style')
-  if (style) {
-    document.head.removeChild(style)
+const taskOptions = computed(() => tasks.value.map(task => ({
+  label: `${task.task_name} · ${task.task_type === 'snap' ? '抓拍' : '实时'}`,
+  value: task.id,
+})))
+const cameraOptions = computed(() => taskStreams.value.map(stream => ({
+  label: stream.device_name || stream.device_id,
+  value: stream.device_id,
+})))
+const selectedTask = computed(() => tasks.value.find(task => task.id === selectedTaskId.value))
+const algorithmOptions = computed(() => {
+  const modelNames = (selectedTask.value?.model_names || '')
+    .split(',')
+    .map(name => name.trim())
+    .filter(Boolean)
+  const serviceNames = (selectedTask.value?.algorithm_services || [])
+    .map(service => service.service_name?.trim())
+    .filter(Boolean) as string[]
+  const names = [...modelNames, ...serviceNames]
+  return [...new Set(names)].map(name => ({ label: name, value: name }))
+})
+const selectedCamera = computed(() => taskStreams.value.find(stream => stream.device_id === selectedCameraId.value))
+
+function convertRtmpToHttp(rtmpUrl?: string) {
+  if (!rtmpUrl?.startsWith('rtmp://'))
+    return ''
+  try {
+    const url = new URL(rtmpUrl)
+    let path = url.pathname.replace(/^\//, '') || 'live'
+    if (!path.endsWith('.flv'))
+      path += '.flv'
+    return `/${path}`
   }
-  window.removeEventListener(MONITOR_DASHBOARD_CONFIG_EVENT, handleDashboardConfigChange)
-  window.removeEventListener('storage', handleDashboardConfigChange)
-  
-  // 清理延迟定时器
-  if (delayTimer) {
-    clearTimeout(delayTimer)
-    delayTimer = null
+  catch {
+    return ''
   }
-  
-  // 清理定时器
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-    refreshTimer = null
+}
+
+function normalizeAiStream(streamUrl?: string) {
+  if (!streamUrl)
+    return ''
+  try {
+    const url = new URL(streamUrl, window.location.origin)
+    if (url.pathname.startsWith('/ai/'))
+      return `${url.pathname}${url.search}`
   }
+  catch {
+    return streamUrl
+  }
+  return streamUrl
+}
+
+const currentStreamUrl = computed(() => {
+  const camera = selectedCamera.value
+  if (!camera)
+    return ''
+  if (selectedAlgorithm.value)
+    return normalizeAiStream(camera.ai_http_stream) || convertRtmpToHttp(camera.ai_rtmp_stream)
+  return camera.http_stream || convertRtmpToHttp(camera.rtmp_stream)
 })
 
-// 设备切换
-const handleDeviceChange = (device: any) => {
-  selectedDevice.value = device
-  // 这里可以加载新设备的视频流
+const videoPlaceholderTitle = computed(() => {
+  if (!selectedTaskId.value)
+    return '请选择算法任务'
+  if (!selectedCameraId.value)
+    return '请选择任务中的摄像头'
+  if (selectedAlgorithm.value && !currentStreamUrl.value)
+    return '该摄像头暂无 AI 流'
+  return '该摄像头暂无可播放流'
+})
+
+function rankingWidth(count: number) {
+  const max = Math.max(...displayRanking.value.map(item => item.count), 1)
+  return Math.max((count / max) * 100, 6)
 }
 
-// 设备播放
-const handleDevicePlay = (device: any) => {
-  if (videoMonitorRef.value) {
-    videoMonitorRef.value.playDeviceStream(device)
+async function loadStatistics() {
+  const response = await getDashboardStatistics()
+  if (response)
+    statistics.value = { ...statistics.value, ...response, periods: { ...statistics.value.periods, ...(response.periods || {}) } }
+}
+
+async function loadTasks() {
+  tasksLoading.value = true
+  try {
+    const response = await listAlgorithmTasks({ pageNo: 1, pageSize: 1000 })
+    tasks.value = Array.isArray(response) ? response : (response?.data || [])
+    if (!selectedTaskId.value && tasks.value.length) {
+      selectedTaskId.value = tasks.value[0].id
+      await handleTaskChange(selectedTaskId.value)
+    }
+  }
+  finally {
+    tasksLoading.value = false
   }
 }
 
-// 处理视频列表变化
-const handleVideoListChange = (videos: any[]) => {
-  activeVideos.value = videos
-}
+async function handleTaskChange(taskId?: number) {
+  taskStreams.value = []
+  selectedCameraId.value = undefined
+  selectedAlgorithm.value = undefined
+  if (!taskId)
+    return
 
-// 处理流类型切换
-const handleStreamTypeChange = (type: 'video' | 'ai') => {
-  if (videoMonitorRef.value) {
-    videoMonitorRef.value.switchStreamType(type)
+  try {
+    const response = await getTaskStreams(taskId)
+    taskStreams.value = Array.isArray(response) ? response : (response?.data || [])
+    selectedCameraId.value = taskStreams.value[0]?.device_id
+    selectedAlgorithm.value = algorithmOptions.value[0]?.value
+  }
+  catch (error) {
+    console.error('加载任务流失败', error)
+    createMessage.warning('该任务暂无可用摄像头流')
   }
 }
+
+async function refreshDashboard() {
+  loading.value = true
+  try {
+    await Promise.all([loadStatistics(), loadTasks()])
+  }
+  catch (error) {
+    console.error('加载首页看板失败', error)
+    createMessage.error('首页看板加载失败，请稍后重试')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+onMounted(refreshDashboard)
 </script>
 
-<style lang="less">
-.monitor-dashboard {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  max-height: 100vh;
-  background: linear-gradient(25deg, #0f2249, #182e5a 20%, #0f2249 40%, #182e5a 60%, #0f2249 80%, #182e5a 100%);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  color: #ffffff;
-  font-size: 14px;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  z-index: 9999;
-
-  a {
-    text-decoration: none;
-    color: #399bff;
-  }
+<style lang="less" scoped>
+.overview-dashboard {
+  min-height: 100%;
+  padding: 28px;
+  color: #172033;
+  background:
+    radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.1), transparent 32%),
+    #f5f7fb;
 }
 
-.monitor-content {
-  flex: 1;
-  min-height: 0;
+.dashboard-heading {
   display: flex;
-  overflow: hidden;
-  padding: 0 16px 16px 16px;
-  gap: 16px;
-  box-sizing: border-box;
-  margin-top: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+
+  h1 { margin: 2px 0 4px; font-size: 28px; line-height: 1.2; font-weight: 700; }
+  p { margin: 0; color: #7b8498; }
 }
 
-.monitor-center {
-  flex: 1;
-  min-height: 0;
+.eyebrow, .panel-kicker {
+  color: #3b82f6;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.refresh-button {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  color: #fff;
+  background: #172033;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  &:disabled { opacity: .55; cursor: wait; }
+}
+
+.period-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 18px;
+  background: #e9edf5;
+  border-radius: 10px;
+}
+
+.period-tab, .mode-toggle button {
+  border: 0;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.period-tab {
+  min-width: 76px;
+  padding: 8px 18px;
+  color: #6c7588;
+  background: transparent;
+  border-radius: 7px;
+  &.active { color: #172033; background: #fff; box-shadow: 0 3px 12px rgba(31, 45, 75, .08); }
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.metric-card, .panel {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid #e7eaf1;
+  box-shadow: 0 8px 28px rgba(38, 53, 83, .06);
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 112px;
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.metric-icon { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 13px; }
+.metric-label { color: #737d91; font-size: 13px; }
+.metric-value { margin: 2px 0; font-size: 28px; font-weight: 700; line-height: 1.1; }
+.metric-hint { color: #a0a7b7; font-size: 11px; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, .9fr) minmax(420px, 1.5fr) minmax(270px, 1fr);
+  gap: 14px;
+  min-height: 540px;
+}
+
+.panel { display: flex; min-width: 0; padding: 20px; border-radius: 14px; flex-direction: column; }
+.panel-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+.panel-title-row h2 { margin: 3px 0 0; font-size: 18px; font-weight: 650; }
+.panel-total { padding: 5px 9px; color: #ef4444; font-size: 12px; background: #fef2f2; border-radius: 999px; }
+
+.donut-section { display: flex; flex: 1; align-items: center; justify-content: center; gap: 26px; flex-direction: column; }
+.donut { position: relative; display: grid; width: 190px; height: 190px; place-items: center; border-radius: 50%; transform: rotate(-90deg); }
+.donut::after { width: 112px; height: 112px; background: #fff; border-radius: 50%; content: ''; }
+.donut-center { position: absolute; z-index: 1; display: flex; align-items: center; color: #172033; transform: rotate(90deg); flex-direction: column; }
+.donut-center strong { font-size: 28px; }
+.donut-center span { color: #929bad; font-size: 11px; }
+.legend-list { width: 100%; max-height: 210px; padding-right: 4px; overflow-y: auto; }
+.legend-row { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto 46px; align-items: center; gap: 8px; padding: 7px 0; color: #8891a3; font-size: 12px; border-bottom: 1px solid #f0f2f6; }
+.legend-row strong { color: #344054; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.legend-name { overflow: hidden; color: #596174; text-overflow: ellipsis; white-space: nowrap; }
+
+.video-panel { padding-bottom: 16px; }
+.video-title-row { margin-bottom: 14px; }
+.stream-status { padding: 5px 9px; color: #8992a5; font-size: 11px; background: #f0f2f6; border-radius: 999px; }
+.stream-status.online { color: #15803d; background: #ecfdf3; }
+.video-filters { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.filter-select { width: 100%; }
+.video-stage { position: relative; flex: 1; min-height: 350px; overflow: hidden; background: #09111f; border: 1px solid #25324a; border-radius: 12px; }
+.video-player { width: 100%; height: 100%; }
+.video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #dce8ff; background: radial-gradient(circle at 50% 42%, #192a48, #080f1c 64%); flex-direction: column; }
+.video-placeholder strong { margin: 18px 0 5px; font-size: 16px; }
+.video-placeholder span { color: #73809a; font-size: 12px; }
+.camera-orbit { display: grid; width: 90px; height: 90px; color: #60a5fa; background: rgba(59, 130, 246, .1); border: 1px solid rgba(96, 165, 250, .28); border-radius: 50%; place-items: center; box-shadow: 0 0 40px rgba(59, 130, 246, .16); }
+.video-caption { position: absolute; right: 0; bottom: 0; left: 0; display: flex; justify-content: space-between; padding: 24px 14px 10px; color: #fff; font-size: 12px; background: linear-gradient(transparent, rgba(0, 0, 0, .82)); pointer-events: none; }
+
+.ranking-title-row { align-items: center; }
+.mode-toggle { display: flex; padding: 3px; background: #eef1f6; border-radius: 8px; }
+.mode-toggle button { padding: 6px 9px; color: #7f889a; font-size: 11px; background: transparent; border-radius: 6px; }
+.mode-toggle button.active { color: #172033; background: #fff; box-shadow: 0 2px 7px rgba(32, 45, 72, .08); }
+.ranking-list { display: flex; gap: 14px; flex-direction: column; }
+.ranking-row { display: flex; align-items: flex-start; gap: 11px; }
+.rank-number { display: grid; width: 24px; height: 24px; flex: 0 0 24px; place-items: center; color: #8c95a7; font-size: 11px; background: #f0f2f6; border-radius: 7px; }
+.rank-number.top { color: #fff; background: #172033; }
+.rank-content { min-width: 0; flex: 1; }
+.rank-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.rank-meta span { overflow: hidden; color: #4d5669; text-overflow: ellipsis; white-space: nowrap; }
+.rank-meta strong { flex-shrink: 0; color: #1d2939; font-size: 11px; }
+.rank-track { height: 5px; overflow: hidden; background: #edf0f5; border-radius: 10px; }
+.rank-track span { display: block; height: 100%; background: linear-gradient(90deg, #60a5fa, #2563eb); border-radius: inherit; }
+.rank-content small { display: block; margin-top: 4px; color: #a1a8b6; font-size: 10px; }
+.empty-state { display: grid; min-height: 230px; color: #a1a8b6; font-size: 13px; place-items: center; }
+
+@media (max-width: 1280px) {
+  .dashboard-grid { grid-template-columns: 1fr 1.5fr; }
+  .ranking-panel { grid-column: 1 / -1; }
+  .ranking-list { display: grid; grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .overview-dashboard { padding: 18px; }
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .ranking-panel { grid-column: auto; }
+  .video-panel { min-height: 560px; }
+}
+
+@media (max-width: 600px) {
+  .dashboard-heading { align-items: flex-start; gap: 12px; flex-direction: column; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .video-filters, .ranking-list { grid-template-columns: 1fr; }
 }
 </style>

@@ -35,7 +35,7 @@ const dashboard: AppRouteModule = {
       meta: {
         title: '首页大屏配置',
         icon: 'ant-design:setting-outlined',
-        hideMenu: false,
+        hideMenu: true,
       },
     },
     {
@@ -53,7 +53,7 @@ const dashboard: AppRouteModule = {
       name: 'DashboardSettingsRedirect',
       redirect: '/dashboard/config',
       meta: {
-        title: '??????',
+        title: '首页看板配置',
         icon: 'ant-design:setting-outlined',
         hideMenu: true,
       },
