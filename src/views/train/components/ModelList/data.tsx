@@ -3,53 +3,53 @@ import { BasicColumn, FormProps } from '@/components/Table';
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
-      title: 'Algorithm ID',
+      title: '算法ID',
       dataIndex: 'id',
       width: 90,
     },
     {
-      title: 'Algorithm Name',
+      title: '算法名称',
       dataIndex: 'name',
       width: 140,
     },
     {
-      title: 'Version',
+      title: '版本',
       dataIndex: 'version',
       width: 110,
     },
     {
-      title: 'Format',
+      title: '格式',
       dataIndex: 'model_format',
       width: 90,
       customRender: ({ text }) => String(text || '--').toUpperCase(),
     },
     {
-      title: 'Base Model',
+      title: '基础模型',
       dataIndex: 'base_model',
       width: 120,
       customRender: ({ text }) => text || '--',
     },
     {
-      title: 'Description',
+      title: '描述',
       dataIndex: 'description',
       width: 180,
       customRender: ({ text }) => text || '--',
     },
     {
-      title: 'Created',
+      title: '创建时间',
       dataIndex: 'created_at',
       width: 150,
       customRender: ({ text }) => formatDateTime(text),
     },
     {
-      title: 'Updated',
+      title: '更新时间',
       dataIndex: 'updated_at',
       width: 150,
       customRender: ({ text }) => formatDateTime(text),
     },
     {
       width: 90,
-      title: 'Action',
+      title: '操作',
       dataIndex: 'action',
       align: 'center',
       flag: 'ACTION',
@@ -64,29 +64,29 @@ export function getFormConfig(modelOptions: any[] = []): Partial<FormProps> {
     schemas: [
       {
         field: 'model_id',
-        label: 'Algorithm',
+        label: '算法',
         component: 'Select',
         componentProps: {
-          placeholder: 'Select algorithm',
+          placeholder: '请选择算法',
           showSearch: true,
           allowClear: true,
           filterOption: (input: string, option: any) =>
             option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0,
           options: [
-            { label: 'All', value: '' },
+            { label: '全部', value: '' },
             ...modelOptions,
           ],
         },
       },
       {
         field: 'status',
-        label: 'Status',
+        label: '状态',
         component: 'Select',
         componentProps: {
           options: [
-            { label: 'Draft', value: 0 },
-            { label: 'Published', value: 1 },
-            { label: 'Offline', value: 3 },
+            { label: '草稿', value: 0 },
+            { label: '已发布', value: 1 },
+            { label: '已下线', value: 3 },
           ],
         },
       },

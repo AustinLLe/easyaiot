@@ -26,7 +26,7 @@
       <div class="model-edit-modal">
         <div class="edit-body">
           <aside class="edit-nav">
-            <div class="nav-title">Configuration</div>
+            <div class="nav-title">配置项</div>
             <button
               v-for="item in sectionList"
               :key="item.key"
@@ -55,7 +55,7 @@
         </div>
 
         <div class="edit-footer">
-          <a-button type="link" size="small" @click="handleCancel">Cancel</a-button>
+          <a-button type="link" size="small" @click="handleCancel">取消</a-button>
           <div class="footer-actions">
             <a-button
               v-if="!state.isView"
@@ -64,9 +64,9 @@
               :loading="state.editLoading"
               @click="handleEditSave"
             >
-              Save
+              保存
             </a-button>
-            <a-button v-else size="small" @click="handleCancel">Close</a-button>
+            <a-button v-else size="small" @click="handleCancel">关闭</a-button>
           </div>
         </div>
       </div>
@@ -130,10 +130,10 @@ const sectionList: Array<{
   icon: Component;
   component: Component;
 }> = [
-  { key: 'basic', label: 'Basic Info', icon: InfoCircleOutlined, component: ModelBasicInfoSection },
-  { key: 'threshold', label: 'Default Thresholds', icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
-  { key: 'draw_object', label: 'Draw Objects', icon: PartitionOutlined, component: ModelDrawObjectSection },
-  { key: 'draw_style', label: 'Draw Style', icon: BgColorsOutlined, component: ModelDefaultDrawStyleSection },
+  { key: 'basic', label: '基础信息', icon: InfoCircleOutlined, component: ModelBasicInfoSection },
+  { key: 'threshold', label: '默认阈值', icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
+  { key: 'draw_object', label: '绘制对象', icon: PartitionOutlined, component: ModelDrawObjectSection },
+  { key: 'draw_style', label: '绘制样式', icon: BgColorsOutlined, component: ModelDefaultDrawStyleSection },
 ];
 
 const currentSectionComponent = computed(() =>
@@ -149,10 +149,10 @@ const basicSectionProps = computed(() => ({
 
 const modalTitle = computed(() => {
   if (state.isView)
-    return 'View Model';
+    return '查看模型';
   if (state.isEdit)
-    return 'Edit Model';
-  return 'Upload Model';
+    return '编辑模型';
+  return '上传模型';
 });
 
 const emits = defineEmits(['success']);
@@ -186,13 +186,13 @@ function handleCancel() {
 
 function validateBasicInfo(): string | null {
   if (!draft.value.name?.trim())
-    return 'Please enter model name';
+    return '请输入模型名称';
   if (!draft.value.version?.trim())
-    return 'Please enter model version';
+    return '请输入模型版本';
   if (!draft.value.imageUrl?.trim())
-    return 'Please upload model image';
+    return '请上传模型图片';
   if (!draft.value.filePath?.trim())
-    return 'Please upload model file';
+    return '请上传模型文件';
   return null;
 }
 
@@ -240,7 +240,7 @@ async function submitModel() {
     await api(buildApiPayload());
     if (draft.value.id)
       clearModelExtensionProfileCache(draft.value.id);
-    createMessage.success('Saved');
+    createMessage.success('已保存');
     closeModal();
     resetDraft();
     emits('success');

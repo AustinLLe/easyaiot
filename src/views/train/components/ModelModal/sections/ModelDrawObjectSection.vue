@@ -32,7 +32,7 @@
                 v-model:value="record.class_key"
                 size="small"
                 class="cell-input"
-                placeholder="ClassID"
+                placeholder="类别ID"
                 :disabled="isView"
               />
               <span v-else class="cell-text">{{ record.class_key || '-' }}</span>
@@ -260,7 +260,7 @@ const previewItems = computed(() =>
 );
 
 const columns: ColumnsType<ModelDrawObjectItem> = [
-  { title: 'ClassID', key: 'class_key', width: 88 },
+  { title: '类别ID', key: 'class_key', width: 88 },
   { title: '描述文本', key: 'label', width: 112, ellipsis: true },
   { title: '颜色', key: 'color', width: 56, align: 'center' },
   { title: '是否绘制', key: 'enabled', width: 80, align: 'center' },
@@ -339,7 +339,7 @@ function handleCancelEdit() {
 function handleFinishEdit(id: string) {
   const row = tableItems.value.find(item => item.id === id);
   if (!row?.class_key?.trim()) {
-    createMessage.warning('ClassID 不能为空');
+    createMessage.warning('类别ID不能为空');
     return;
   }
   clearEditingState();

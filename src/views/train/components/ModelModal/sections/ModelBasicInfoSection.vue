@@ -1,66 +1,16 @@
 <template>
   <div class="section-panel">
     <div v-if="showHeader" class="section-header">
-      <h3>Basic Info</h3>
-      <p>Set the model name, version, format and files.</p>
+      <h3>基础信息</h3>
+      <p>设置模型名称、版本、格式和文件。</p>
+    </div>
+
+    <div class="upload-tip">
+      先上传模型文件，平台会自动识别格式、基础模型和类别标签。
     </div>
 
     <Form :labelCol="{ span: 5 }" :wrapperCol="{ span: 19 }" :disabled="isView">
-      <FormItem label="Model Name" required>
-        <Input v-model:value="draft.name" placeholder="Enter model name" />
-      </FormItem>
-
-      <FormItem label="Version" required>
-        <Input v-model:value="draft.version" placeholder="e.g. V1.0.0" />
-      </FormItem>
-
-      <FormItem label="Description">
-        <TextArea v-model:value="draft.description" :rows="4" placeholder="Enter description" />
-      </FormItem>
-
-      <FormItem label="Model Format">
-        <Select
-          v-model:value="draft.model_format"
-          :options="formatOptions"
-          placeholder="Select format"
-        />
-      </FormItem>
-
-      <FormItem label="Base Model">
-        <Input v-model:value="draft.base_model" placeholder="e.g. yolov8" />
-      </FormItem>
-
-      <FormItem label="Class Labels">
-        <TextArea
-          v-model:value="draft.class_labels_text"
-          :rows="4"
-          placeholder="One class per line, e.g. 0 person"
-          @blur="applyClassLabelsText"
-        />
-      </FormItem>
-
-      <FormItem label="Status">
-        <Select v-model:value="draft.status" :options="statusOptions" />
-      </FormItem>
-
-      <FormItem label="Model Image" required>
-        <Upload
-          name="file"
-          :action="imageUploadUrl"
-          :headers="headers"
-          :showUploadList="false"
-          accept=".jpg,.jpeg,.png,.webp"
-          :disabled="isView"
-          @change="handleImageUpload"
-        >
-          <a-button type="primary" :disabled="isView">Upload image</a-button>
-        </Upload>
-        <div v-if="draft.imageUrl" class="image-preview">
-          <img :src="draft.imageUrl" alt="model preview" />
-        </div>
-      </FormItem>
-
-      <FormItem label="Model File">
+      <FormItem label="模型文件" required>
         <Upload
           name="file"
           :action="modelUploadUrl"
@@ -71,10 +21,79 @@
           :disabled="isView"
           @change="handleFileUpload"
         >
-          <a-button type="primary" :disabled="isView">Upload model</a-button>
+          <a-button type="primary" :disabled="isView">上传模型</a-button>
         </Upload>
         <div v-if="draft.filePath" class="file-path">
           {{ draft.filePath }}
+        </div>
+      </FormItem>
+
+      <FormItem label="模型名称" required>
+        <Input v-model:value="draft.name" placeholder="请输入模型名称" />
+      </FormItem>
+
+      <FormItem label="版本" required>
+        <Input v-model:value="draft.version" placeholder="例如：V1.0.0" />
+      </FormItem>
+
+      <FormItem label="描述">
+        <TextArea v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
+      </FormItem>
+
+      <FormItem label="模型格式">
+        <template v-if="draft.filePath">
+          <Select
+            v-model:value="draft.model_format"
+            :options="formatOptions"
+            :disabled="isView"
+            placeholder="上传模型后自动识别"
+          />
+        </template>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
+      </FormItem>
+
+      <FormItem label="基础模型">
+        <template v-if="draft.filePath">
+          <Input
+            v-model:value="draft.base_model"
+            :disabled="isView"
+            placeholder="上传模型后自动识别"
+          />
+        </template>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
+      </FormItem>
+
+      <FormItem label="类别标签">
+        <template v-if="draft.filePath">
+          <TextArea
+            v-model:value="draft.class_labels_text"
+            :rows="4"
+            :disabled="isView"
+            placeholder="上传模型后自动识别，必要时可手动修正"
+            @blur="applyClassLabelsText"
+          />
+        </template>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
+      </FormItem>
+
+      <FormItem label="状态">
+        <Select v-model:value="draft.status" :options="statusOptions" />
+      </FormItem>
+
+      <FormItem label="模型图片" required>
+        <Upload
+          name="file"
+          :action="imageUploadUrl"
+          :headers="headers"
+          :showUploadList="false"
+          accept=".jpg,.jpeg,.png,.webp"
+          :disabled="isView"
+          @change="handleImageUpload"
+        >
+          <a-button type="primary" :disabled="isView">上传图片</a-button>
+        </Upload>
+        <div v-if="draft.imageUrl" class="image-preview">
+          <img :src="draft.imageUrl" alt="模型预览" />
         </div>
       </FormItem>
     </Form>
@@ -108,9 +127,9 @@ const formatOptions = [
 ];
 
 const statusOptions = [
-  { value: 0, label: 'Draft' },
-  { value: 1, label: 'Published' },
-  { value: 3, label: 'Offline' },
+  { value: 0, label: '草稿' },
+  { value: 1, label: '已发布' },
+  { value: 3, label: '已下线' },
 ];
 
 type UploadResp = {
@@ -211,14 +230,14 @@ function handleFileUpload(info: { file: { status?: string; response?: UploadResp
       const labelsText = classLabelsToText(response.data?.class_labels);
       if (labelsText)
         draft.value.class_labels_text = labelsText;
-      createMessage.success('Model uploaded');
+      createMessage.success('模型上传成功');
     }
     else {
-      createMessage.error(response?.msg || 'Model upload failed');
+      createMessage.error(response?.msg || '模型上传失败');
     }
   }
   else if (info.file.status === 'error') {
-    createMessage.error(info.file.response?.msg || info.file.error?.message || 'Model upload failed');
+    createMessage.error(info.file.response?.msg || info.file.error?.message || '模型上传失败');
   }
 }
 
@@ -227,14 +246,14 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
     const response = info.file.response;
     if (response?.code === 0) {
       draft.value.imageUrl = response.data?.url ?? '';
-      createMessage.success('Image uploaded');
+      createMessage.success('图片上传成功');
     }
     else {
-      createMessage.error(response?.msg || 'Image upload failed');
+      createMessage.error(response?.msg || '图片上传失败');
     }
   }
   else if (info.file.status === 'error') {
-    createMessage.error('Image upload failed');
+    createMessage.error('图片上传失败');
   }
 }
 </script>
@@ -257,6 +276,23 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
     margin: 0;
     color: rgba(0, 0, 0, 0.45);
   }
+}
+
+.upload-tip {
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.auto-detect-placeholder {
+  min-height: 32px;
+  padding: 5px 12px;
+  font-size: 13px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.25);
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
 }
 
 .image-preview {

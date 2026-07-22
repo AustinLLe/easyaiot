@@ -3,8 +3,8 @@
     <div class="section-header">
       <div class="header-row">
         <div>
-          <h3>Default Thresholds</h3>
-          <p>These values are copied into a new algorithm task and can be overridden there.</p>
+          <h3>默认阈值</h3>
+          <p>这些值会在创建算法任务时自动带入，任务中可单独修改。</p>
         </div>
         <Segmented
           v-model:value="draft.custom_enabled"
@@ -95,28 +95,28 @@ interface ParamFieldDef {
 const paramFields: ParamFieldDef[] = [
   {
     key: 'conf',
-    label: 'Confidence',
-    desc: 'Minimum detection score.',
+    label: '置信度',
+    desc: '最低检测得分。',
     type: 'number',
     min: 0,
     max: 1,
     step: 0.01,
-    range: '0 to 1',
+    range: '0 到 1',
   },
   {
     key: 'iou',
     label: 'IOU',
-    desc: 'Non-maximum suppression overlap threshold.',
+    desc: '非极大值抑制重叠阈值。',
     type: 'number',
     min: 0,
     max: 1,
     step: 0.01,
-    range: '0 to 1',
+    range: '0 到 1',
   },
   {
     key: 'imgsz',
-    label: 'Input Size',
-    desc: 'Inference input image size.',
+    label: '输入尺寸',
+    desc: '推理输入图片尺寸。',
     type: 'select',
     options: [
       { label: '320', value: 320 },
@@ -127,8 +127,8 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'min_box_area',
-    label: 'Min Box Area',
-    desc: 'Ignore tiny detections.',
+    label: '最小框面积',
+    desc: '忽略过小检测目标。',
     type: 'number',
     min: 0,
     step: 1,
@@ -136,8 +136,8 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'max_detections',
-    label: 'Max Detections',
-    desc: 'Maximum detections per frame.',
+    label: '最大检测数',
+    desc: '每帧最多保留的检测目标数量。',
     type: 'number',
     min: 1,
     step: 1,
@@ -145,8 +145,8 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'extract_interval',
-    label: 'Frame Interval',
-    desc: 'Run detection every N frames.',
+    label: '抽帧间隔',
+    desc: '每 N 帧执行一次检测。',
     type: 'number',
     min: 1,
     step: 1,
