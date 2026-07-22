@@ -21,6 +21,7 @@ import {
   getDirectoryList,
   type DeviceDirectory,
 } from '@/api/device/camera';
+import { getNextSortOrder } from '../../utils/directoryUtils';
 
 const emit = defineEmits(['success', 'register']);
 
@@ -63,16 +64,6 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
         rows: 4,
       },
     },
-    {
-      field: 'sort_order',
-      label: '排序顺序',
-      component: 'InputNumber',
-      componentProps: {
-        placeholder: '请输入排序顺序',
-        min: 0,
-        defaultValue: 0,
-      },
-    },
   ],
   showActionButtonGroup: false,
 });
@@ -89,7 +80,6 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       name: data.record.name,
       parent_id: data.record.parent_id,
       description: data.record.description,
-      sort_order: data.record.sort_order,
     });
     currentId.value = data.record.id;
   } else {
@@ -105,6 +95,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
 
 const currentId = ref<number | null>(null);
 const parentDirectoryOptions = ref<any[]>([]);
+const directoryTreeData = ref<DeviceDirectory[]>([]);
 
 const modalTitle = computed(() => {
   return currentId.value ? '编辑目录' : '新建目录';
@@ -117,6 +108,7 @@ const loadParentDirectoryOptions = async () => {
     // API返回格式: { code: 0, data: [...], msg: 'success' } 或直接返回data
     const data = response.code !== undefined ? response.data : response;
     if (data && Array.isArray(data)) {
+      directoryTreeData.value = data;
       // 转换目录树为TreeSelect需要的格式
       const convertToTreeSelect = (directories: DeviceDirectory[], excludeId?: number): any[] => {
         return directories
@@ -153,7 +145,6 @@ const handleSubmit = async () => {
         name: values.name,
         parent_id: values.parent_id || null,
         description: values.description,
-        sort_order: values.sort_order || 0,
       });
       // API返回格式: { code: 0, msg: '...' } 或直接返回data
       const result = response.code !== undefined ? response : { code: 0, msg: '更新成功' };
@@ -170,7 +161,7 @@ const handleSubmit = async () => {
         name: values.name,
         parent_id: values.parent_id || null,
         description: values.description,
-        sort_order: values.sort_order || 0,
+        sort_order: getNextSortOrder(values.parent_id || null, directoryTreeData.value),
       });
       // API返回格式: { code: 0, msg: '...' } 或直接返回data
       const result = response.code !== undefined ? response : { code: 0, msg: '创建成功' };

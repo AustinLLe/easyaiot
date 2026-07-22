@@ -1,67 +1,92 @@
-import {BasicColumn, FormProps} from "@/components/Table";
+import { BasicColumn, FormProps } from '@/components/Table';
 
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
-      title: '模型ID',
+      title: 'Algorithm ID',
       dataIndex: 'id',
       width: 90,
     },
     {
-      title: '模型名称',
+      title: 'Algorithm Name',
       dataIndex: 'name',
-      width: 120,
+      width: 140,
     },
     {
-      title: '模型版本',
+      title: 'Version',
       dataIndex: 'version',
-      width: 120,
+      width: 110,
     },
     {
-      title: '模型描述',
+      title: 'Format',
+      dataIndex: 'model_format',
+      width: 90,
+      customRender: ({ text }) => String(text || '--').toUpperCase(),
+    },
+    {
+      title: 'Base Model',
+      dataIndex: 'base_model',
+      width: 120,
+      customRender: ({ text }) => text || '--',
+    },
+    {
+      title: 'Description',
       dataIndex: 'description',
       width: 180,
-      customRender: ({text}) => text || '--',
+      customRender: ({ text }) => text || '--',
     },
     {
-      title: '创建时间',
+      title: 'Created',
       dataIndex: 'created_at',
-      width: 120,
-      customRender: ({text}) => formatDateTime(text),
+      width: 150,
+      customRender: ({ text }) => formatDateTime(text),
     },
     {
-      title: '更新时间',
+      title: 'Updated',
       dataIndex: 'updated_at',
-      width: 120,
-      customRender: ({text}) => formatDateTime(text),
+      width: 150,
+      customRender: ({ text }) => formatDateTime(text),
     },
     {
       width: 90,
-      title: '操作',
+      title: 'Action',
       dataIndex: 'action',
+      align: 'center',
+      flag: 'ACTION',
     },
   ];
 }
 
-export function getFormConfig(): Partial<FormProps> {
+export function getFormConfig(modelOptions: any[] = []): Partial<FormProps> {
   return {
-    labelWidth: 80,
-    baseColProps: {span: 6},
+    labelWidth: 90,
+    baseColProps: { span: 6 },
     schemas: [
       {
-        field: `name`,
-        label: `模型名称`,
-        component: 'Input',
+        field: 'model_id',
+        label: 'Algorithm',
+        component: 'Select',
+        componentProps: {
+          placeholder: 'Select algorithm',
+          showSearch: true,
+          allowClear: true,
+          filterOption: (input: string, option: any) =>
+            option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0,
+          options: [
+            { label: 'All', value: '' },
+            ...modelOptions,
+          ],
+        },
       },
       {
-        field: `status`,
-        label: `状态`,
+        field: 'status',
+        label: 'Status',
         component: 'Select',
         componentProps: {
           options: [
-            {label: '未部署', value: 0},
-            {label: '已部署', value: 1},
-            {label: '已下线', value: 3},
+            { label: 'Draft', value: 0 },
+            { label: 'Published', value: 1 },
+            { label: 'Offline', value: 3 },
           ],
         },
       },
@@ -70,7 +95,8 @@ export function getFormConfig(): Partial<FormProps> {
 }
 
 function formatDateTime(dateString: string): string {
-  if (!dateString) return '--';
+  if (!dateString)
+    return '--';
   const date = new Date(dateString);
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 }

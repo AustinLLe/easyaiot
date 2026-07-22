@@ -127,9 +127,9 @@ import {
   batchRestartDeployService,
   getDeployServiceReplicas
 } from '@/api/device/model';
-import DeployModal from '../DeployModal/DeployModal.vue';
+import DeployModal from '../DeployModal/index.vue';
 import DeployServiceCardList from '../DeployServiceCardList/index.vue';
-import ServiceLogsModal from '../ServiceLogsModal/ServiceLogsModal.vue';
+import ServiceLogsModal from '../ServiceLogsModal/index.vue';
 import ReplicasDrawer from '../ReplicasDrawer/index.vue';
 import {getBasicColumns, getFormConfig} from './Data';
 import {Tag} from 'ant-design-vue';

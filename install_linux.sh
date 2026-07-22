@@ -452,6 +452,51 @@ build_frontend() {
     print_success "前端项目构建完成（此构建仅用于测试，Docker部署时会重新构建）"
 }
 
+# 将 docker-compose.yaml / nginx.conf 中占位 IP 替换为宿主机实际地址（x86 Debian 无 GPU 部署）
+configure_extra_hosts() {
+    local compose_file="${SCRIPT_DIR}/docker-compose.yaml"
+    local nginx_file="${SCRIPT_DIR}/conf/nginx.conf"
+
+    local host_ip
+    host_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    if [ -z "$host_ip" ]; then
+        host_ip=$(ip -4 route show default 2>/dev/null | awk '{print $3; exit}')
+    fi
+    if [ -z "$host_ip" ]; then
+        print_warning "无法检测宿主机 IP，保留默认 extra_hosts / nginx 代理地址"
+        return 0
+    fi
+
+    print_info "配置宿主机 IP: ${host_ip}"
+
+    if [ -f "$compose_file" ]; then
+        sed -i "s/host-gateway/${host_ip}/g" "$compose_file"
+        sed -i "s/172\.18\.0\.1/${host_ip}/g" "$compose_file"
+    fi
+
+    if [ -f "$nginx_file" ]; then
+        sed -i "s/172\.18\.0\.1/${host_ip}/g" "$nginx_file"
+    fi
+}
+
+fix_config_line_endings() {
+    local nginx_file="${SCRIPT_DIR}/conf/nginx.conf"
+    if [ -f "$nginx_file" ] && grep -q $'\r' "$nginx_file" 2>/dev/null; then
+        print_info "修复 nginx.conf 的 CRLF 换行符"
+        sed -i 's/\r$//' "$nginx_file"
+    fi
+}
+
+# Vite 构建读取 .env.production；仓库主配置为 env.production
+prepare_vite_production_env() {
+    local env_file="${SCRIPT_DIR}/env.production"
+    local dotenv_file="${SCRIPT_DIR}/.env.production"
+    if [ -f "$env_file" ]; then
+        cp -f "$env_file" "$dotenv_file"
+        print_info "已同步 env.production -> .env.production（供 Vite 构建注入）"
+    fi
+}
+
 # 安装服务
 install_service() {
     print_info "开始安装 WEB 服务..."
@@ -467,9 +512,10 @@ install_service() {
         exit 1
     fi
     
-    # 将 host-gateway 改为宿主机实际 IP
-    HOST_IP=$(hostname -I | awk '{print $1}')
-    sed -i "s/host-gateway/${HOST_IP}/g" docker-compose.yml
+    # 配置 extra_hosts / nginx 代理地址，并修复配置文件换行符
+    fix_config_line_endings
+    configure_extra_hosts
+    prepare_vite_production_env
 
     # 注意：前端构建现在在Docker容器内完成，不再需要在宿主机上构建
     print_info "前端构建将在Docker容器内自动完成"
@@ -591,6 +637,7 @@ build_image() {
     
     # 注意：前端构建现在在Docker容器内完成，构建镜像时会自动完成
     print_info "前端构建将在Docker容器内自动完成"
+    prepare_vite_production_env
     
     docker build -t web-service:latest --no-cache .
     print_success "镜像构建完成"
@@ -642,6 +689,7 @@ update_service() {
     
     # 注意：前端构建现在在Docker容器内完成，重新构建镜像时会自动完成
     print_info "重新构建镜像（前端构建将在容器内自动完成）..."
+    prepare_vite_production_env
     docker build -t web-service:latest .
     
     print_info "重启服务..."

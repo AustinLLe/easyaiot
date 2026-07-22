@@ -6,6 +6,7 @@
     <div class="p-2 bg-white">
       <Spin :spinning="state.loading">
         <List
+          :split="false"
           :grid="{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }"
           :data-source="data"
           :pagination="paginationProp"
@@ -54,12 +55,10 @@
                     </div>
                   </div>
                 </div>
+                <div class="card-actions-wrap">
                 <div class="btns">
                   <div class="btn" @click="handlePlay(item)" v-if="item.rtmp_stream || item.http_stream">
                     <Icon icon="octicon:play-16" :size="15" color="#3B82F6" />
-                  </div>
-                  <div class="btn" @click="handlePlayAI(item)" v-if="item.ai_http_stream || item.ai_rtmp_stream">
-                    <Icon icon="hugeicons:ai-video" :size="15" color="#3B82F6" />
                   </div>
                   <div class="btn" @click="handleView(item)">
                     <Icon icon="ant-design:eye-filled" :size="15" color="#3B82F6" />
@@ -84,6 +83,7 @@
                       <Icon icon="material-symbols:delete-outline-rounded" :size="15" color="#DC2626" />
                     </div>
                   </Popconfirm>
+                </div>
                 </div>
               </div>
               <div class="camera-img">
@@ -128,7 +128,7 @@ const props = defineProps({
 const { createMessage } = useMessage();
 
 //暴露内部方法
-const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'play', 'playAI', 'toggleStream']);
+const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'play', 'toggleStream']);
 
 //数据
 const data = ref<DeviceInfo[]>([]);
@@ -381,10 +381,6 @@ async function handlePlay(record: DeviceInfo) {
   emit('play', record);
 }
 
-async function handlePlayAI(record: DeviceInfo) {
-  emit('playAI', record);
-}
-
 async function handleToggleStream(record: DeviceInfo) {
   emit('toggleStream', record);
 }
@@ -433,6 +429,7 @@ defineExpose({
   }
   :deep(.ant-list-item) {
     margin: 6px;
+    border-block-end: none !important;
   }
   :deep(.camera-item) {
     overflow: hidden;
@@ -541,39 +538,46 @@ defineExpose({
         }
       }
 
-      .btns {
-        display: flex;
+      .card-actions-wrap {
         position: absolute;
         left: 16px;
         bottom: 16px;
-        margin-top: 20px;
+        padding-top: 6px;
+        background: #fff;
+        border-radius: 8px;
+      }
+
+      .btns {
+        display: flex;
         width: 200px;
         height: 28px;
+        box-sizing: border-box;
         border-radius: 45px;
         justify-content: space-around;
         padding: 0 10px;
         align-items: center;
+        overflow: hidden;
         border: 2px solid #266cfbff;
+
+        :deep(.ant-popconfirm) {
+          display: inline-flex;
+          align-items: center;
+          line-height: 1;
+        }
 
         .btn {
           width: 28px;
+          height: 100%;
           text-align: center;
           position: relative;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
 
-          &:before {
-            content: '';
-            display: block;
-            position: absolute;
-            width: 1px;
-            height: 7px;
-            background-color: #e2e2e2;
-            left: 0;
-            top: 9px;
-          }
-
-          &:first-child:before {
-            display: none;
+          & + .btn {
+            border-left: 1px solid #e2e2e2;
           }
 
           :deep(.anticon) {

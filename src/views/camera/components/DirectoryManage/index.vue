@@ -1,50 +1,7 @@
 <template>
   <div class="directory-manage-wrapper">
     <div class="directory-layout">
-      <!-- 左侧：目录树 -->
-      <div class="directory-sidebar">
-        <div class="sidebar-tree">
-          <div class="tree-header">
-            <div class="tree-header-button">
-              <a-button type="primary" @click="handleAddDirectory">
-                <template #icon>
-                  <PlusOutlined />
-                </template>
-                添加目录
-              </a-button>
-            </div>
-            <a-input
-              v-model:value="directorySearchText"
-              placeholder="请输入目录名称"
-              allow-clear
-              style="margin-top: 12px;"
-            >
-              <template #prefix>
-                <Icon icon="ant-design:search-outlined" />
-              </template>
-            </a-input>
-          </div>
-          <div class="tree-content">
-            <div
-              v-for="dir in filteredDirectoryTree"
-              :key="dir.id"
-              class="tree-node"
-            >
-              <DirectoryTreeNode
-                :directory="dir"
-                :level="0"
-                :expanded-keys="expandedKeys"
-                :selected-id="selectedDirectoryId"
-                @toggle="handleToggleNode"
-                @select="handleSelectDirectory"
-                @edit="handleEditDirectory"
-                @delete="handleDeleteDirectory"
-              />
-            </div>
-            <a-empty v-if="filteredDirectoryTree.length === 0" description="暂无目录" />
-          </div>
-        </div>
-      </div>
+      <DirectorySidebar ref="directorySidebarRef" @select="handleSelectDirectory" />
 
       <!-- 右侧：设备列表 -->
       <div class="device-content">
@@ -86,265 +43,53 @@
       @register="registerAddModal"
       @success="handleSuccess"
     />
-    
-    <!-- 目录编辑/创建模态框 -->
-    <DirectoryModal
-      @register="registerDirectoryModal"
-      @success="handleDirectorySuccess"
-    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref } from 'vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useModal } from '@/components/Modal';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { Icon } from '@/components/Icon';
-import { Tag as ATag, Input as AInput, Empty as AEmpty } from 'ant-design-vue';
+import { Tag as ATag } from 'ant-design-vue';
 import {
-  getDirectoryList,
-  deleteDirectory,
   getDirectoryDevices,
-  getDeviceList,
   getStreamStatus,
   moveDeviceToDirectory,
   type DeviceDirectory,
   type DeviceInfo,
   type StreamStatusResponse,
 } from '@/api/device/camera';
-import DirectoryModal from './DirectoryModal.vue';
 import AddDirectoryOrDeviceModal from './AddDirectoryOrDeviceModal.vue';
-import DirectoryTreeNode from './DirectoryTreeNode.vue';
+import DirectorySidebar from '../DirectorySidebar/index.vue';
 import {
   PlusOutlined,
 } from '@ant-design/icons-vue';
 
 const { createMessage } = useMessage();
-const [registerDirectoryModal, { openModal: openDirectoryModal }] = useModal();
 const [registerAddModal, { openModal: openAddModal }] = useModal();
+const directorySidebarRef = ref<InstanceType<typeof DirectorySidebar>>();
 
 // 目录相关
 const selectedDirectoryId = ref<number | null>(null);
 const selectedDirectoryName = ref<string>('');
-const directoryTree = ref<DeviceDirectory[]>([]);
-const expandedKeys = ref<Set<number>>(new Set());
-const directorySearchText = ref<string>('');
 
 // 设备流状态映射
 const deviceStreamStatuses = ref<Record<string, string>>({});
 
-// 过滤目录树（根据搜索文本）
-const filteredDirectoryTree = computed(() => {
-  if (!directorySearchText.value) {
-    return directoryTree.value;
-  }
-  
-  const searchLower = directorySearchText.value.toLowerCase();
-  
-  const filterTree = (nodes: DeviceDirectory[]): DeviceDirectory[] => {
-    return nodes
-      .map(node => {
-        const matches = node.name.toLowerCase().includes(searchLower);
-        const filteredChildren = node.children ? filterTree(node.children) : [];
-        
-        if (matches || filteredChildren.length > 0) {
-          return {
-            ...node,
-            children: filteredChildren.length > 0 ? filteredChildren : node.children,
-          };
-        }
-        return null;
-      })
-      .filter((node): node is DeviceDirectory => node !== null);
-  };
-  
-  return filterTree(directoryTree.value);
-});
-
-// 收集所有目录ID（递归）
-const collectDirectoryIds = (nodes: DeviceDirectory[]): Set<number> => {
-  const ids = new Set<number>();
-  const traverse = (dirs: DeviceDirectory[]) => {
-    dirs.forEach(dir => {
-      ids.add(dir.id);
-      if (dir.children && dir.children.length > 0) {
-        traverse(dir.children);
-      }
-    });
-  };
-  traverse(nodes);
-  return ids;
-};
-
-// 加载目录列表
-const loadDirectoryList = async () => {
-  try {
-    const response = await getDirectoryList();
-    const data = response.code !== undefined ? response.data : response;
-    
-    if (data && Array.isArray(data)) {
-      // 保存当前的展开状态
-      const currentExpandedKeys = new Set(expandedKeys.value);
-      const isInitialLoad = directoryTree.value.length === 0;
-      
-      directoryTree.value = data;
-      
-      if (isInitialLoad) {
-        // 首次加载时，默认不展开
-        expandedKeys.value = new Set();
-      } else {
-        // 非首次加载时，保留当前展开状态，但清理掉已经不存在的目录的展开状态
-        const validIds = collectDirectoryIds(data);
-        const newExpandedKeys = new Set<number>();
-        currentExpandedKeys.forEach(id => {
-          if (validIds.has(id)) {
-            newExpandedKeys.add(id);
-          }
-        });
-        expandedKeys.value = newExpandedKeys;
-      }
-    } else {
-      directoryTree.value = [];
-      // 如果数据为空，清空展开状态
-      if (directoryTree.value.length === 0) {
-        expandedKeys.value = new Set();
-      }
-    }
-  } catch (error) {
-    console.error('加载目录列表失败', error);
-    directoryTree.value = [];
-  }
-};
-
-// 切换节点展开/折叠（手风琴效果）
-const handleToggleNode = (directoryId: number, level: number) => {
-  const newExpandedKeys = new Set(expandedKeys.value);
-  
-  if (newExpandedKeys.has(directoryId)) {
-    // 折叠：移除当前节点及其所有子节点
-    newExpandedKeys.delete(directoryId);
-    removeChildrenKeys(directoryId, newExpandedKeys);
-  } else {
-    // 展开：如果是同一级的其他节点已展开，先折叠它们（手风琴效果）
-    if (level === 0) {
-      // 一级目录：折叠所有其他一级目录
-      directoryTree.value.forEach(dir => {
-        if (dir.id !== directoryId && newExpandedKeys.has(dir.id)) {
-          newExpandedKeys.delete(dir.id);
-          removeChildrenKeys(dir.id, newExpandedKeys);
-        }
-      });
-    } else {
-      // 二级或三级目录：找到同级节点并折叠
-      const parent = findParentDirectory(directoryId, directoryTree.value);
-      if (parent) {
-        const siblings = parent.children || [];
-        siblings.forEach(sibling => {
-          if (sibling.id !== directoryId && newExpandedKeys.has(sibling.id)) {
-            newExpandedKeys.delete(sibling.id);
-            removeChildrenKeys(sibling.id, newExpandedKeys);
-          }
-        });
-      }
-    }
-    
-    // 展开当前节点
-    newExpandedKeys.add(directoryId);
-  }
-  
-  expandedKeys.value = newExpandedKeys;
-};
-
-// 移除节点的所有子节点的展开状态
-const removeChildrenKeys = (parentId: number, keys: Set<number>) => {
-  // 递归查找并移除所有子节点的展开状态
-  const removeFromNode = (node: DeviceDirectory) => {
-    if (node.children && node.children.length > 0) {
-      node.children.forEach(child => {
-        keys.delete(child.id);
-        removeFromNode(child);
-      });
-    }
-  };
-  
-  // 查找目标节点
-  const findNode = (nodes: DeviceDirectory[], targetId: number): DeviceDirectory | null => {
-    for (const node of nodes) {
-      if (node.id === targetId) {
-        return node;
-      }
-      if (node.children && node.children.length > 0) {
-        const found = findNode(node.children, targetId);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
-  };
-  
-  const targetNode = findNode(directoryTree.value, parentId);
-  if (targetNode) {
-    removeFromNode(targetNode);
-  }
-};
-
-// 查找父目录
-const findParentDirectory = (childId: number, nodes: DeviceDirectory[]): DeviceDirectory | null => {
-  for (const node of nodes) {
-    if (node.children) {
-      const found = node.children.find(child => child.id === childId);
-      if (found) {
-        return node;
-      }
-      const parent = findParentDirectory(childId, node.children);
-      if (parent) {
-        return parent;
-      }
-    }
-  }
-  return null;
-};
-
 // 选择目录
-const handleSelectDirectory = (directory: DeviceDirectory) => {
+const handleSelectDirectory = (directory: DeviceDirectory | null) => {
+  if (!directory) {
+    selectedDirectoryId.value = null;
+    selectedDirectoryName.value = '';
+    reloadDeviceTable();
+    return;
+  }
+
   selectedDirectoryId.value = directory.id;
   selectedDirectoryName.value = directory.name;
   reloadDeviceTable();
-};
-
-// 编辑目录
-const handleEditDirectory = (directory: DeviceDirectory) => {
-  openDirectoryModal(true, {
-    type: 'edit',
-    record: directory,
-  });
-};
-
-// 删除目录
-const handleDeleteDirectory = async (directory: DeviceDirectory) => {
-  try {
-    const response = await deleteDirectory(directory.id);
-    const result = response.code !== undefined ? response : { code: 0, msg: '删除成功' };
-    if (result.code === 0) {
-      createMessage.success('删除成功');
-      loadDirectoryList();
-      // 如果删除的是当前选中的目录，清空选择
-      if (selectedDirectoryId.value === directory.id) {
-        selectedDirectoryId.value = null;
-        selectedDirectoryName.value = '';
-        reloadDeviceTable();
-      }
-      // 移除展开状态
-      expandedKeys.value.delete(directory.id);
-    } else {
-      createMessage.error(result.msg || '删除失败');
-    }
-  } catch (error) {
-    console.error('删除目录失败', error);
-    createMessage.error('删除失败');
-  }
 };
 
 // 获取设备表格列配置
@@ -645,13 +390,6 @@ async function handleCopy(text: string) {
   }
 }
 
-// 添加目录
-const handleAddDirectory = () => {
-  openDirectoryModal(true, {
-    type: 'create',
-  });
-};
-
 // 添加摄像头
 const handleAddDevice = () => {
   if (!selectedDirectoryId.value) {
@@ -664,17 +402,9 @@ const handleAddDevice = () => {
   });
 };
 
-// 目录操作成功回调
-const handleDirectorySuccess = () => {
-  loadDirectoryList();
-  if (selectedDirectoryId.value) {
-    reloadDeviceTable();
-  }
-};
-
 // 添加成功回调
 const handleSuccess = () => {
-  loadDirectoryList();
+  directorySidebarRef.value?.refresh();
   if (selectedDirectoryId.value) {
     reloadDeviceTable();
   }
@@ -686,16 +416,11 @@ const emit = defineEmits(['view', 'edit', 'delete', 'play', 'toggleStream']);
 // 暴露刷新方法
 defineExpose({
   refresh: () => {
-    loadDirectoryList();
+    directorySidebarRef.value?.refresh();
     if (selectedDirectoryId.value) {
       reloadDeviceTable();
     }
   },
-});
-
-// 组件挂载时加载目录列表
-onMounted(() => {
-  loadDirectoryList();
 });
 </script>
 
@@ -711,43 +436,6 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   height: 100%;
-}
-
-.directory-sidebar {
-  width: 300px;
-  flex-shrink: 0;
-  background: #fff;
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  .sidebar-tree {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    
-    .tree-header {
-      margin-bottom: 16px;
-      
-      .tree-header-button {
-        display: flex;
-        justify-content: flex-end;
-      }
-    }
-    
-    .tree-content {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      
-      .tree-node {
-        margin-bottom: 0;
-      }
-    }
-  }
 }
 
 .device-content {

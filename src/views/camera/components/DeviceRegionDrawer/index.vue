@@ -1,8 +1,21 @@
 <template>
-  <div ref="container" class="device-region-drawer-container">
+  <div ref="container" class="device-region-drawer-container" :class="{ 'compact-mode': compactMode }">
     <!-- 工具栏 -->
-    <div class="toolbar">
+    <div v-if="!compactMode" class="toolbar">
       <div class="toolbar-buttons">
+        <div class="toolbar-draw-tools">
+          <div
+            v-for="tool in tools"
+            :key="tool.id"
+            class="toolbar-tool-item"
+            :class="{ active: activeTool === tool.id }"
+            @click="setActiveTool(tool.id)"
+          >
+            <Icon :icon="tool.icon" />
+            <span>{{ tool.name }}</span>
+          </div>
+        </div>
+        <span class="toolbar-divider" aria-hidden="true" />
         <a-button type="primary" @click="handleCapture" :loading="capturing">
           <template #icon>
             <CameraOutlined />
@@ -38,26 +51,9 @@
     </div>
 
     <!-- 主内容区 -->
-    <div class="main-content">
-      <!-- 左侧绘制工具 -->
-      <div class="tool-panel">
-        <div class="panel-header">
-          <span>绘制工具</span>
-        </div>
-        <div class="tool-list">
-          <div
-            v-for="tool in tools"
-            :key="tool.id"
-            class="tool-item"
-            :class="{ active: activeTool === tool.id }"
-            @click="setActiveTool(tool.id)"
-          >
-            <Icon :icon="tool.icon"/>
-            <span>{{ tool.name }}</span>
-          </div>
-        </div>
-        
-        <!-- 算法模型选择 -->
+    <div class="main-content" :class="{ 'compact-main': compactMode }">
+      <!-- 算法模型选择（绘制工具已移至顶栏） -->
+      <div v-if="!compactMode && !hideModelSelector" class="tool-panel">
         <div class="model-selector-panel">
           <div class="panel-header">
             <span>算法模型</span>
@@ -69,7 +65,7 @@
                   v-for="model in modelList"
                   :key="model.id"
                   class="model-item"
-                  :class="{ 
+                  :class="{
                     selected: selectedModelIds.includes(model.id),
                     disabled: !selectedRegion
                   }"
@@ -115,7 +111,7 @@
       </div>
 
       <!-- 右侧区域列表和配置面板 -->
-      <div class="region-list-panel">
+      <div v-if="!compactMode" class="region-list-panel">
         <div class="panel-header">
           <span>检测区域 ({{ regions.length }})</span>
         </div>
@@ -127,47 +123,59 @@
             :class="{ active: selectedRegionId === (region.id || index) }"
             @click="selectRegion(region.id || index)"
           >
-            <div class="region-name">{{ getDisplayRegionName(region, index) }}</div>
-            <div class="region-type">{{ getRegionTypeName(region.region_type) }}</div>
-            <div class="region-models" :class="{ 'no-models': !region.model_ids || region.model_ids.length === 0 }">
+            <div class="region-name-row">
+              <template v-if="editingRegionKey !== getRegionKey(region, index)">
+                <span class="region-name">{{ getDisplayRegionName(region, index) }}</span>
+              </template>
+              <a-input
+                v-else
+                v-model:value="editingRegionName"
+                size="small"
+                placeholder="区域名称"
+                @click.stop
+                @blur="commitRegionNameEdit(region, index)"
+                @pressEnter="commitRegionNameEdit(region, index)"
+              />
+            </div>
+            <div class="region-meta-row">
+              <span class="region-type">{{ getRegionTypeName(region.region_type) }}</span>
+              <div class="region-actions">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="edit-name-btn"
+                  title="编辑区域名称"
+                  @click.stop="startEditRegionName(region, index)"
+                >
+                  <template #icon>
+                    <EditOutlined />
+                  </template>
+                </a-button>
+                <a-button
+                  type="text"
+                  size="small"
+                  danger
+                  @click.stop="deleteRegion(region.id || index)"
+                >
+                  <template #icon>
+                    <DeleteOutlined />
+                  </template>
+                </a-button>
+              </div>
+            </div>
+            <div
+              v-if="!hideModelSelector"
+              class="region-models"
+              :class="{ 'no-models': !region.model_ids || region.model_ids.length === 0 }"
+            >
               <span class="models-label">绑定模型：</span>
               <span v-if="region.model_ids && region.model_ids.length > 0" class="models-value">
                 {{ getSelectedModelNames(region.model_ids) }}
               </span>
               <span v-else class="models-empty">未绑定</span>
             </div>
-            <div class="region-actions">
-              <a-button
-                type="text"
-                size="small"
-                danger
-                @click.stop="deleteRegion(region.id || index)"
-              >
-                <template #icon>
-                  <DeleteOutlined />
-                </template>
-              </a-button>
-            </div>
           </div>
           <a-empty v-if="regions.length === 0" description="暂无区域" :image="false" />
-        </div>
-        
-        <!-- 区域配置面板 -->
-        <div v-if="selectedRegion" class="region-config-panel">
-          <div class="panel-header">
-            <span>区域配置</span>
-          </div>
-          <div class="config-content">
-            <a-form :model="selectedRegion" layout="vertical" size="small">
-              <a-form-item label="区域名称">
-                <a-input 
-                  v-model:value="selectedRegion.region_name" 
-                  placeholder="请输入区域名称"
-                  @blur="handleRegionNameChange"
-                />
-              </a-form-item>
-            </a-form>
-          </div>
         </div>
       </div>
     </div>
@@ -176,7 +184,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { CameraOutlined, ClearOutlined, SaveOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { CameraOutlined, ClearOutlined, SaveOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { Icon } from '@/components/Icon';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
@@ -198,6 +206,12 @@ const props = defineProps<{
   initialImageId?: number;
   initialImagePath?: string;
   modelIds?: number[]; // 可选的模型ID列表，如果提供则只显示这些模型
+  /** 任务草稿模式：保存时不调后端 API，仅 emit */
+  draftOnly?: boolean;
+  /** 紧凑布局：仅画布，隐藏内置工具栏与侧栏 */
+  compactMode?: boolean;
+  /** 隐藏左侧算法模型选择（组合模式固定算法时使用） */
+  hideModelSelector?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -279,6 +293,10 @@ const selectedRegion = computed(() => {
 const isModelListDisabled = computed(() => {
   return selectedRegionId.value === null;
 });
+
+function getDefaultModelIdsForNewRegion() {
+  return props.modelIds?.length ? [...props.modelIds] : [];
+}
 
 // 获取已选模型的名称（英文逗号分隔）
 const getSelectedModelNames = (modelIds: number[]): string => {
@@ -431,6 +449,25 @@ const getDisplayRegionName = (region: DeviceDetectionRegion, index: number): str
   return `区域 ${index + 1}`;
 };
 
+function getRegionKey(region: DeviceDetectionRegion, index: number) {
+  return region.id ?? index;
+}
+
+const editingRegionKey = ref<string | number | null>(null);
+const editingRegionName = ref('');
+
+function startEditRegionName(region: DeviceDetectionRegion, index: number) {
+  editingRegionKey.value = getRegionKey(region, index);
+  editingRegionName.value = getDisplayRegionName(region, index);
+}
+
+function commitRegionNameEdit(region: DeviceDetectionRegion, index: number) {
+  const name = editingRegionName.value.trim() || `区域 ${index + 1}`;
+  region.region_name = name;
+  editingRegionKey.value = null;
+  draw();
+}
+
 // 规范化区域名称，确保唯一性
 const normalizeRegionNames = (regionsList: DeviceDetectionRegion[]) => {
   const usedNames = new Set<string>();
@@ -449,22 +486,6 @@ const normalizeRegionNames = (regionsList: DeviceDetectionRegion[]) => {
     region.region_name = finalName;
     usedNames.add(finalName);
   });
-};
-
-// 处理区域名称变化
-const handleRegionNameChange = () => {
-  if (selectedRegion.value) {
-    // 如果名称为空，使用默认名称
-    if (!selectedRegion.value.region_name || selectedRegion.value.region_name.trim() === '') {
-      const index = regions.value.findIndex(r => 
-        (r.id || regions.value.indexOf(r)) === selectedRegionId.value
-      );
-      if (index !== -1) {
-        regions.value[index].region_name = `区域 ${index + 1}`;
-      }
-    }
-    draw();
-  }
 };
 
 // 生成随机颜色（专业灰色系）
@@ -612,8 +633,8 @@ const draw = () => {
     const img = currentImage.value;
     const scaleX = canvas.value.width / img.width;
     const scaleY = canvas.value.height / img.height;
-    // 使用 Math.max 让图片撑满canvas（可能会裁剪部分内容）
-    const scale = Math.max(scaleX, scaleY);
+    // 完整显示图片（contain），避免 cover 裁剪导致「像没加载」
+    const scale = Math.min(scaleX, scaleY);
 
     const scaledWidth = img.width * scale;
     const scaledHeight = img.height * scale;
@@ -715,8 +736,8 @@ const drawRegion = (region: DeviceDetectionRegion) => {
       ctx.value.fillText(region.region_name, startPoint.x + 5, startPoint.y - 5);
     }
     
-    // 如果有模型配置，在区域中心绘制模型名称（英文逗号分隔）
-    if (region.model_ids && region.model_ids.length > 0) {
+    // 任务草稿模式不在区域中心绘制模型名称
+    if (!props.draftOnly && region.model_ids && region.model_ids.length > 0) {
       const modelNames = getSelectedModelNames(region.model_ids);
       if (modelNames) {
         // 计算区域的中心点
@@ -961,7 +982,7 @@ const handleMouseUp = () => {
           opacity: 0.3,
           is_enabled: true,
           sort_order: regions.value.length,
-          model_ids: [], // 新创建的区域默认不关联模型
+          model_ids: getDefaultModelIdsForNewRegion(),
         };
 
         regions.value.push(newRegion);
@@ -1000,7 +1021,7 @@ const finishPolygon = () => {
       opacity: 0.3,
       is_enabled: true,
       sort_order: regions.value.length,
-      model_ids: [], // 新创建的区域默认不关联模型
+      model_ids: getDefaultModelIdsForNewRegion(),
     };
 
     regions.value.push(newRegion);
@@ -1027,6 +1048,8 @@ const handleContextMenu = (e: MouseEvent) => {
 
 // 选择区域
 const selectRegion = (id: number | string) => {
+  if (editingRegionKey.value !== id)
+    editingRegionKey.value = null;
   selectedRegionId.value = id;
   // 选中区域框后，加载该区域框关联的模型ID
   const region = regions.value.find(r => (r.id || regions.value.indexOf(r)) === id);
@@ -1057,6 +1080,8 @@ const deleteRegion = async (id: number | string) => {
     }
     // 从前端数组中移除
     regions.value.splice(index, 1);
+    if (editingRegionKey.value === id)
+      editingRegionKey.value = null;
     if (selectedRegionId.value === id) {
       selectedRegionId.value = null;
       selectedModelIds.value = [];
@@ -1108,9 +1133,18 @@ const handleCapture = async () => {
     } else {
       createMessage.error(result.msg || '抓拍失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('抓拍失败', error);
-    createMessage.error('抓拍失败');
+    const message = error?.message || '';
+    if (error?.code === 'ECONNABORTED' || message.includes('timeout')) {
+      createMessage.error('抓拍超时：摄像头 RTSP 源响应较慢，请检查设备 source 或稍后重试');
+    }
+    else if (message && message !== '抓拍失败') {
+      createMessage.error(message);
+    }
+    else {
+      createMessage.error('抓拍失败，请检查 VIDEO 服务与摄像头视频源');
+    }
   } finally {
     capturing.value = false;
   }
@@ -1147,6 +1181,16 @@ const handleSave = async () => {
       region.region_name = finalName;
       usedNames.add(finalName);
     }
+  }
+
+  if (props.draftOnly) {
+    if (props.modelIds?.length) {
+      for (const region of regions.value)
+        region.model_ids = [...props.modelIds];
+    }
+    emit('save', regions.value);
+    emit('image-captured', currentImageId.value || 0, currentImagePath.value || '');
+    return;
   }
 
   try {
@@ -1446,7 +1490,7 @@ onMounted(async () => {
           loadImage(props.initialImagePath);
         }
       }
-    } else {
+    } else if (!props.draftOnly) {
       // 如果没有初始区域配置，从服务器加载
       console.log('onMounted: 从服务器加载区域配置');
       try {
@@ -1496,6 +1540,36 @@ onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas);
   window.removeEventListener('keydown', handleKeyDown);
 });
+
+function loadImageFromFile(file: File) {
+  const url = URL.createObjectURL(file);
+  currentImagePath.value = url;
+  currentImageId.value = null;
+  loadImage(url);
+}
+
+function fitCenter() {
+  resizeCanvas();
+  draw();
+}
+
+function getDraftSnapshot() {
+  return {
+    imageId: currentImageId.value,
+    imagePath: currentImagePath.value,
+    regions: regions.value,
+  };
+}
+
+defineExpose({
+  setActiveTool,
+  handleClear,
+  handleCapture,
+  loadImageFromFile,
+  fitCenter,
+  handleSave,
+  getDraftSnapshot,
+});
 </script>
 
 <style lang="less" scoped>
@@ -1519,11 +1593,29 @@ onUnmounted(() => {
 @shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
 .device-region-drawer-container {
-  height: calc(100vh - 200px);
-  min-height: 800px;
+  height: 100%;
+  min-height: 520px;
+  max-height: 520px;
   display: flex;
   flex-direction: column;
   background: @light-bg;
+
+  &.compact-mode {
+    height: 100%;
+    min-height: 0;
+    background: #1a1a1a;
+
+    .main-content.compact-main {
+      flex: 1;
+      min-height: 0;
+
+      .canvas-area {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
 
   .toolbar {
     padding: 16px 20px;
@@ -1539,6 +1631,52 @@ onUnmounted(() => {
       gap: 10px;
       align-items: center;
       flex-wrap: wrap;
+
+      .toolbar-draw-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toolbar-tool-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid @border-color;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: @text-secondary;
+        background: #ffffff;
+        font-size: 13px;
+        font-weight: 500;
+        user-select: none;
+
+        &:hover {
+          border-color: @border-hover;
+          background: @light-bg;
+        }
+
+        &.active {
+          border-color: @primary-color;
+          color: @light-text;
+          background: @light-bg;
+        }
+
+        :deep(.iconify) {
+          font-size: 16px;
+        }
+      }
+
+      .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        margin: 0 4px;
+        background: @border-color;
+        flex-shrink: 0;
+      }
 
       :deep(.ant-btn) {
         height: 36px;
@@ -1611,7 +1749,7 @@ onUnmounted(() => {
     background: transparent;
 
     .tool-panel {
-      width: 280px;
+      width: 240px;
       background: #ffffff;
       border-radius: 12px;
       box-shadow: @shadow-md;
@@ -1619,71 +1757,9 @@ onUnmounted(() => {
       flex-direction: column;
       overflow: hidden;
       border: 1px solid @border-color;
-
-      .panel-header {
-        padding: 16px 20px;
-        font-weight: 600;
-        font-size: 15px;
-        color: @light-text;
-        border-bottom: 1px solid @border-color;
-        background: @light-bg;
-        position: relative;
-
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 40px;
-          height: 2px;
-          background: @primary-color;
-        }
-      }
-
-      .tool-list {
-        padding: 12px;
-        border-bottom: 1px solid @border-color;
-
-        .tool-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          padding: 16px;
-          margin-bottom: 10px;
-          border: 2px solid @border-color;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          color: @text-secondary;
-          background: #ffffff;
-
-          &:hover {
-            background: @light-bg;
-            border-color: @border-hover;
-            box-shadow: @shadow-sm;
-          }
-
-          &.active {
-            border-color: @primary-color;
-            background: @light-bg;
-            color: @light-text;
-            box-shadow: @shadow-sm;
-          }
-
-          span {
-            font-size: 13px;
-            font-weight: 500;
-          }
-
-          :deep(.iconify) {
-            font-size: 24px;
-          }
-        }
-      }
+      flex-shrink: 0;
 
       .model-selector-panel {
-        border-top: 1px solid @border-color;
         display: flex;
         flex-direction: column;
         flex: 1;
@@ -1835,7 +1911,8 @@ onUnmounted(() => {
     }
 
     .region-list-panel {
-      width: 320px;
+      width: 180px;
+      flex-shrink: 0;
       background: #ffffff;
       border-radius: 12px;
       box-shadow: @shadow-md;
@@ -1845,9 +1922,9 @@ onUnmounted(() => {
       border: 1px solid @border-color;
 
       .panel-header {
-        padding: 16px 20px;
+        padding: 12px 14px;
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
         color: @light-text;
         border-bottom: 1px solid @border-color;
         background: @light-bg;
@@ -1867,8 +1944,7 @@ onUnmounted(() => {
         .region-list {
         flex: 1;
         overflow-y: auto;
-        padding: 12px;
-        border-bottom: 1px solid @border-color;
+        padding: 8px;
 
         &::-webkit-scrollbar {
           width: 6px;
@@ -1891,10 +1967,10 @@ onUnmounted(() => {
         .region-item {
           display: flex;
           flex-direction: column;
-          padding: 14px;
-          margin-bottom: 10px;
-          border: 2px solid @border-color;
-          border-radius: 10px;
+          padding: 8px;
+          margin-bottom: 8px;
+          border: 1px solid @border-color;
+          border-radius: 8px;
           cursor: pointer;
           transition: all 0.3s ease;
           background: #ffffff;
@@ -1932,22 +2008,48 @@ onUnmounted(() => {
             }
           }
 
+          .region-name-row {
+            margin-bottom: 4px;
+            min-width: 0;
+          }
+
           .region-name {
-            font-size: 14px;
+            display: block;
+            width: 100%;
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
             color: @light-text;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .region-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            min-width: 0;
           }
 
           .region-type {
-            font-size: 12px;
+            flex: 1;
+            min-width: 0;
+            font-size: 11px;
             color: @text-secondary;
-            margin-bottom: 8px;
-            padding: 4px 8px;
-            background: @light-bg;
-            border-radius: 4px;
-            display: inline-block;
-            width: fit-content;
+            line-height: 1.4;
+          }
+
+          .edit-name-btn {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            color: @text-secondary;
+
+            &:hover {
+              color: @primary-color;
+            }
           }
 
           .region-models {
@@ -1983,66 +2085,20 @@ onUnmounted(() => {
 
           .region-actions {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 0;
+            margin-top: 0;
 
             :deep(.ant-btn) {
+              width: 24px;
+              height: 24px;
+              padding: 0;
               border-radius: 6px;
               transition: all 0.3s ease;
 
               &:hover {
                 transform: scale(1.1);
-              }
-            }
-          }
-        }
-      }
-
-      .region-config-panel {
-        border-top: 1px solid @border-color;
-        background: #ffffff;
-
-        .panel-header {
-          padding: 16px 20px;
-          font-weight: 600;
-          font-size: 15px;
-          color: @light-text;
-          border-bottom: 1px solid @border-color;
-          background: @light-bg;
-          position: relative;
-
-          &::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 2px;
-            background: @primary-color;
-          }
-        }
-
-        .config-content {
-          padding: 16px 20px;
-
-          :deep(.ant-form-item) {
-            margin-bottom: 16px;
-
-            .ant-form-item-label {
-              label {
-                font-weight: 500;
-                color: @light-text;
-              }
-            }
-
-            .ant-input {
-              border-radius: 6px;
-              border: 1px solid @border-color;
-              transition: all 0.2s ease;
-
-              &:focus {
-                border-color: @primary-color;
-                box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
               }
             }
           }

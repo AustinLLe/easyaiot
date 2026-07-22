@@ -13,7 +13,7 @@
           <template #header>
             <div
               style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">模型列表</span>
+              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">算法列表</span>
               <div class="space-x-2">
                 <slot name="header"></slot>
               </div>
@@ -26,8 +26,8 @@
                   <!-- 正方形图片容器 -->
                   <div class="model-image-container" @click="handleView(item)">
                     <img
-                      :src="item.imageUrl"
-                      alt="模型图片"
+                      :src="item.imageUrl || '/images/model-preview.jpg'"
+                      alt="算法图片"
                       class="model-image"
                     />
                     <!-- 图片上的小卡片 -->
@@ -58,22 +58,37 @@
 
                   <div class="btns">
                     <div class="btn-group">
-                      <div class="btn" @click="handleView(item)" title="查看详情">
-                        <EyeOutlined style="font-size: 16px;"/>
-                      </div>
-                      <div class="btn" @click="handleEdit(item)" title="编辑模型">
-                        <EditOutlined style="font-size: 16px;"/>
-                      </div>
-                      <div class="btn" @click="handleDownload(item)" title="下载模型">
-                        <DownloadOutlined style="font-size: 16px;"/>
-                      </div>
+                      <Button
+                        type="text"
+                        shape="circle"
+                        class="card-action-btn"
+                        title="查看详情"
+                        @click.stop="handleView(item)"
+                      >
+                        <template #icon><EyeOutlined /></template>
+                      </Button>
+                      <Button
+                        type="text"
+                        shape="circle"
+                        class="card-action-btn"
+                        title="编辑算法"
+                        @click.stop="handleEdit(item)"
+                      >
+                        <template #icon><EditOutlined /></template>
+                      </Button>
                       <Popconfirm
                         title="是否确认删除？"
                         @confirm="handleDelete(item)"
                       >
-                        <div class="btn">
-                          <DeleteOutlined style="font-size: 16px;"/>
-                        </div>
+                        <Button
+                          type="text"
+                          shape="circle"
+                          class="card-action-btn"
+                          title="删除"
+                          @click.stop
+                        >
+                          <template #icon><DeleteOutlined /></template>
+                        </Button>
                       </Popconfirm>
                     </div>
                   </div>
@@ -88,12 +103,13 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue';
-import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
+import {onMounted, reactive, ref, watch} from 'vue';
+import {Button, List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
-import {DeleteOutlined, DownloadOutlined, EditOutlined, EyeOutlined} from '@ant-design/icons-vue';
+import {DeleteOutlined, EditOutlined, EyeOutlined} from '@ant-design/icons-vue';
+import {getModelPage} from '@/api/device/model';
 import {getFormConfig} from './Data';
 
 defineOptions({name: 'ModelCardList'})
@@ -103,17 +119,51 @@ const ListItem = List.Item;
 const props = defineProps({
   params: propTypes.object.def({}),
   api: propTypes.func,
+  modelOptions: propTypes.array.def([]),
 });
 
-const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'download']);
+const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
 
 const data = ref([]);
 const state = reactive({
   loading: true,
 });
 
-const [registerForm, {validate}] = useForm({
-  schemas: getFormConfig(),
+const modelOptions = ref<any[]>([]);
+
+const loadModelOptions = async () => {
+  if (props.modelOptions.length > 0) {
+    modelOptions.value = props.modelOptions as any[];
+    return;
+  }
+  try {
+    const res = await getModelPage({pageNo: 1, pageSize: 1000});
+    const models = res.data || [];
+    modelOptions.value = models.map((model: any) => ({
+      label: `${model.name} (${model.version})`,
+      value: model.id,
+    }));
+  } catch (error) {
+    console.error('获取算法列表失败:', error);
+    modelOptions.value = [];
+  }
+};
+
+function syncModelSelectOptions() {
+  updateSchema({
+    field: 'model_id',
+    componentProps: {
+      options: [
+        {label: '全部', value: ''},
+        ...modelOptions.value,
+      ],
+    },
+  });
+}
+
+const formConfig = getFormConfig(modelOptions.value);
+const [registerForm, {validate, updateSchema}] = useForm({
+  schemas: formConfig,
   labelWidth: 80,
   baseColProps: {span: 6},
   actionColOptions: {span: 12},
@@ -121,10 +171,23 @@ const [registerForm, {validate}] = useForm({
   submitFunc: handleSubmit,
 });
 
-onMounted(() => {
+onMounted(async () => {
+  await loadModelOptions();
+  syncModelSelectOptions();
   fetch();
   emit('getMethod', fetch);
 });
+
+watch(
+  () => props.modelOptions,
+  async (options) => {
+    if (options.length > 0) {
+      modelOptions.value = options as any[];
+      syncModelSelectOptions();
+    }
+  },
+  {deep: true},
+);
 
 async function handleSubmit() {
   const formData = await validate();
@@ -134,7 +197,11 @@ async function handleSubmit() {
 async function fetch(p = {}) {
   const {api, params} = props;
   if (api && isFunction(api)) {
-    const res = await api({...params, pageNo: page.value, pageSize: pageSize.value, ...p});
+    const requestParams: Record<string, any> = {...params, pageNo: page.value, pageSize: pageSize.value, ...p};
+    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
+      delete requestParams.model_id;
+    }
+    const res = await api(requestParams);
     data.value = res.data;
     total.value = res.total;
     hideLoading();
@@ -237,10 +304,6 @@ function handleView(record: object) {
 function handleEdit(record: object) {
   emit('edit', record);
 }
-
-function handleDownload(record: object) {
-  emit('download', record);
-}
 </script>
 
 <style lang="less" scoped>
@@ -342,28 +405,24 @@ function handleDownload(record: object) {
 
 .btn-group {
   display: flex;
-  gap: 8px; /* 统一按钮间距 */
+  gap: 8px;
+  align-items: center;
 }
 
-.btn {
+.card-action-btn {
   width: 32px;
+  min-width: 32px;
   height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s;
+  padding: 0;
+  transition: background-color 0.2s;
 
-  &:hover {
-    background: #e6f7ff;
-    color: #1890ff;
+  :deep(.anticon) {
+    color: #266cfb;
+    font-size: 16px;
   }
 
-  .anticon {
-    color: #266CFB; /* 蓝色图标 */
-    font-size: 16px;
+  &:hover :deep(.anticon) {
+    color: #1890ff;
   }
 }
 

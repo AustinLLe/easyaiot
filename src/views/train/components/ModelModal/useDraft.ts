@@ -1,0 +1,424 @@
+import {
+  applyPresetToConfig,
+  getAlgorithmParamSchema,
+} from '@/views/algorithm-task/utils/paramUtils';
+import type { DrawStyleCardConfig, ModelDraft, ModelDrawObjectItem, ModelDrawStyleDraft, ModelPreviewRect } from '../../modelDraft.types';
+import { LIMB_TYPE_OPTIONS } from '../../modelDraft.types';
+import {
+  DEFAULT_DRAW_OBJECT_PRESETS,
+  buildDefaultPreviewRegions,
+  DEFAULT_DRAW_CLASS_ID,
+  normalizeDrawRegions,
+} from '../../utils/drawUtils';
+
+let drawObjectIdSeq = 1;
+
+function normalizePreviewRect(raw: unknown): ModelPreviewRect | undefined {
+  if (!raw || typeof raw !== 'object')
+    return undefined;
+  const row = raw as Record<string, unknown>;
+  const x = Number(row.x);
+  const y = Number(row.y);
+  const w = Number(row.w);
+  const h = Number(row.h);
+  if ([x, y, w, h].some(v => Number.isNaN(v)))
+    return undefined;
+  return { x, y, w, h };
+}
+
+export { DEFAULT_MODEL_PREVIEW } from '../../utils/drawUtils';
+
+const LEGACY_DEFAULT_DRAW_LABEL = '人员入侵识别';
+const LEGACY_PLACEHOLDER_DRAW_LABELS = new Set(['', '识别', LEGACY_DEFAULT_DRAW_LABEL]);
+const LEGACY_DEFAULT_CLASS_KEYS = new Set(['person', '']);
+
+export function isDefaultDrawObjectBundle(item: ModelDrawObjectItem): boolean {
+  return (item.preview_regions?.length ?? 0) > 0;
+}
+
+export function isAutoManagedDrawLabel(label: string, modelName: string): boolean {
+  const trimmed = label.trim();
+  if (!trimmed)
+    return true;
+  if (LEGACY_PLACEHOLDER_DRAW_LABELS.has(trimmed))
+    return true;
+  const expected = buildDrawObjectLabelFromModelName(modelName);
+  return trimmed === expected;
+}
+
+/** 根据算法名称生成默认描述文本，如「吸烟算法」→「吸烟识别」 */
+export function buildDrawObjectLabelFromModelName(modelName: string): string {
+  const name = modelName.trim();
+  if (!name)
+    return '识别';
+  if (name.includes('算法'))
+    return name.replace(/算法/g, '识别');
+  if (name.includes('模型'))
+    return name.replace(/模型/g, '识别');
+  return `${name}识别`;
+}
+
+export function applyDrawObjectLabelsFromModelName(draft: ModelDraft) {
+  const modelName = draft.name.trim();
+  const defaultLabel = buildDrawObjectLabelFromModelName(draft.name);
+  for (const item of draft.draw_objects.items) {
+    if (!isDefaultDrawObjectBundle(item))
+      continue;
+    if (modelName) {
+      item.label = defaultLabel;
+    }
+    else if (isAutoManagedDrawLabel(item.label, draft.name)) {
+      item.label = defaultLabel;
+    }
+    const classKey = item.class_key?.trim() ?? '';
+    if (!classKey || LEGACY_DEFAULT_CLASS_KEYS.has(classKey))
+      item.class_key = DEFAULT_DRAW_CLASS_ID;
+  }
+}
+
+export function createDrawObjectItem(
+  partial?: Partial<ModelDrawObjectItem>,
+): ModelDrawObjectItem {
+  return {
+    id: String(drawObjectIdSeq++),
+    class_key: '',
+    label: '',
+    color: '#81807a',
+    enabled: true,
+    ...partial,
+  };
+}
+
+export function createDefaultDrawObjectItems(modelName = ''): ModelDrawObjectItem[] {
+  const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
+  return [
+    createDrawObjectItem({
+      id: '1',
+      class_key: DEFAULT_DRAW_CLASS_ID,
+      label: defaultLabel,
+      color: '#ff0000',
+      enabled: true,
+      preview_regions: buildDefaultPreviewRegions(),
+    }),
+  ];
+}
+
+function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: string): ModelDrawObjectItem[] {
+  const bundleItems = items.filter(isDefaultDrawObjectBundle);
+  const customItems = items.filter(item => !isDefaultDrawObjectBundle(item));
+  if (bundleItems.length)
+    return [...bundleItems, ...customItems];
+
+  const legacyRows = items.filter(item => item.preview_bbox || item.title_bbox);
+  if (legacyRows.length === 1 && legacyRows.every(item => !item.preview_regions?.length)) {
+    const row = legacyRows[0];
+    const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
+    const rawLabel = row.label?.trim() ?? '';
+    return [
+      createDrawObjectItem({
+        id: row.id,
+        class_key: LEGACY_DEFAULT_CLASS_KEYS.has(row.class_key?.trim() ?? '')
+          ? DEFAULT_DRAW_CLASS_ID
+          : row.class_key,
+        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : defaultLabel,
+        color: row.color,
+        enabled: row.enabled,
+        preview_regions: buildDefaultPreviewRegions(),
+      }),
+      ...customItems,
+    ];
+  }
+
+  if (legacyRows.length >= 2 && legacyRows.every(item => !item.preview_regions?.length)) {
+    const first = legacyRows[0];
+    const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
+    const rawLabel = first.label?.trim() ?? '';
+    return [
+      createDrawObjectItem({
+        id: first.id,
+        class_key: LEGACY_DEFAULT_CLASS_KEYS.has(first.class_key?.trim() ?? '')
+          ? DEFAULT_DRAW_CLASS_ID
+          : first.class_key,
+        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : defaultLabel,
+        color: first.color,
+        enabled: first.enabled,
+        preview_regions: legacyRows.map(item => ({
+          preview_bbox: item.preview_bbox ? { ...item.preview_bbox } : undefined,
+          title_bbox: item.title_bbox ? { ...item.title_bbox } : undefined,
+        })),
+      }),
+      ...customItems,
+    ];
+  }
+  return items;
+}
+
+export function syncClassWhitelistFromDrawObjects(draft: ModelDraft) {
+  draft.detection_config.class_whitelist = draft.draw_objects.items
+    .filter(item => item.enabled && item.class_key.trim())
+    .map(item => item.class_key.trim());
+}
+
+function normalizeDrawObjectItems(raw: unknown, modelName = ''): ModelDrawObjectItem[] {
+  if (!Array.isArray(raw) || raw.length === 0)
+    return createDefaultDrawObjectItems(modelName);
+
+  const fallbackLabel = buildDrawObjectLabelFromModelName(modelName);
+
+  const items = raw.map((item, index) => {
+    const row = item as Record<string, unknown>;
+    const classKey = String(row.class_key ?? row.classKey ?? '').trim();
+    const preset = DEFAULT_DRAW_OBJECT_PRESETS[index];
+    const rawLabel = String(row.label ?? row.description ?? '').trim();
+    const previewRegions = normalizeDrawRegions(row.preview_regions);
+    return createDrawObjectItem({
+      id: String(row.id ?? index + 1),
+      class_key: classKey || DEFAULT_DRAW_CLASS_ID,
+      label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : fallbackLabel,
+      color: String(row.color ?? '#ff0000'),
+      enabled: row.enabled !== false,
+      preview_regions: previewRegions,
+      preview_bbox: previewRegions ? undefined : normalizePreviewRect(row.preview_bbox) ?? (preset ? { ...preset.preview_bbox } : undefined),
+      title_bbox: previewRegions ? undefined : normalizePreviewRect(row.title_bbox) ?? (preset ? { ...preset.title_bbox } : undefined),
+    });
+  });
+
+  return mergeLegacyDrawObjectRows(items, modelName);
+}
+
+function createDefaultStyleCard(partial?: Partial<DrawStyleCardConfig>): DrawStyleCardConfig {
+  return {
+    enabled: true,
+    border_width: 2,
+    color: '#ff0000',
+    ...partial,
+  };
+}
+
+export function createDefaultDrawStyle(): ModelDrawStyleDraft {
+  return {
+    detection_area: createDefaultStyleCard(),
+    object_box: createDefaultStyleCard(),
+    object_box_title: createDefaultStyleCard({
+      border_width: 0,
+      color: '#ffffff',
+      bg_color: '#ff0000',
+    }),
+    segmentation: createDefaultStyleCard(),
+    limb: createDefaultStyleCard({
+      limb_types: [...LIMB_TYPE_OPTIONS],
+    }),
+  };
+}
+
+function normalizeDrawStyle(raw: unknown): ModelDrawStyleDraft {
+  const defaults = createDefaultDrawStyle();
+  if (!raw || typeof raw !== 'object')
+    return defaults;
+
+  const style = raw as Record<string, unknown>;
+
+  if ('box_color' in style || 'box_thickness' in style) {
+    const color = String(style.box_color ?? '#ff0000');
+    const border = Number(style.box_thickness ?? 2);
+    defaults.object_box.color = color;
+    defaults.object_box.border_width = border;
+    defaults.detection_area.color = color;
+    defaults.detection_area.border_width = border;
+    defaults.segmentation.color = color;
+    defaults.limb.color = color;
+    if (style.show_label === false)
+      defaults.object_box_title.enabled = false;
+  }
+
+  const keys = [
+    'detection_area',
+    'object_box',
+    'object_box_title',
+    'segmentation',
+    'limb',
+  ] as const;
+
+  for (const key of keys) {
+    if (style[key] && typeof style[key] === 'object') {
+      const card = style[key] as Record<string, unknown>;
+      defaults[key] = {
+        enabled: card.enabled !== false,
+        border_width: Number(card.border_width ?? defaults[key].border_width),
+        color: String(card.color ?? defaults[key].color),
+        bg_color: card.bg_color != null ? String(card.bg_color) : defaults[key].bg_color,
+        limb_types: Array.isArray(card.limb_types)
+          ? [...card.limb_types as string[]]
+          : defaults[key].limb_types,
+      };
+    }
+  }
+
+  return defaults;
+}
+
+export function createDefaultModelDraft(): ModelDraft {
+  const applied = applyPresetToConfig(getAlgorithmParamSchema(0, ''), 'balanced', 0);
+  const drawItems = createDefaultDrawObjectItems();
+  return {
+    id: null,
+    name: '',
+    version: '',
+    description: '',
+    status: 0,
+    filePath: '',
+    model_format: '',
+    base_model: '',
+    class_labels_text: '',
+    imageUrl: '',
+    custom_enabled: false,
+    algorithm_params: {},
+    algorithm_param_descriptions: {},
+    detection_config: {
+      conf: applied.detection_config.conf,
+      iou: applied.detection_config.iou,
+      imgsz: applied.detection_config.imgsz,
+      min_box_area: applied.detection_config.min_box_area,
+      max_detections: applied.detection_config.max_detections,
+      extract_interval: applied.detection_config.extract_interval,
+      class_whitelist: drawItems.filter(i => i.enabled).map(i => i.class_key),
+    },
+    draw_objects: {
+      items: drawItems,
+    },
+    draw_style: createDefaultDrawStyle(),
+  };
+}
+
+function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
+  return items
+    .filter(item => item.class_key.trim() && item.label.trim())
+    .map(item => `${item.class_key.trim()} ${item.label.trim()}`)
+    .join('\n');
+}
+
+function normalizeAlgorithmParams(raw: unknown): Record<string, number | string | boolean> {
+  if (!raw || typeof raw !== 'object')
+    return {};
+  const next: Record<string, number | string | boolean> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (key.trim() && value != null && value !== '')
+      next[key.trim()] = value as number | string | boolean;
+  }
+  return next;
+}
+
+function normalizeParamDescriptions(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== 'object')
+    return {};
+  const next: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const trimmedKey = key.trim();
+    const desc = value == null ? '' : String(value).trim();
+    if (trimmedKey && desc)
+      next[trimmedKey] = desc;
+  }
+  return next;
+}
+
+export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDraft {
+  const draft = createDefaultModelDraft();
+  const modelId = Number(record.id ?? 0) || null;
+  const name = String(record.name ?? '');
+  const schema = getAlgorithmParamSchema(modelId ?? 0, name);
+
+  if (record.detection_config && typeof record.detection_config === 'object') {
+    const cfg = record.detection_config as Record<string, unknown>;
+    draft.detection_config = {
+      conf: Number(cfg.conf ?? draft.detection_config.conf),
+      iou: Number(cfg.iou ?? draft.detection_config.iou),
+      imgsz: Number(cfg.imgsz ?? draft.detection_config.imgsz),
+      min_box_area: Number(cfg.min_box_area ?? draft.detection_config.min_box_area),
+      max_detections: Number(cfg.max_detections ?? draft.detection_config.max_detections),
+      extract_interval: Number(cfg.extract_interval ?? draft.detection_config.extract_interval),
+      class_whitelist: Array.isArray(cfg.class_whitelist)
+        ? [...cfg.class_whitelist as string[]]
+        : draft.detection_config.class_whitelist,
+    };
+    if (cfg.custom_enabled != null)
+      draft.custom_enabled = cfg.custom_enabled === true;
+  }
+  else {
+    const applied = applyPresetToConfig(schema, 'balanced', modelId ?? 0);
+    draft.detection_config = {
+      conf: applied.detection_config.conf,
+      iou: applied.detection_config.iou,
+      imgsz: applied.detection_config.imgsz,
+      min_box_area: applied.detection_config.min_box_area,
+      max_detections: applied.detection_config.max_detections,
+      extract_interval: applied.detection_config.extract_interval,
+      class_whitelist: [...applied.detection_config.class_whitelist],
+    };
+  }
+
+  draft.algorithm_params = normalizeAlgorithmParams(
+    record.algorithm_params ?? (record.detection_config as Record<string, unknown> | undefined)?.algorithm_params,
+  );
+  draft.algorithm_param_descriptions = normalizeParamDescriptions(
+    record.algorithm_param_descriptions
+    ?? (record.detection_config as Record<string, unknown> | undefined)?.algorithm_param_descriptions,
+  );
+  if (record.custom_enabled != null)
+    draft.custom_enabled = record.custom_enabled === true;
+  else if (Object.keys(draft.algorithm_params).length)
+    draft.custom_enabled = true;
+  else if (record.detection_config && typeof record.detection_config === 'object') {
+    const legacyPreset = String((record.detection_config as Record<string, unknown>).preset ?? '');
+    if (legacyPreset && legacyPreset !== 'balanced')
+      draft.custom_enabled = true;
+  }
+
+  if (record.draw_objects && typeof record.draw_objects === 'object') {
+    const drawObjects = record.draw_objects as Record<string, unknown>;
+    if (Array.isArray(drawObjects.items)) {
+      draft.draw_objects.items = normalizeDrawObjectItems(drawObjects.items, name);
+    }
+    else if (Array.isArray(drawObjects.class_whitelist)) {
+      const defaultLabel = buildDrawObjectLabelFromModelName(name);
+      draft.draw_objects.items = [
+        createDrawObjectItem({
+          id: '1',
+          class_key: DEFAULT_DRAW_CLASS_ID,
+          label: defaultLabel,
+          enabled: true,
+          preview_regions: buildDefaultPreviewRegions(),
+        }),
+      ];
+    }
+  }
+
+  applyDrawObjectLabelsFromModelName(draft);
+
+  syncClassWhitelistFromDrawObjects(draft);
+  draft.class_labels_text = Array.isArray(record.class_labels)
+    ? (record.class_labels as Array<Record<string, unknown>>)
+        .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
+        .filter(Boolean)
+        .join('\n')
+    : buildClassLabelsTextFromDrawObjects(draft.draw_objects.items);
+
+  if (record.draw_style && typeof record.draw_style === 'object') {
+    draft.draw_style = normalizeDrawStyle(record.draw_style);
+  }
+
+  draft.id = modelId;
+  draft.name = name;
+  draft.version = String(record.version ?? '');
+  draft.description = String(record.description ?? '');
+  draft.status = Number(record.status ?? 0);
+  draft.filePath = String(
+    record.filePath ?? record.model_path ?? record.onnx_model_path ?? '',
+  );
+  draft.model_format = String(
+    record.model_format ?? record.modelFormat ?? '',
+  ).toLowerCase() as ModelDraft['model_format'];
+  draft.base_model = String(record.base_model ?? record.baseModel ?? '');
+  draft.imageUrl = String(record.imageUrl ?? record.image_url ?? '');
+
+  return draft;
+}

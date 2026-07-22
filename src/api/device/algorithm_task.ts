@@ -26,6 +26,8 @@ const commonApi = <T = any>(method: 'get' | 'post' | 'delete' | 'put', url: stri
 };
 
 // ====================== 算法任务管理接口 ======================
+import type { AlgorithmTaskPayload } from '@/views/algorithm-task/algorithmTaskPayload.types';
+
 export interface AlgorithmTask {
   id: number;
   task_name: string;
@@ -47,6 +49,8 @@ export interface AlgorithmTask {
   tracking_smooth_alpha?: number; // 追踪平滑系数
   // 告警配置
   alert_event_enabled?: boolean; // 是否启用告警事件
+  alert_notification_enabled?: boolean; // 是否启用告警通知
+  alarm_suppress_time?: number; // 告警抑制时间（秒）
   // 抓拍相关字段（仅抓拍算法任务）
   cron_expression?: string;
   frame_skip?: number;
@@ -64,6 +68,11 @@ export interface AlgorithmTask {
   service_names?: string; // 关联的算法服务名称列表（逗号分隔，冗余字段，用于快速显示）
   defense_mode?: string; // 布防模式: full(全防), half(半防), day(白天), night(夜间)
   defense_schedule?: string | number[][]; // 布防时段: JSON字符串或二维数组，7天×24小时
+  /** 创建模式: wizard=表单, workflow=工作流 */
+  task_mode?: 'wizard' | 'workflow';
+  /** 完整任务配置 JSON（与创建/更新提交体结构一致） */
+  task_config?: AlgorithmTaskPayload;
+  config_json?: string | AlgorithmTaskPayload;
   created_at?: string;
   updated_at?: string;
 }
@@ -93,30 +102,7 @@ export const getAlgorithmTask = (task_id: number) => {
   );
 };
 
-export const createAlgorithmTask = (data: {
-  task_name: string;
-  task_type?: 'realtime' | 'snap';
-  pusher_id?: number;
-  device_ids?: string[];
-  // 模型配置
-  model_ids?: number[];
-  // 实时算法任务配置
-  extract_interval?: number;
-  // 追踪配置
-  tracking_enabled?: boolean;
-  tracking_similarity_threshold?: number;
-  tracking_max_age?: number;
-  tracking_smooth_alpha?: number;
-  // 告警配置
-  alert_event_enabled?: boolean;
-  // 抓拍算法任务配置
-  cron_expression?: string;
-  frame_skip?: number;
-  // 通用配置
-  is_enabled?: boolean;
-  defense_mode?: string;
-  defense_schedule?: string;
-}) => {
+export const createAlgorithmTask = (data: AlgorithmTaskPayload | Record<string, unknown>) => {
   return commonApi<{ code: number; msg: string; data: AlgorithmTask }>(
     'post',
     `${ALGORITHM_PREFIX}/task`,
@@ -124,7 +110,7 @@ export const createAlgorithmTask = (data: {
   );
 };
 
-export const updateAlgorithmTask = (task_id: number, data: Partial<AlgorithmTask>) => {
+export const updateAlgorithmTask = (task_id: number, data: Partial<AlgorithmTask> | AlgorithmTaskPayload | Record<string, unknown>) => {
   return commonApi<{ code: number; msg: string; data: AlgorithmTask }>(
     'put',
     `${ALGORITHM_PREFIX}/task/${task_id}`,
@@ -362,7 +348,7 @@ export interface Pusher {
   video_stream_quality: string; // low:低, medium:中, high:高
   event_alert_enabled: boolean;
   event_alert_url?: string;
-  event_alert_method: string; // http:HTTP, websocket:WebSocket
+  event_alert_method: string; // http:HTTP, websocket:WebSocket, kafka:Kafka
   event_alert_format: string; // json:JSON, xml:XML
   event_alert_headers?: any;
   event_alert_template?: any;
@@ -559,3 +545,4 @@ export const getTaskStreams = (task_id: number) => {
     `${ALGORITHM_PREFIX}/task/${task_id}/streams`
   );
 };
+

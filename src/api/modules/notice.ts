@@ -1,23 +1,25 @@
 import { defHttp } from '/@/utils/http/axios';
 
+const MESSAGE_PREFIX = '/video/message';
+
 enum Api {
-  // 消息配置
-  message_config_add = '/message/config/add',
-  message_config_update = '/message/config/update',
-  message_config_delete = '/message/config/delete',
-  message_config_query = '/message/config/query',
-  message_config_mailSendTest = '/message/config/mailSendTest',
+  // 消息配置（VIDEO 占位服务，后续可替换为独立 Message 微服务）
+  message_config_add = `${MESSAGE_PREFIX}/config/add`,
+  message_config_update = `${MESSAGE_PREFIX}/config/update`,
+  message_config_delete = `${MESSAGE_PREFIX}/config/delete`,
+  message_config_query = `${MESSAGE_PREFIX}/config/query`,
+  message_config_mailSendTest = `${MESSAGE_PREFIX}/config/mailSendTest`,
 
   // 消息准备
-  message_prepare_add = '/message/prepare/add',
-  message_prepare_update = '/message/prepare/update',
-  message_prepare_delete = '/message/prepare/delete',
-  message_prepare_query = '/message/prepare/query',
-  message_file_upload = '/message/file/upload',
-  message_preview_user_queryByMsgType = '/message/preview/user/queryByMsgType',
+  message_prepare_add = `${MESSAGE_PREFIX}/prepare/add`,
+  message_prepare_update = `${MESSAGE_PREFIX}/prepare/update`,
+  message_prepare_delete = `${MESSAGE_PREFIX}/prepare/delete`,
+  message_prepare_query = `${MESSAGE_PREFIX}/prepare/query`,
+  message_file_upload = `${MESSAGE_PREFIX}/file/upload`,
+  message_preview_user_queryByMsgType = `${MESSAGE_PREFIX}/preview/user/queryByMsgType`,
   // 消息推送
-  message_send = '/message/send',
-  message_send_body = '/message/messageSend',
+  message_send = `${MESSAGE_PREFIX}/send`,
+  message_send_body = `${MESSAGE_PREFIX}/messageSend`,
 }
 
 const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url, params, headers = {}, isTransformResponse = true) => {
@@ -53,9 +55,19 @@ export const messageConfigDelete = (params) => {
   return commonApi('get', Api.message_config_delete, { params });
 };
 
-// 查询
-export const messageConfigQuery = (data) => {
-  return commonApi('get', Api.message_config_query, { data });
+// 查询（GET 须走 params，否则 msgType 等筛选条件不会拼到 URL）
+export const messageConfigQuery = (params = {}) => {
+  const clean = { ...params };
+  Object.keys(clean).forEach((key) => {
+    const value = clean[key];
+    if (value === undefined || value === null || value === '') {
+      delete clean[key];
+    }
+  });
+  if ('msgType' in clean && !Number.isFinite(Number(clean.msgType))) {
+    delete clean.msgType;
+  }
+  return commonApi('get', Api.message_config_query, { params: clean });
 };
 
 // 根据邮件调试
