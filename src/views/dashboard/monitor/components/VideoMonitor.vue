@@ -496,8 +496,8 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
       path = `${path}.flv`
     }
     
-    // SRS 流统一通过当前 WEB 网关访问，避免把 127.0.0.1 或内网地址发给浏览器。
-    return `/${path}`
+    // Jessibuca 需要绝对 HTTP-FLV 地址；相对路径会被误判为 WebSocket 流。
+    return `${window.location.origin}/${path}`
   } catch (error) {
     console.error('RTMP地址转换失败:', error)
     return null
@@ -509,7 +509,8 @@ const normalizeAiStreamUrl = (streamUrl: string): string => {
   try {
     const url = new URL(streamUrl, window.location.origin)
     if (url.pathname.startsWith('/ai/')) {
-      return `${url.pathname}${url.search}`
+      // 保留同源网关，但显式使用 http(s) 协议，避免播放器选择 WebSocketLoader。
+      return `${window.location.origin}${url.pathname}${url.search}`
     }
   } catch (error) {
     console.warn('AI流地址解析失败，使用原地址:', streamUrl, error)
