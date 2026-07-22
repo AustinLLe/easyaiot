@@ -1,30 +1,29 @@
-import {FormSchema} from '@/components/Table';
+import { FormSchema } from '@/components/Table';
 
 export const getFormConfig = (modelOptions: any[] = []): FormSchema[] => {
   return [
     {
       field: 'model_id',
-      label: '算法名称',
+      label: 'Algorithm',
       component: 'Select',
       componentProps: {
-        placeholder: '请选择算法',
+        placeholder: 'Select algorithm',
         showSearch: true,
         allowClear: true,
-        filterOption: (input: string, option: any) => {
-          return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-        },
+        filterOption: (input: string, option: any) =>
+          option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0,
         options: [
-          {label: '全部', value: ''},
+          { label: 'All', value: '' },
           ...modelOptions,
         ],
       },
     },
     {
       field: 'version',
-      label: '算法版本',
+      label: 'Version',
       component: 'Input',
       componentProps: {
-        placeholder: '请输入算法版本',
+        placeholder: 'Enter version',
       },
     },
   ];

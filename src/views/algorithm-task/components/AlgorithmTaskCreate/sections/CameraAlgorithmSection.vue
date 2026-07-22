@@ -128,6 +128,7 @@ import { getModelPage } from '@/api/device/model';
 import CameraPickerPanel from '../../TaskFormWidgets/CameraPickerPanel.vue';
 import ModelPickerPanel from '../../TaskFormWidgets/ModelPickerPanel.vue';
 import { syncLegacyIdsFromDraft } from '../useDraft';
+import { seedModelDefaultProfiles } from '../../../utils/paramUtils';
 import type { AlgorithmTaskDraft, CameraBindingDraft } from '../../../algorithmTaskDraft.types';
 
 defineOptions({ name: 'CameraAlgorithmSection' });
@@ -329,6 +330,7 @@ async function loadModelMeta() {
         version: item.version,
       });
     }
+    seedModelDefaultProfiles(allModels);
   }
   catch {
     // keep defaults

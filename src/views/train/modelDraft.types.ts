@@ -61,6 +61,9 @@ export interface ModelDraft {
   description: string;
   status: number;
   filePath: string;
+  model_format: 'pt' | 'onnx' | 'rknn' | '';
+  base_model: string;
+  class_labels_text: string;
   imageUrl: string;
   custom_enabled: boolean;
   algorithm_params: Record<string, number | string | boolean>;

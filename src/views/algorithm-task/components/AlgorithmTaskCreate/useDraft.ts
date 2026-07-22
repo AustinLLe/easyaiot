@@ -252,6 +252,12 @@ function restoreParamConfigFromModel(model: BackendBindingModel): AlgorithmParam
       class_whitelist: [...model.detection_config.class_whitelist],
       min_box_area: model.detection_config.min_box_area,
       max_detections: model.detection_config.max_detections,
+      draw_objects: model.detection_config.draw_objects
+        ? { ...model.detection_config.draw_objects }
+        : undefined,
+      draw_style: model.detection_config.draw_style
+        ? { ...model.detection_config.draw_style }
+        : undefined,
     },
     algorithm_params: hasAlgorithmParams ? { ...model.algorithm_params } : {},
   };
@@ -384,9 +390,6 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
     recipient_user_ids: push.recipient_user_ids ?? [],
     address_profile_ids: push.address_profile_ids ?? [],
     channel_profile_map: {},
-    channel_config: push.channel_config
-      ? JSON.parse(JSON.stringify(push.channel_config))
-      : {},
     content: {
       title_template: push.content.title_template,
       include_fields: push.content.include_fields,

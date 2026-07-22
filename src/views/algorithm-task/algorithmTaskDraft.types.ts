@@ -52,6 +52,8 @@ export interface AlgorithmParamConfigDraft {
     class_whitelist: string[];
     min_box_area: number;
     max_detections: number;
+    draw_objects?: Record<string, unknown>;
+    draw_style?: Record<string, unknown>;
   };
   algorithm_params: Record<string, number | string | boolean>;
 }
@@ -147,13 +149,7 @@ export type AlertPushContentField =
   | 'region_name';
 
 export interface AlertPushChannelConfig {
-  email?: {
-    recipients: string[];
-    subject?: string;
-    /** DEVICE 邮件账号 ID，对应“告警事件 → 消息配置”中的发件邮箱。 */
-    account_id?: number | string;
-    template_code?: string;
-  };
+  email?: { recipients: string[]; subject?: string };
   sms?: { phones: string[] };
   wechat?: { webhook_url?: string };
   feishu?: { webhook_url?: string };

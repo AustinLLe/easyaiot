@@ -267,6 +267,9 @@ export function createDefaultModelDraft(): ModelDraft {
     description: '',
     status: 0,
     filePath: '',
+    model_format: '',
+    base_model: '',
+    class_labels_text: '',
     imageUrl: '',
     custom_enabled: false,
     algorithm_params: {},
@@ -285,6 +288,13 @@ export function createDefaultModelDraft(): ModelDraft {
     },
     draw_style: createDefaultDrawStyle(),
   };
+}
+
+function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
+  return items
+    .filter(item => item.class_key.trim() && item.label.trim())
+    .map(item => `${item.class_key.trim()} ${item.label.trim()}`)
+    .join('\n');
 }
 
 function normalizeAlgorithmParams(raw: unknown): Record<string, number | string | boolean> {
@@ -385,6 +395,12 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
   applyDrawObjectLabelsFromModelName(draft);
 
   syncClassWhitelistFromDrawObjects(draft);
+  draft.class_labels_text = Array.isArray(record.class_labels)
+    ? (record.class_labels as Array<Record<string, unknown>>)
+        .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
+        .filter(Boolean)
+        .join('\n')
+    : buildClassLabelsTextFromDrawObjects(draft.draw_objects.items);
 
   if (record.draw_style && typeof record.draw_style === 'object') {
     draft.draw_style = normalizeDrawStyle(record.draw_style);
@@ -398,6 +414,10 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
   draft.filePath = String(
     record.filePath ?? record.model_path ?? record.onnx_model_path ?? '',
   );
+  draft.model_format = String(
+    record.model_format ?? record.modelFormat ?? '',
+  ).toLowerCase() as ModelDraft['model_format'];
+  draft.base_model = String(record.base_model ?? record.baseModel ?? '');
   draft.imageUrl = String(record.imageUrl ?? record.image_url ?? '');
 
   return draft;

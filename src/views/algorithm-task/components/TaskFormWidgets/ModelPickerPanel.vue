@@ -63,6 +63,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { onClickOutside, useElementBounding, useEventListener } from '@vueuse/core';
 import { CheckOutlined } from '@ant-design/icons-vue';
 import { getModelPage } from '@/api/device/model';
+import { seedModelDefaultProfiles } from '../../utils/paramUtils';
 
 defineOptions({ name: 'ModelPickerPanel' });
 
@@ -190,6 +191,7 @@ async function loadModels() {
       name: item.name,
       version: item.version,
     }));
+    seedModelDefaultProfiles(allModels);
     modelOptions.value = [...defaultModels, ...dbModels];
   }
   catch {

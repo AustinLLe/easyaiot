@@ -3,8 +3,8 @@
     <div class="section-header">
       <div class="header-row">
         <div>
-          <h3>阈值配置</h3>
-          <p>配置算法默认检测参数，新建算法任务时可继承这些设置。</p>
+          <h3>Default Thresholds</h3>
+          <p>These values are copied into a new algorithm task and can be overridden there.</p>
         </div>
         <Segmented
           v-model:value="draft.custom_enabled"
@@ -33,7 +33,7 @@
               :disabled="isView"
             />
             <Select
-              v-else-if="field.type === 'select'"
+              v-else
               v-model:value="draft.detection_config[field.key]"
               :options="field.options"
               class="param-input"
@@ -63,9 +63,7 @@ import { THRESHOLD_MODE_OPTIONS } from '../../../modelDraft.types';
 
 defineOptions({ name: 'ModelDefaultThresholdSection' });
 
-defineProps<{
-  isView?: boolean;
-}>();
+defineProps<{ isView?: boolean }>();
 
 const draft = defineModel<ModelDraft>('draft', { required: true });
 
@@ -97,28 +95,28 @@ interface ParamFieldDef {
 const paramFields: ParamFieldDef[] = [
   {
     key: 'conf',
-    label: '置信度阈值',
-    desc: '低了误报多，高了可能漏检',
+    label: 'Confidence',
+    desc: 'Minimum detection score.',
     type: 'number',
     min: 0,
     max: 1,
     step: 0.01,
-    range: '范围: 0~1',
+    range: '0 to 1',
   },
   {
     key: 'iou',
-    label: '重叠框过滤',
-    desc: '用来过滤重复框',
+    label: 'IOU',
+    desc: 'Non-maximum suppression overlap threshold.',
     type: 'number',
     min: 0,
     max: 1,
     step: 0.01,
-    range: '范围: 0~1',
+    range: '0 to 1',
   },
   {
     key: 'imgsz',
-    label: '推理尺寸',
-    desc: '越大越准但越慢',
+    label: 'Input Size',
+    desc: 'Inference input image size.',
     type: 'select',
     options: [
       { label: '320', value: 320 },
@@ -129,30 +127,30 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'min_box_area',
-    label: '最小目标面积',
-    desc: '过滤远处小目标',
+    label: 'Min Box Area',
+    desc: 'Ignore tiny detections.',
     type: 'number',
     min: 0,
     step: 1,
-    range: '范围: ≥0',
+    range: '>= 0',
   },
   {
     key: 'max_detections',
-    label: '单帧最大目标数',
-    desc: '防止目标过多影响性能',
+    label: 'Max Detections',
+    desc: 'Maximum detections per frame.',
     type: 'number',
     min: 1,
     step: 1,
-    range: '范围: ≥1',
+    range: '>= 1',
   },
   {
     key: 'extract_interval',
-    label: '抽帧间隔',
-    desc: '每隔多少帧检测一次',
+    label: 'Frame Interval',
+    desc: 'Run detection every N frames.',
     type: 'number',
     min: 1,
     step: 1,
-    range: '范围: ≥1',
+    range: '>= 1',
   },
 ];
 

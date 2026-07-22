@@ -55,6 +55,8 @@ function toBackendDetectionConfig(
     max_detections: item.max_detections,
     extract_interval: item.extract_interval ?? global.extract_interval ?? 25,
     device: global.device ?? 'auto',
+    draw_objects: item.draw_objects ? { ...item.draw_objects } : undefined,
+    draw_style: item.draw_style ? { ...item.draw_style } : undefined,
   };
 }
 
@@ -218,10 +220,6 @@ function mapAlertPushToBackend(push: AlertPushDraft): BackendAlertPushConfig {
     channels: resolved.channels ?? [],
     recipient_user_ids: resolved.recipient_user_ids ?? [],
     address_profile_ids: resolved.address_profile_ids ?? [],
-    // Keep concrete recipients/phones when the push rule is submitted. The
-    // VIDEO service needs these at alert time; omitting them made every rule
-    // display-only and impossible to execute.
-    channel_config: resolved.channel_config ?? {},
     content: {
       title_template: resolved.content.title_template,
       include_fields: resolved.content.include_fields,

@@ -3,14 +3,13 @@
     @register="register"
     :title="modalTitle"
     @cancel="handleCancel"
-    :width="isEditLayout ? 1200 : 700"
+    :width="isEditLayout ? 1200 : 760"
     :canFullscreen="isEditLayout"
     :showOkBtn="!isEditLayout"
     :showCancelBtn="!isEditLayout"
     :useWrapper="isEditLayout ? false : undefined"
     @ok="handleUploadOk"
   >
-    <!-- 上传 -->
     <template v-if="!isEditLayout">
       <Spin :spinning="state.editLoading">
         <ModelBasicInfoSection
@@ -23,15 +22,15 @@
       </Spin>
     </template>
 
-    <!-- 编辑 / 查看 -->
     <template v-else>
       <div class="model-edit-modal">
         <div class="edit-body">
           <aside class="edit-nav">
-            <div class="nav-title">配置项</div>
-            <div
+            <div class="nav-title">Configuration</div>
+            <button
               v-for="item in sectionList"
               :key="item.key"
+              type="button"
               :class="['step-item', { active: activeSection === item.key }]"
               @click="activeSection = item.key"
             >
@@ -39,7 +38,7 @@
                 <component :is="item.icon" />
               </span>
               <span class="step-label">{{ item.label }}</span>
-            </div>
+            </button>
           </aside>
 
           <section class="edit-content">
@@ -56,7 +55,7 @@
         </div>
 
         <div class="edit-footer">
-          <a-button type="link" size="small" @click="handleCancel">取消</a-button>
+          <a-button type="link" size="small" @click="handleCancel">Cancel</a-button>
           <div class="footer-actions">
             <a-button
               v-if="!state.isView"
@@ -65,9 +64,9 @@
               :loading="state.editLoading"
               @click="handleEditSave"
             >
-              保存
+              Save
             </a-button>
-            <a-button v-else size="small" @click="handleCancel">关闭</a-button>
+            <a-button v-else size="small" @click="handleCancel">Close</a-button>
           </div>
         </div>
       </div>
@@ -83,15 +82,15 @@ import {
   InfoCircleOutlined,
   PartitionOutlined,
 } from '@ant-design/icons-vue';
-import { BasicModal, useModalInner } from '@/components/Modal';
 import { Spin } from 'ant-design-vue';
+import { BasicModal, useModalInner } from '@/components/Modal';
+import { useGlobSetting } from '@/hooks/setting';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useUserStoreWithOut } from '@/store/modules/user';
-import { useGlobSetting } from '@/hooks/setting';
 import { createModel, updateModel } from '@/api/device/model';
+import { clearModelExtensionProfileCache } from '@/views/algorithm-task/utils/paramUtils';
 import type { ModelDraft, ModelSectionKey } from '../../modelDraft.types';
 import { createDefaultModelDraft, mapRecordToModelDraft } from './useDraft';
-import { clearModelExtensionProfileCache } from '@/views/algorithm-task/utils/paramUtils';
 import ModelBasicInfoSection from './sections/ModelBasicInfoSection.vue';
 import ModelDefaultThresholdSection from './sections/ModelDefaultThresholdSection.vue';
 import ModelDrawObjectSection from './sections/ModelDrawObjectSection.vue';
@@ -131,10 +130,10 @@ const sectionList: Array<{
   icon: Component;
   component: Component;
 }> = [
-  { key: 'basic', label: '基础信息', icon: InfoCircleOutlined, component: ModelBasicInfoSection },
-  { key: 'threshold', label: '阈值配置', icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
-  { key: 'draw_object', label: '绘制对象管理', icon: PartitionOutlined, component: ModelDrawObjectSection },
-  { key: 'draw_style', label: '默认绘制样式', icon: BgColorsOutlined, component: ModelDefaultDrawStyleSection },
+  { key: 'basic', label: 'Basic Info', icon: InfoCircleOutlined, component: ModelBasicInfoSection },
+  { key: 'threshold', label: 'Default Thresholds', icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
+  { key: 'draw_object', label: 'Draw Objects', icon: PartitionOutlined, component: ModelDrawObjectSection },
+  { key: 'draw_style', label: 'Draw Style', icon: BgColorsOutlined, component: ModelDefaultDrawStyleSection },
 ];
 
 const currentSectionComponent = computed(() =>
@@ -150,10 +149,10 @@ const basicSectionProps = computed(() => ({
 
 const modalTitle = computed(() => {
   if (state.isView)
-    return '查看算法';
+    return 'View Model';
   if (state.isEdit)
-    return '编辑算法';
-  return '上传本地算法';
+    return 'Edit Model';
+  return 'Upload Model';
 });
 
 const emits = defineEmits(['success']);
@@ -187,11 +186,13 @@ function handleCancel() {
 
 function validateBasicInfo(): string | null {
   if (!draft.value.name?.trim())
-    return '请输入算法名称';
+    return 'Please enter model name';
   if (!draft.value.version?.trim())
-    return '请输入算法版本';
+    return 'Please enter model version';
   if (!draft.value.imageUrl?.trim())
-    return '请上传算法图片';
+    return 'Please upload model image';
+  if (!draft.value.filePath?.trim())
+    return 'Please upload model file';
   return null;
 }
 
@@ -203,6 +204,9 @@ function buildApiPayload() {
     description: draft.value.description,
     status: draft.value.status,
     filePath: draft.value.filePath,
+    model_format: draft.value.model_format,
+    base_model: draft.value.base_model,
+    labels: draft.value.class_labels_text,
     imageUrl: draft.value.imageUrl,
     custom_enabled: draft.value.custom_enabled,
     algorithm_params: draft.value.custom_enabled
@@ -236,7 +240,7 @@ async function submitModel() {
     await api(buildApiPayload());
     if (draft.value.id)
       clearModelExtensionProfileCache(draft.value.id);
-    createMessage.success('操作成功');
+    createMessage.success('Saved');
     closeModal();
     resetDraft();
     emits('success');
@@ -289,19 +293,22 @@ function handleEditSave() {
   font-size: 12px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.45);
-  letter-spacing: 0.5px;
 }
 
 .step-item {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 10px 12px;
   margin-bottom: 4px;
+  border: 0;
   border-radius: 8px;
+  background: transparent;
   cursor: pointer;
-  transition: all 0.2s;
   color: rgba(0, 0, 0, 0.65);
+  text-align: left;
+  transition: all 0.2s;
 
   &:hover {
     background: rgba(0, 0, 0, 0.04);
@@ -311,12 +318,6 @@ function handleEditSave() {
     background: #e6f4ff;
     color: #1677ff;
     font-weight: 600;
-
-    .step-icon {
-      border-color: #1677ff;
-      background: #1677ff;
-      color: #fff;
-    }
   }
 }
 
@@ -324,48 +325,30 @@ function handleEditSave() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
   border: 1px solid #d9d9d9;
   border-radius: 50%;
-  font-size: 14px;
-  background: #fff;
-}
-
-.step-label {
-  flex: 1;
-  line-height: 1.4;
-  font-size: 13px;
 }
 
 .edit-content {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 16px 20px;
+  padding: 20px;
   overflow: auto;
   background: #fff;
-
-  :deep(.ant-spin-nested-loading),
-  :deep(.ant-spin-container) {
-    height: 100%;
-    min-height: 0;
-  }
 }
 
 .edit-footer {
   display: flex;
-  flex-shrink: 0;
-  align-items: center;
   justify-content: space-between;
-  min-height: 28px;
-  margin: 4px -12px -12px;
-  padding: 4px 12px 0;
+  align-items: center;
+  margin-top: 12px;
 }
 
 .footer-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 </style>

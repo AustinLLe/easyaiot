@@ -459,13 +459,151 @@ export function getThresholdTableRows(
     : expandAlgorithmRows(draft, modelNameMap);
 }
 
+export interface ModelDefaultProfile {
+  custom_enabled: boolean;
+  detection_config: Partial<AlgorithmParamConfigDraft['detection_config']>;
+  algorithm_params: Record<string, number | string | boolean>;
+  algorithm_param_descriptions: Record<string, string>;
+}
+
+const modelDefaultProfileCache = new Map<number, ModelDefaultProfile>();
+
+function numberOrUndefined(value: unknown): number | undefined {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : undefined;
+}
+
+function normalizeClassWhitelist(value: unknown): string[] | undefined {
+  if (!Array.isArray(value))
+    return undefined;
+  return value.map(item => String(item).trim()).filter(Boolean);
+}
+
+export function parseModelDefaultProfile(record: Record<string, unknown>): ModelDefaultProfile {
+  const detectionConfig = record.detection_config && typeof record.detection_config === 'object'
+    ? record.detection_config as Record<string, unknown>
+    : {};
+  const drawObjects = record.draw_objects && typeof record.draw_objects === 'object'
+    ? record.draw_objects as Record<string, unknown>
+    : detectionConfig.draw_objects && typeof detectionConfig.draw_objects === 'object'
+      ? detectionConfig.draw_objects as Record<string, unknown>
+      : undefined;
+  const drawStyle = record.draw_style && typeof record.draw_style === 'object'
+    ? record.draw_style as Record<string, unknown>
+    : detectionConfig.draw_style && typeof detectionConfig.draw_style === 'object'
+      ? detectionConfig.draw_style as Record<string, unknown>
+      : undefined;
+  const algorithm_params = normalizeAlgorithmParams(
+    record.algorithm_params ?? detectionConfig.algorithm_params,
+  );
+  const algorithm_param_descriptions = normalizeParamDescriptions(
+    record.algorithm_param_descriptions ?? detectionConfig.algorithm_param_descriptions,
+  );
+  let custom_enabled = false;
+  if (detectionConfig.custom_enabled != null)
+    custom_enabled = detectionConfig.custom_enabled === true;
+  if (record.custom_enabled != null)
+    custom_enabled = record.custom_enabled === true;
+  if (!custom_enabled && Object.keys(algorithm_params).length)
+    custom_enabled = true;
+
+  return {
+    custom_enabled,
+    algorithm_params,
+    algorithm_param_descriptions,
+    detection_config: {
+      conf: numberOrUndefined(detectionConfig.conf),
+      iou: numberOrUndefined(detectionConfig.iou),
+      imgsz: numberOrUndefined(detectionConfig.imgsz),
+      extract_interval: numberOrUndefined(detectionConfig.extract_interval),
+      min_box_area: numberOrUndefined(detectionConfig.min_box_area),
+      max_detections: numberOrUndefined(detectionConfig.max_detections),
+      class_whitelist: normalizeClassWhitelist(detectionConfig.class_whitelist),
+      draw_objects: drawObjects,
+      draw_style: drawStyle,
+    },
+  };
+}
+
+export function seedModelDefaultProfiles(records: Array<Record<string, unknown>>) {
+  for (const record of records) {
+    const modelId = Number(record.id);
+    if (!Number.isFinite(modelId) || modelId <= 0)
+      continue;
+    modelDefaultProfileCache.set(modelId, parseModelDefaultProfile(record));
+  }
+}
+
+export function clearModelDefaultProfileCache(modelId?: number) {
+  if (modelId != null)
+    modelDefaultProfileCache.delete(modelId);
+  else
+    modelDefaultProfileCache.clear();
+}
+
+function applyModelDefaultProfile(
+  config: AlgorithmParamConfigDraft,
+  profile: ModelDefaultProfile,
+): AlgorithmParamConfigDraft {
+  const detection = profile.detection_config || {};
+  const next: AlgorithmParamConfigDraft = {
+    ...config,
+    custom_enabled: profile.custom_enabled,
+    detection_config: {
+      ...config.detection_config,
+      ...Object.fromEntries(
+        Object.entries(detection).filter(([, value]) => value !== undefined),
+      ),
+      class_whitelist: detection.class_whitelist
+        ? [...detection.class_whitelist]
+        : [...config.detection_config.class_whitelist],
+      draw_objects: detection.draw_objects ? { ...detection.draw_objects } : config.detection_config.draw_objects,
+      draw_style: detection.draw_style ? { ...detection.draw_style } : config.detection_config.draw_style,
+    },
+    algorithm_params: profile.custom_enabled
+      ? { ...profile.algorithm_params }
+      : {},
+  };
+  return next;
+}
+
+function isGeneratedDefaultParamConfig(
+  config: AlgorithmParamConfigDraft,
+  modelId: number,
+  modelName: string,
+  globalDefaults?: { imgsz?: number; extract_interval?: number },
+): boolean {
+  if (config.custom_enabled || Object.keys(config.algorithm_params || {}).length)
+    return false;
+  if (config.detection_config.draw_objects || config.detection_config.draw_style)
+    return false;
+
+  const schema = getAlgorithmParamSchema(modelId, modelName);
+  const generated = applyPresetToConfig(schema, 'balanced', modelId, globalDefaults);
+  const current = config.detection_config;
+  const expected = generated.detection_config;
+  const keys: Array<keyof typeof expected> = [
+    'conf',
+    'iou',
+    'imgsz',
+    'extract_interval',
+    'min_box_area',
+    'max_detections',
+  ];
+  if (keys.some(key => Number(current[key]) !== Number(expected[key])))
+    return false;
+  return JSON.stringify(current.class_whitelist || []) === JSON.stringify(expected.class_whitelist || []);
+}
+
 export function createDefaultParamConfig(
   modelId: number,
   modelName: string,
   globalDefaults?: { imgsz?: number; extract_interval?: number },
 ): AlgorithmParamConfigDraft {
   const schema = getAlgorithmParamSchema(modelId, modelName);
-  return applyPresetToConfig(schema, 'balanced', modelId, globalDefaults);
+  const config = applyPresetToConfig(schema, 'balanced', modelId, globalDefaults);
+  const profile = modelDefaultProfileCache.get(modelId);
+  return profile ? applyModelDefaultProfile(config, profile) : config;
 }
 
 export function ensureParamConfigs(
@@ -488,7 +626,16 @@ export function ensureParamConfigs(
       );
     }
     else {
-      backfillDetectionConfig(draft.combo_param_configs[key], row.model_id, globalDefaults);
+      const profile = modelDefaultProfileCache.get(row.model_id);
+      if (
+        profile
+        && isGeneratedDefaultParamConfig(draft.combo_param_configs[key], row.model_id, row.model_name, globalDefaults)
+      ) {
+        draft.combo_param_configs[key] = applyModelDefaultProfile(draft.combo_param_configs[key], profile);
+      }
+      else {
+        backfillDetectionConfig(draft.combo_param_configs[key], row.model_id, globalDefaults);
+      }
     }
   }
 
@@ -501,7 +648,19 @@ export function ensureParamConfigs(
       );
     }
     else {
-      backfillDetectionConfig(draft.model_param_configs[row.model_id], row.model_id, globalDefaults);
+      const profile = modelDefaultProfileCache.get(row.model_id);
+      if (
+        profile
+        && isGeneratedDefaultParamConfig(draft.model_param_configs[row.model_id], row.model_id, row.model_name, globalDefaults)
+      ) {
+        draft.model_param_configs[row.model_id] = applyModelDefaultProfile(
+          draft.model_param_configs[row.model_id],
+          profile,
+        );
+      }
+      else {
+        backfillDetectionConfig(draft.model_param_configs[row.model_id], row.model_id, globalDefaults);
+      }
     }
   }
 
@@ -634,6 +793,8 @@ export function buildFullDetectionConfig(
     extract_interval: itemConfig.extract_interval ?? global.extract_interval ?? 25,
     enable_tracking: global.enable_tracking,
     device: global.device,
+    draw_objects: itemConfig.draw_objects ? { ...itemConfig.draw_objects } : undefined,
+    draw_style: itemConfig.draw_style ? { ...itemConfig.draw_style } : undefined,
   };
 }
 
@@ -832,6 +993,7 @@ export async function fetchModelExtensionProfile(modelId: number): Promise<Model
   try {
     const res = await getModelDetail(modelId) as Record<string, unknown>;
     const record = (res?.data && typeof res.data === 'object' ? res.data : res) as Record<string, unknown>;
+    seedModelDefaultProfiles([record]);
     const profile = parseModelExtensionProfile(record);
     profileCache.set(modelId, profile);
     return profile;
@@ -842,6 +1004,7 @@ export async function fetchModelExtensionProfile(modelId: number): Promise<Model
 }
 
 export function clearModelExtensionProfileCache(modelId?: number) {
+  clearModelDefaultProfileCache(modelId);
   if (modelId != null)
     profileCache.delete(modelId);
   else

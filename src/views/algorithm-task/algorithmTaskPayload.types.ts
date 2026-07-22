@@ -16,6 +16,8 @@ export interface BackendDetectionConfig {
   max_detections: number;
   extract_interval: number;
   device: 'auto' | 'cpu' | 'cuda';
+  draw_objects?: Record<string, unknown>;
+  draw_style?: Record<string, unknown>;
 }
 
 export interface BackendBindingModel {
@@ -116,7 +118,6 @@ export interface BackendAlertPushConfig {
   channels: AlertPushChannel[];
   recipient_user_ids: number[];
   address_profile_ids: string[];
-  channel_config?: AlertPushChannelConfig;
   content: BackendAlertPushContent;
 }
 

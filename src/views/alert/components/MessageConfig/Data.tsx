@@ -1,17 +1,6 @@
 import {Badge} from "ant-design-vue";
 import {Icon} from "@/components/Icon";
 
-function getConfiguration(record) {
-  if (record?.configurationMap)
-    return record.configurationMap;
-  try {
-    return JSON.parse(record?.configuration || '{}');
-  }
-  catch {
-    return {};
-  }
-}
-
 export const getTableColumns = () => {
   return [
     {
@@ -27,30 +16,6 @@ export const getTableColumns = () => {
           6: '钉钉',
           7: '飞书',
         }[text];
-      },
-    },
-    {
-      title: '发件邮箱/渠道',
-      dataIndex: 'sender',
-      customRender: ({record}) => {
-        const config = getConfiguration(record);
-        if (Number(record.msgType) === 3)
-          return config.mailFrom || config.mailUser || '--';
-        return config.aliyunSign || config.txyunSign || '--';
-      },
-    },
-    {
-      title: '服务器/通道',
-      dataIndex: 'endpoint',
-      customRender: ({record}) => {
-        const config = getConfiguration(record);
-        if (Number(record.msgType) === 3) {
-          const host = config.mailHost || '--';
-          const port = config.mailPort || '--';
-          const demo = ['127.0.0.1', 'localhost'].includes(host) ? '（演示配置）' : '';
-          return `${host}:${port}${demo}`;
-        }
-        return Number(record.msgType) === 1 ? '阿里云短信' : '腾讯云短信';
       },
     },
     {

@@ -579,22 +579,8 @@ export function validateAlertPush(
     if (!push.channels.length) {
       return '请至少选择一种推送渠道';
     }
-    const directEmails = push.channel_config?.email?.recipients ?? [];
-    const directPhones = push.channel_config?.sms?.phones ?? [];
-    const hasDirectTarget
-      = (push.channels.includes('email') && directEmails.length > 0)
-        || (push.channels.includes('sms') && directPhones.length > 0);
-    if (!push.recipient_user_ids?.length && !hasDirectTarget) {
-      return '请选择推送用户或填写直接收件地址';
-    }
-    if (push.channels.includes('email') && directEmails.length === 0) {
-      return '请填写收件邮箱';
-    }
-    if (push.channels.includes('email') && !push.channel_config?.email?.account_id) {
-      return '请选择发件邮箱配置';
-    }
-    if (directEmails.some(email => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
-      return '收件邮箱格式不正确';
+    if (!push.recipient_user_ids?.length) {
+      return '请选择推送用户';
     }
     if (!push.content.include_fields.length) {
       return '请至少选择一项推送内容';

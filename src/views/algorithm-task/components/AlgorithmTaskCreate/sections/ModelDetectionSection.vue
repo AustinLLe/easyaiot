@@ -76,6 +76,7 @@ import {
   getParamConfigForRow,
   getThresholdTableRows,
   handleParamConfigModeChange,
+  seedModelDefaultProfiles,
   saveParamConfigForRow,
 } from '../../../utils/paramUtils';
 import { handleRegionConfigModeChange } from '../../../utils/paramUtils';
@@ -204,6 +205,7 @@ async function enrichModelNamesFromApi() {
     else if (response?.data && Array.isArray(response.data))
       allModels = response.data;
 
+    seedModelDefaultProfiles(allModels);
     const map = { ...payload.value.model_name_map };
     for (const item of allModels) {
       if (item?.id != null && item?.name)
