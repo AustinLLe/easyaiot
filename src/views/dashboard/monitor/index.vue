@@ -118,7 +118,7 @@
         </div>
       </article>
 
-      <!-- 右侧：摄像头排行 + 算法占比 -->
+      <!-- 右侧：摄像头排行 + 设备列表 -->
       <aside class="right-stack">
         <article class="panel camera-rank-panel">
           <div class="panel-title-row compact-title">
@@ -150,33 +150,68 @@
           <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
         </article>
 
-        <article class="panel algorithm-panel">
+        <article class="panel device-panel">
           <div class="panel-title-row compact-title">
             <div>
-              <span class="panel-kicker">报警统计</span>
-              <h2>算法报警占比</h2>
+              <span class="panel-kicker">设备管理</span>
+              <h2>设备目录</h2>
             </div>
-            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+            <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
           </div>
-          <div v-if="algorithmRanking.length" class="donut-wrap side">
-            <div class="donut" :style="algorithmDonutStyle">
-              <div class="donut-center">
-                <strong>{{ currentPeriod.alarm_count }}</strong>
-                <span>总数</span>
-              </div>
-            </div>
-            <div class="legend-list">
-              <div v-for="(item, index) in algorithmRanking.slice(0, 6)" :key="item.name" class="legend-row">
-                <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
-                <span class="legend-name" :title="item.name">{{ item.name }}</span>
-                <strong>{{ item.count }}</strong>
-                <span>{{ item.percentage.toFixed(1) }}%</span>
-              </div>
-            </div>
+          <p class="tree-hint">点击摄像头播放原始流</p>
+          <div class="tree-body">
+            <BasicTree
+              :tree-data="treeData"
+              :expanded-keys="expandedKeys"
+              :selected-keys="selectedKeys"
+              :loading="treeLoading"
+              search
+              :default-expand-all="true"
+              :click-row-to-expand="false"
+              :render-icon="renderTreeIcon"
+              tree-wrapper-class-name="dashboard-tree-wrapper"
+              @update:expanded-keys="expandedKeys = $event"
+              @select="handleTreeSelect"
+            >
+              <template #title="node">
+                <span v-if="node.isDevice" class="device-node">
+                  <Icon icon="ant-design:camera-filled" :size="12" />
+                  <span class="device-name">{{ node.title }}</span>
+                </span>
+                <span v-else class="directory-node">{{ node.title }}</span>
+              </template>
+            </BasicTree>
           </div>
-          <div v-else class="empty-state compact">当前周期暂无算法报警</div>
         </article>
       </aside>
+
+      <!-- 底部：算法占比（视频下方） -->
+      <article class="panel algorithm-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">报警统计</span>
+            <h2>算法报警占比</h2>
+          </div>
+          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+        </div>
+        <div v-if="algorithmRanking.length" class="donut-wrap bottom">
+          <div class="donut large" :style="algorithmDonutStyle">
+            <div class="donut-center">
+              <strong>{{ currentPeriod.alarm_count }}</strong>
+              <span>总数</span>
+            </div>
+          </div>
+          <div class="legend-list horizontal">
+            <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
+              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
+              <span class="legend-name" :title="item.name">{{ item.name }}</span>
+              <strong>{{ item.count }}</strong>
+              <span>{{ item.percentage.toFixed(1) }}%</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state compact">当前周期暂无算法报警</div>
+      </article>
     </section>
     </div>
   </div>
@@ -185,10 +220,18 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Icon } from '@/components/Icon'
+import { BasicTree } from '@/components/Tree'
+import type { TreeItem } from '@/components/Tree'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
 import { getDashboardStatistics, queryAlarmList } from '@/api/device/calculate'
 import { getMonitorDashboardConfig } from './config'
-import { getDeviceList, startStreamForwarding, type DeviceInfo } from '@/api/device/camera'
+import {
+  getDeviceList,
+  getDirectoryList,
+  startStreamForwarding,
+  type DeviceDirectory,
+  type DeviceInfo,
+} from '@/api/device/camera'
 import { useMessage } from '@/hooks/web/useMessage'
 import { usePageContext } from '@/hooks/component/usePageContext'
 
@@ -259,6 +302,10 @@ const currentStreamUrl = ref('')
 const playingDevice = ref<DeviceInfo | null>(null)
 const deviceList = ref<DeviceInfo[]>([])
 const selectedDeviceId = ref('')
+const treeLoading = ref(false)
+const treeData = ref<TreeItem[]>([])
+const expandedKeys = ref<string[]>([])
+const selectedKeys = ref<string[]>([])
 const alarmList = ref<AlarmItem[]>([])
 const todayAlarmCount = ref(0)
 
@@ -314,6 +361,128 @@ function rankingWidth(count: number) {
 }
 
 const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请选择摄像头播放')
+
+const treeDeviceCount = computed(() => {
+  let count = 0
+  const walk = (nodes: TreeItem[]) => {
+    nodes.forEach((node) => {
+      if (node.isDevice)
+        count++
+      if (node.children?.length)
+        walk(node.children as TreeItem[])
+    })
+  }
+  walk(treeData.value)
+  return count
+})
+
+function normalizeDirectoryList(response: any): DeviceDirectory[] {
+  if (!response)
+    return []
+  if (Array.isArray(response))
+    return response
+  if (response.code !== undefined)
+    return response.data || []
+  return []
+}
+
+function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] {
+  return directories.map((dir) => {
+    const children: TreeItem[] = []
+    if (dir.children?.length)
+      children.push(...convertToTreeData(dir.children, devices))
+    devices.filter(d => d.directory_id === dir.id).forEach((device) => {
+      children.push({
+        key: `device_${device.id}`,
+        title: device.name || device.id,
+        isDevice: true,
+        device,
+        icon: 'ant-design:camera-filled',
+      } as TreeItem)
+    })
+    return {
+      key: `dir_${dir.id}`,
+      title: dir.name,
+      isDirectory: true,
+      icon: 'ant-design:folder-outlined',
+      children: children.length ? children : undefined,
+    } as TreeItem
+  })
+}
+
+function collectDirectoryKeys(nodes: TreeItem[]): string[] {
+  let keys: string[] = []
+  nodes.forEach((node) => {
+    if (node.isDirectory)
+      keys.push(String(node.key))
+    if (node.children?.length)
+      keys = keys.concat(collectDirectoryKeys(node.children as TreeItem[]))
+  })
+  return keys
+}
+
+function findNodeByKey(nodes: TreeItem[], key: string): TreeItem | null {
+  for (const node of nodes) {
+    if (node.key === key)
+      return node
+    if (node.children?.length) {
+      const found = findNodeByKey(node.children as TreeItem[], key)
+      if (found)
+        return found
+    }
+  }
+  return null
+}
+
+function renderTreeIcon(node: TreeItem) {
+  if (node.isDirectory)
+    return 'ant-design:folder-outlined'
+  if (node.isDevice)
+    return 'ant-design:camera-filled'
+  return ''
+}
+
+async function loadTreeData() {
+  treeLoading.value = true
+  try {
+    const [dirResponse, deviceResponse] = await Promise.all([
+      getDirectoryList(),
+      getDeviceList({ pageNo: 1, pageSize: 10000 }),
+    ])
+    const devices = normalizeDeviceList(deviceResponse)
+    deviceList.value = devices
+    const tree = convertToTreeData(normalizeDirectoryList(dirResponse), devices)
+    devices.filter(d => !d.directory_id).forEach((device) => {
+      tree.push({
+        key: `device_${device.id}`,
+        title: device.name || device.id,
+        isDevice: true,
+        device,
+        icon: 'ant-design:camera-filled',
+      } as TreeItem)
+    })
+    treeData.value = tree
+    expandedKeys.value = collectDirectoryKeys(tree)
+  }
+  catch (error) {
+    console.error('加载设备目录失败', error)
+    treeData.value = []
+  }
+  finally {
+    treeLoading.value = false
+  }
+}
+
+function handleTreeSelect(keys: string[]) {
+  if (!keys.length)
+    return
+  const node = findNodeByKey(treeData.value, keys[0])
+  if (node?.isDevice && node.device) {
+    selectedKeys.value = keys
+    selectedDeviceId.value = node.device.id
+    handlePlayDevice(node.device)
+  }
+}
 
 function getAlarmTaskType(alarm: any) {
   let taskType: string | null = alarm.task_type || null
@@ -407,17 +576,6 @@ function normalizeDeviceList(response: any): DeviceInfo[] {
   return response.list || response.records || (Array.isArray(response.data) ? response.data : [])
 }
 
-async function loadDeviceList() {
-  try {
-    const response = await getDeviceList({ pageNo: 1, pageSize: 10000 })
-    deviceList.value = normalizeDeviceList(response)
-  }
-  catch (error) {
-    console.error('加载摄像头列表失败', error)
-    deviceList.value = []
-  }
-}
-
 async function loadStatistics() {
   const response = await getDashboardStatistics()
   if (response) {
@@ -475,17 +633,20 @@ function handleDeviceSelect() {
   if (!selectedDeviceId.value) {
     currentStreamUrl.value = ''
     playingDevice.value = null
+    selectedKeys.value = []
     return
   }
   const device = deviceList.value.find(d => d.id === selectedDeviceId.value)
-  if (device)
+  if (device) {
+    selectedKeys.value = [`device_${device.id}`]
     handlePlayDevice(device)
+  }
 }
 
 async function refreshDashboard() {
   loading.value = true
   try {
-    await Promise.all([loadStatistics(), loadDeviceList(), loadAlarmList()])
+    await Promise.all([loadStatistics(), loadTreeData(), loadAlarmList()])
   }
   catch (error) {
     console.error('刷新看板失败', error)
@@ -602,7 +763,7 @@ onUnmounted(() => {
   min-height: 0;
   display: grid;
   grid-template-columns: 260px minmax(420px, 1fr) 270px;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) minmax(120px, 0.42fr);
   gap: 10px;
 }
 
@@ -639,7 +800,7 @@ onUnmounted(() => {
 
 .alarm-panel {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 2 / 4;
   min-height: 0;
 }
 
@@ -660,8 +821,18 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.camera-rank-panel,
 .algorithm-panel {
+  grid-column: 2 / 4;
+  grid-row: 3;
+  min-height: 0;
+}
+
+.camera-rank-panel {
+  flex-shrink: 0;
+  max-height: 46%;
+}
+
+.device-panel {
   flex: 1;
   min-height: 0;
 }
@@ -897,6 +1068,53 @@ onUnmounted(() => {
 .alarm-device { font-size: 10px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alarm-time { font-size: 10px; color: #9ca3af; }
 
+.device-count {
+  font-size: 10px;
+  color: #6c7588;
+  background: #f0f2f6;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.tree-hint {
+  margin: 0 0 6px;
+  font-size: 10px;
+  color: #9aa3b5;
+  flex-shrink: 0;
+}
+
+.tree-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.device-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.device-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.directory-node {
+  color: #596174;
+  font-weight: 500;
+}
+
+:deep(.dashboard-tree-wrapper) {
+  height: 100%;
+  max-height: none;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
 .donut-wrap {
   flex: 1;
   min-height: 0;
@@ -1017,11 +1235,13 @@ onUnmounted(() => {
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
   .alarm-panel,
   .video-panel,
-  .right-stack {
+  .right-stack,
+  .algorithm-panel {
     grid-column: 1;
     grid-row: auto;
   }
 
+  .alarm-panel { grid-row: auto; }
   .right-stack { min-height: 360px; }
   .overview-dashboard,
   .dashboard-canvas {
