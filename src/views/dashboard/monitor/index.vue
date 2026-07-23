@@ -40,8 +40,85 @@
         </article>
       </section>
 
-      <!-- 左侧：摄像头排行 + 实时告警 -->
-      <aside class="left-stack">
+      <!-- 左侧：实时告警 -->
+      <article class="panel alarm-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">实时报警</span>
+            <h2>告警事件</h2>
+          </div>
+          <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+        </div>
+        <div class="alarm-list">
+          <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
+            <div class="alarm-thumb">
+              <img
+                v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
+                :src="getAlarmImageUrl(alarm)!"
+                alt=""
+                @error="alarm.imageError = true"
+              />
+              <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
+            </div>
+            <div class="alarm-info">
+              <div class="alarm-title">{{ alarm.title }}</div>
+              <div class="alarm-meta">
+                <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
+                <span class="alarm-device">{{ alarm.location }}</span>
+              </div>
+              <div class="alarm-time">{{ alarm.time }}</div>
+            </div>
+          </div>
+          <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
+        </div>
+      </article>
+
+      <!-- 中间：视频 -->
+      <article class="panel video-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">实时监控</span>
+            <h2>原始视频流</h2>
+          </div>
+          <div class="video-actions">
+            <select
+              v-model="selectedDeviceId"
+              class="camera-select"
+              :disabled="!deviceList.length || streamLoading"
+              @change="handleDeviceSelect"
+            >
+              <option value="">选择摄像头</option>
+              <option v-for="device in deviceList" :key="device.id" :value="device.id">
+                {{ device.name || device.id }}
+              </option>
+            </select>
+            <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
+              {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
+            </span>
+          </div>
+        </div>
+        <div class="video-stage">
+          <Jessibuca
+            v-if="currentStreamUrl"
+            :key="currentStreamUrl"
+            :play-url="currentStreamUrl"
+            :has-audio="false"
+            class="video-player"
+          />
+          <div v-else class="video-placeholder">
+            <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
+            <strong>{{ videoPlaceholderTitle }}</strong>
+            <span>请在上方选择摄像头播放原始流</span>
+          </div>
+          <div v-if="playingDevice" class="video-caption">
+            <span>{{ playingDevice.name || playingDevice.id }}</span>
+            <span>原始流</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 右侧：摄像头排行 + 算法占比 -->
+      <aside class="right-stack">
         <article class="panel camera-rank-panel">
           <div class="panel-title-row compact-title">
             <div>
@@ -72,84 +149,6 @@
           <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
         </article>
 
-        <article class="panel alarm-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">实时报警</span>
-              <h2>告警事件</h2>
-            </div>
-            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
-          </div>
-          <div class="alarm-list">
-            <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
-              <div class="alarm-thumb">
-                <img
-                  v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
-                  :src="getAlarmImageUrl(alarm)!"
-                  alt=""
-                  @error="alarm.imageError = true"
-                />
-                <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
-              </div>
-              <div class="alarm-info">
-                <div class="alarm-title">{{ alarm.title }}</div>
-                <div class="alarm-meta">
-                  <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
-                  <span class="alarm-device">{{ alarm.location }}</span>
-                </div>
-                <div class="alarm-time">{{ alarm.time }}</div>
-              </div>
-            </div>
-            <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
-          </div>
-        </article>
-      </aside>
-
-      <!-- 右侧：视频 + 算法占比 -->
-      <div class="right-stack">
-        <article class="panel video-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">实时监控</span>
-              <h2>原始视频流</h2>
-            </div>
-            <div class="video-actions">
-              <select
-                v-model="selectedDeviceId"
-                class="camera-select"
-                :disabled="!deviceList.length || streamLoading"
-                @change="handleDeviceSelect"
-              >
-                <option value="">选择摄像头</option>
-                <option v-for="device in deviceList" :key="device.id" :value="device.id">
-                  {{ device.name || device.id }}
-                </option>
-              </select>
-              <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-                {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
-              </span>
-            </div>
-          </div>
-          <div class="video-stage">
-            <Jessibuca
-              v-if="currentStreamUrl"
-              :key="currentStreamUrl"
-              :play-url="currentStreamUrl"
-              :has-audio="false"
-              class="video-player"
-            />
-            <div v-else class="video-placeholder">
-              <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
-              <strong>{{ videoPlaceholderTitle }}</strong>
-              <span>请在上方选择摄像头播放原始流</span>
-            </div>
-            <div v-if="playingDevice" class="video-caption">
-              <span>{{ playingDevice.name || playingDevice.id }}</span>
-              <span>原始流</span>
-            </div>
-          </div>
-        </article>
-
         <article class="panel algorithm-panel">
           <div class="panel-title-row compact-title">
             <div>
@@ -158,15 +157,15 @@
             </div>
             <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
           </div>
-          <div v-if="algorithmRanking.length" class="donut-wrap bottom">
-            <div class="donut large" :style="algorithmDonutStyle">
+          <div v-if="algorithmRanking.length" class="donut-wrap side">
+            <div class="donut" :style="algorithmDonutStyle">
               <div class="donut-center">
                 <strong>{{ currentPeriod.alarm_count }}</strong>
                 <span>总数</span>
               </div>
             </div>
-            <div class="legend-list horizontal">
-              <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
+            <div class="legend-list">
+              <div v-for="(item, index) in algorithmRanking.slice(0, 6)" :key="item.name" class="legend-row">
                 <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
                 <span class="legend-name" :title="item.name">{{ item.name }}</span>
                 <strong>{{ item.count }}</strong>
@@ -176,7 +175,7 @@
           </div>
           <div v-else class="empty-state compact">当前周期暂无算法报警</div>
         </article>
-      </div>
+      </aside>
     </section>
   </div>
 </template>
@@ -587,7 +586,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 280px 1fr 300px;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
 }
@@ -623,35 +622,32 @@ onUnmounted(() => {
 .kpi-label { font-size: 12px; color: #737d91; margin-bottom: 2px; }
 .kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
 
-.left-stack {
+.alarm-panel {
   grid-column: 1;
   grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   min-height: 0;
-  overflow: hidden;
-}
-
-.right-stack {
-  grid-column: 2;
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow: hidden;
 }
 
 .video-panel {
-  flex: 1;
+  grid-column: 2;
+  grid-row: 2;
   min-height: 0;
 }
 
+.right-stack {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.camera-rank-panel,
 .algorithm-panel {
-  flex-shrink: 0;
-  max-height: 38%;
-  min-height: 140px;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel {
@@ -665,11 +661,6 @@ onUnmounted(() => {
   min-height: 0;
   padding: 10px 12px;
   overflow: hidden;
-}
-
-.camera-rank-panel {
-  flex-shrink: 0;
-  max-height: 42%;
 }
 
 .ranking-list {
@@ -731,11 +722,6 @@ onUnmounted(() => {
   font-size: 10px;
   color: #8891a3;
   line-height: 20px;
-}
-
-.alarm-panel {
-  flex: 1;
-  min-height: 0;
 }
 
 .panel-title-row {
@@ -904,6 +890,13 @@ onUnmounted(() => {
     min-height: 100px;
   }
 
+  &.side {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px;
+  }
+
   &.bottom {
     justify-content: center;
     gap: 24px;
@@ -998,19 +991,19 @@ onUnmounted(() => {
 @media (max-width: 1200px) {
   .dashboard-body {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     overflow-y: auto;
   }
 
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
-  .left-stack,
+  .alarm-panel,
+  .video-panel,
   .right-stack {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .algorithm-panel { max-height: none; min-height: 160px; }
-  .camera-rank-panel { max-height: none; }
+  .right-stack { min-height: 360px; }
   .overview-dashboard { height: auto !important; max-height: none !important; overflow: visible; }
 }
 </style>
