@@ -19,21 +19,21 @@
       <!-- 左侧：KPI + 告警事件 -->
       <aside class="left-stack">
         <section class="kpi-board panel">
+          <div class="period-tabs compact kpi-period-tabs" role="tablist" aria-label="KPI统计周期">
+            <button
+              v-for="item in periodOptions"
+              :key="item.value"
+              type="button"
+              :class="['period-tab', { active: kpiPeriod === item.value }]"
+              role="tab"
+              :aria-selected="kpiPeriod === item.value"
+              @click="kpiPeriod = item.value"
+            >
+              {{ item.label }}
+            </button>
+          </div>
           <div class="kpi-board-grid">
             <div class="kpi-primary">
-              <div class="period-tabs compact" role="tablist" aria-label="KPI统计周期">
-                <button
-                  v-for="item in periodOptions"
-                  :key="item.value"
-                  type="button"
-                  :class="['period-tab', { active: kpiPeriod === item.value }]"
-                  role="tab"
-                  :aria-selected="kpiPeriod === item.value"
-                  @click="kpiPeriod = item.value"
-                >
-                  {{ item.label }}
-                </button>
-              </div>
               <div class="kpi-primary-label">{{ kpiPeriodData.label }}报警</div>
               <div class="kpi-primary-value">{{ kpiPeriodData.alarm_count }}</div>
             </div>
@@ -208,7 +208,6 @@
                     {{ item.label }}
                   </button>
                 </div>
-                <span class="panel-total">{{ algorithmPeriodData.alarm_count }} 次</span>
               </div>
             </div>
             <div v-if="algorithmRanking.length" class="donut-wrap bottom">
@@ -239,22 +238,6 @@
                 <h2>{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
               </div>
               <div class="panel-title-actions">
-                <div class="rank-mode-tabs">
-                  <button
-                    type="button"
-                    :class="['rank-mode-tab', { active: rankMode === 'directory' }]"
-                    @click="rankMode = 'directory'"
-                  >
-                    分组
-                  </button>
-                  <button
-                    type="button"
-                    :class="['rank-mode-tab', { active: rankMode === 'camera' }]"
-                    @click="rankMode = 'camera'"
-                  >
-                    摄像头
-                  </button>
-                </div>
                 <div class="period-tabs compact" role="tablist" aria-label="排行统计周期">
                   <button
                     v-for="item in periodOptions"
@@ -268,7 +251,22 @@
                     {{ item.label }}
                   </button>
                 </div>
-                <span class="panel-total">{{ rankingPeriodData.alarm_count }} 次</span>
+                <div class="rank-mode-tabs">
+                  <button
+                    type="button"
+                    :class="['rank-mode-tab', { active: rankMode === 'camera' }]"
+                    @click="rankMode = 'camera'"
+                  >
+                    摄像头
+                  </button>
+                  <button
+                    type="button"
+                    :class="['rank-mode-tab', { active: rankMode === 'directory' }]"
+                    @click="rankMode = 'directory'"
+                  >
+                    分组
+                  </button>
+                </div>
               </div>
             </div>
             <div v-if="displayRanking.length" class="ranking-list">
@@ -1015,11 +1013,24 @@ onUnmounted(() => {
   padding: 8px !important;
 }
 
+.kpi-period-tabs {
+  display: flex;
+  width: 100%;
+  margin-bottom: 6px;
+
+  .period-tab {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
 .kpi-board-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 82px;
   gap: 6px;
-  min-height: 108px;
+  min-height: 88px;
 }
 
 .kpi-primary {
