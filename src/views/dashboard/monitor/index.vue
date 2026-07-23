@@ -6,154 +6,182 @@
         <h1>首页看板</h1>
         <p>设备、算法与告警态势实时汇总</p>
       </div>
-      <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
-        <Icon icon="ant-design:reload-outlined" :size="16" />
-        {{ loading ? '刷新中' : '刷新数据' }}
-      </button>
+      <div class="heading-actions">
+        <div class="period-tabs" role="tablist" aria-label="统计周期">
+          <button
+            v-for="item in periodOptions"
+            :key="item.value"
+            :class="['period-tab', { active: selectedPeriod === item.value }]"
+            role="tab"
+            :aria-selected="selectedPeriod === item.value"
+            @click="selectedPeriod = item.value"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+        <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
+          <Icon icon="ant-design:reload-outlined" :size="16" />
+          {{ loading ? '刷新中' : '刷新数据' }}
+        </button>
+      </div>
     </header>
 
-    <div class="period-tabs" role="tablist" aria-label="统计周期">
-      <button
-        v-for="item in periodOptions"
-        :key="item.value"
-        :class="['period-tab', { active: selectedPeriod === item.value }]"
-        role="tab"
-        :aria-selected="selectedPeriod === item.value"
-        @click="selectedPeriod = item.value"
-      >
-        {{ item.label }}
-      </button>
-    </div>
-
-    <section class="metric-grid" aria-label="数据统计">
-      <article v-for="metric in metrics" :key="metric.label" class="metric-card">
-        <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-          <Icon :icon="metric.icon" :size="22" />
-        </div>
-        <div>
-          <div class="metric-label">{{ metric.label }}</div>
-          <div class="metric-value">{{ metric.value }}</div>
-          <div class="metric-hint">{{ metric.hint }}</div>
-        </div>
-      </article>
-    </section>
-
-    <section class="dashboard-grid">
-      <article class="panel algorithm-panel">
-        <div class="panel-title-row">
-          <div>
-            <span class="panel-kicker">报警统计</span>
-            <h2>算法报警占比</h2>
-          </div>
-          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-        </div>
-
-        <div v-if="algorithmRanking.length" class="donut-section">
-          <div class="donut" :style="donutStyle">
-            <div class="donut-center">
-              <strong>{{ currentPeriod.alarm_count }}</strong>
-              <span>报警总数</span>
+    <section class="dashboard-body">
+      <div class="dashboard-main-left">
+        <article class="panel video-panel">
+          <div class="panel-title-row video-title-row">
+            <div>
+              <span class="panel-kicker">实时监控</span>
+              <h2>原始视频流</h2>
             </div>
+            <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
+              {{ currentStreamUrl ? '流已就绪' : '等待拖入或选择摄像头' }}
+            </span>
           </div>
-          <div class="legend-list">
-            <div v-for="(item, index) in algorithmRanking" :key="item.name" class="legend-row">
-              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }"></span>
-              <span class="legend-name" :title="item.name">{{ item.name }}</span>
-              <strong>{{ item.count }}</strong>
-              <span>{{ item.percentage.toFixed(1) }}%</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state">当前周期暂无算法报警</div>
-      </article>
 
-      <article class="panel video-panel">
-        <div class="panel-title-row video-title-row">
-          <div>
-            <span class="panel-kicker">中间视频</span>
-            <h2>任务实时画面</h2>
-          </div>
-          <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-            {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
-          </span>
-        </div>
-
-        <div class="video-filters">
-          <a-select
-            v-model:value="selectedTaskId"
-            class="filter-select"
-            placeholder="选择算法任务"
-            :loading="tasksLoading"
-            :options="taskOptions"
-            @change="handleTaskChange"
-          />
-          <a-select
-            v-model:value="selectedCameraId"
-            class="filter-select"
-            placeholder="选择任务摄像头"
-            :disabled="!selectedTaskId"
-            :options="cameraOptions"
-          />
-          <a-select
-            v-model:value="selectedAlgorithm"
-            class="filter-select"
-            placeholder="选择任务算法"
-            :disabled="!selectedTaskId"
-            :options="algorithmOptions"
-          />
-        </div>
-
-        <div class="video-stage">
-          <Jessibuca
-            v-if="currentStreamUrl"
-            :key="currentStreamUrl"
-            :play-url="currentStreamUrl"
-            :has-audio="false"
-            class="video-player"
-          />
-          <div v-else class="video-placeholder">
-            <div class="camera-orbit">
-              <Icon icon="ant-design:video-camera-outlined" :size="42" />
-            </div>
-            <strong>{{ videoPlaceholderTitle }}</strong>
-            <span>从任务中选择摄像头和算法后显示 AI 视频流</span>
-          </div>
-          <div v-if="selectedCamera" class="video-caption">
-            <span>{{ selectedCamera.device_name || selectedCamera.device_id }}</span>
-            <span>{{ selectedAlgorithm || '原始视频' }}</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel ranking-panel">
-        <div class="panel-title-row ranking-title-row">
-          <div>
-            <span class="panel-kicker">摄像头报警排行</span>
-            <h2>{{ rankingMode === 'camera' ? '摄像头排行' : '摄像头分组排行' }}</h2>
-          </div>
-          <div class="mode-toggle">
-            <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
-            <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
-          </div>
-        </div>
-
-        <div v-if="displayRanking.length" class="ranking-list">
-          <div v-for="(item, index) in displayRanking.slice(0, 8)" :key="`${rankingMode}-${item.name}`" class="ranking-row">
-            <span :class="['rank-number', { top: index < 3 }]">{{ index + 1 }}</span>
-            <div class="rank-content">
-              <div class="rank-meta">
-                <span :title="item.name">{{ item.name }}</span>
-                <strong>{{ item.count }} 次</strong>
+          <div
+            class="video-stage"
+            :class="{ 'is-drop-target': isDragOver }"
+            @dragover.prevent="isDragOver = true"
+            @dragleave="isDragOver = false"
+            @drop.prevent="handleVideoDrop"
+          >
+            <Jessibuca
+              v-if="currentStreamUrl"
+              :key="currentStreamUrl"
+              :play-url="currentStreamUrl"
+              :has-audio="false"
+              class="video-player"
+            />
+            <div v-else class="video-placeholder">
+              <div class="camera-orbit">
+                <Icon icon="ant-design:video-camera-outlined" :size="42" />
               </div>
-              <div class="rank-track">
-                <span :style="{ width: `${rankingWidth(item.count)}%` }"></span>
-              </div>
-              <small v-if="rankingMode === 'camera'">{{ item.directory_name || '未分组' }}</small>
+              <strong>{{ videoPlaceholderTitle }}</strong>
+              <span>从下方目录树拖拽摄像头到此处，或点击设备节点播放</span>
+            </div>
+            <div v-if="playingDevice" class="video-caption">
+              <span>{{ playingDevice.name || playingDevice.id }}</span>
+              <span>原始流</span>
             </div>
           </div>
-        </div>
-        <div v-else class="empty-state">当前周期暂无摄像头报警</div>
-      </article>
+        </article>
+
+        <article class="panel camera-tree-panel">
+          <div class="tree-header">
+            <Icon icon="ant-design:folder-outlined" :size="16" />
+            <span class="tree-title">设备目录</span>
+            <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 个设备</span>
+          </div>
+          <p class="tree-hint">拖拽摄像头到上方视频区域播放原始流</p>
+          <div class="tree-body">
+            <BasicTree
+              :tree-data="treeData"
+              :expanded-keys="expandedKeys"
+              :selected-keys="selectedKeys"
+              :loading="treeLoading"
+              search
+              :default-expand-all="true"
+              :click-row-to-expand="false"
+              :render-icon="renderTreeIcon"
+              tree-wrapper-class-name="dashboard-tree-wrapper"
+              @update:expanded-keys="expandedKeys = $event"
+              @select="handleTreeSelect"
+            >
+              <template #title="node">
+                <span
+                  v-if="node.isDevice"
+                  class="device-node"
+                  draggable="true"
+                  @dragstart="handleDeviceDragStart(node, $event)"
+                >
+                  <Icon icon="ant-design:drag-outlined" :size="12" class="drag-icon" />
+                  <span class="device-name">{{ node.title }}</span>
+                </span>
+                <span v-else class="directory-node">{{ node.title }}</span>
+              </template>
+            </BasicTree>
+          </div>
+        </article>
+      </div>
+
+      <aside class="dashboard-main-right">
+        <section class="panel side-metrics-panel" aria-label="数据统计">
+          <div class="side-metric-grid">
+            <article v-for="metric in sideMetrics" :key="metric.label" class="side-metric-card">
+              <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+                <Icon :icon="metric.icon" :size="20" />
+              </div>
+              <div class="metric-content">
+                <div class="metric-label">{{ metric.label }}</div>
+                <div class="metric-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <article class="panel algorithm-panel">
+          <div class="panel-title-row">
+            <div>
+              <span class="panel-kicker">报警统计</span>
+              <h2>算法报警占比</h2>
+            </div>
+            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+          </div>
+
+          <div v-if="algorithmRanking.length" class="donut-section">
+            <div class="donut" :style="donutStyle">
+              <div class="donut-center">
+                <strong>{{ currentPeriod.alarm_count }}</strong>
+                <span>报警总数</span>
+              </div>
+            </div>
+            <div class="legend-list">
+              <div v-for="(item, index) in algorithmRanking" :key="item.name" class="legend-row">
+                <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }"></span>
+                <span class="legend-name" :title="item.name">{{ item.name }}</span>
+                <strong>{{ item.count }}</strong>
+                <span>{{ item.percentage.toFixed(1) }}%</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state compact">当前周期暂无算法报警</div>
+        </article>
+
+        <article class="panel ranking-panel">
+          <div class="panel-title-row ranking-title-row">
+            <div>
+              <span class="panel-kicker">摄像头报警排行</span>
+              <h2>{{ rankingMode === 'camera' ? '摄像头排行' : '分组排行' }}</h2>
+            </div>
+            <div class="mode-toggle">
+              <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
+              <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
+            </div>
+          </div>
+
+          <div v-if="displayRanking.length" class="ranking-list">
+            <div
+              v-for="(item, index) in displayRanking.slice(0, 8)"
+              :key="`${rankingMode}-${item.name}`"
+              class="ranking-row"
+            >
+              <span :class="['rank-number', { top: index < 3 }]">{{ index + 1 }}</span>
+              <div class="rank-content">
+                <div class="rank-meta">
+                  <span :title="item.name">{{ item.name }}</span>
+                  <strong>{{ item.count }} 次</strong>
+                </div>
+                <div class="rank-track">
+                  <span :style="{ width: `${rankingWidth(item.count)}%` }"></span>
+                </div>
+                <small v-if="rankingMode === 'camera'">{{ item.directory_name || '未分组' }}</small>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+        </article>
+      </aside>
     </section>
   </div>
 </template>
@@ -161,17 +189,22 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { Icon } from '@/components/Icon'
+import { BasicTree } from '@/components/Tree'
+import type { TreeItem } from '@/components/Tree'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
 import { getDashboardStatistics } from '@/api/device/calculate'
 import {
-  getTaskStreams,
-  listAlgorithmTasks,
-  type AlgorithmTask,
-  type CameraStreamInfo,
-} from '@/api/device/algorithm_task'
+  getDirectoryList,
+  getDeviceList,
+  startStreamForwarding,
+  type DeviceDirectory,
+  type DeviceInfo,
+} from '@/api/device/camera'
 import { useMessage } from '@/hooks/web/useMessage'
 
 defineOptions({ name: 'MonitorDashboard' })
+
+const DEVICE_DRAG_MIME = 'application/x-easyaiot-device'
 
 type PeriodKey = 'today' | 'week' | 'month'
 type RankingMode = 'camera' | 'directory'
@@ -206,9 +239,17 @@ const emptyPeriod = (label: string): PeriodStatistics => ({
 
 const { createMessage } = useMessage()
 const loading = ref(false)
-const tasksLoading = ref(false)
+const streamLoading = ref(false)
 const selectedPeriod = ref<PeriodKey>('today')
 const rankingMode = ref<RankingMode>('camera')
+const isDragOver = ref(false)
+const currentStreamUrl = ref('')
+const playingDevice = ref<DeviceInfo | null>(null)
+const treeLoading = ref(false)
+const treeData = ref<TreeItem[]>([])
+const expandedKeys = ref<string[]>([])
+const selectedKeys = ref<string[]>([])
+
 const periodOptions = [
   { label: '今日', value: 'today' as PeriodKey },
   { label: '本周', value: 'week' as PeriodKey },
@@ -220,19 +261,12 @@ const statistics = ref({
   alarm_count: 0,
   camera_count: 0,
   algorithm_count: 0,
-  model_count: 0,
   periods: {
     today: emptyPeriod('今日'),
     week: emptyPeriod('本周'),
     month: emptyPeriod('本月'),
   } as Record<PeriodKey, PeriodStatistics>,
 })
-
-const tasks = ref<AlgorithmTask[]>([])
-const taskStreams = ref<CameraStreamInfo[]>([])
-const selectedTaskId = ref<number>()
-const selectedCameraId = ref<string>()
-const selectedAlgorithm = ref<string>()
 
 const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.value] || emptyPeriod('当前'))
 const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
@@ -242,11 +276,31 @@ const displayRanking = computed(() => (
     : currentPeriod.value.directory_ranking || []
 ))
 
-const metrics = computed(() => [
-  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, hint: '报警事件总量', icon: 'ant-design:alert-outlined', color: '#ef4444' },
-  { label: '活跃摄像头', value: currentPeriod.value.active_camera_count, hint: `设备总数 ${statistics.value.camera_count}`, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
-  { label: '触发算法', value: currentPeriod.value.active_algorithm_count, hint: `任务总数 ${statistics.value.algorithm_count}`, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
-  { label: '模型总数', value: statistics.value.model_count, hint: '已接入算法模型', icon: 'ant-design:cluster-outlined', color: '#22c55e' },
+const sideMetrics = computed(() => [
+  {
+    label: `${currentPeriod.value.label}报警`,
+    value: currentPeriod.value.alarm_count,
+    icon: 'ant-design:alert-outlined',
+    color: '#ef4444',
+  },
+  {
+    label: '摄像头数量',
+    value: statistics.value.camera_count,
+    icon: 'ant-design:video-camera-outlined',
+    color: '#3b82f6',
+  },
+  {
+    label: '算法数量',
+    value: statistics.value.algorithm_count,
+    icon: 'ant-design:deployment-unit-outlined',
+    color: '#8b5cf6',
+  },
+  {
+    label: '历史报警',
+    value: statistics.value.alarm_count,
+    icon: 'ant-design:history-outlined',
+    color: '#f59e0b',
+  },
 ])
 
 const donutStyle = computed(() => {
@@ -261,27 +315,30 @@ const donutStyle = computed(() => {
   return { background: `conic-gradient(${stops.join(', ')})` }
 })
 
-const taskOptions = computed(() => tasks.value.map(task => ({
-  label: `${task.task_name} · ${task.task_type === 'snap' ? '抓拍' : '实时'}`,
-  value: task.id,
-})))
-const cameraOptions = computed(() => taskStreams.value.map(stream => ({
-  label: stream.device_name || stream.device_id,
-  value: stream.device_id,
-})))
-const selectedTask = computed(() => tasks.value.find(task => task.id === selectedTaskId.value))
-const algorithmOptions = computed(() => {
-  const modelNames = (selectedTask.value?.model_names || '')
-    .split(',')
-    .map(name => name.trim())
-    .filter(Boolean)
-  const serviceNames = (selectedTask.value?.algorithm_services || [])
-    .map(service => service.service_name?.trim())
-    .filter(Boolean) as string[]
-  const names = [...modelNames, ...serviceNames]
-  return [...new Set(names)].map(name => ({ label: name, value: name }))
+const videoPlaceholderTitle = computed(() => {
+  if (streamLoading.value)
+    return '正在准备视频流...'
+  return '拖拽摄像头到此处播放'
 })
-const selectedCamera = computed(() => taskStreams.value.find(stream => stream.device_id === selectedCameraId.value))
+
+function rankingWidth(count: number) {
+  const max = Math.max(...displayRanking.value.map(item => item.count), 1)
+  return Math.max((count / max) * 100, 6)
+}
+
+const treeDeviceCount = computed(() => {
+  let count = 0
+  const walk = (nodes: TreeItem[]) => {
+    nodes.forEach((node) => {
+      if (node.isDevice)
+        count++
+      if (node.children?.length)
+        walk(node.children as TreeItem[])
+    })
+  }
+  walk(treeData.value)
+  return count
+})
 
 function convertRtmpToHttp(rtmpUrl?: string) {
   if (!rtmpUrl?.startsWith('rtmp://'))
@@ -298,88 +355,241 @@ function convertRtmpToHttp(rtmpUrl?: string) {
   }
 }
 
-function normalizeAiStream(streamUrl?: string) {
+function normalizeHttpStream(streamUrl?: string) {
   if (!streamUrl)
     return ''
-  try {
-    const url = new URL(streamUrl, window.location.origin)
-    if (url.pathname.startsWith('/ai/'))
-      return `${url.pathname}${url.search}`
-  }
-  catch {
+  if (streamUrl.startsWith('http://') || streamUrl.startsWith('https://') || streamUrl.startsWith('/'))
     return streamUrl
-  }
   return streamUrl
 }
 
-const currentStreamUrl = computed(() => {
-  const camera = selectedCamera.value
-  if (!camera)
-    return ''
-  if (selectedAlgorithm.value)
-    return normalizeAiStream(camera.ai_http_stream) || convertRtmpToHttp(camera.ai_rtmp_stream)
-  return camera.http_stream || convertRtmpToHttp(camera.rtmp_stream)
-})
+function resolveOriginalStreamUrl(device: DeviceInfo) {
+  if (device.http_stream)
+    return normalizeHttpStream(device.http_stream)
+  if (device.rtmp_stream)
+    return convertRtmpToHttp(device.rtmp_stream)
+  return ''
+}
 
-const videoPlaceholderTitle = computed(() => {
-  if (!selectedTaskId.value)
-    return '请选择算法任务'
-  if (!selectedCameraId.value)
-    return '请选择任务中的摄像头'
-  if (selectedAlgorithm.value && !currentStreamUrl.value)
-    return '该摄像头暂无 AI 流'
-  return '该摄像头暂无可播放流'
-})
+async function ensureOriginalStreamUrl(device: DeviceInfo) {
+  const existing = resolveOriginalStreamUrl(device)
+  if (existing)
+    return existing
 
-function rankingWidth(count: number) {
-  const max = Math.max(...displayRanking.value.map(item => item.count), 1)
-  return Math.max((count / max) * 100, 6)
+  const response = await startStreamForwarding(device.id)
+  const payload = response?.code !== undefined ? response.data ?? response : response
+  const httpStream = payload?.http_stream || payload?.data?.http_stream
+  const rtmpStream = payload?.rtmp_stream || payload?.data?.rtmp_stream || device.rtmp_stream
+
+  if (httpStream)
+    return normalizeHttpStream(httpStream)
+  if (rtmpStream)
+    return convertRtmpToHttp(rtmpStream)
+  return ''
+}
+
+function normalizeDeviceList(response: any): DeviceInfo[] {
+  if (!response)
+    return []
+  if (Array.isArray(response))
+    return response
+  if (response.code !== undefined)
+    return response.data?.list || response.data?.records || response.data || []
+  if (response.list)
+    return response.list
+  if (response.records)
+    return response.records
+  if (Array.isArray(response.data))
+    return response.data
+  return []
+}
+
+function normalizeDirectoryList(response: any): DeviceDirectory[] {
+  if (!response)
+    return []
+  if (Array.isArray(response))
+    return response
+  if (response.code !== undefined)
+    return response.data || []
+  return []
+}
+
+function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] {
+  return directories.map((dir) => {
+    const children: TreeItem[] = []
+    if (dir.children?.length)
+      children.push(...convertToTreeData(dir.children, devices))
+
+    devices
+      .filter(device => device.directory_id === dir.id)
+      .forEach((device) => {
+        children.push({
+          key: `device_${device.id}`,
+          title: device.name || device.id,
+          isDevice: true,
+          isDirectory: false,
+          device,
+          icon: 'ant-design:camera-filled',
+        } as TreeItem)
+      })
+
+    return {
+      key: `dir_${dir.id}`,
+      title: dir.name,
+      isDirectory: true,
+      directory: dir,
+      icon: 'ant-design:folder-outlined',
+      children: children.length ? children : undefined,
+    } as TreeItem
+  })
+}
+
+function collectDirectoryKeys(nodes: TreeItem[]): string[] {
+  let keys: string[] = []
+  nodes.forEach((node) => {
+    if (node.isDirectory)
+      keys.push(String(node.key))
+    if (node.children?.length)
+      keys = keys.concat(collectDirectoryKeys(node.children as TreeItem[]))
+  })
+  return keys
+}
+
+function findNodeByKey(nodes: TreeItem[], key: string): TreeItem | null {
+  for (const node of nodes) {
+    if (node.key === key)
+      return node
+    if (node.children?.length) {
+      const found = findNodeByKey(node.children as TreeItem[], key)
+      if (found)
+        return found
+    }
+  }
+  return null
+}
+
+function renderTreeIcon(node: TreeItem) {
+  if (node.isDirectory)
+    return 'ant-design:folder-outlined'
+  if (node.isDevice)
+    return 'ant-design:camera-filled'
+  return ''
+}
+
+async function loadTreeData() {
+  treeLoading.value = true
+  try {
+    const [dirResponse, deviceResponse] = await Promise.all([
+      getDirectoryList(),
+      getDeviceList({ pageNo: 1, pageSize: 10000 }),
+    ])
+    const directories = normalizeDirectoryList(dirResponse)
+    const devices = normalizeDeviceList(deviceResponse)
+    const tree = convertToTreeData(directories, devices)
+
+    devices
+      .filter(device => !device.directory_id)
+      .forEach((device) => {
+        tree.push({
+          key: `device_${device.id}`,
+          title: device.name || device.id,
+          isDevice: true,
+          isDirectory: false,
+          device,
+          icon: 'ant-design:camera-filled',
+        } as TreeItem)
+      })
+
+    treeData.value = tree
+    expandedKeys.value = collectDirectoryKeys(tree)
+  }
+  catch (error) {
+    console.error('加载设备目录失败', error)
+    createMessage.error('加载设备目录失败')
+    treeData.value = []
+  }
+  finally {
+    treeLoading.value = false
+  }
+}
+
+function handleDeviceDragStart(node: TreeItem, event: DragEvent) {
+  if (!node.device)
+    return
+  event.dataTransfer?.setData(DEVICE_DRAG_MIME, JSON.stringify(node.device))
+  event.dataTransfer!.effectAllowed = 'copy'
+}
+
+function handleTreeSelect(keys: string[]) {
+  if (!keys.length)
+    return
+  const node = findNodeByKey(treeData.value, keys[0])
+  if (node?.isDevice && node.device) {
+    selectedKeys.value = keys
+    handlePlayDevice(node.device)
+  }
+}
+
+function parseDroppedDevice(event: DragEvent): DeviceInfo | null {
+  const raw = event.dataTransfer?.getData(DEVICE_DRAG_MIME)
+  if (!raw)
+    return null
+  try {
+    return JSON.parse(raw) as DeviceInfo
+  }
+  catch {
+    return null
+  }
+}
+
+async function handlePlayDevice(device: DeviceInfo) {
+  streamLoading.value = true
+  try {
+    const streamUrl = await ensureOriginalStreamUrl(device)
+    if (!streamUrl) {
+      createMessage.warning('该摄像头暂无原始流地址')
+      return
+    }
+    playingDevice.value = device
+    currentStreamUrl.value = streamUrl
+  }
+  catch (error) {
+    console.error('播放摄像头失败', error)
+    createMessage.error('播放摄像头失败')
+  }
+  finally {
+    streamLoading.value = false
+  }
+}
+
+async function handleVideoDrop(event: DragEvent) {
+  isDragOver.value = false
+  const device = parseDroppedDevice(event)
+  if (!device) {
+    createMessage.warning('请从设备目录拖拽摄像头')
+    return
+  }
+  await handlePlayDevice(device)
 }
 
 async function loadStatistics() {
   const response = await getDashboardStatistics()
-  if (response)
-    statistics.value = { ...statistics.value, ...response, periods: { ...statistics.value.periods, ...(response.periods || {}) } }
-}
-
-async function loadTasks() {
-  tasksLoading.value = true
-  try {
-    const response = await listAlgorithmTasks({ pageNo: 1, pageSize: 1000 })
-    tasks.value = Array.isArray(response) ? response : (response?.data || [])
-    if (!selectedTaskId.value && tasks.value.length) {
-      selectedTaskId.value = tasks.value[0].id
-      await handleTaskChange(selectedTaskId.value)
+  if (response) {
+    statistics.value = {
+      ...statistics.value,
+      ...response,
+      periods: { ...statistics.value.periods, ...(response.periods || {}) },
     }
-  }
-  finally {
-    tasksLoading.value = false
-  }
-}
-
-async function handleTaskChange(taskId?: number) {
-  taskStreams.value = []
-  selectedCameraId.value = undefined
-  selectedAlgorithm.value = undefined
-  if (!taskId)
-    return
-
-  try {
-    const response = await getTaskStreams(taskId)
-    taskStreams.value = Array.isArray(response) ? response : (response?.data || [])
-    selectedCameraId.value = taskStreams.value[0]?.device_id
-    selectedAlgorithm.value = algorithmOptions.value[0]?.value
-  }
-  catch (error) {
-    console.error('加载任务流失败', error)
-    createMessage.warning('该任务暂无可用摄像头流')
   }
 }
 
 async function refreshDashboard() {
   loading.value = true
   try {
-    await Promise.all([loadStatistics(), loadTasks()])
+    await Promise.all([
+      loadStatistics(),
+      loadTreeData(),
+    ])
   }
   catch (error) {
     console.error('加载首页看板失败', error)
@@ -407,10 +617,18 @@ onMounted(refreshDashboard)
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   margin-bottom: 18px;
 
   h1 { margin: 2px 0 4px; font-size: 28px; line-height: 1.2; font-weight: 700; }
   p { margin: 0; color: #7b8498; }
+}
+
+.heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .eyebrow, .panel-kicker {
@@ -431,6 +649,7 @@ onMounted(refreshDashboard)
   border: 0;
   border-radius: 10px;
   cursor: pointer;
+  white-space: nowrap;
   &:disabled { opacity: .55; cursor: wait; }
 }
 
@@ -438,7 +657,6 @@ onMounted(refreshDashboard)
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  margin-bottom: 18px;
   background: #e9edf5;
   border-radius: 10px;
 }
@@ -450,113 +668,462 @@ onMounted(refreshDashboard)
 }
 
 .period-tab {
-  min-width: 76px;
-  padding: 8px 18px;
+  min-width: 68px;
+  padding: 8px 14px;
   color: #6c7588;
   background: transparent;
   border-radius: 7px;
   &.active { color: #172033; background: #fff; box-shadow: 0 3px 12px rgba(31, 45, 75, .08); }
 }
 
-.metric-grid {
+.dashboard-body {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.85fr) minmax(320px, 1fr);
   gap: 14px;
-  margin-bottom: 14px;
+  min-height: calc(100vh - 150px);
 }
 
-.metric-card, .panel {
+.dashboard-main-left {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 14px;
+  min-height: 0;
+}
+
+.dashboard-main-right {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
   background: rgba(255, 255, 255, .94);
   border: 1px solid #e7eaf1;
   box-shadow: 0 8px 28px rgba(38, 53, 83, .06);
+  display: flex;
+  min-width: 0;
+  padding: 18px;
+  border-radius: 14px;
+  flex-direction: column;
 }
 
-.metric-card {
+.panel-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-title-row h2 {
+  margin: 3px 0 0;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.panel-total {
+  padding: 5px 9px;
+  color: #ef4444;
+  font-size: 12px;
+  background: #fef2f2;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.side-metrics-panel {
+  flex: 0 0 auto;
+  padding: 14px;
+}
+
+.side-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.side-metric-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-height: 112px;
-  padding: 20px;
-  border-radius: 14px;
+  gap: 10px;
+  min-height: 78px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
 }
 
-.metric-icon { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 13px; }
-.metric-label { color: #737d91; font-size: 13px; }
-.metric-value { margin: 2px 0; font-size: 28px; font-weight: 700; line-height: 1.1; }
-.metric-hint { color: #a0a7b7; font-size: 11px; }
-
-.dashboard-grid {
+.metric-icon {
   display: grid;
-  grid-template-columns: minmax(250px, .9fr) minmax(420px, 1.5fr) minmax(270px, 1fr);
-  gap: 14px;
-  min-height: 540px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 11px;
 }
 
-.panel { display: flex; min-width: 0; padding: 20px; border-radius: 14px; flex-direction: column; }
-.panel-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
-.panel-title-row h2 { margin: 3px 0 0; font-size: 18px; font-weight: 650; }
-.panel-total { padding: 5px 9px; color: #ef4444; font-size: 12px; background: #fef2f2; border-radius: 999px; }
+.metric-label {
+  color: #737d91;
+  font-size: 12px;
+}
 
-.donut-section { display: flex; flex: 1; align-items: center; justify-content: center; gap: 26px; flex-direction: column; }
-.donut { position: relative; display: grid; width: 190px; height: 190px; place-items: center; border-radius: 50%; transform: rotate(-90deg); }
-.donut::after { width: 112px; height: 112px; background: #fff; border-radius: 50%; content: ''; }
-.donut-center { position: absolute; z-index: 1; display: flex; align-items: center; color: #172033; transform: rotate(90deg); flex-direction: column; }
-.donut-center strong { font-size: 28px; }
+.metric-value {
+  margin-top: 2px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.algorithm-panel {
+  flex: 1;
+  min-height: 260px;
+}
+
+.ranking-panel {
+  flex: 1;
+  min-height: 260px;
+}
+
+.donut-section {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-direction: column;
+}
+
+.donut {
+  position: relative;
+  display: grid;
+  width: 170px;
+  height: 170px;
+  place-items: center;
+  border-radius: 50%;
+  transform: rotate(-90deg);
+}
+
+.donut::after {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  border-radius: 50%;
+  content: '';
+}
+
+.donut-center {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  color: #172033;
+  transform: rotate(90deg);
+  flex-direction: column;
+}
+
+.donut-center strong { font-size: 24px; }
 .donut-center span { color: #929bad; font-size: 11px; }
-.legend-list { width: 100%; max-height: 210px; padding-right: 4px; overflow-y: auto; }
-.legend-row { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto 46px; align-items: center; gap: 8px; padding: 7px 0; color: #8891a3; font-size: 12px; border-bottom: 1px solid #f0f2f6; }
+
+.legend-list {
+  width: 100%;
+  max-height: 160px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.legend-row {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto 46px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  color: #8891a3;
+  font-size: 12px;
+  border-bottom: 1px solid #f0f2f6;
+}
+
 .legend-row strong { color: #344054; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 .legend-name { overflow: hidden; color: #596174; text-overflow: ellipsis; white-space: nowrap; }
 
-.video-panel { padding-bottom: 16px; }
-.video-title-row { margin-bottom: 14px; }
-.stream-status { padding: 5px 9px; color: #8992a5; font-size: 11px; background: #f0f2f6; border-radius: 999px; }
-.stream-status.online { color: #15803d; background: #ecfdf3; }
-.video-filters { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.filter-select { width: 100%; }
-.video-stage { position: relative; flex: 1; min-height: 350px; overflow: hidden; background: #09111f; border: 1px solid #25324a; border-radius: 12px; }
+.video-panel {
+  min-height: 0;
+  padding-bottom: 14px;
+}
+
+.video-title-row { margin-bottom: 12px; }
+
+.stream-status {
+  padding: 5px 9px;
+  color: #8992a5;
+  font-size: 11px;
+  background: #f0f2f6;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.stream-status.online {
+  color: #15803d;
+  background: #ecfdf3;
+}
+
+.video-stage {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  overflow: hidden;
+  background: #09111f;
+  border: 2px solid #25324a;
+  border-radius: 12px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.video-stage.is-drop-target {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, .15);
+}
+
 .video-player { width: 100%; height: 100%; }
-.video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #dce8ff; background: radial-gradient(circle at 50% 42%, #192a48, #080f1c 64%); flex-direction: column; }
+
+.video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dce8ff;
+  background: radial-gradient(circle at 50% 42%, #192a48, #080f1c 64%);
+  flex-direction: column;
+  text-align: center;
+  padding: 0 24px;
+}
+
 .video-placeholder strong { margin: 18px 0 5px; font-size: 16px; }
-.video-placeholder span { color: #73809a; font-size: 12px; }
-.camera-orbit { display: grid; width: 90px; height: 90px; color: #60a5fa; background: rgba(59, 130, 246, .1); border: 1px solid rgba(96, 165, 250, .28); border-radius: 50%; place-items: center; box-shadow: 0 0 40px rgba(59, 130, 246, .16); }
-.video-caption { position: absolute; right: 0; bottom: 0; left: 0; display: flex; justify-content: space-between; padding: 24px 14px 10px; color: #fff; font-size: 12px; background: linear-gradient(transparent, rgba(0, 0, 0, .82)); pointer-events: none; }
+.video-placeholder span { color: #73809a; font-size: 12px; max-width: 320px; }
+
+.camera-orbit {
+  display: grid;
+  width: 90px;
+  height: 90px;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, .1);
+  border: 1px solid rgba(96, 165, 250, .28);
+  border-radius: 50%;
+  place-items: center;
+  box-shadow: 0 0 40px rgba(59, 130, 246, .16);
+}
+
+.video-caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 14px 10px;
+  color: #fff;
+  font-size: 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .82));
+  pointer-events: none;
+}
+
+.camera-tree-panel {
+  flex: 0 0 auto;
+  min-height: 240px;
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: #172033;
+}
+
+.tree-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.device-count {
+  margin-left: auto;
+  padding: 2px 8px;
+  color: #6c7588;
+  font-size: 11px;
+  background: #f0f2f6;
+  border-radius: 999px;
+}
+
+.tree-hint {
+  margin: 0 0 10px;
+  color: #9aa3b5;
+  font-size: 11px;
+}
+
+.tree-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.device-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  color: #344054;
+  border-radius: 6px;
+  cursor: grab;
+
+  &:hover { background: #eef4ff; }
+  &:active { cursor: grabbing; }
+}
+
+.drag-icon { color: #94a3b8; }
+
+.device-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.directory-node {
+  color: #596174;
+  font-weight: 500;
+}
+
+:deep(.dashboard-tree-wrapper) {
+  max-height: 200px;
+  overflow: auto;
+}
+
+:deep(.tree) {
+  background: transparent;
+}
+
+:deep(.ant-tree-node-content-wrapper) {
+  border-radius: 6px;
+}
+
+:deep(.ant-tree-node-selected .ant-tree-node-content-wrapper) {
+  background: #eef4ff !important;
+}
 
 .ranking-title-row { align-items: center; }
-.mode-toggle { display: flex; padding: 3px; background: #eef1f6; border-radius: 8px; }
-.mode-toggle button { padding: 6px 9px; color: #7f889a; font-size: 11px; background: transparent; border-radius: 6px; }
-.mode-toggle button.active { color: #172033; background: #fff; box-shadow: 0 2px 7px rgba(32, 45, 72, .08); }
-.ranking-list { display: flex; gap: 14px; flex-direction: column; }
+
+.mode-toggle {
+  display: flex;
+  padding: 3px;
+  background: #eef1f6;
+  border-radius: 8px;
+}
+
+.mode-toggle button {
+  padding: 6px 9px;
+  color: #7f889a;
+  font-size: 11px;
+  background: transparent;
+  border-radius: 6px;
+}
+
+.mode-toggle button.active {
+  color: #172033;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(32, 45, 72, .08);
+}
+
+.ranking-list {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
 .ranking-row { display: flex; align-items: flex-start; gap: 11px; }
-.rank-number { display: grid; width: 24px; height: 24px; flex: 0 0 24px; place-items: center; color: #8c95a7; font-size: 11px; background: #f0f2f6; border-radius: 7px; }
+
+.rank-number {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  color: #8c95a7;
+  font-size: 11px;
+  background: #f0f2f6;
+  border-radius: 7px;
+}
+
 .rank-number.top { color: #fff; background: #172033; }
+
 .rank-content { min-width: 0; flex: 1; }
-.rank-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; }
-.rank-meta span { overflow: hidden; color: #4d5669; text-overflow: ellipsis; white-space: nowrap; }
+
+.rank-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.rank-meta span {
+  overflow: hidden;
+  color: #4d5669;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rank-meta strong { flex-shrink: 0; color: #1d2939; font-size: 11px; }
-.rank-track { height: 5px; overflow: hidden; background: #edf0f5; border-radius: 10px; }
-.rank-track span { display: block; height: 100%; background: linear-gradient(90deg, #60a5fa, #2563eb); border-radius: inherit; }
-.rank-content small { display: block; margin-top: 4px; color: #a1a8b6; font-size: 10px; }
-.empty-state { display: grid; min-height: 230px; color: #a1a8b6; font-size: 13px; place-items: center; }
+
+.rank-track {
+  height: 5px;
+  overflow: hidden;
+  background: #edf0f5;
+  border-radius: 10px;
+}
+
+.rank-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
+  border-radius: inherit;
+}
+
+.rank-content small {
+  display: block;
+  margin-top: 4px;
+  color: #a1a8b6;
+  font-size: 10px;
+}
+
+.empty-state {
+  display: grid;
+  flex: 1;
+  color: #a1a8b6;
+  font-size: 13px;
+  place-items: center;
+}
+
+.empty-state.compact { min-height: 120px; }
 
 @media (max-width: 1280px) {
-  .dashboard-grid { grid-template-columns: 1fr 1.5fr; }
-  .ranking-panel { grid-column: 1 / -1; }
-  .ranking-list { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .dashboard-body { grid-template-columns: 1fr; }
+  .dashboard-main-left { min-height: 680px; }
+  .dashboard-main-right { display: grid; grid-template-columns: 1fr 1fr; }
+  .side-metrics-panel { grid-column: 1 / -1; }
 }
 
 @media (max-width: 900px) {
   .overview-dashboard { padding: 18px; }
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .ranking-panel { grid-column: auto; }
-  .video-panel { min-height: 560px; }
+  .dashboard-heading { align-items: flex-start; flex-direction: column; }
+  .heading-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+  .dashboard-main-right { grid-template-columns: 1fr; }
+  .video-stage { min-height: 320px; }
 }
 
 @media (max-width: 600px) {
-  .dashboard-heading { align-items: flex-start; gap: 12px; flex-direction: column; }
-  .metric-grid { grid-template-columns: 1fr; }
-  .video-filters, .ranking-list { grid-template-columns: 1fr; }
+  .side-metric-grid { grid-template-columns: 1fr; }
+  .period-tabs { width: 100%; justify-content: space-between; }
+  .period-tab { flex: 1; min-width: 0; padding-inline: 8px; }
 }
 </style>
