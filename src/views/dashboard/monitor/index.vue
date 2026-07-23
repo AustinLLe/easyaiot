@@ -28,51 +28,38 @@
     </header>
 
     <section class="dashboard-body">
-      <!-- 顶部：KPI 四卡片 -->
-      <section class="kpi-row">
-        <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-card">
-          <div class="kpi-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-            <Icon :icon="metric.icon" :size="20" />
-          </div>
-          <div class="kpi-text">
-            <div class="kpi-label">{{ metric.label }}</div>
-            <div class="kpi-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-          </div>
-        </article>
-      </section>
-
-      <!-- 左侧：实时告警 -->
+      <!-- 左侧：告警事件 -->
       <article class="panel alarm-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">实时报警</span>
-              <h2>告警事件</h2>
-            </div>
-            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">实时报警</span>
+            <h2>告警事件</h2>
           </div>
-          <div class="alarm-list">
-            <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
-              <div class="alarm-thumb">
-                <img
-                  v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
-                  :src="getAlarmImageUrl(alarm)!"
-                  alt=""
-                  @error="alarm.imageError = true"
-                />
-                <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
-              </div>
-              <div class="alarm-info">
-                <div class="alarm-title">{{ alarm.title }}</div>
-                <div class="alarm-meta">
-                  <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
-                  <span class="alarm-device">{{ alarm.location }}</span>
-                </div>
-                <div class="alarm-time">{{ alarm.time }}</div>
-              </div>
+          <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+        </div>
+        <div class="alarm-list">
+          <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
+            <div class="alarm-thumb">
+              <img
+                v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
+                :src="getAlarmImageUrl(alarm)!"
+                alt=""
+                @error="alarm.imageError = true"
+              />
+              <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
             </div>
-            <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
+            <div class="alarm-info">
+              <div class="alarm-title">{{ alarm.title }}</div>
+              <div class="alarm-meta">
+                <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
+                <span class="alarm-device">{{ alarm.location }}</span>
+              </div>
+              <div class="alarm-time">{{ alarm.time }}</div>
+            </div>
           </div>
-        </article>
+          <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
+        </div>
+      </article>
 
       <!-- 中间上：视频 -->
       <article class="panel video-panel">
@@ -98,27 +85,29 @@
             </span>
           </div>
         </div>
-        <div class="video-stage">
-          <Jessibuca
-            v-if="currentStreamUrl"
-            :key="currentStreamUrl"
-            :play-url="currentStreamUrl"
-            :has-audio="false"
-            class="video-player"
-          />
-          <div v-else class="video-placeholder">
-            <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
-            <strong>{{ videoPlaceholderTitle }}</strong>
-            <span>从右侧分组目录选择摄像头播放</span>
-          </div>
-          <div v-if="playingDevice" class="video-caption">
-            <span>{{ playingDevice.name || playingDevice.id }}</span>
-            <span>原始流</span>
+        <div class="video-stage-wrap">
+          <div class="video-stage">
+            <Jessibuca
+              v-if="currentStreamUrl"
+              :key="currentStreamUrl"
+              :play-url="currentStreamUrl"
+              :has-audio="false"
+              class="video-player"
+            />
+            <div v-else class="video-placeholder">
+              <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
+              <strong>{{ videoPlaceholderTitle }}</strong>
+              <span>从右侧分组目录选择摄像头播放</span>
+            </div>
+            <div v-if="playingDevice" class="video-caption">
+              <span>{{ playingDevice.name || playingDevice.id }}</span>
+              <span>原始流</span>
+            </div>
           </div>
         </div>
       </article>
 
-      <!-- 中间下：算法占比（与右侧排行等高） -->
+      <!-- 中间下：算法占比 -->
       <article class="panel algorithm-panel">
         <div class="panel-title-row compact-title">
           <div>
@@ -146,71 +135,84 @@
         <div v-else class="empty-state compact">当前周期暂无算法报警</div>
       </article>
 
-      <!-- 右侧上：设备分组目录 -->
-      <article class="panel device-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">设备管理</span>
-            <h2>设备分组</h2>
-          </div>
-          <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
-        </div>
-        <p class="tree-hint">按分组浏览，点击摄像头播放原始流</p>
-        <div class="tree-body">
-          <BasicTree
-            :tree-data="treeData"
-            :expanded-keys="expandedKeys"
-            :selected-keys="selectedKeys"
-            :loading="treeLoading"
-            search
-            :default-expand-all="true"
-            :click-row-to-expand="true"
-            :render-icon="renderTreeIcon"
-            tree-wrapper-class-name="dashboard-tree-wrapper"
-            @update:expanded-keys="expandedKeys = $event"
-            @select="handleTreeSelect"
-          >
-            <template #title="node">
-              <span v-if="node.isDevice" class="device-node">
-                <Icon icon="ant-design:camera-filled" :size="12" />
-                <span class="device-name">{{ node.title }}</span>
-              </span>
-              <span v-else class="directory-node">{{ node.title }}</span>
-            </template>
-          </BasicTree>
-        </div>
-      </article>
-
-      <!-- 右侧下：摄像头排行 -->
-      <article class="panel camera-rank-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">报警统计</span>
-            <h2>摄像头报警排行</h2>
-          </div>
-          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-        </div>
-        <div v-if="cameraRanking.length" class="ranking-list">
-          <div
-            v-for="(item, index) in cameraRanking.slice(0, 5)"
-            :key="item.name"
-            class="ranking-row"
-          >
-            <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
-            <div class="rank-body">
-              <div class="rank-line">
-                <span :title="item.name">{{ item.name }}</span>
-                <strong>{{ item.count }} 次</strong>
-              </div>
-              <div class="rank-bar">
-                <i :style="{ width: `${rankingWidth(item.count)}%` }" />
-              </div>
+      <!-- 右侧：KPI + 设备分组 + 摄像头排行 -->
+      <aside class="right-stack">
+        <section class="kpi-compact panel">
+          <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-mini-card">
+            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+              <Icon :icon="metric.icon" :size="16" />
             </div>
-            <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+            <div class="kpi-mini-text">
+              <div class="kpi-mini-label">{{ metric.label }}</div>
+              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+            </div>
+          </article>
+        </section>
+
+        <article class="panel device-panel">
+          <div class="panel-title-row compact-title">
+            <div>
+              <span class="panel-kicker">设备管理</span>
+              <h2>设备分组</h2>
+            </div>
+            <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
           </div>
-        </div>
-        <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
-      </article>
+          <p class="tree-hint">按分组浏览，点击摄像头播放原始流</p>
+          <div class="tree-body">
+            <BasicTree
+              :tree-data="treeData"
+              :expanded-keys="expandedKeys"
+              :selected-keys="selectedKeys"
+              :loading="treeLoading"
+              search
+              :default-expand-all="true"
+              :click-row-to-expand="true"
+              :render-icon="renderTreeIcon"
+              tree-wrapper-class-name="dashboard-tree-wrapper"
+              @update:expanded-keys="expandedKeys = $event"
+              @select="handleTreeSelect"
+            >
+              <template #title="node">
+                <span v-if="node.isDevice" class="device-node">
+                  <Icon icon="ant-design:camera-filled" :size="12" />
+                  <span class="device-name">{{ node.title }}</span>
+                </span>
+                <span v-else class="directory-node">{{ node.title }}</span>
+              </template>
+            </BasicTree>
+          </div>
+        </article>
+
+        <article class="panel camera-rank-panel">
+          <div class="panel-title-row compact-title">
+            <div>
+              <span class="panel-kicker">报警统计</span>
+              <h2>摄像头报警排行</h2>
+            </div>
+            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+          </div>
+          <div v-if="cameraRanking.length" class="ranking-list">
+            <div
+              v-for="(item, index) in cameraRanking.slice(0, 5)"
+              :key="item.name"
+              class="ranking-row"
+            >
+              <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
+              <div class="rank-body">
+                <div class="rank-line">
+                  <span :title="item.name">{{ item.name }}</span>
+                  <strong>{{ item.count }} 次</strong>
+                </div>
+                <div class="rank-bar">
+                  <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+                </div>
+              </div>
+              <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+            </div>
+          </div>
+          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+        </article>
+      </aside>
     </section>
     </div>
   </div>
@@ -813,45 +815,14 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 260px minmax(400px, 1fr) 280px;
-  grid-template-rows: auto minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: 260px minmax(420px, 1fr) 280px;
+  grid-template-rows: minmax(0, 1.65fr) minmax(0, 1fr);
   gap: 10px;
 }
-
-.kpi-row {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.kpi-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e7eaf1;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(38, 53, 83, .05);
-}
-
-.kpi-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-}
-
-.kpi-label { font-size: 12px; color: #737d91; margin-bottom: 2px; }
-.kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
 
 .alarm-panel {
   grid-column: 1;
-  grid-row: 2 / 4;
+  grid-row: 1 / 3;
   min-height: 0;
 }
 
@@ -867,15 +838,72 @@ onUnmounted(() => {
   min-height: 0;
 }
 
-.device-panel {
+.right-stack {
   grid-column: 3;
-  grid-row: 1;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.kpi-compact {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px !important;
+}
+
+.kpi-mini-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.kpi-mini-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+}
+
+.kpi-mini-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.kpi-mini-label {
+  font-size: 10px;
+  color: #737d91;
+  line-height: 1.2;
+  margin-bottom: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpi-mini-value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.device-panel {
+  flex: 1;
   min-height: 0;
 }
 
 .camera-rank-panel {
-  grid-column: 3;
-  grid-row: 2;
+  flex: 1;
   min-height: 0;
 }
 
@@ -1005,10 +1033,18 @@ onUnmounted(() => {
   &.online { background: #ecfdf3; color: #15803d; }
 }
 
-.video-stage {
+.video-stage-wrap {
   flex: 1;
   min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-stage {
   width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
   position: relative;
   background: #09111f;
   border: 2px solid #e7eaf1;
@@ -1268,26 +1304,26 @@ onUnmounted(() => {
 @media (max-width: 1200px) {
   .dashboard-body {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto;
     overflow-y: auto;
   }
 
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
-
   .alarm-panel,
   .video-panel,
-  .device-panel,
   .algorithm-panel,
-  .camera-rank-panel {
+  .right-stack {
     grid-column: 1;
     grid-row: auto;
   }
+
+  .right-stack { min-height: 480px; }
+
   .overview-dashboard,
   .dashboard-canvas {
     height: auto !important;
     max-height: none !important;
   }
   .overview-dashboard { overflow: visible; }
-  .video-stage { aspect-ratio: auto; align-self: stretch; min-height: 200px; }
+  .video-stage { aspect-ratio: 16 / 9; max-height: none; min-height: 200px; }
 }
 </style>
