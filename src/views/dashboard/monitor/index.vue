@@ -28,32 +28,21 @@
     </header>
 
     <section class="dashboard-body">
-      <!-- 左侧：KPI + 实时告警 -->
-      <aside class="left-stack">
-        <section class="kpi-grid panel">
-          <article class="kpi-main">
-            <div class="kpi-main-icon" :style="{ color: primaryPeriodMetric.color, backgroundColor: `${primaryPeriodMetric.color}18` }">
-              <Icon :icon="primaryPeriodMetric.icon" :size="22" />
-            </div>
-            <div class="kpi-main-label">{{ primaryPeriodMetric.label }}</div>
-            <div class="kpi-main-value" :style="{ color: primaryPeriodMetric.color }">{{ primaryPeriodMetric.value }}</div>
-          </article>
-          <article
-            v-for="metric in secondaryKpiMetrics"
-            :key="metric.label"
-            class="kpi-mini"
-          >
-            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-              <Icon :icon="metric.icon" :size="14" />
-            </div>
-            <div class="kpi-mini-text">
-              <div class="kpi-mini-label">{{ metric.label }}</div>
-              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-            </div>
-          </article>
-        </section>
+      <!-- 顶部：KPI 四卡片 -->
+      <section class="kpi-row">
+        <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-card">
+          <div class="kpi-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+            <Icon :icon="metric.icon" :size="20" />
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-label">{{ metric.label }}</div>
+            <div class="kpi-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+          </div>
+        </article>
+      </section>
 
-        <article class="panel alarm-panel">
+      <!-- 左侧：实时告警 -->
+      <article class="panel alarm-panel">
           <div class="panel-title-row compact-title">
             <div>
               <span class="panel-kicker">实时报警</span>
@@ -84,7 +73,6 @@
             <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
           </div>
         </article>
-      </aside>
 
       <!-- 中间上：视频 -->
       <article class="panel video-panel">
@@ -345,14 +333,8 @@ const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.val
 const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
 const cameraRanking = computed(() => currentPeriod.value.camera_ranking || [])
 
-const primaryPeriodMetric = computed(() => ({
-  label: `${currentPeriod.value.label}报警`,
-  value: currentPeriod.value.alarm_count,
-  icon: 'ant-design:alert-outlined',
-  color: '#ef4444',
-}))
-
-const secondaryKpiMetrics = computed(() => [
+const kpiMetrics = computed(() => [
+  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, icon: 'ant-design:alert-outlined', color: '#ef4444' },
   { label: '历史报警', value: statistics.value.alarm_count, icon: 'ant-design:history-outlined', color: '#f59e0b' },
   { label: '摄像头', value: statistics.value.camera_count, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
   { label: '算法', value: statistics.value.algorithm_count, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
@@ -832,107 +814,44 @@ onUnmounted(() => {
   min-height: 0;
   display: grid;
   grid-template-columns: 260px minmax(400px, 1fr) 280px;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1.6fr) minmax(0, 1fr);
   gap: 10px;
 }
 
-.left-stack {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.kpi-grid {
-  flex-shrink: 0;
+.kpi-row {
+  grid-column: 1 / -1;
+  grid-row: 1;
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  min-height: 118px;
-  max-height: 128px;
-  padding: 8px 10px !important;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
-.kpi-main {
-  grid-column: 1;
-  grid-row: 1 / span 3;
+.kpi-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px;
-  background: linear-gradient(145deg, #fff5f5, #fef2f2);
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-  text-align: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e7eaf1;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(38, 53, 83, .05);
 }
 
-.kpi-main-icon {
-  width: 36px;
-  height: 36px;
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 10px;
 }
 
-.kpi-main-label {
-  font-size: 11px;
-  color: #737d91;
-  line-height: 1.2;
-}
-
-.kpi-main-value {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.kpi-mini {
-  grid-column: 2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  background: #f8fafc;
-  border: 1px solid #edf0f5;
-  border-radius: 8px;
-  min-height: 0;
-}
-
-.kpi-mini-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 6px;
-}
-
-.kpi-mini-text {
-  min-width: 0;
-  flex: 1;
-}
-
-.kpi-mini-label {
-  font-size: 10px;
-  color: #737d91;
-  line-height: 1.2;
-  margin-bottom: 1px;
-}
-
-.kpi-mini-value {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.1;
-}
+.kpi-label { font-size: 12px; color: #737d91; margin-bottom: 2px; }
+.kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
 
 .alarm-panel {
-  flex: 1;
+  grid-column: 1;
+  grid-row: 2 / 4;
   min-height: 0;
 }
 
@@ -1353,12 +1272,9 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
-  .kpi-grid {
-    max-height: none;
-    min-height: 110px;
-  }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
 
-  .left-stack,
+  .alarm-panel,
   .video-panel,
   .device-panel,
   .algorithm-panel,
@@ -1366,8 +1282,6 @@ onUnmounted(() => {
     grid-column: 1;
     grid-row: auto;
   }
-
-  .left-stack { min-height: 420px; }
   .overview-dashboard,
   .dashboard-canvas {
     height: auto !important;
