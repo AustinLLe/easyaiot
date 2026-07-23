@@ -27,45 +27,24 @@
     </header>
 
     <section class="dashboard-body">
-      <div class="dashboard-main-left">
-        <article class="panel video-panel">
-          <div class="panel-title-row video-title-row">
-            <div>
-              <span class="panel-kicker">实时监控</span>
-              <h2>原始视频流</h2>
-            </div>
-            <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-              {{ currentStreamUrl ? '流已就绪' : '等待拖入或选择摄像头' }}
-            </span>
+      <aside class="dashboard-sidebar">
+        <section class="panel kpi-panel" aria-label="数据统计">
+          <div class="kpi-panel-title">
+            <span class="panel-kicker">数据统计</span>
+            <h2>核心指标</h2>
           </div>
-
-          <div
-            class="video-stage"
-            :class="{ 'is-drop-target': isDragOver }"
-            @dragover.prevent="isDragOver = true"
-            @dragleave="isDragOver = false"
-            @drop.prevent="handleVideoDrop"
-          >
-            <Jessibuca
-              v-if="currentStreamUrl"
-              :key="currentStreamUrl"
-              :play-url="currentStreamUrl"
-              :has-audio="false"
-              class="video-player"
-            />
-            <div v-else class="video-placeholder">
-              <div class="camera-orbit">
-                <Icon icon="ant-design:video-camera-outlined" :size="42" />
+          <div class="side-metric-grid">
+            <article v-for="metric in sideMetrics" :key="metric.label" class="side-metric-card">
+              <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+                <Icon :icon="metric.icon" :size="20" />
               </div>
-              <strong>{{ videoPlaceholderTitle }}</strong>
-              <span>从下方目录树拖拽摄像头到此处，或点击设备节点播放</span>
-            </div>
-            <div v-if="playingDevice" class="video-caption">
-              <span>{{ playingDevice.name || playingDevice.id }}</span>
-              <span>原始流</span>
-            </div>
+              <div class="metric-content">
+                <div class="metric-label">{{ metric.label }}</div>
+                <div class="metric-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+              </div>
+            </article>
           </div>
-        </article>
+        </section>
 
         <article class="panel camera-tree-panel">
           <div class="tree-header">
@@ -73,7 +52,7 @@
             <span class="tree-title">设备目录</span>
             <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 个设备</span>
           </div>
-          <p class="tree-hint">拖拽摄像头到上方视频区域播放原始流</p>
+          <p class="tree-hint">拖拽摄像头到中间视频区域播放原始流</p>
           <div class="tree-body">
             <BasicTree
               :tree-data="treeData"
@@ -103,25 +82,83 @@
             </BasicTree>
           </div>
         </article>
-      </div>
+      </aside>
 
-      <aside class="dashboard-main-right">
-        <section class="panel side-metrics-panel" aria-label="数据统计">
-          <div class="side-metric-grid">
-            <article v-for="metric in sideMetrics" :key="metric.label" class="side-metric-card">
-              <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-                <Icon :icon="metric.icon" :size="20" />
-              </div>
-              <div class="metric-content">
-                <div class="metric-label">{{ metric.label }}</div>
-                <div class="metric-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-              </div>
-            </article>
+      <article class="panel video-panel">
+        <div class="panel-title-row video-title-row">
+          <div>
+            <span class="panel-kicker">实时监控</span>
+            <h2>原始视频流</h2>
           </div>
-        </section>
+          <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
+            {{ currentStreamUrl ? '流已就绪' : '等待拖入或选择摄像头' }}
+          </span>
+        </div>
 
+        <div
+          class="video-stage"
+          :class="{ 'is-drop-target': isDragOver }"
+          @dragover.prevent="isDragOver = true"
+          @dragleave="isDragOver = false"
+          @drop.prevent="handleVideoDrop"
+        >
+          <Jessibuca
+            v-if="currentStreamUrl"
+            :key="currentStreamUrl"
+            :play-url="currentStreamUrl"
+            :has-audio="false"
+            class="video-player"
+          />
+          <div v-else class="video-placeholder">
+            <div class="camera-orbit">
+              <Icon icon="ant-design:video-camera-outlined" :size="42" />
+            </div>
+            <strong>{{ videoPlaceholderTitle }}</strong>
+            <span>从左侧目录树拖拽摄像头到此处，或点击设备节点播放</span>
+          </div>
+          <div v-if="playingDevice" class="video-caption">
+            <span>{{ playingDevice.name || playingDevice.id }}</span>
+            <span>原始流</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel alarm-live-panel">
+        <div class="panel-title-row">
+          <div>
+            <span class="panel-kicker">实时报警</span>
+            <h2>告警事件</h2>
+          </div>
+          <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+        </div>
+        <div class="alarm-live-list">
+          <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-live-item">
+            <div class="alarm-live-thumb">
+              <img
+                v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
+                :src="getAlarmImageUrl(alarm)!"
+                alt="告警图片"
+                class="alarm-live-img"
+                @error="alarm.imageError = true"
+              />
+              <Icon v-else icon="ant-design:alert-outlined" :size="22" color="#ef4444" />
+            </div>
+            <div class="alarm-live-info">
+              <div class="alarm-live-title">{{ alarm.title || alarm.event || '未知事件' }}</div>
+              <div class="alarm-live-meta">
+                <span :class="['alarm-type-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
+                <span class="alarm-live-device">{{ alarm.device_name || alarm.location || '未知设备' }}</span>
+              </div>
+              <div class="alarm-live-time">{{ alarm.time }}</div>
+            </div>
+          </div>
+          <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
+        </div>
+      </article>
+
+      <div class="dashboard-bottom">
         <article class="panel algorithm-panel">
-          <div class="panel-title-row">
+          <div class="panel-title-row compact-title">
             <div>
               <span class="panel-kicker">报警统计</span>
               <h2>算法报警占比</h2>
@@ -129,7 +166,7 @@
             <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
           </div>
 
-          <div v-if="algorithmRanking.length" class="donut-section">
+          <div v-if="algorithmRanking.length" class="donut-section horizontal">
             <div class="donut" :style="donutStyle">
               <div class="donut-center">
                 <strong>{{ currentPeriod.alarm_count }}</strong>
@@ -149,7 +186,7 @@
         </article>
 
         <article class="panel ranking-panel">
-          <div class="panel-title-row ranking-title-row">
+          <div class="panel-title-row ranking-title-row compact-title">
             <div>
               <span class="panel-kicker">摄像头报警排行</span>
               <h2>{{ rankingMode === 'camera' ? '摄像头排行' : '分组排行' }}</h2>
@@ -162,7 +199,7 @@
 
           <div v-if="displayRanking.length" class="ranking-list">
             <div
-              v-for="(item, index) in displayRanking.slice(0, 8)"
+              v-for="(item, index) in displayRanking.slice(0, 6)"
               :key="`${rankingMode}-${item.name}`"
               class="ranking-row"
             >
@@ -181,18 +218,19 @@
           </div>
           <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
         </article>
-      </aside>
+      </div>
     </section>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Icon } from '@/components/Icon'
 import { BasicTree } from '@/components/Tree'
 import type { TreeItem } from '@/components/Tree'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
-import { getDashboardStatistics } from '@/api/device/calculate'
+import { getDashboardStatistics, queryAlarmList } from '@/api/device/calculate'
+import { getMonitorDashboardConfig } from './config'
 import {
   getDirectoryList,
   getDeviceList,
