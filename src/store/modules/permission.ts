@@ -9,6 +9,8 @@ import type {AppRouteRecordRaw, Menu} from '@/router/types'
 import {asyncRoutes} from '@/router/routes'
 import dashboard from '@/router/routes/modules/dashboard'
 import storage from '@/router/routes/modules/storage'
+import camera from '@/router/routes/modules/camera'
+import alert from '@/router/routes/modules/alert'
 import {transformRouteToMenu} from '@/router/helper/menuHelper'
 import {flatMultiLevelRoutes, transformObjToRoute} from '@/router/helper/routeHelper'
 import {useI18n} from '@/hooks/web/useI18n'
@@ -17,6 +19,15 @@ import {filter} from '@/utils/helper/treeHelper'
 import projectSetting from '@/settings/projectSetting'
 import {PageEnum} from '@/enums/pageEnum'
 import {PermissionModeEnum} from '@/enums/appEnum'
+
+const STATIC_ROUTE_ROOTS = new Set(['/dashboard', '/storage', '/camera', '/alert'])
+
+function filterBackendRouteDuplicates(routes: AppRouteRecordRaw[]) {
+  return routes.filter((route) => {
+    const path = route.path?.startsWith('/') ? route.path : `/${route.path || ''}`
+    return !STATIC_ROUTE_ROOTS.has(path)
+  })
+}
 
 interface PermissionState {
   // Permission code list
@@ -212,7 +223,7 @@ export const usePermissionStore = defineStore('app-permission', {
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = []
           try {
-            routeList = userInfo.menus as AppRouteRecordRaw[]
+            routeList = filterBackendRouteDuplicates(userInfo.menus as AppRouteRecordRaw[])
           } catch (error) {
             console.error(error)
             console.error(error)
@@ -222,7 +233,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = transformObjToRoute(routeList)
           //  Background routing to menu structure
           //  后台路由到菜单结构
-          const backMenuList = transformRouteToMenu([dashboard, storage, ...routeList])
+          const backMenuList = transformRouteToMenu([dashboard, storage, camera, alert, ...routeList])
           console.log("backMenuList---", backMenuList);
           this.setBackMenuList(backMenuList)
           // remove meta.ignoreRoute item
@@ -231,7 +242,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = routeList.filter(routeRemoveIgnoreFilter)
           routeList = flatMultiLevelRoutes(routeList)
           console.log('routeList---', routeList);
-          routes = [dashboard, storage, ...routeList]
+          routes = [dashboard, storage, camera, alert, ...routeList]
           break
       }
 
