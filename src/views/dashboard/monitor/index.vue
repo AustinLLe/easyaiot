@@ -28,42 +28,66 @@
     </header>
 
     <section class="dashboard-body">
-      <!-- 左侧：实时告警（整列） -->
-      <article class="panel alarm-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">实时报警</span>
-            <h2>告警事件</h2>
-          </div>
-          <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
-        </div>
-        <div class="alarm-list">
-          <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
-            <div class="alarm-thumb">
-              <img
-                v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
-                :src="getAlarmImageUrl(alarm)!"
-                alt=""
-                @error="alarm.imageError = true"
-              />
-              <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
+      <!-- 左侧：KPI + 实时告警 -->
+      <aside class="left-stack">
+        <section class="kpi-grid panel">
+          <article class="kpi-main">
+            <div class="kpi-main-icon" :style="{ color: primaryPeriodMetric.color, backgroundColor: `${primaryPeriodMetric.color}18` }">
+              <Icon :icon="primaryPeriodMetric.icon" :size="22" />
             </div>
-            <div class="alarm-info">
-              <div class="alarm-title">{{ alarm.title }}</div>
-              <div class="alarm-meta">
-                <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
-                <span class="alarm-device">{{ alarm.location }}</span>
-              </div>
-              <div class="alarm-time">{{ alarm.time }}</div>
+            <div class="kpi-main-label">{{ primaryPeriodMetric.label }}</div>
+            <div class="kpi-main-value" :style="{ color: primaryPeriodMetric.color }">{{ primaryPeriodMetric.value }}</div>
+          </article>
+          <article
+            v-for="metric in secondaryKpiMetrics"
+            :key="metric.label"
+            class="kpi-mini"
+          >
+            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+              <Icon :icon="metric.icon" :size="14" />
             </div>
-          </div>
-          <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
-        </div>
-      </article>
+            <div class="kpi-mini-text">
+              <div class="kpi-mini-label">{{ metric.label }}</div>
+              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+            </div>
+          </article>
+        </section>
 
-      <!-- 中间：视频 + 算法占比 -->
-      <div class="center-stack">
-        <article class="panel video-panel">
+        <article class="panel alarm-panel">
+          <div class="panel-title-row compact-title">
+            <div>
+              <span class="panel-kicker">实时报警</span>
+              <h2>告警事件</h2>
+            </div>
+            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+          </div>
+          <div class="alarm-list">
+            <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
+              <div class="alarm-thumb">
+                <img
+                  v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
+                  :src="getAlarmImageUrl(alarm)!"
+                  alt=""
+                  @error="alarm.imageError = true"
+                />
+                <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
+              </div>
+              <div class="alarm-info">
+                <div class="alarm-title">{{ alarm.title }}</div>
+                <div class="alarm-meta">
+                  <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
+                  <span class="alarm-device">{{ alarm.location }}</span>
+                </div>
+                <div class="alarm-time">{{ alarm.time }}</div>
+              </div>
+            </div>
+            <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
+          </div>
+        </article>
+      </aside>
+
+      <!-- 中间上：视频 -->
+      <article class="panel video-panel">
         <div class="panel-title-row compact-title">
           <div>
             <span class="panel-kicker">实时监控</span>
@@ -97,132 +121,108 @@
           <div v-else class="video-placeholder">
             <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
             <strong>{{ videoPlaceholderTitle }}</strong>
-            <span>请在上方选择摄像头播放原始流</span>
+            <span>从右侧分组目录选择摄像头播放</span>
           </div>
           <div v-if="playingDevice" class="video-caption">
             <span>{{ playingDevice.name || playingDevice.id }}</span>
             <span>原始流</span>
           </div>
         </div>
-        </article>
+      </article>
 
-        <article class="panel algorithm-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">报警统计</span>
-              <h2>算法报警占比</h2>
-            </div>
-            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+      <!-- 中间下：算法占比（与右侧排行等高） -->
+      <article class="panel algorithm-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">报警统计</span>
+            <h2>算法报警占比</h2>
           </div>
-          <div v-if="algorithmRanking.length" class="donut-wrap bottom">
-            <div class="donut large" :style="algorithmDonutStyle">
-              <div class="donut-center">
-                <strong>{{ currentPeriod.alarm_count }}</strong>
-                <span>总数</span>
-              </div>
-            </div>
-            <div class="legend-list horizontal">
-              <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
-                <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
-                <span class="legend-name" :title="item.name">{{ item.name }}</span>
-                <strong>{{ item.count }}</strong>
-                <span>{{ item.percentage.toFixed(1) }}%</span>
-              </div>
+          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+        </div>
+        <div v-if="algorithmRanking.length" class="donut-wrap bottom">
+          <div class="donut large" :style="algorithmDonutStyle">
+            <div class="donut-center">
+              <strong>{{ currentPeriod.alarm_count }}</strong>
+              <span>总数</span>
             </div>
           </div>
-          <div v-else class="empty-state compact">当前周期暂无算法报警</div>
-        </article>
-      </div>
-
-      <!-- 右侧：KPI + 设备目录 + 摄像头排行 -->
-      <aside class="right-stack">
-        <section class="kpi-grid panel">
-          <article class="kpi-main">
-            <div class="kpi-main-icon" :style="{ color: primaryPeriodMetric.color, backgroundColor: `${primaryPeriodMetric.color}18` }">
-              <Icon :icon="primaryPeriodMetric.icon" :size="22" />
+          <div class="legend-list horizontal">
+            <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
+              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
+              <span class="legend-name" :title="item.name">{{ item.name }}</span>
+              <strong>{{ item.count }}</strong>
+              <span>{{ item.percentage.toFixed(1) }}%</span>
             </div>
-            <div class="kpi-main-label">{{ primaryPeriodMetric.label }}</div>
-            <div class="kpi-main-value" :style="{ color: primaryPeriodMetric.color }">{{ primaryPeriodMetric.value }}</div>
-          </article>
-          <article
-            v-for="metric in secondaryKpiMetrics"
-            :key="metric.label"
-            class="kpi-mini"
+          </div>
+        </div>
+        <div v-else class="empty-state compact">当前周期暂无算法报警</div>
+      </article>
+
+      <!-- 右侧上：设备分组目录 -->
+      <article class="panel device-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">设备管理</span>
+            <h2>设备分组</h2>
+          </div>
+          <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
+        </div>
+        <p class="tree-hint">按分组浏览，点击摄像头播放原始流</p>
+        <div class="tree-body">
+          <BasicTree
+            :tree-data="treeData"
+            :expanded-keys="expandedKeys"
+            :selected-keys="selectedKeys"
+            :loading="treeLoading"
+            search
+            :default-expand-all="true"
+            :click-row-to-expand="true"
+            :render-icon="renderTreeIcon"
+            tree-wrapper-class-name="dashboard-tree-wrapper"
+            @update:expanded-keys="expandedKeys = $event"
+            @select="handleTreeSelect"
           >
-            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-              <Icon :icon="metric.icon" :size="14" />
-            </div>
-            <div class="kpi-mini-text">
-              <div class="kpi-mini-label">{{ metric.label }}</div>
-              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-            </div>
-          </article>
-        </section>
+            <template #title="node">
+              <span v-if="node.isDevice" class="device-node">
+                <Icon icon="ant-design:camera-filled" :size="12" />
+                <span class="device-name">{{ node.title }}</span>
+              </span>
+              <span v-else class="directory-node">{{ node.title }}</span>
+            </template>
+          </BasicTree>
+        </div>
+      </article>
 
-        <article class="panel device-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">设备管理</span>
-              <h2>设备目录</h2>
-            </div>
-            <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
+      <!-- 右侧下：摄像头排行 -->
+      <article class="panel camera-rank-panel">
+        <div class="panel-title-row compact-title">
+          <div>
+            <span class="panel-kicker">报警统计</span>
+            <h2>摄像头报警排行</h2>
           </div>
-          <p class="tree-hint">点击摄像头播放原始流</p>
-          <div class="tree-body">
-            <BasicTree
-              :tree-data="treeData"
-              :expanded-keys="expandedKeys"
-              :selected-keys="selectedKeys"
-              :loading="treeLoading"
-              search
-              :default-expand-all="true"
-              :click-row-to-expand="false"
-              :render-icon="renderTreeIcon"
-              tree-wrapper-class-name="dashboard-tree-wrapper"
-              @update:expanded-keys="expandedKeys = $event"
-              @select="handleTreeSelect"
-            >
-              <template #title="node">
-                <span v-if="node.isDevice" class="device-node">
-                  <Icon icon="ant-design:camera-filled" :size="12" />
-                  <span class="device-name">{{ node.title }}</span>
-                </span>
-                <span v-else class="directory-node">{{ node.title }}</span>
-              </template>
-            </BasicTree>
-          </div>
-        </article>
-
-        <article class="panel camera-rank-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">报警统计</span>
-              <h2>摄像头报警排行</h2>
-            </div>
-            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-          </div>
-          <div v-if="cameraRanking.length" class="ranking-list">
-            <div
-              v-for="(item, index) in cameraRanking.slice(0, 5)"
-              :key="item.name"
-              class="ranking-row"
-            >
-              <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
-              <div class="rank-body">
-                <div class="rank-line">
-                  <span :title="item.name">{{ item.name }}</span>
-                  <strong>{{ item.count }} 次</strong>
-                </div>
-                <div class="rank-bar">
-                  <i :style="{ width: `${rankingWidth(item.count)}%` }" />
-                </div>
+          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+        </div>
+        <div v-if="cameraRanking.length" class="ranking-list">
+          <div
+            v-for="(item, index) in cameraRanking.slice(0, 5)"
+            :key="item.name"
+            class="ranking-row"
+          >
+            <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
+            <div class="rank-body">
+              <div class="rank-line">
+                <span :title="item.name">{{ item.name }}</span>
+                <strong>{{ item.count }} 次</strong>
               </div>
-              <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+              <div class="rank-bar">
+                <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+              </div>
             </div>
+            <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
           </div>
-          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
-        </article>
-      </aside>
+        </div>
+        <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+      </article>
     </section>
     </div>
   </div>
@@ -393,14 +393,53 @@ const treeDeviceCount = computed(() => {
   return count
 })
 
+function buildDirectoryTree(flat: DeviceDirectory[]): DeviceDirectory[] {
+  const map = new Map<number, DeviceDirectory>()
+  const roots: DeviceDirectory[] = []
+  flat.forEach((dir) => {
+    map.set(dir.id, { ...dir, children: dir.children ? [...dir.children] : [] })
+  })
+  flat.forEach((dir) => {
+    const node = map.get(dir.id)
+    if (!node)
+      return
+    if (dir.parent_id != null && map.has(dir.parent_id)) {
+      const parent = map.get(dir.parent_id)!
+      parent.children = parent.children || []
+      if (!parent.children.some(child => child.id === node.id))
+        parent.children.push(node)
+    }
+    else if (!roots.some(root => root.id === node.id)) {
+      roots.push(node)
+    }
+  })
+  return roots
+}
+
 function normalizeDirectoryList(response: any): DeviceDirectory[] {
   if (!response)
     return []
+  let list: DeviceDirectory[] = []
   if (Array.isArray(response))
-    return response
-  if (response.code !== undefined)
-    return response.data || []
-  return []
+    list = response
+  else if (response.code !== undefined)
+    list = response.data || []
+  if (!list.length)
+    return []
+
+  const hasNestedChildren = list.some(dir => dir.children?.length)
+  if (hasNestedChildren)
+    return list
+
+  const hasParentId = list.some(dir => dir.parent_id != null)
+  if (hasParentId)
+    return buildDirectoryTree(list)
+
+  return list
+}
+
+function getDeviceDirectoryId(device: DeviceInfo) {
+  return (device as DeviceInfo & { directory_id?: number | string | null }).directory_id
 }
 
 function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] {
@@ -408,15 +447,17 @@ function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]
     const children: TreeItem[] = []
     if (dir.children?.length)
       children.push(...convertToTreeData(dir.children, devices))
-    devices.filter(d => d.directory_id === dir.id).forEach((device) => {
-      children.push({
-        key: `device_${device.id}`,
-        title: device.name || device.id,
-        isDevice: true,
-        device,
-        icon: 'ant-design:camera-filled',
-      } as TreeItem)
-    })
+    devices
+      .filter(d => String(getDeviceDirectoryId(d) ?? '') === String(dir.id))
+      .forEach((device) => {
+        children.push({
+          key: `device_${device.id}`,
+          title: device.name || device.id,
+          isDevice: true,
+          device,
+          icon: 'ant-design:camera-filled',
+        } as TreeItem)
+      })
     return {
       key: `dir_${dir.id}`,
       title: dir.name,
@@ -425,6 +466,25 @@ function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]
       children: children.length ? children : undefined,
     } as TreeItem
   })
+}
+
+function appendUncategorizedDevices(tree: TreeItem[], devices: DeviceInfo[]) {
+  const uncategorized = devices.filter(d => !getDeviceDirectoryId(d))
+  if (!uncategorized.length)
+    return
+  tree.push({
+    key: 'dir_uncategorized',
+    title: '未分组',
+    isDirectory: true,
+    icon: 'ant-design:folder-outlined',
+    children: uncategorized.map(device => ({
+      key: `device_${device.id}`,
+      title: device.name || device.id,
+      isDevice: true,
+      device,
+      icon: 'ant-design:camera-filled',
+    }) as TreeItem),
+  } as TreeItem)
 }
 
 function collectDirectoryKeys(nodes: TreeItem[]): string[] {
@@ -469,17 +529,9 @@ async function loadTreeData() {
     const devices = normalizeDeviceList(deviceResponse)
     deviceList.value = devices
     const tree = convertToTreeData(normalizeDirectoryList(dirResponse), devices)
-    devices.filter(d => !d.directory_id).forEach((device) => {
-      tree.push({
-        key: `device_${device.id}`,
-        title: device.name || device.id,
-        isDevice: true,
-        device,
-        icon: 'ant-design:camera-filled',
-      } as TreeItem)
-    })
+    appendUncategorizedDevices(tree, devices)
     treeData.value = tree
-    expandedKeys.value = collectDirectoryKeys(tree)
+    expandedKeys.value = [...collectDirectoryKeys(tree), 'dir_uncategorized']
   }
   catch (error) {
     console.error('加载设备目录失败', error)
@@ -780,8 +832,18 @@ onUnmounted(() => {
   min-height: 0;
   display: grid;
   grid-template-columns: 260px minmax(400px, 1fr) 280px;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+}
+
+.left-stack {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .kpi-grid {
@@ -790,8 +852,8 @@ onUnmounted(() => {
   grid-template-columns: 1.15fr 1fr;
   grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  min-height: 124px;
-  max-height: 132px;
+  min-height: 118px;
+  max-height: 128px;
   padding: 8px 10px !important;
 }
 
@@ -870,51 +932,31 @@ onUnmounted(() => {
 }
 
 .alarm-panel {
-  grid-column: 1;
-  grid-row: 1;
+  flex: 1;
   min-height: 0;
-}
-
-.center-stack {
-  grid-column: 2;
-  grid-row: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow: hidden;
 }
 
 .video-panel {
-  flex: 1;
+  grid-column: 2;
+  grid-row: 1;
   min-height: 0;
-  justify-content: flex-start;
 }
 
 .algorithm-panel {
-  flex-shrink: 0;
-  max-height: 36%;
-  min-height: 110px;
-}
-
-.right-stack {
-  grid-column: 3;
-  grid-row: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  grid-column: 2;
+  grid-row: 2;
   min-height: 0;
-  overflow: hidden;
 }
 
 .device-panel {
-  flex: 0 1 38%;
-  min-height: 96px;
-  max-height: 42%;
+  grid-column: 3;
+  grid-row: 1;
+  min-height: 0;
 }
 
 .camera-rank-panel {
-  flex: 1;
+  grid-column: 3;
+  grid-row: 2;
   min-height: 0;
 }
 
@@ -1045,16 +1087,14 @@ onUnmounted(() => {
 }
 
 .video-stage {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  flex: 0 0 auto;
-  align-self: flex-start;
   position: relative;
   background: #09111f;
   border: 2px solid #e7eaf1;
   border-radius: 10px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
-  max-height: 100%;
 }
 
 .video-player {
@@ -1318,14 +1358,16 @@ onUnmounted(() => {
     min-height: 110px;
   }
 
-  .alarm-panel,
-  .center-stack,
-  .right-stack {
+  .left-stack,
+  .video-panel,
+  .device-panel,
+  .algorithm-panel,
+  .camera-rank-panel {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .right-stack { min-height: 420px; }
+  .left-stack { min-height: 420px; }
   .overview-dashboard,
   .dashboard-canvas {
     height: auto !important;
