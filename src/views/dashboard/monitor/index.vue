@@ -8,18 +8,6 @@
         <p>设备、算法与告警态势实时汇总</p>
       </div>
       <div class="heading-actions">
-        <div class="period-tabs" role="tablist" aria-label="统计周期">
-          <button
-            v-for="item in periodOptions"
-            :key="item.value"
-            :class="['period-tab', { active: selectedPeriod === item.value }]"
-            role="tab"
-            :aria-selected="selectedPeriod === item.value"
-            @click="selectedPeriod = item.value"
-          >
-            {{ item.label }}
-          </button>
-        </div>
         <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
           <Icon icon="ant-design:reload-outlined" :size="16" />
           {{ loading ? '刷新中' : '刷新数据' }}
@@ -30,16 +18,40 @@
     <section class="dashboard-body">
       <!-- 左侧：KPI + 告警事件 -->
       <aside class="left-stack">
-        <section class="kpi-compact panel">
-          <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-mini-card">
-            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-              <Icon :icon="metric.icon" :size="16" />
+        <section class="kpi-board panel">
+          <div class="kpi-board-grid">
+            <div class="kpi-primary">
+              <div class="period-tabs compact" role="tablist" aria-label="KPI统计周期">
+                <button
+                  v-for="item in periodOptions"
+                  :key="item.value"
+                  type="button"
+                  :class="['period-tab', { active: kpiPeriod === item.value }]"
+                  role="tab"
+                  :aria-selected="kpiPeriod === item.value"
+                  @click="kpiPeriod = item.value"
+                >
+                  {{ item.label }}
+                </button>
+              </div>
+              <div class="kpi-primary-label">{{ kpiPeriodData.label }}报警</div>
+              <div class="kpi-primary-value">{{ kpiPeriodData.alarm_count }}</div>
             </div>
-            <div class="kpi-mini-text">
-              <div class="kpi-mini-label">{{ metric.label }}</div>
-              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+            <div class="kpi-secondary">
+              <div class="kpi-secondary-item">
+                <span class="kpi-secondary-label">历史报警</span>
+                <strong class="kpi-secondary-value">{{ statistics.alarm_count }}</strong>
+              </div>
+              <div class="kpi-secondary-item">
+                <span class="kpi-secondary-label">摄像头</span>
+                <strong class="kpi-secondary-value">{{ statistics.camera_count }}</strong>
+              </div>
+              <div class="kpi-secondary-item">
+                <span class="kpi-secondary-label">算法</span>
+                <strong class="kpi-secondary-value">{{ statistics.algorithm_count }}</strong>
+              </div>
             </div>
-          </article>
+          </div>
         </section>
 
         <article class="panel alarm-panel">
@@ -182,12 +194,27 @@
                 <span class="panel-kicker">报警统计</span>
                 <h2>算法报警占比</h2>
               </div>
-              <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+              <div class="panel-title-actions">
+                <div class="period-tabs compact" role="tablist" aria-label="算法统计周期">
+                  <button
+                    v-for="item in periodOptions"
+                    :key="item.value"
+                    type="button"
+                    :class="['period-tab', { active: algorithmPeriod === item.value }]"
+                    role="tab"
+                    :aria-selected="algorithmPeriod === item.value"
+                    @click="algorithmPeriod = item.value"
+                  >
+                    {{ item.label }}
+                  </button>
+                </div>
+                <span class="panel-total">{{ algorithmPeriodData.alarm_count }} 次</span>
+              </div>
             </div>
             <div v-if="algorithmRanking.length" class="donut-wrap bottom">
               <div class="donut large" :style="algorithmDonutStyle">
                 <div class="donut-center">
-                  <strong>{{ currentPeriod.alarm_count }}</strong>
+                  <strong>{{ algorithmPeriodData.alarm_count }}</strong>
                   <span>总数</span>
                 </div>
               </div>
@@ -209,14 +236,45 @@
             <div class="panel-title-row compact-title">
               <div>
                 <span class="panel-kicker">报警统计</span>
-                <h2>摄像头报警排行</h2>
+                <h2>{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
               </div>
-              <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+              <div class="panel-title-actions">
+                <div class="rank-mode-tabs">
+                  <button
+                    type="button"
+                    :class="['rank-mode-tab', { active: rankMode === 'directory' }]"
+                    @click="rankMode = 'directory'"
+                  >
+                    分组
+                  </button>
+                  <button
+                    type="button"
+                    :class="['rank-mode-tab', { active: rankMode === 'camera' }]"
+                    @click="rankMode = 'camera'"
+                  >
+                    摄像头
+                  </button>
+                </div>
+                <div class="period-tabs compact" role="tablist" aria-label="排行统计周期">
+                  <button
+                    v-for="item in periodOptions"
+                    :key="item.value"
+                    type="button"
+                    :class="['period-tab', { active: rankingPeriod === item.value }]"
+                    role="tab"
+                    :aria-selected="rankingPeriod === item.value"
+                    @click="rankingPeriod = item.value"
+                  >
+                    {{ item.label }}
+                  </button>
+                </div>
+                <span class="panel-total">{{ rankingPeriodData.alarm_count }} 次</span>
+              </div>
             </div>
-            <div v-if="cameraRanking.length" class="ranking-list">
+            <div v-if="displayRanking.length" class="ranking-list">
               <div
-                v-for="(item, index) in cameraRanking.slice(0, 5)"
-                :key="item.name"
+                v-for="(item, index) in displayRanking.slice(0, 5)"
+                :key="`${rankMode}-${item.name}`"
                 class="ranking-row"
               >
                 <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
@@ -226,13 +284,15 @@
                     <strong>{{ item.count }} 次</strong>
                   </div>
                   <div class="rank-bar">
-                    <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+                    <i :style="{ width: `${rankingWidth(item.count, displayRanking)}%` }" />
                   </div>
                 </div>
                 <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
               </div>
             </div>
-            <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+            <div v-else class="empty-state compact">
+              {{ rankMode === 'directory' ? '当前周期暂无分组报警' : '当前周期暂无摄像头报警' }}
+            </div>
           </section>
         </div>
       </article>
@@ -275,6 +335,7 @@ const dashboardStyle = computed(() => {
 })
 
 type PeriodKey = 'today' | 'week' | 'month'
+type RankMode = 'camera' | 'directory'
 
 interface DirectoryTreeItem {
   key: string
@@ -334,7 +395,10 @@ const dashboardConfig = getMonitorDashboardConfig()
 
 const loading = ref(false)
 const streamLoading = ref(false)
-const selectedPeriod = ref<PeriodKey>('today')
+const kpiPeriod = ref<PeriodKey>('today')
+const algorithmPeriod = ref<PeriodKey>('today')
+const rankingPeriod = ref<PeriodKey>('today')
+const rankMode = ref<RankMode>('camera')
 const currentStreamUrl = ref('')
 const playingDevice = ref<DeviceInfo | null>(null)
 const deviceList = ref<DeviceInfo[]>([])
@@ -368,16 +432,16 @@ const statistics = ref({
   } as Record<PeriodKey, PeriodStatistics>,
 })
 
-const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.value] || emptyPeriod('当前'))
-const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
-const cameraRanking = computed(() => currentPeriod.value.camera_ranking || [])
-
-const kpiMetrics = computed(() => [
-  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, icon: 'ant-design:alert-outlined', color: '#ef4444' },
-  { label: '历史报警', value: statistics.value.alarm_count, icon: 'ant-design:history-outlined', color: '#f59e0b' },
-  { label: '摄像头', value: statistics.value.camera_count, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
-  { label: '算法', value: statistics.value.algorithm_count, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
-])
+const kpiPeriodData = computed(() => statistics.value.periods[kpiPeriod.value] || emptyPeriod('当前'))
+const algorithmPeriodData = computed(() => statistics.value.periods[algorithmPeriod.value] || emptyPeriod('当前'))
+const rankingPeriodData = computed(() => statistics.value.periods[rankingPeriod.value] || emptyPeriod('当前'))
+const algorithmRanking = computed(() => algorithmPeriodData.value.algorithm_ranking || [])
+const displayRanking = computed(() => {
+  const period = rankingPeriodData.value
+  if (rankMode.value === 'directory')
+    return period.directory_ranking || []
+  return period.camera_ranking || []
+})
 
 function buildDonutStyle(items: RankingItem[]) {
   if (!items.length)
@@ -393,8 +457,8 @@ function buildDonutStyle(items: RankingItem[]) {
 
 const algorithmDonutStyle = computed(() => buildDonutStyle(algorithmRanking.value))
 
-function rankingWidth(count: number) {
-  const max = Math.max(...cameraRanking.value.map(i => i.count), 1)
+function rankingWidth(count: number, items: RankingItem[]) {
+  const max = Math.max(...items.map(i => i.count), 1)
   return Math.max((count / max) * 100, 8)
 }
 
@@ -892,52 +956,128 @@ onUnmounted(() => {
   align-self: stretch;
 }
 
-.kpi-compact {
+.panel-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
   flex-shrink: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 8px !important;
+
+  h2 { margin: 2px 0 0; font-size: 15px; font-weight: 650; }
+  &.compact-title { margin-bottom: 8px; }
 }
 
-.kpi-mini-card {
+.panel-title-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rank-mode-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: #eef2f7;
+  border-radius: 6px;
+}
+
+.rank-mode-tab {
+  border: 0;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 8px;
+  color: #6c7588;
+  background: transparent;
+  border-radius: 4px;
+  white-space: nowrap;
+  &.active {
+    color: #172033;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(31, 45, 75, .08);
+  }
+}
+
+.period-tabs.compact {
+  gap: 2px;
+  padding: 2px;
+  .period-tab {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+.kpi-board {
+  flex-shrink: 0;
+  padding: 8px !important;
+}
+
+.kpi-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  gap: 6px;
+  min-height: 108px;
+}
+
+.kpi-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
   background: #f8fafc;
   border: 1px solid #edf0f5;
   border-radius: 8px;
   min-width: 0;
 }
 
-.kpi-mini-icon {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
+.kpi-primary-label {
+  font-size: 11px;
+  color: #737d91;
 }
 
-.kpi-mini-text {
-  min-width: 0;
+.kpi-primary-value {
   flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ef4444;
 }
 
-.kpi-mini-label {
+.kpi-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+
+.kpi-secondary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  min-height: 0;
+}
+
+.kpi-secondary-label {
   font-size: 10px;
   color: #737d91;
   line-height: 1.2;
-  margin-bottom: 1px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.kpi-mini-value {
-  font-size: 16px;
+.kpi-secondary-value {
+  font-size: 15px;
   font-weight: 700;
+  color: #172033;
   line-height: 1.1;
 }
 
@@ -1135,18 +1275,6 @@ onUnmounted(() => {
   font-size: 10px;
   color: #8891a3;
   line-height: 20px;
-}
-
-.panel-title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-
-  h2 { margin: 2px 0 0; font-size: 15px; font-weight: 650; }
-  &.compact-title { margin-bottom: 8px; }
 }
 
 .panel-total {
