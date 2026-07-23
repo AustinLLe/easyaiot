@@ -1,5 +1,5 @@
 <template>
-  <div class="overview-dashboard">
+  <div class="overview-dashboard" :style="dashboardStyle">
     <header class="dashboard-heading">
       <div>
         <div class="eyebrow">EASYAIOT EDGE</div>
@@ -236,8 +236,24 @@ import {
   type DeviceInfo,
 } from '@/api/device/camera'
 import { useMessage } from '@/hooks/web/useMessage'
+import { usePageContext } from '@/hooks/component/usePageContext'
 
 defineOptions({ name: 'MonitorDashboard' })
+
+const pageContext = usePageContext()
+const dashboardStyle = computed(() => {
+  const height = pageContext?.contentHeight?.value
+  if (height && height > 0) {
+    return {
+      height: `${height}px`,
+      maxHeight: `${height}px`,
+    }
+  }
+  return {
+    height: 'calc(100vh - 48px)',
+    maxHeight: 'calc(100vh - 48px)',
+  }
+})
 
 const DEVICE_DRAG_MIME = 'application/x-easyaiot-device'
 
@@ -672,24 +688,23 @@ onUnmounted(() => {
 .overview-dashboard {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 620px;
-  padding: 20px;
+  padding: 12px 16px;
   color: #172033;
   background: #f5f7fb;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dashboard-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 10px;
   flex-shrink: 0;
 
-  h1 { margin: 2px 0 4px; font-size: 24px; font-weight: 700; }
-  p { margin: 0; color: #7b8498; font-size: 13px; }
+  h1 { margin: 0 0 2px; font-size: 20px; font-weight: 700; line-height: 1.2; }
+  p { margin: 0; color: #7b8498; font-size: 12px; }
 }
 
 .heading-actions {
@@ -749,9 +764,9 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 220px 1fr 300px;
-  grid-template-rows: 1fr 220px;
-  gap: 12px;
+  grid-template-columns: 210px 1fr 280px;
+  grid-template-rows: minmax(0, 1fr) minmax(150px, 1.15fr);
+  gap: 10px;
 }
 
 .dashboard-sidebar {
@@ -794,7 +809,7 @@ onUnmounted(() => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 14px;
+  padding: 10px 12px;
   overflow: hidden;
 }
 
@@ -900,7 +915,18 @@ onUnmounted(() => {
   }
 }
 
-.video-player { width: 100%; height: 100%; }
+.video-player {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+:deep(.video-player > div),
+:deep(.video-player #container) {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0;
+}
 
 .video-placeholder {
   position: absolute;
@@ -999,8 +1025,8 @@ onUnmounted(() => {
 }
 
 .donut {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   flex-shrink: 0;
   border-radius: 50%;
   position: relative;
@@ -1010,8 +1036,8 @@ onUnmounted(() => {
 
   &::after {
     content: '';
-    width: 70px;
-    height: 70px;
+    width: 56px;
+    height: 56px;
     background: #fff;
     border-radius: 50%;
   }
