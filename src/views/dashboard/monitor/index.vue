@@ -28,45 +28,58 @@
     </header>
 
     <section class="dashboard-body">
-      <!-- 左侧：告警事件 -->
-      <article class="panel alarm-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">实时报警</span>
-            <h2>告警事件</h2>
-          </div>
-          <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
-        </div>
-        <div class="alarm-list">
-          <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
-            <div class="alarm-thumb">
-              <img
-                v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
-                :src="getAlarmImageUrl(alarm)!"
-                alt=""
-                @error="alarm.imageError = true"
-              />
-              <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
+      <!-- 左侧：KPI + 告警事件 -->
+      <aside class="left-stack">
+        <section class="kpi-compact panel">
+          <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-mini-card">
+            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+              <Icon :icon="metric.icon" :size="16" />
             </div>
-            <div class="alarm-info">
-              <div class="alarm-title">{{ alarm.title }}</div>
-              <div class="alarm-meta">
-                <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
-                <span class="alarm-device">{{ alarm.location }}</span>
+            <div class="kpi-mini-text">
+              <div class="kpi-mini-label">{{ metric.label }}</div>
+              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+            </div>
+          </article>
+        </section>
+
+        <article class="panel alarm-panel">
+          <div class="panel-title-row compact-title">
+            <div>
+              <span class="panel-kicker">实时报警</span>
+              <h2>告警事件</h2>
+            </div>
+            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
+          </div>
+          <div class="alarm-list">
+            <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
+              <div class="alarm-thumb">
+                <img
+                  v-if="getAlarmImageUrl(alarm) && !alarm.imageError"
+                  :src="getAlarmImageUrl(alarm)!"
+                  alt=""
+                  @error="alarm.imageError = true"
+                />
+                <Icon v-else icon="ant-design:alert-outlined" :size="18" color="#ef4444" />
               </div>
-              <div class="alarm-time">{{ alarm.time }}</div>
+              <div class="alarm-info">
+                <div class="alarm-title">{{ alarm.title }}</div>
+                <div class="alarm-meta">
+                  <span :class="['alarm-tag', alarm.taskTypeClass]">{{ alarm.taskTypeText }}</span>
+                  <span class="alarm-device">{{ alarm.location }}</span>
+                </div>
+                <div class="alarm-time">{{ alarm.time }}</div>
+              </div>
             </div>
+            <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
           </div>
-          <div v-if="!alarmList.length" class="empty-state compact">暂无实时告警</div>
-        </div>
-      </article>
+        </article>
+      </aside>
 
       <!-- 中间上：视频 -->
       <article class="panel video-panel">
         <div class="panel-title-row compact-title">
           <div>
             <span class="panel-kicker">实时监控</span>
-            <h2>原始视频流</h2>
           </div>
           <div class="video-actions">
             <select
@@ -86,7 +99,13 @@
           </div>
         </div>
         <div class="video-stage-wrap">
-          <div class="video-stage">
+          <div
+            class="video-stage"
+            :class="{ 'drag-over': videoDragOver }"
+            @dragover.prevent="videoDragOver = true"
+            @dragleave="handleVideoDragLeave"
+            @drop="handleVideoDrop"
+          >
             <Jessibuca
               v-if="currentStreamUrl"
               :key="currentStreamUrl"
@@ -97,122 +116,126 @@
             <div v-else class="video-placeholder">
               <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
               <strong>{{ videoPlaceholderTitle }}</strong>
-              <span>从右侧分组目录选择摄像头播放</span>
+              <span>从右侧列表拖入摄像头，或点击摄像头播放</span>
             </div>
             <div v-if="playingDevice" class="video-caption">
               <span>{{ playingDevice.name || playingDevice.id }}</span>
-              <span>原始流</span>
             </div>
           </div>
         </div>
       </article>
 
-      <!-- 中间下：算法占比 -->
-      <article class="panel algorithm-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">报警统计</span>
-            <h2>算法报警占比</h2>
-          </div>
-          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-        </div>
-        <div v-if="algorithmRanking.length" class="donut-wrap bottom">
-          <div class="donut large" :style="algorithmDonutStyle">
-            <div class="donut-center">
-              <strong>{{ currentPeriod.alarm_count }}</strong>
-              <span>总数</span>
-            </div>
-          </div>
-          <div class="legend-list horizontal">
-            <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
-              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
-              <span class="legend-name" :title="item.name">{{ item.name }}</span>
-              <strong>{{ item.count }}</strong>
-              <span>{{ item.percentage.toFixed(1) }}%</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state compact">当前周期暂无算法报警</div>
-      </article>
-
-      <!-- 右侧：KPI + 设备分组 + 摄像头排行 -->
-      <aside class="right-stack">
-        <section class="kpi-compact panel">
-          <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-mini-card">
-            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-              <Icon :icon="metric.icon" :size="16" />
-            </div>
-            <div class="kpi-mini-text">
-              <div class="kpi-mini-label">{{ metric.label }}</div>
-              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-            </div>
-          </article>
-        </section>
-
-        <article class="panel device-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">设备管理</span>
-              <h2>设备分组</h2>
-            </div>
-            <span v-if="treeDeviceCount" class="device-count">{{ treeDeviceCount }} 台</span>
-          </div>
-          <p class="tree-hint">按分组浏览，点击摄像头播放原始流</p>
-          <div class="tree-body">
-            <BasicTree
-              :tree-data="treeData"
-              :expanded-keys="expandedKeys"
-              :selected-keys="selectedKeys"
-              :loading="treeLoading"
-              search
-              :default-expand-all="true"
-              :click-row-to-expand="true"
-              :render-icon="renderTreeIcon"
-              tree-wrapper-class-name="dashboard-tree-wrapper"
-              @update:expanded-keys="expandedKeys = $event"
-              @select="handleTreeSelect"
+      <!-- 右侧：分组 + 摄像头列表 -->
+      <article class="panel device-panel">
+        <div class="device-section groups-section">
+          <div class="section-label">摄像头分组</div>
+          <div v-if="directoryTree.length" class="group-list">
+            <button
+              v-for="item in flatDirectoryItems"
+              :key="item.key"
+              type="button"
+              :class="['group-item', { active: selectedDirectoryKey === item.key }]"
+              :style="{ paddingLeft: `${10 + item.depth * 12}px` }"
+              @click="selectDirectory(item.key)"
             >
-              <template #title="node">
-                <span v-if="node.isDevice" class="device-node">
-                  <Icon icon="ant-design:camera-filled" :size="12" />
-                  <span class="device-name">{{ node.title }}</span>
-                </span>
-                <span v-else class="directory-node">{{ node.title }}</span>
-              </template>
-            </BasicTree>
+              <Icon icon="ant-design:folder-outlined" :size="14" />
+              <span class="group-name">{{ item.title }}</span>
+            </button>
           </div>
-        </article>
-
-        <article class="panel camera-rank-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">报警统计</span>
-              <h2>摄像头报警排行</h2>
-            </div>
-            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+          <div v-else-if="!treeLoading" class="empty-state compact">暂无分组</div>
+          <div v-else class="empty-state compact">加载中...</div>
+        </div>
+        <div class="device-section-divider" />
+        <div class="device-section cameras-section">
+          <div class="section-label">
+            摄像头
+            <span v-if="groupCameras.length" class="section-count">{{ groupCameras.length }} 台</span>
           </div>
-          <div v-if="cameraRanking.length" class="ranking-list">
+          <div class="camera-list">
             <div
-              v-for="(item, index) in cameraRanking.slice(0, 5)"
-              :key="item.name"
-              class="ranking-row"
+              v-for="device in groupCameras"
+              :key="device.id"
+              class="camera-drag-item"
+              draggable="true"
+              :class="{ active: playingDevice?.id === device.id }"
+              @click="selectAndPlayDevice(device)"
+              @dragstart="handleCameraDragStart($event, device)"
+              @dragend="draggingDeviceId = ''"
             >
-              <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
-              <div class="rank-body">
-                <div class="rank-line">
-                  <span :title="item.name">{{ item.name }}</span>
-                  <strong>{{ item.count }} 次</strong>
-                </div>
-                <div class="rank-bar">
-                  <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+              <Icon icon="ant-design:camera-filled" :size="14" />
+              <span class="camera-name">{{ device.name || device.id }}</span>
+              <Icon icon="ant-design:drag-outlined" :size="12" class="drag-handle" />
+            </div>
+            <div v-if="!groupCameras.length && !treeLoading" class="empty-state compact">
+              该分组暂无摄像头
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 中间下：算法占比 + 摄像头排行（视频下方） -->
+      <article class="panel stats-panel">
+        <div class="stats-split">
+          <section class="stats-block">
+            <div class="panel-title-row compact-title">
+              <div>
+                <span class="panel-kicker">报警统计</span>
+                <h2>算法报警占比</h2>
+              </div>
+              <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+            </div>
+            <div v-if="algorithmRanking.length" class="donut-wrap bottom">
+              <div class="donut large" :style="algorithmDonutStyle">
+                <div class="donut-center">
+                  <strong>{{ currentPeriod.alarm_count }}</strong>
+                  <span>总数</span>
                 </div>
               </div>
-              <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+              <div class="legend-list horizontal">
+                <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
+                  <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
+                  <span class="legend-name" :title="item.name">{{ item.name }}</span>
+                  <strong>{{ item.count }}</strong>
+                  <span>{{ item.percentage.toFixed(1) }}%</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
-        </article>
-      </aside>
+            <div v-else class="empty-state compact">当前周期暂无算法报警</div>
+          </section>
+
+          <div class="stats-divider" />
+
+          <section class="stats-block">
+            <div class="panel-title-row compact-title">
+              <div>
+                <span class="panel-kicker">报警统计</span>
+                <h2>摄像头报警排行</h2>
+              </div>
+              <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+            </div>
+            <div v-if="cameraRanking.length" class="ranking-list">
+              <div
+                v-for="(item, index) in cameraRanking.slice(0, 5)"
+                :key="item.name"
+                class="ranking-row"
+              >
+                <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
+                <div class="rank-body">
+                  <div class="rank-line">
+                    <span :title="item.name">{{ item.name }}</span>
+                    <strong>{{ item.count }} 次</strong>
+                  </div>
+                  <div class="rank-bar">
+                    <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+                  </div>
+                </div>
+                <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+              </div>
+            </div>
+            <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+          </section>
+        </div>
+      </article>
     </section>
     </div>
   </div>
@@ -221,8 +244,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Icon } from '@/components/Icon'
-import { BasicTree } from '@/components/Tree'
-import type { TreeItem } from '@/components/Tree'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
 import { getDashboardStatistics, queryAlarmList } from '@/api/device/calculate'
 import { getMonitorDashboardConfig } from './config'
@@ -254,6 +275,21 @@ const dashboardStyle = computed(() => {
 })
 
 type PeriodKey = 'today' | 'week' | 'month'
+
+interface DirectoryTreeItem {
+  key: string
+  title: string
+  depth: number
+}
+
+interface TreeItem {
+  key: string
+  title: string
+  isDevice?: boolean
+  isDirectory?: boolean
+  device?: DeviceInfo
+  children?: TreeItem[]
+}
 
 interface RankingItem {
   name: string
@@ -304,9 +340,10 @@ const playingDevice = ref<DeviceInfo | null>(null)
 const deviceList = ref<DeviceInfo[]>([])
 const selectedDeviceId = ref('')
 const treeLoading = ref(false)
-const treeData = ref<TreeItem[]>([])
-const expandedKeys = ref<string[]>([])
-const selectedKeys = ref<string[]>([])
+const directoryTree = ref<TreeItem[]>([])
+const selectedDirectoryKey = ref('')
+const videoDragOver = ref(false)
+const draggingDeviceId = ref('')
 const alarmList = ref<AlarmItem[]>([])
 const todayAlarmCount = ref(0)
 
@@ -361,21 +398,66 @@ function rankingWidth(count: number) {
   return Math.max((count / max) * 100, 8)
 }
 
-const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请选择摄像头播放')
+const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请拖入或选择摄像头')
 
-const treeDeviceCount = computed(() => {
-  let count = 0
-  const walk = (nodes: TreeItem[]) => {
-    nodes.forEach((node) => {
-      if (node.isDevice)
-        count++
+function flattenDirectoryTree(nodes: TreeItem[], depth = 0): DirectoryTreeItem[] {
+  const items: DirectoryTreeItem[] = []
+  nodes.forEach((node) => {
+    if (node.isDirectory) {
+      items.push({ key: String(node.key), title: node.title, depth })
       if (node.children?.length)
-        walk(node.children as TreeItem[])
-    })
-  }
-  walk(treeData.value)
-  return count
+        items.push(...flattenDirectoryTree(node.children.filter(c => c.isDirectory), depth + 1))
+    }
+  })
+  return items
+}
+
+const flatDirectoryItems = computed(() => flattenDirectoryTree(directoryTree.value))
+
+const groupCameras = computed(() => {
+  if (!selectedDirectoryKey.value)
+    return deviceList.value
+  if (selectedDirectoryKey.value === 'dir_uncategorized')
+    return deviceList.value.filter(d => !getDeviceDirectoryId(d))
+  const dirId = selectedDirectoryKey.value.replace(/^dir_/, '')
+  return deviceList.value.filter(d => String(getDeviceDirectoryId(d) ?? '') === dirId)
 })
+
+function selectDirectory(key: string) {
+  selectedDirectoryKey.value = key
+}
+
+function selectAndPlayDevice(device: DeviceInfo) {
+  selectedDeviceId.value = device.id
+  handlePlayDevice(device)
+}
+
+function handleCameraDragStart(event: DragEvent, device: DeviceInfo) {
+  draggingDeviceId.value = device.id
+  event.dataTransfer?.setData('application/x-device-id', device.id)
+  event.dataTransfer?.setData('text/plain', device.name || device.id)
+  if (event.dataTransfer)
+    event.dataTransfer.effectAllowed = 'copy'
+}
+
+function handleVideoDragLeave(event: DragEvent) {
+  const related = event.relatedTarget as Node | null
+  if (!event.currentTarget || (related && (event.currentTarget as Node).contains(related)))
+    return
+  videoDragOver.value = false
+}
+
+function handleVideoDrop(event: DragEvent) {
+  event.preventDefault()
+  videoDragOver.value = false
+  const deviceId = event.dataTransfer?.getData('application/x-device-id') || draggingDeviceId.value
+  if (!deviceId)
+    return
+  const device = deviceList.value.find(d => d.id === deviceId)
+  if (device)
+    selectAndPlayDevice(device)
+  draggingDeviceId.value = ''
+}
 
 function buildDirectoryTree(flat: DeviceDirectory[]): DeviceDirectory[] {
   const map = new Map<number, DeviceDirectory>()
@@ -426,33 +508,16 @@ function getDeviceDirectoryId(device: DeviceInfo) {
   return (device as DeviceInfo & { directory_id?: number | string | null }).directory_id
 }
 
-function convertToTreeData(directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] {
-  return directories.map((dir) => {
-    const children: TreeItem[] = []
-    if (dir.children?.length)
-      children.push(...convertToTreeData(dir.children, devices))
-    devices
-      .filter(d => String(getDeviceDirectoryId(d) ?? '') === String(dir.id))
-      .forEach((device) => {
-        children.push({
-          key: `device_${device.id}`,
-          title: device.name || device.id,
-          isDevice: true,
-          device,
-          icon: 'ant-design:camera-filled',
-        } as TreeItem)
-      })
-    return {
-      key: `dir_${dir.id}`,
-      title: dir.name,
-      isDirectory: true,
-      icon: 'ant-design:folder-outlined',
-      children: children.length ? children : undefined,
-    } as TreeItem
-  })
+function convertToDirectoryTree(directories: DeviceDirectory[]): TreeItem[] {
+  return directories.map((dir) => ({
+    key: `dir_${dir.id}`,
+    title: dir.name,
+    isDirectory: true,
+    children: dir.children?.length ? convertToDirectoryTree(dir.children) : undefined,
+  }))
 }
 
-function appendUncategorizedDevices(tree: TreeItem[], devices: DeviceInfo[]) {
+function appendUncategorizedDirectory(tree: TreeItem[], devices: DeviceInfo[]) {
   const uncategorized = devices.filter(d => !getDeviceDirectoryId(d))
   if (!uncategorized.length)
     return
@@ -460,47 +525,7 @@ function appendUncategorizedDevices(tree: TreeItem[], devices: DeviceInfo[]) {
     key: 'dir_uncategorized',
     title: '未分组',
     isDirectory: true,
-    icon: 'ant-design:folder-outlined',
-    children: uncategorized.map(device => ({
-      key: `device_${device.id}`,
-      title: device.name || device.id,
-      isDevice: true,
-      device,
-      icon: 'ant-design:camera-filled',
-    }) as TreeItem),
-  } as TreeItem)
-}
-
-function collectDirectoryKeys(nodes: TreeItem[]): string[] {
-  let keys: string[] = []
-  nodes.forEach((node) => {
-    if (node.isDirectory)
-      keys.push(String(node.key))
-    if (node.children?.length)
-      keys = keys.concat(collectDirectoryKeys(node.children as TreeItem[]))
   })
-  return keys
-}
-
-function findNodeByKey(nodes: TreeItem[], key: string): TreeItem | null {
-  for (const node of nodes) {
-    if (node.key === key)
-      return node
-    if (node.children?.length) {
-      const found = findNodeByKey(node.children as TreeItem[], key)
-      if (found)
-        return found
-    }
-  }
-  return null
-}
-
-function renderTreeIcon(node: TreeItem) {
-  if (node.isDirectory)
-    return 'ant-design:folder-outlined'
-  if (node.isDevice)
-    return 'ant-design:camera-filled'
-  return ''
 }
 
 async function loadTreeData() {
@@ -512,28 +537,19 @@ async function loadTreeData() {
     ])
     const devices = normalizeDeviceList(deviceResponse)
     deviceList.value = devices
-    const tree = convertToTreeData(normalizeDirectoryList(dirResponse), devices)
-    appendUncategorizedDevices(tree, devices)
-    treeData.value = tree
-    expandedKeys.value = [...collectDirectoryKeys(tree), 'dir_uncategorized']
+    const directories = normalizeDirectoryList(dirResponse)
+    const tree = convertToDirectoryTree(directories)
+    appendUncategorizedDirectory(tree, devices)
+    directoryTree.value = tree
+    if (!selectedDirectoryKey.value && tree.length)
+      selectedDirectoryKey.value = String(tree[0].key)
   }
   catch (error) {
     console.error('加载设备目录失败', error)
-    treeData.value = []
+    directoryTree.value = []
   }
   finally {
     treeLoading.value = false
-  }
-}
-
-function handleTreeSelect(keys: string[]) {
-  if (!keys.length)
-    return
-  const node = findNodeByKey(treeData.value, keys[0])
-  if (node?.isDevice && node.device) {
-    selectedKeys.value = keys
-    selectedDeviceId.value = node.device.id
-    handlePlayDevice(node.device)
   }
 }
 
@@ -686,14 +702,11 @@ function handleDeviceSelect() {
   if (!selectedDeviceId.value) {
     currentStreamUrl.value = ''
     playingDevice.value = null
-    selectedKeys.value = []
     return
   }
   const device = deviceList.value.find(d => d.id === selectedDeviceId.value)
-  if (device) {
-    selectedKeys.value = [`device_${device.id}`]
+  if (device)
     handlePlayDevice(device)
-  }
 }
 
 async function refreshDashboard() {
@@ -815,14 +828,23 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 260px minmax(420px, 1fr) 280px;
+  grid-template-columns: 240px minmax(0, 1fr) 220px;
   grid-template-rows: minmax(0, 1.65fr) minmax(0, 1fr);
   gap: 10px;
 }
 
-.alarm-panel {
+.left-stack {
   grid-column: 1;
   grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.left-stack .alarm-panel {
+  flex: 1;
   min-height: 0;
 }
 
@@ -832,20 +854,42 @@ onUnmounted(() => {
   min-height: 0;
 }
 
-.algorithm-panel {
-  grid-column: 2;
+.stats-panel {
+  grid-column: 2 / -1;
   grid-row: 2;
   min-height: 0;
+  padding: 10px 12px !important;
 }
 
-.right-stack {
+.device-panel {
   grid-column: 3;
-  grid-row: 1 / 3;
+  grid-row: 1;
+  min-height: 0;
+  max-height: 100%;
+  align-self: stretch;
+  padding: 0 !important;
+}
+
+.stats-split {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0 16px;
+}
+
+.stats-block {
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 0;
   overflow: hidden;
+}
+
+.stats-divider {
+  width: 1px;
+  background: #edf0f5;
+  align-self: stretch;
 }
 
 .kpi-compact {
@@ -897,14 +941,126 @@ onUnmounted(() => {
   line-height: 1.1;
 }
 
-.device-panel {
+.device-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 12px;
+}
+
+.groups-section {
+  flex: 0 0 38%;
+  max-height: 42%;
+}
+
+.cameras-section {
   flex: 1;
   min-height: 0;
 }
 
-.camera-rank-panel {
+.device-section-divider {
+  height: 1px;
+  background: #edf0f5;
+  flex-shrink: 0;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #737d91;
+  letter-spacing: .04em;
+  flex-shrink: 0;
+}
+
+.section-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9aa3b5;
+}
+
+.group-list,
+.camera-list {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: thin;
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #4d5669;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover { background: #f3f5f9; }
+  &.active {
+    background: #eef4ff;
+    color: #2563eb;
+    font-weight: 600;
+  }
+}
+
+.group-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-drag-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  font-size: 12px;
+  color: #344054;
+  cursor: grab;
+  user-select: none;
+  transition: border-color .15s, background .15s;
+
+  &:hover { background: #f0f4ff; border-color: #dbeafe; }
+  &.active {
+    background: #eef4ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+  &:active { cursor: grabbing; }
+}
+
+.camera-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  color: #b0b8c7;
+}
+
+.video-stage.drag-over {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .25);
 }
 
 .panel {
@@ -1144,53 +1300,6 @@ onUnmounted(() => {
 .alarm-device { font-size: 10px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alarm-time { font-size: 10px; color: #9ca3af; }
 
-.device-count {
-  font-size: 10px;
-  color: #6c7588;
-  background: #f0f2f6;
-  padding: 2px 6px;
-  border-radius: 999px;
-}
-
-.tree-hint {
-  margin: 0 0 6px;
-  font-size: 10px;
-  color: #9aa3b5;
-  flex-shrink: 0;
-}
-
-.tree-body {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.device-node {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-
-.device-name {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.directory-node {
-  color: #596174;
-  font-weight: 500;
-}
-
-:deep(.dashboard-tree-wrapper) {
-  height: 100%;
-  max-height: none;
-  overflow: auto;
-  scrollbar-width: thin;
-}
-
 .donut-wrap {
   flex: 1;
   min-height: 0;
@@ -1308,15 +1417,25 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
-  .alarm-panel,
+  .left-stack,
   .video-panel,
-  .algorithm-panel,
-  .right-stack {
+  .stats-panel,
+  .device-panel {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .right-stack { min-height: 480px; }
+  .left-stack { min-height: 420px; }
+  .device-panel { min-height: 480px; }
+  .stats-split {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1px auto;
+    gap: 12px 0;
+  }
+  .stats-divider {
+    width: 100%;
+    height: 1px;
+  }
 
   .overview-dashboard,
   .dashboard-canvas {
