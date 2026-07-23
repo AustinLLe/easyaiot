@@ -1,5 +1,6 @@
 <template>
   <div class="overview-dashboard" :style="dashboardStyle">
+    <div class="dashboard-canvas">
     <header class="dashboard-heading">
       <div>
         <div class="eyebrow">EASYAIOT EDGE</div>
@@ -177,6 +178,7 @@
         </article>
       </aside>
     </section>
+    </div>
   </div>
 </template>
 
@@ -513,12 +515,25 @@ onUnmounted(() => {
 <style lang="less" scoped>
 .overview-dashboard {
   display: flex;
-  flex-direction: column;
-  padding: 12px 16px;
+  justify-content: center;
+  width: 100%;
   color: #172033;
-  background: #f5f7fb;
+  background: #e4e8f0;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+.dashboard-canvas {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1440px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 12px 16px;
+  background: #f5f7fb;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 1px rgba(38, 53, 83, .06);
 }
 
 .dashboard-heading {
@@ -586,7 +601,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 280px 1fr 300px;
+  grid-template-columns: 260px minmax(420px, 1fr) 270px;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
 }
@@ -632,6 +647,7 @@ onUnmounted(() => {
   grid-column: 2;
   grid-row: 2;
   min-height: 0;
+  justify-content: flex-start;
 }
 
 .right-stack {
@@ -777,13 +793,16 @@ onUnmounted(() => {
 }
 
 .video-stage {
-  flex: 1;
-  min-height: 0;
+  width: 100%;
+  max-height: calc(100% - 4px);
+  flex: 0 1 auto;
+  margin: auto 0;
   position: relative;
   background: #09111f;
   border: 2px solid #e7eaf1;
   border-radius: 10px;
   overflow: hidden;
+  aspect-ratio: 16 / 9;
 }
 
 .video-player {
@@ -1004,6 +1023,12 @@ onUnmounted(() => {
   }
 
   .right-stack { min-height: 360px; }
-  .overview-dashboard { height: auto !important; max-height: none !important; overflow: visible; }
+  .overview-dashboard,
+  .dashboard-canvas {
+    height: auto !important;
+    max-height: none !important;
+  }
+  .overview-dashboard { overflow: visible; }
+  .video-stage { aspect-ratio: auto; align-self: stretch; min-height: 200px; }
 }
 </style>
