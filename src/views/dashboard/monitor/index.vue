@@ -28,20 +28,7 @@
     </header>
 
     <section class="dashboard-body">
-      <!-- 第一行：KPI 四卡片 -->
-      <section class="kpi-row">
-        <article v-for="metric in kpiMetrics" :key="metric.label" class="kpi-card">
-          <div class="kpi-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-            <Icon :icon="metric.icon" :size="20" />
-          </div>
-          <div class="kpi-text">
-            <div class="kpi-label">{{ metric.label }}</div>
-            <div class="kpi-value" :style="{ color: metric.color }">{{ metric.value }}</div>
-          </div>
-        </article>
-      </section>
-
-      <!-- 左侧：实时告警 -->
+      <!-- 左侧：实时告警（整列） -->
       <article class="panel alarm-panel">
         <div class="panel-title-row compact-title">
           <div>
@@ -74,8 +61,9 @@
         </div>
       </article>
 
-      <!-- 中间：视频 -->
-      <article class="panel video-panel">
+      <!-- 中间：视频 + 算法占比 -->
+      <div class="center-stack">
+        <article class="panel video-panel">
         <div class="panel-title-row compact-title">
           <div>
             <span class="panel-kicker">实时监控</span>
@@ -116,39 +104,60 @@
             <span>原始流</span>
           </div>
         </div>
-      </article>
+        </article>
 
-      <!-- 右侧：摄像头排行 + 设备列表 -->
-      <aside class="right-stack">
-        <article class="panel camera-rank-panel">
+        <article class="panel algorithm-panel">
           <div class="panel-title-row compact-title">
             <div>
               <span class="panel-kicker">报警统计</span>
-              <h2>摄像头报警排行</h2>
+              <h2>算法报警占比</h2>
             </div>
             <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
           </div>
-          <div v-if="cameraRanking.length" class="ranking-list">
-            <div
-              v-for="(item, index) in cameraRanking.slice(0, 5)"
-              :key="item.name"
-              class="ranking-row"
-            >
-              <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
-              <div class="rank-body">
-                <div class="rank-line">
-                  <span :title="item.name">{{ item.name }}</span>
-                  <strong>{{ item.count }} 次</strong>
-                </div>
-                <div class="rank-bar">
-                  <i :style="{ width: `${rankingWidth(item.count)}%` }" />
-                </div>
+          <div v-if="algorithmRanking.length" class="donut-wrap bottom">
+            <div class="donut large" :style="algorithmDonutStyle">
+              <div class="donut-center">
+                <strong>{{ currentPeriod.alarm_count }}</strong>
+                <span>总数</span>
               </div>
-              <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
+            </div>
+            <div class="legend-list horizontal">
+              <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
+                <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
+                <span class="legend-name" :title="item.name">{{ item.name }}</span>
+                <strong>{{ item.count }}</strong>
+                <span>{{ item.percentage.toFixed(1) }}%</span>
+              </div>
             </div>
           </div>
-          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+          <div v-else class="empty-state compact">当前周期暂无算法报警</div>
         </article>
+      </div>
+
+      <!-- 右侧：KPI + 设备目录 + 摄像头排行 -->
+      <aside class="right-stack">
+        <section class="kpi-grid panel">
+          <article class="kpi-main">
+            <div class="kpi-main-icon" :style="{ color: primaryPeriodMetric.color, backgroundColor: `${primaryPeriodMetric.color}18` }">
+              <Icon :icon="primaryPeriodMetric.icon" :size="22" />
+            </div>
+            <div class="kpi-main-label">{{ primaryPeriodMetric.label }}</div>
+            <div class="kpi-main-value" :style="{ color: primaryPeriodMetric.color }">{{ primaryPeriodMetric.value }}</div>
+          </article>
+          <article
+            v-for="metric in secondaryKpiMetrics"
+            :key="metric.label"
+            class="kpi-mini"
+          >
+            <div class="kpi-mini-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
+              <Icon :icon="metric.icon" :size="14" />
+            </div>
+            <div class="kpi-mini-text">
+              <div class="kpi-mini-label">{{ metric.label }}</div>
+              <div class="kpi-mini-value" :style="{ color: metric.color }">{{ metric.value }}</div>
+            </div>
+          </article>
+        </section>
 
         <article class="panel device-panel">
           <div class="panel-title-row compact-title">
@@ -183,35 +192,37 @@
             </BasicTree>
           </div>
         </article>
-      </aside>
 
-      <!-- 底部：算法占比（视频下方） -->
-      <article class="panel algorithm-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">报警统计</span>
-            <h2>算法报警占比</h2>
+        <article class="panel camera-rank-panel">
+          <div class="panel-title-row compact-title">
+            <div>
+              <span class="panel-kicker">报警统计</span>
+              <h2>摄像头报警排行</h2>
+            </div>
+            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
           </div>
-          <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-        </div>
-        <div v-if="algorithmRanking.length" class="donut-wrap bottom">
-          <div class="donut large" :style="algorithmDonutStyle">
-            <div class="donut-center">
-              <strong>{{ currentPeriod.alarm_count }}</strong>
-              <span>总数</span>
+          <div v-if="cameraRanking.length" class="ranking-list">
+            <div
+              v-for="(item, index) in cameraRanking.slice(0, 5)"
+              :key="item.name"
+              class="ranking-row"
+            >
+              <span :class="['rank-no', { top: index < 3 }]">{{ index + 1 }}</span>
+              <div class="rank-body">
+                <div class="rank-line">
+                  <span :title="item.name">{{ item.name }}</span>
+                  <strong>{{ item.count }} 次</strong>
+                </div>
+                <div class="rank-bar">
+                  <i :style="{ width: `${rankingWidth(item.count)}%` }" />
+                </div>
+              </div>
+              <span class="rank-percent">{{ item.percentage.toFixed(1) }}%</span>
             </div>
           </div>
-          <div class="legend-list horizontal">
-            <div v-for="(item, index) in algorithmRanking.slice(0, 8)" :key="item.name" class="legend-row">
-              <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }" />
-              <span class="legend-name" :title="item.name">{{ item.name }}</span>
-              <strong>{{ item.count }}</strong>
-              <span>{{ item.percentage.toFixed(1) }}%</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state compact">当前周期暂无算法报警</div>
-      </article>
+          <div v-else class="empty-state compact">当前周期暂无摄像头报警</div>
+        </article>
+      </aside>
     </section>
     </div>
   </div>
@@ -334,11 +345,17 @@ const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.val
 const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
 const cameraRanking = computed(() => currentPeriod.value.camera_ranking || [])
 
-const kpiMetrics = computed(() => [
-  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, icon: 'ant-design:alert-outlined', color: '#ef4444' },
+const primaryPeriodMetric = computed(() => ({
+  label: `${currentPeriod.value.label}报警`,
+  value: currentPeriod.value.alarm_count,
+  icon: 'ant-design:alert-outlined',
+  color: '#ef4444',
+}))
+
+const secondaryKpiMetrics = computed(() => [
+  { label: '历史报警', value: statistics.value.alarm_count, icon: 'ant-design:history-outlined', color: '#f59e0b' },
   { label: '摄像头', value: statistics.value.camera_count, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
   { label: '算法', value: statistics.value.algorithm_count, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
-  { label: '历史报警', value: statistics.value.alarm_count, icon: 'ant-design:history-outlined', color: '#f59e0b' },
 ])
 
 function buildDonutStyle(items: RankingItem[]) {
@@ -762,58 +779,105 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 260px minmax(420px, 1fr) 270px;
-  grid-template-rows: auto minmax(0, 1fr) minmax(120px, 0.42fr);
+  grid-template-columns: 260px minmax(400px, 1fr) 280px;
+  grid-template-rows: minmax(0, 1fr);
   gap: 10px;
 }
 
-.kpi-row {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.kpi-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e7eaf1;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(38, 53, 83, .05);
-}
-
-.kpi-icon {
-  width: 40px;
-  height: 40px;
+.kpi-grid {
   flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 124px;
+  max-height: 132px;
+  padding: 8px 10px !important;
+}
+
+.kpi-main {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  background: linear-gradient(145deg, #fff5f5, #fef2f2);
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.kpi-main-icon {
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border-radius: 10px;
 }
 
-.kpi-label { font-size: 12px; color: #737d91; margin-bottom: 2px; }
-.kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
+.kpi-main-label {
+  font-size: 11px;
+  color: #737d91;
+  line-height: 1.2;
+}
+
+.kpi-main-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kpi-mini {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  min-height: 0;
+}
+
+.kpi-mini-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+}
+
+.kpi-mini-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.kpi-mini-label {
+  font-size: 10px;
+  color: #737d91;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+
+.kpi-mini-value {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+}
 
 .alarm-panel {
   grid-column: 1;
-  grid-row: 2 / 4;
+  grid-row: 1;
   min-height: 0;
 }
 
-.video-panel {
+.center-stack {
   grid-column: 2;
-  grid-row: 2;
-  min-height: 0;
-  justify-content: flex-start;
-}
-
-.right-stack {
-  grid-column: 3;
-  grid-row: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -821,18 +885,35 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.algorithm-panel {
-  grid-column: 2 / 4;
-  grid-row: 3;
+.video-panel {
+  flex: 1;
   min-height: 0;
+  justify-content: flex-start;
 }
 
-.camera-rank-panel {
+.algorithm-panel {
   flex-shrink: 0;
-  max-height: 46%;
+  max-height: 36%;
+  min-height: 110px;
+}
+
+.right-stack {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .device-panel {
+  flex: 0 1 38%;
+  min-height: 96px;
+  max-height: 42%;
+}
+
+.camera-rank-panel {
   flex: 1;
   min-height: 0;
 }
@@ -965,15 +1046,15 @@ onUnmounted(() => {
 
 .video-stage {
   width: 100%;
-  max-height: calc(100% - 4px);
-  flex: 0 1 auto;
-  margin: auto 0;
+  flex: 0 0 auto;
+  align-self: flex-start;
   position: relative;
   background: #09111f;
   border: 2px solid #e7eaf1;
   border-radius: 10px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
+  max-height: 100%;
 }
 
 .video-player {
@@ -1232,17 +1313,19 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid {
+    max-height: none;
+    min-height: 110px;
+  }
+
   .alarm-panel,
-  .video-panel,
-  .right-stack,
-  .algorithm-panel {
+  .center-stack,
+  .right-stack {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .alarm-panel { grid-row: auto; }
-  .right-stack { min-height: 360px; }
+  .right-stack { min-height: 420px; }
   .overview-dashboard,
   .dashboard-canvas {
     height: auto !important;
