@@ -251,13 +251,14 @@
                 </select>
               </div>
             </div>
-            <div v-if="algorithmRanking.length" class="alarm-stats-body">
+            <div class="alarm-stats-body">
               <div class="alarm-stats-range">{{ algorithmPeriodRangeText }}</div>
               <div class="alarm-stats-main">
                 <div class="alarm-stats-pie-wrap">
                   <div ref="algorithmChartRef" class="alarm-stats-chart" />
+                  <div v-if="!algorithmRanking.length" class="alarm-stats-empty">当前周期暂无算法报警</div>
                 </div>
-                <div class="alarm-stats-legend">
+                <div v-if="algorithmRanking.length" class="alarm-stats-legend">
                   <div
                     v-for="(item, index) in algorithmLegendItems"
                     :key="`${item.name}-${index}`"
@@ -276,12 +277,11 @@
                 </div>
               </div>
             </div>
-            <div v-else class="empty-state compact">当前周期暂无算法报警</div>
           </section>
 
           <div class="stats-divider" />
 
-          <section class="stats-block">
+          <section class="stats-block stats-block--ranking">
             <div class="widget-title-bar widget-title-bar--compact">
               <div class="widget-title-left">
                 <span class="widget-title-chevron" aria-hidden="true">»</span>
@@ -299,11 +299,30 @@
                 </select>
               </div>
             </div>
-            <div v-if="displayRanking.length" class="chart-wrap">
-              <div ref="rankingChartRef" class="chart-box" />
-            </div>
-            <div v-else class="empty-state compact">
-              {{ rankMode === 'directory' ? '当前周期暂无分组报警' : '当前周期暂无摄像头报警' }}
+            <div class="ranking-list-wrap">
+              <div class="ranking-range">{{ rankingPeriodRangeText }}</div>
+              <div v-if="displayRanking.length" class="ranking-list">
+                <div
+                  v-for="(item, index) in rankingTopSix"
+                  :key="`${rankingListKey}-${index}`"
+                  class="ranking-row"
+                >
+                  <span :class="['rank-badge', getRankBadgeClass(index + 1)]">
+                    <i>{{ index + 1 }}</i>
+                  </span>
+                  <span class="ranking-name" :title="item.name">{{ item.name }}</span>
+                  <div class="ranking-bar">
+                    <div
+                      class="ranking-bar-fill"
+                      :style="{ width: `${getRankingBarWidth(item.count)}%` }"
+                    />
+                  </div>
+                  <span class="ranking-count">{{ formatAlarmCount(item.count) }}次</span>
+                </div>
+              </div>
+              <div v-else class="empty-state compact">
+                {{ rankMode === 'directory' ? '当前周期暂无分组报警' : '当前周期暂无摄像头报警' }}
+              </div>
             </div>
           </section>
         </div>
@@ -314,7 +333,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import type { EChartsOption } from 'echarts'
 import { Icon } from '@/components/Icon'
@@ -470,9 +489,7 @@ const PIE_CENTER: [string, string] = ['50%', '50%']
 const PIE_RADIUS: [string, string] = ['52%', '78%']
 
 const algorithmChartRef = ref<HTMLDivElement>()
-const rankingChartRef = ref<HTMLDivElement>()
-const { setOptions: setAlgorithmOptions, resize: resizeAlgorithmChart } = useECharts(algorithmChartRef, 'dark')
-const { setOptions: setRankingOptions, resize: resizeRankingChart } = useECharts(rankingChartRef, 'dark')
+const { setOptions: setAlgorithmOptions, resize: resizeAlgorithmChart, getInstance: getAlgorithmChartInstance } = useECharts(algorithmChartRef, 'dark')
 
 function formatAlarmCount(value: number) {
   return value.toLocaleString('zh-CN')
@@ -560,6 +577,18 @@ function buildAlgorithmCenterRich() {
   }
 }
 
+function getRankBadgeClass(rank: number) {
+  if (rank === 1)
+    return 'rank-badge--gold'
+  if (rank <= 3)
+    return 'rank-badge--silver'
+  return 'rank-badge--blue'
+}
+
+function getRankingBarWidth(count: number) {
+  return Math.round((count / rankingMaxCount.value) * 100)
+}
+
 function buildAlgorithmChartOptions(animate = false): EChartsOption {
   const total = algorithmPeriodData.value.alarm_count
   const data = buildAlgorithmPieData(algorithmRanking.value)
@@ -625,72 +654,6 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
   }
 }
 
-function buildRankingChartOptions(animate = false): EChartsOption {
-  const items = [...displayRanking.value].slice(0, 6).reverse()
-
-  return {
-    animation: animate,
-    animationDuration: animate ? 900 : 0,
-    animationDurationUpdate: 0,
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(5, 14, 35, 0.92)',
-      borderColor: 'rgba(52, 134, 218, 0.45)',
-      textStyle: { color: '#e8eef8', fontSize: 12 },
-    },
-    grid: { left: 4, right: 12, top: 8, bottom: 4, containLabel: true },
-    xAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.1)' } },
-      axisLabel: { color: '#6b7a9e', fontSize: 10 },
-    },
-    yAxis: {
-      type: 'category',
-      data: items.map(item => item.name),
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        color: '#9aa8d4',
-        fontSize: 11,
-        width: 58,
-        overflow: 'truncate',
-      },
-    },
-    series: [{
-      type: 'bar',
-      barWidth: 10,
-      animation: animate,
-      animationDuration: animate ? 900 : 0,
-      animationDurationUpdate: 0,
-      data: items.map(item => item.count),
-      itemStyle: {
-        borderRadius: [0, 4, 4, 0],
-        color: {
-          type: 'linear',
-          x: 0,
-          y: 0,
-          x2: 1,
-          y2: 0,
-          colorStops: [
-            { offset: 0, color: '#1e5799' },
-            { offset: 1, color: '#4a90e2' },
-          ],
-        },
-      },
-      label: {
-        show: true,
-        position: 'right',
-        color: '#9aa8d4',
-        fontSize: 10,
-        formatter: '{c} 次',
-      },
-    }],
-  }
-}
-
 const statistics = ref({
   alarm_count: 0,
   camera_count: 0,
@@ -723,33 +686,47 @@ const displayRanking = computed(() => {
   return period.camera_ranking || []
 })
 
+const rankingTopSix = computed(() => displayRanking.value.slice(0, 6))
+
+const rankingMaxCount = computed(() => {
+  const counts = rankingTopSix.value.map(item => item.count)
+  return counts.length ? Math.max(...counts) : 1
+})
+
+const rankingPeriodRangeText = computed(() => {
+  const period = rankingPeriodData.value
+  const start = formatPeriodDate(period.start_time)
+  const end = formatPeriodDate(period.end_time)
+  if (start && end)
+    return `${start} 至 ${end}`
+  return period.label
+})
+
+const rankingListKey = computed(() => {
+  const items = rankingTopSix.value
+  return `${rankingPeriod.value}|${rankMode.value}|${items.map(i => `${i.name}:${i.count}`).join(',')}`
+})
+
 const algorithmChartKey = computed(() => {
   const items = algorithmRanking.value.slice(0, 8)
   return `${algorithmPeriod.value}|${items.map(i => `${i.name}:${i.count}`).join(',')}`
 })
 
-const rankingChartKey = computed(() => {
-  const items = displayRanking.value.slice(0, 6)
-  return `${rankingPeriod.value}|${rankMode.value}|${items.map(i => `${i.name}:${i.count}`).join(',')}`
-})
-
-const algorithmChartAnimated = ref(false)
-const rankingChartAnimated = ref(false)
-
-watch(algorithmChartKey, () => {
-  if (!algorithmRanking.value.length)
+async function refreshAlgorithmChart() {
+  await nextTick()
+  const chart = getAlgorithmChartInstance()
+  if (!algorithmRanking.value.length) {
+    chart?.clear()
     return
-  const animate = !algorithmChartAnimated.value
-  setAlgorithmOptions(buildAlgorithmChartOptions(animate), animate)
-  algorithmChartAnimated.value = true
-}, { immediate: true })
+  }
+  await nextTick()
+  getAlgorithmChartInstance()
+  await setAlgorithmOptions(buildAlgorithmChartOptions(true), true)
+  resizeAlgorithmChart()
+}
 
-watch(rankingChartKey, () => {
-  if (!displayRanking.value.length)
-    return
-  const animate = !rankingChartAnimated.value
-  setRankingOptions(buildRankingChartOptions(animate), animate)
-  rankingChartAnimated.value = true
+watch([algorithmChartKey, algorithmPeriod], () => {
+  refreshAlgorithmChart()
 }, { immediate: true })
 
 function getMaxVideoCount(layout: string) {
@@ -1253,7 +1230,6 @@ onUnmounted(() => {
 
 function handleChartResize() {
   resizeAlgorithmChart()
-  resizeRankingChart()
 }
 </script>
 
@@ -1869,12 +1845,24 @@ function handleChartResize() {
   }
 
   .alarm-stats-pie-wrap {
+    position: relative;
     min-width: 0;
     min-height: 0;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .alarm-stats-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: @sugar-muted;
+    pointer-events: none;
   }
 
   .alarm-stats-chart {
@@ -1921,6 +1909,116 @@ function handleChartResize() {
   }
 
   .alarm-stats-legend-meta {
+    font-size: 11px;
+    color: @sugar-muted;
+    white-space: nowrap;
+  }
+}
+
+.stats-block--ranking {
+  .ranking-list-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 2px 4px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ranking-range {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: @sugar-muted;
+    letter-spacing: 0.04em;
+  }
+
+  .ranking-list {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+    overflow-y: auto;
+  }
+
+  .ranking-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 4px;
+    align-items: center;
+  }
+
+  .rank-badge {
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 18px;
+    transform: skewX(-14deg);
+    border-radius: 2px;
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+
+    i {
+      display: block;
+      transform: skewX(14deg);
+      font-style: normal;
+    }
+
+    &--gold {
+      color: #1a1208;
+      background: linear-gradient(180deg, #ffd166 0%, #f59e0b 100%);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    }
+
+    &--silver {
+      color: #1a1208;
+      background: linear-gradient(180deg, #fde68a 0%, #eab308 85%);
+      box-shadow: 0 0 6px rgba(234, 179, 8, 0.22);
+    }
+
+    &--blue {
+      color: #e8f4ff;
+      background: linear-gradient(180deg, #4a90e2 0%, #2563a8 100%);
+      box-shadow: 0 0 6px rgba(52, 134, 218, 0.25);
+    }
+  }
+
+  .ranking-name {
+    grid-column: 2;
+    font-size: 11px;
+    color: @sugar-text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ranking-bar {
+    grid-column: 2;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(52, 134, 218, 0.12);
+    overflow: hidden;
+  }
+
+  .ranking-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #1e5799 0%, #4a90e2 100%);
+    transition: width 0.9s ease;
+  }
+
+  .ranking-count {
+    grid-column: 3;
+    grid-row: 1 / span 2;
     font-size: 11px;
     color: @sugar-muted;
     white-space: nowrap;
