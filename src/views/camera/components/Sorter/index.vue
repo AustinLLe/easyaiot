@@ -1,12 +1,13 @@
 <template>
   <div class="sorter-container">
-    <!-- 工具�?-->
+    <!-- 工具栏 -->
     <div class="toolbar">
       <a-button type="primary" @click="handleCreate">
         <template #icon>
           <PlusOutlined />
         </template>
-        新建排序�?      </a-button>
+        新建排序器
+      </a-button>
       <a-button @click="handleClickSwap" type="default">
         <template #icon>
           <SwapOutlined />
@@ -92,7 +93,7 @@
           </a-card>
         </a-col>
       </a-row>
-      <a-empty v-if="sorterList.length === 0" description="暂无排序�? />
+      <a-empty v-if="sorterList.length === 0" description="暂无排序器" />
     </div>
 
     <!-- 创建/编辑模态框 -->
@@ -131,21 +132,22 @@ const [registerModal, { openDrawer }] = useDrawer();
 // 获取排序类型文本
 const getSorterTypeText = (type: string) => {
   const typeMap: Record<string, string> = {
-    confidence: '置信�?,
+    confidence: '置信度',
     time: '时间',
     score: '分数',
   };
   return typeMap[type] || type;
 };
 
-// 表格列配�?const getColumns = () => [
+// 表格列配置
+const getColumns = () => [
   {
-    title: '排序器名�?,
+    title: '排序器名称',
     dataIndex: 'sorter_name',
     width: 150,
   },
   {
-    title: '排序器编�?,
+    title: '排序器编号',
     dataIndex: 'sorter_code',
     width: 150,
   },
@@ -165,7 +167,7 @@ const getSorterTypeText = (type: string) => {
     width: 200,
   },
   {
-    title: '启用状�?,
+    title: '启用状态',
     dataIndex: 'is_enabled',
     width: 100,
   },
@@ -181,7 +183,7 @@ const [registerTable, { reload }] = useTable({
   canResize: true,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '排序器列�?,
+  title: '排序器列表',
   api: listSorters,
   columns: getColumns(),
   useSearchForm: true,
@@ -206,8 +208,8 @@ const loadSorters = async () => {
       sorterList.value = response.data || [];
     }
   } catch (error) {
-    console.error('加载排序器列表失�?, error);
-    createMessage.error('加载排序器列表失�?);
+    console.error('加载排序器列表失败', error);
+    createMessage.error('加载排序器列表失败');
   }
 };
 
@@ -240,7 +242,7 @@ const handleDelete = async (record: Sorter) => {
       createMessage.error(response.msg || '删除失败');
     }
   } catch (error) {
-    console.error('删除排序器失�?, error);
+    console.error('删除排序器失败', error);
     createMessage.error('删除失败');
   }
 };
@@ -258,7 +260,7 @@ const handleToggleEnabled = async (record: Sorter) => {
       createMessage.error(response.msg || '更新失败');
     }
   } catch (error) {
-    console.error('更新排序器状态失�?, error);
+    console.error('更新排序器状态失败', error);
     createMessage.error('更新失败');
   }
 };
@@ -287,7 +289,7 @@ const getTableActions = (record: Sorter) => {
       icon: 'material-symbols:delete-outline-rounded',
       tooltip: '删除',
       popConfirm: {
-        title: '确定删除此排序器�?,
+        title: '确定删除此排序器？',
         confirm: () => handleDelete(record),
       },
     },

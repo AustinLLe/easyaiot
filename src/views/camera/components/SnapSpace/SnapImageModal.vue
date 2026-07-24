@@ -9,11 +9,11 @@
     :maskClosable="true"
   >
     <div class="snap-image-container">
-      <!-- 顶部操作�?-->
+      <!-- 顶部操作栏 -->
       <div class="snap-image-header">
         <div class="header-actions">
           <a-button type="primary" @click="handleSelectAll">
-            {{ isAllSelected ? '取消全�? : '全�? }}
+            {{ isAllSelected ? '取消全选' : '全选' }}
           </a-button>
           <a-button type="primary" @click="handleRefresh">
             刷新
@@ -43,7 +43,7 @@
                   class="image-card-box"
                   @click="handleImageClick(item)"
                 >
-                  <!-- 选择�?-->
+                  <!-- 选择框 -->
                   <div 
                     class="card-checkbox"
                     :class="{ 'checked': selectedRowKeys.includes(item.object_name) }"
@@ -66,11 +66,11 @@
                     <!-- 信息标签 -->
                     <div class="card-info">
                       <div class="info-item">
-                        <span class="info-label">大小�?/span>
+                        <span class="info-label">大小：</span>
                         <span class="info-value">{{ formatSize(item.size) }}</span>
                       </div>
                       <div class="info-item" v-if="item.last_modified">
-                        <span class="info-label">时间�?/span>
+                        <span class="info-label">时间：</span>
                         <span class="info-value">{{ formatTime(item.last_modified) }}</span>
                       </div>
                     </div>
@@ -130,7 +130,7 @@ const paginationProp = computed(() => {
     pageSize: pageSize.value,
     current: page.value,
     total: total.value,
-    showTotal: (total: number) => `�?${total} 张图片`,
+    showTotal: (total: number) => `共 ${total} 张图片`,
     onChange: pageChange,
     onShowSizeChange: pageSizeChange,
   };
@@ -149,7 +149,7 @@ function pageSizeChange(_current: number, size: number) {
 }
 
 const getImageUrl = (record: SnapImage) => {
-  // 优先使用后台返回�?url 字段，如果没有则使用 object_name 构建
+  // 优先使用后台返回的 url 字段，如果没有则使用 object_name 构建
   const rawUrl = record.url || (modalData.value.space_id
     ? `/video/snap/space/${modalData.value.space_id}/image/${record.object_name}`
     : '');
@@ -202,7 +202,8 @@ const loadImageList = async () => {
     });
     
     // 响应拦截器处理后的数据结构：{ code, data, msg, total }
-    // 或者直接是数组（如果响应拦截器返回�?data.data�?    if (Array.isArray(response)) {
+    // 或者直接是数组（如果响应拦截器返回了 data.data）
+    if (Array.isArray(response)) {
       // 如果直接返回数组
       imageList.value = response;
       total.value = response.length;
@@ -211,10 +212,12 @@ const loadImageList = async () => {
       if (response.code === 0) {
         // 成功响应
         if (Array.isArray(response.data)) {
-          // data是数�?          imageList.value = response.data;
+          // data是数组
+          imageList.value = response.data;
           total.value = response.total || response.data.length;
         } else if (response.data && Array.isArray(response.data.items)) {
-          // data.items是数组（某些接口可能这样返回�?          imageList.value = response.data.items;
+          // data.items是数组（某些接口可能这样返回）
+          imageList.value = response.data.items;
           total.value = response.total || response.data.total || response.data.items.length;
         } else {
           imageList.value = [];
@@ -246,19 +249,24 @@ const handleRefresh = () => {
   loadImageList();
 };
 
-// 全选状态计�?const isAllSelected = computed(() => {
+// 全选状态计算
+const isAllSelected = computed(() => {
   return imageList.value.length > 0 && selectedRowKeys.value.length === imageList.value.length;
 });
 
-// 全�?取消全�?const handleSelectAll = () => {
+// 全选/取消全选
+const handleSelectAll = () => {
   if (isAllSelected.value) {
-    // 取消全�?    selectedRowKeys.value = [];
+    // 取消全选
+    selectedRowKeys.value = [];
   } else {
-    // 全选当前页所有图�?    selectedRowKeys.value = imageList.value.map(item => item.object_name);
+    // 全选当前页所有图片
+    selectedRowKeys.value = imageList.value.map(item => item.object_name);
   }
 };
 
-// 点击图片切换勾选状�?const handleImageClick = (item: SnapImage) => {
+// 点击图片切换勾选状态
+const handleImageClick = (item: SnapImage) => {
   const key = item.object_name;
   if (selectedRowKeys.value.includes(key)) {
     selectedRowKeys.value = selectedRowKeys.value.filter(k => k !== key);
@@ -287,7 +295,8 @@ const handleDownload = async (record: SnapImage) => {
   try {
     const token = localStorage.getItem('jwt_token');
     
-    // 使用 fetch 下载文件（支持认证头�?    const response = await fetch(imageUrl, {
+    // 使用 fetch 下载文件（支持认证头）
+    const response = await fetch(imageUrl, {
       method: 'GET',
       headers: {
         'X-Authorization': 'Bearer ' + token,
@@ -433,7 +442,8 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       }
     }
 
-    // Spin 组件也需�?flex 布局以支持居�?    :deep(.ant-spin-container) {
+    // Spin 组件也需要 flex 布局以支持居中
+    :deep(.ant-spin-container) {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -441,7 +451,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       position: relative;
     }
 
-    // 当没有数据时，让 List �?Empty 组件居中显示
+    // 当没有数据时，让 List 和 Empty 组件居中显示
     :deep(.ant-list) {
       flex: 1;
       display: flex;
@@ -583,7 +593,8 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   }
 }
 
-// 响应式设�?@media (max-width: 768px) {
+// 响应式设计
+@media (max-width: 768px) {
   .snap-image-container {
     height: 65vh;
     max-height: 600px;

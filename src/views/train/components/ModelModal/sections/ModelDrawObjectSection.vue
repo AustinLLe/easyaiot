@@ -277,7 +277,7 @@ watch(
 
 function handleSave() {
   syncClassWhitelistFromDrawObjects(draft.value);
-  createMessage.success('绘制对象已保�?);
+  createMessage.success('绘制对象已保存');
 }
 
 function handleAdd() {
@@ -317,7 +317,7 @@ function handleCancelEdit() {
 
   if (isNewEditingRow.value) {
     if (tableItems.value.length <= 1) {
-      createMessage.warning('至少保留一条绘制对�?);
+      createMessage.warning('至少保留一条绘制对象');
       return;
     }
     tableItems.value = tableItems.value.filter(item => item.id !== id);
@@ -358,7 +358,7 @@ function handleImportSuccess(items: ModelDrawObjectItem[]) {
 
 function handleDelete(id: string) {
   if (tableItems.value.length <= 1) {
-    createMessage.warning('至少保留一条绘制对�?);
+    createMessage.warning('至少保留一条绘制对象');
     return;
   }
   tableItems.value = tableItems.value.filter(item => item.id !== id);
@@ -376,7 +376,7 @@ function handleColorConfirm(id: string, color: string) {
 
 function handlePreview() {
   if (!previewItems.value.length) {
-    createMessage.warning('请至少启用一个带标注位置的绘制对�?);
+    createMessage.warning('请至少启用一个带标注位置的绘制对象');
     return;
   }
   showPreviewOverlay.value = true;

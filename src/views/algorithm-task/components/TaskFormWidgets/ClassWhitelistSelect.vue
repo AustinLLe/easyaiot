@@ -3,7 +3,7 @@
     <Select
       v-model:value="modelValue"
       mode="multiple"
-      placeholder="选择参与检测类别（不�?保留全部输出�?
+      placeholder="选择参与检测类别（不选=保留全部输出）"
       style="width: 100%"
       allow-clear
       :max-tag-count="4"
@@ -12,7 +12,7 @@
       :get-popup-container="getPopupContainer"
       :dropdown-style="{ zIndex: 4100 }"
     />
-    <div class="class-hint">下拉多选，支持勾选多个检测类别；不选任何类�?= 保留模型全部输出</div>
+    <div class="class-hint">下拉多选，支持勾选多个检测类别；不选任何类别 = 保留模型全部输出</div>
   </div>
 </template>
 

@@ -7,13 +7,13 @@
     >
       <div class="alert-event-push-dialog" role="dialog" aria-modal="true">
         <div class="alert-event-push-header">
-          <span class="alert-event-push-title">推送告�?/span>
+          <span class="alert-event-push-title">推送告警</span>
           <button type="button" class="alert-event-push-close" @click="handleCancel">×</button>
         </div>
 
         <div class="alert-event-push-body">
           <p v-if="selectedCount > 0" class="selected-hint">
-            已选择 {{ selectedCount }} 条报警记�?
+            已选择 {{ selectedCount }} 条报警记录
           </p>
 
           <AlertPushFormFields
@@ -27,7 +27,7 @@
 
         <div class="alert-event-push-footer">
           <Button @click="handleCancel">取消</Button>
-          <Button type="primary" @click="handleConfirm">确认推�?/Button>
+          <Button type="primary" @click="handleConfirm">确认推送</Button>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@ function handleCancel() {
 function handleConfirm() {
   const draft = {
     ...localPush.value,
-    push_name: localPush.value.push_name?.trim() || '告警批量推�?,
+    push_name: localPush.value.push_name?.trim() || '告警批量推送',
     enabled: true,
   };
   const error = validateAlertPush(draft, { requireRules: false });

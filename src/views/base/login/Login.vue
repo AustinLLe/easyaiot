@@ -51,7 +51,7 @@ const title = computed(() => globSetting?.title ?? '')
           <div class="h-full w-full flex py-5 xl:my-0 xl:h-auto xl:w-6/12 xl:py-0">
             <!-- eslint-disable max-len -->
             <div :class="`${prefixCls}-form`" class="enter-x relative mx-auto my-auto w-full rounded-md px-5 py-8 shadow-md xl:ml-16 lg:w-2/4 sm:w-3/4 xl:w-auto xl:bg-transparent xl:p-4 sm:px-8 xl:shadow-none">
-              <!--   平台登录�?          -->
+              <!--   平台登录框           -->
               <LoginForm />
               <ForgetPasswordForm />
             </div>

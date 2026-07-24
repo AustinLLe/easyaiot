@@ -2,7 +2,7 @@
   <div class="inference-container">
     <a-page-header
       title="模型推理"
-      sub-title="选择项目并执行推理任�?
+      sub-title="选择项目并执行推理任务"
       @back="() => $router.go(-1)"
     />
 
@@ -33,8 +33,8 @@
         <!-- 模型类型选择 -->
         <a-form-item label="模型类型" required>
           <a-radio-group v-model:value="formState.modelType">
-            <a-radio-button value="pretrained">预训练模�?/a-radio-button>
-            <a-radio-button value="custom">自定义模�?/a-radio-button>
+            <a-radio-button value="pretrained">预训练模型</a-radio-button>
+            <a-radio-button value="custom">自定义模型</a-radio-button>
           </a-radio-group>
         </a-form-item>
 
@@ -44,14 +44,14 @@
           label="选择模型"
           required
         >
-          <a-select v-model:value="formState.systemModel" placeholder="请选择预训练模�?>
+          <a-select v-model:value="formState.systemModel" placeholder="请选择预训练模型">
             <a-select-option value="yolov5">YOLOv5</a-select-option>
             <a-select-option value="resnet50">ResNet50</a-select-option>
             <a-select-option value="efficientnet">EfficientNet</a-select-option>
           </a-select>
         </a-form-item>
 
-        <!-- 自定义模型上�?-->
+        <!-- 自定义模型上传 -->
         <a-form-item
           v-if="formState.modelType === 'custom'"
           label="模型文件"
@@ -143,7 +143,7 @@
             <pre>{{ result.text }}</pre>
           </div>
         </a-tab-pane>
-        <a-tab-pane key="image" tab="可视化结�? v-if="result.image">
+        <a-tab-pane key="image" tab="可视化结果" v-if="result.image">
           <div class="result-content">
             <img :src="result.image" alt="推理结果" style="max-width: 100%" />
           </div>
@@ -165,7 +165,8 @@ import { message } from 'ant-design-vue';
 import { getModelPage } from '@/api/device/model';
 import { runInference } from '@/api/device/model';
 
-// 响应式状�?const projects = ref([]);
+// 响应式状态
+const projects = ref([]);
 const loading = ref(false);
 const result = ref(null);
 const activeTab = ref('text');
@@ -177,7 +178,8 @@ const modelFiles = ref([]);
 const imageFiles = ref([]);
 const videoFiles = ref([]);
 
-// 表单状�?const formState = reactive({
+// 表单状态
+const formState = reactive({
   projectId: null,
   modelType: 'pretrained',
   systemModel: 'yolov5',
@@ -218,8 +220,9 @@ const getBase64 = file => {
 
 // 项目变更处理
 const handleProjectChange = projectId => {
-  console.log('项目已变�?', projectId);
-  // 可以在这里加载项目相关模型配�?};
+  console.log('项目已变更:', projectId);
+  // 可以在这里加载项目相关模型配置
+};
 
 // 表单提交
 const handleSubmit = async () => {
@@ -262,7 +265,8 @@ const handleSubmit = async () => {
   }
 };
 
-// 初始化加载项�?onMounted(() => {
+// 初始化加载项目
+onMounted(() => {
   fetchProjects();
 });
 </script>

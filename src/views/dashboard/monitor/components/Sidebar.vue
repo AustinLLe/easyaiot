@@ -21,7 +21,7 @@
             <Icon icon="ant-design:video-camera-outlined" :size="24" />
           </div>
           <div class="stat-content">
-            <div class="stat-label">摄像头数�?/div>
+            <div class="stat-label">摄像头数量</div>
             <div class="stat-value">{{ statistics.cameraCount }}</div>
           </div>
         </div>
@@ -53,10 +53,11 @@
         <span class="section-title">设备目录</span>
         <div class="header-actions">
           <span class="device-count" v-if="!loading && treeData.length > 0">
-            {{ getTotalDeviceCount(treeData) }} 个设�?          </span>
+            {{ getTotalDeviceCount(treeData) }} 个设备
+          </span>
         </div>
       </div>
-      <!-- 设备�?-->
+      <!-- 设备树 -->
       <div class="sidebar-tree">
         <BasicTree
           :tree-data="treeData"
@@ -115,17 +116,20 @@ const statistics = ref({
   modelCount: 0
 })
 
-// 将目录和设备转换为树形结�?const convertToTreeData = (directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] => {
+// 将目录和设备转换为树形结构
+const convertToTreeData = (directories: DeviceDirectory[], devices: DeviceInfo[]): TreeItem[] => {
   return directories.map((dir) => {
     const directoryKey = `dir_${dir.id}`
     const children: TreeItem[] = []
     
-    // 添加子目�?    if (dir.children && dir.children.length > 0) {
+    // 添加子目录
+    if (dir.children && dir.children.length > 0) {
       const subTree = convertToTreeData(dir.children, devices)
       children.push(...subTree)
     }
     
-    // 添加该目录下的设�?    const dirDevices = devices.filter(device => device.directory_id === dir.id)
+    // 添加该目录下的设备
+    const dirDevices = devices.filter(device => device.directory_id === dir.id)
     dirDevices.forEach(device => {
       children.push({
         key: `device_${device.id}`,
@@ -148,18 +152,22 @@ const statistics = ref({
   })
 }
 
-// 加载目录和设备数�?const loadTreeData = async () => {
+// 加载目录和设备数据
+const loadTreeData = async () => {
   try {
     loading.value = true
     // 获取目录列表
     const dirResponse = await getDirectoryList()
     const dirData = dirResponse.code !== undefined ? dirResponse.data : dirResponse
     
-    // 获取所有设备（不分页，获取全部�?    const deviceResponse = await getDeviceList({
+    // 获取所有设备（不分页，获取全部）
+    const deviceResponse = await getDeviceList({
       pageNo: 1,
-      pageSize: 10000, // 获取所有设�?    })
+      pageSize: 10000, // 获取所有设备
+    })
     
-    // 处理设备数据 - 可能是数组或包含list/records的对�?    let deviceData: any[] = []
+    // 处理设备数据 - 可能是数组或包含list/records的对象
+    let deviceData: any[] = []
     if (deviceResponse) {
       if (Array.isArray(deviceResponse)) {
         deviceData = deviceResponse
@@ -178,9 +186,11 @@ const statistics = ref({
     console.log('设备数据:', deviceData)
     
     if (dirData && Array.isArray(dirData) && deviceData && Array.isArray(deviceData)) {
-      // 获取没有目录的设�?      const devicesWithoutDir = deviceData.filter((device: DeviceInfo) => !device.directory_id)
+      // 获取没有目录的设备
+      const devicesWithoutDir = deviceData.filter((device: DeviceInfo) => !device.directory_id)
       
-      // 转换目录�?      const tree = convertToTreeData(dirData, deviceData)
+      // 转换目录树
+      const tree = convertToTreeData(dirData, deviceData)
       
       // 如果有未分配目录的设备，添加到根节点
       if (devicesWithoutDir.length > 0) {
@@ -199,7 +209,8 @@ const statistics = ref({
       treeData.value = tree
       console.log('树形数据:', treeData.value)
       
-      // 默认展开所有目录节�?      const getAllKeys = (nodes: any[]): string[] => {
+      // 默认展开所有目录节点
+      const getAllKeys = (nodes: any[]): string[] => {
         let keys: string[] = []
         nodes.forEach((node) => {
           if (node.isDirectory) {
@@ -213,15 +224,16 @@ const statistics = ref({
       }
       expandedKeys.value = getAllKeys(treeData.value)
       
-      // 摄像头数量会在loadStatistics中统一更新，这里不需要单独设�?    } else {
-      console.warn('数据格式不正�?', { dirData, deviceData })
+      // 摄像头数量会在loadStatistics中统一更新，这里不需要单独设置
+    } else {
+      console.warn('数据格式不正确:', { dirData, deviceData })
       treeData.value = []
       // 如果至少有一些数据，显示提示
       if (!dirData || !Array.isArray(dirData)) {
-        createMessage.warning('目录数据格式不正�?)
+        createMessage.warning('目录数据格式不正确')
       }
       if (!deviceData || !Array.isArray(deviceData)) {
-        createMessage.warning('设备数据格式不正�?)
+        createMessage.warning('设备数据格式不正确')
       }
     }
   } catch (error) {
@@ -236,7 +248,8 @@ const statistics = ref({
 // 加载统计数据
 const loadStatistics = async () => {
   try {
-    // 调用统一的统计接�?    const statsResponse = await getDashboardStatistics()
+    // 调用统一的统计接口
+    const statsResponse = await getDashboardStatistics()
     if (statsResponse) {
       statistics.value.alarmCount = statsResponse.alarm_count || 0
       statistics.value.cameraCount = statsResponse.camera_count || 0
@@ -245,7 +258,8 @@ const loadStatistics = async () => {
     }
   } catch (error) {
     console.error('加载统计数据失败', error)
-    // 发生错误时使用默认�?    statistics.value.alarmCount = 0
+    // 发生错误时使用默认值
+    statistics.value.alarmCount = 0
     statistics.value.cameraCount = 0
     statistics.value.algorithmCount = 0
     statistics.value.modelCount = 0
@@ -276,7 +290,8 @@ const handleTreeSelect = (keys: string[], info: any) => {
     selectedKeys.value = [selectedKey]
     emit('device-change', device)
     
-    // 检查是否有流地址，优先使用http_stream（大屏地址使用摄像头的http地址�?    // 同时传�?AI 流地址
+    // 检查是否有流地址，优先使用http_stream（大屏地址使用摄像头的http地址）
+    // 同时传递 AI 流地址
     if (node.device.http_stream || node.device.rtmp_stream || node.device.ai_http_stream || node.device.ai_rtmp_stream) {
       emit('device-play', {
         ...device,
@@ -305,7 +320,8 @@ const findNodeByKey = (nodes: TreeItem[], key: string): TreeItem | null => {
   return null
 }
 
-// 渲染树节点图�?const renderTreeIcon = (node: TreeItem) => {
+// 渲染树节点图标
+const renderTreeIcon = (node: TreeItem) => {
   if (node.isDirectory) {
     return 'ant-design:folder-outlined'
   } else if (node.isDevice) {
@@ -318,7 +334,8 @@ const findNodeByKey = (nodes: TreeItem[], key: string): TreeItem | null => {
 const getFullPath = (node: TreeItem, treeNodes: TreeItem[]): string => {
   const path: string[] = [node.title as string]
 
-  // 递归查找父节点路�?  const findPath = (nodes: TreeItem[], targetKey: string, currentPath: string[] = []): string[] | null => {
+  // 递归查找父节点路径
+  const findPath = (nodes: TreeItem[], targetKey: string, currentPath: string[] = []): string[] | null => {
     for (const n of nodes) {
       const newPath = [...currentPath, n.title as string]
       if (n.key === targetKey) {
@@ -355,7 +372,8 @@ const getTotalDeviceCount = (nodes: TreeItem[]): number => {
   return count
 }
 
-// 处理流类型切�?const handleStreamTypeChange = (type: 'video' | 'ai') => {
+// 处理流类型切换
+const handleStreamTypeChange = (type: 'video' | 'ai') => {
   if (streamType.value === type) {
     return
   }
@@ -363,26 +381,32 @@ const getTotalDeviceCount = (nodes: TreeItem[]): number => {
   emit('stream-type-change', type)
 }
 
-// 刷新定时�?let statisticsTimer: any = null
+// 刷新定时器
+let statisticsTimer: any = null
 let delayTimer: any = null
 let isMounted = false
 
-// 组件挂载时加载数�?onMounted(() => {
+// 组件挂载时加载数据
+onMounted(() => {
   isMounted = true
   
   loadTreeData()
   // 初始加载统计数据
   loadStatistics()
   
-  // 错峰刷新：延�?秒开始，�?秒刷新一次统计数据（1秒�?秒�?1�?..�?  delayTimer = setTimeout(() => {
-    // 检查组件是否仍然挂�?    if (!isMounted) return
+  // 错峰刷新：延迟1秒开始，每5秒刷新一次统计数据（1秒、6秒、11秒...）
+  delayTimer = setTimeout(() => {
+    // 检查组件是否仍然挂载
+    if (!isMounted) return
     
     loadStatistics()
     
-    // 再次检查组件是否仍然挂�?    if (!isMounted) return
+    // 再次检查组件是否仍然挂载
+    if (!isMounted) return
     
     statisticsTimer = setInterval(() => {
-      // 每次执行前检查组件是否仍然挂�?      if (!isMounted) {
+      // 每次执行前检查组件是否仍然挂载
+      if (!isMounted) {
         if (statisticsTimer) {
           clearInterval(statisticsTimer)
           statisticsTimer = null
@@ -399,12 +423,14 @@ let isMounted = false
 onUnmounted(() => {
   isMounted = false
   
-  // 清理延迟定时�?  if (delayTimer) {
+  // 清理延迟定时器
+  if (delayTimer) {
     clearTimeout(delayTimer)
     delayTimer = null
   }
   
-  // 清理定时�?  if (statisticsTimer) {
+  // 清理定时器
+  if (statisticsTimer) {
     clearInterval(statisticsTimer)
     statisticsTimer = null
   }
@@ -687,11 +713,13 @@ onUnmounted(() => {
     flex-direction: column;
   }
 
-  // 覆盖 xingyuv-tree 类的背景�?  :deep(.xingyuv-tree) {
+  // 覆盖 xingyuv-tree 类的背景色
+  :deep(.xingyuv-tree) {
     background: transparent !important;
   }
 
-  // 隐藏 BasicTree 的标题栏，只保留搜索�?  :deep(.tree-header) {
+  // 隐藏 BasicTree 的标题栏，只保留搜索框
+  :deep(.tree-header) {
     padding: 8px 0;
     border-bottom: none !important;
     background: rgba(15, 34, 73, 0.3) !important;
@@ -702,20 +730,24 @@ onUnmounted(() => {
     }
   }
 
-  // 去掉搜索框下方的所有边�?  :deep(.tree-header-search) {
+  // 去掉搜索框下方的所有边框
+  :deep(.tree-header-search) {
     border-bottom: none !important;
   }
 
-  // 增大 xingyuv-tree-header 下方的间�?  :deep(.xingyuv-tree-header) {
+  // 增大 xingyuv-tree-header 下方的间距
+  :deep(.xingyuv-tree-header) {
     margin-bottom: 12px !important;
     border-bottom: none !important;
   }
 
-  // 覆盖 Spin 组件的背�?  :deep(.ant-spin-container) {
+  // 覆盖 Spin 组件的背景
+  :deep(.ant-spin-container) {
     background: transparent !important;
   }
 
-  // 覆盖 ScrollContainer 的背�?  :deep(.scroll-container) {
+  // 覆盖 ScrollContainer 的背景
+  :deep(.scroll-container) {
     background: transparent !important;
   }
 
@@ -768,11 +800,13 @@ onUnmounted(() => {
     color: inherit;
   }
 
-  // 覆盖 Empty 组件的背�?  :deep(.ant-empty) {
+  // 覆盖 Empty 组件的背景
+  :deep(.ant-empty) {
     background: transparent !important;
   }
 
-  // 搜索框样�?  :deep(.tree-header-search) {
+  // 搜索框样式
+  :deep(.tree-header-search) {
     .ant-input {
       background: rgba(52, 134, 218, 0.15) !important;
       border: 1px solid rgba(52, 134, 218, 0.4);

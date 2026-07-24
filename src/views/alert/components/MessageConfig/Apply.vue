@@ -104,11 +104,11 @@
 
   const bodyMsgPush = [
     {
-      title: '请求体类�?,
+      title: '请求体类型',
       dataIndex: 'bodyType',
     },
     {
-      title: '请求�?,
+      title: '请求体',
       dataIndex: 'body',
     },
   ];

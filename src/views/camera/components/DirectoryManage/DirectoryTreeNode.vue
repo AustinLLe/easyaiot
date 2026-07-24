@@ -19,7 +19,7 @@
         </span>
         <span v-else class="expand-placeholder"></span>
         
-        <!-- 文件夹图�?-->
+        <!-- 文件夹图标 -->
         <Icon
           icon="ant-design:folder-outlined"
           :style="{ fontSize: '16px', color: '#1890ff', marginRight: '8px' }"
@@ -59,7 +59,7 @@
       </div>
     </div>
     
-    <!-- 子节�?-->
+    <!-- 子节点 -->
     <div
       v-if="hasChildren && isExpanded && level < 2"
       class="node-children"

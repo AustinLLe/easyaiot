@@ -15,7 +15,7 @@
           @change="handleUploadChange"
         >
           <CloudUploadOutlined :style="{ fontSize: '50px', color: '#1890ff' }" />
-          <p class="ant-upload-text">单击或拖动文件到此区域进行上�?/p>
+          <p class="ant-upload-text">单击或拖动文件到此区域进行上传</p>
           <p class="ant-upload-hint"> 导入JSON格式的文件上传规则链 </p>
         </UploadDragger>
       </template>
@@ -46,7 +46,7 @@
           validator: async (rule, value) => {
             if (!value) {
               /* eslint-disable-next-line */
-              return Promise.reject('值不能为�?);
+              return Promise.reject('值不能为空');
             }
             return Promise.resolve();
           },
@@ -57,7 +57,7 @@
     {
       field: 'disabled',
       component: 'Checkbox',
-      label: '状�?,
+      label: '状态',
       colProps: {
         span: 24,
       },
@@ -111,7 +111,7 @@
           getFlows(data.id).then((res) => {
             detail.value = res;
           }).catch((error) => {
-            console.error('获取规则链详情失�?', error);
+            console.error('获取规则链详情失败:', error);
           });
           setFieldsValue({
             ...data,
@@ -131,7 +131,7 @@
               await addFlows(params);
             } else if (tplType.value === 'edit') {
               if (!flowsId.value || flowsId.value === 'undefined') {
-                createMessage.error('规则链ID无效�?);
+                createMessage.error('规则链ID无效！');
                 return;
               }
               await updateflows(flowsId.value, params);
@@ -144,12 +144,12 @@
             //     ruleChainId,
             //   });
             // }
-            createMessage.success('操作成功�?);
+            createMessage.success('操作成功！');
             closeModal();
             emit('success', {});
           }catch (error) {
     console.error(error)
-            createMessage.error('操作失败�?);
+            createMessage.error('操作失败！');
           }
         }catch (error) {
     console.error(error)
@@ -158,7 +158,7 @@
       }
 
       function handleChange(list: string[]) {
-        console.log(`已上传文�?{JSON.stringify(list)}`);
+        console.log(`已上传文件${JSON.stringify(list)}`);
       }
 
       const handleUploadChange = (info) => {

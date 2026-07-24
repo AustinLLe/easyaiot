@@ -7,7 +7,7 @@
     >
       <div class="alert-push-edit-dialog" role="dialog" aria-modal="true">
         <div class="alert-push-edit-header">
-          <span class="alert-push-edit-title">{{ isCreate ? '添加告警推�? : '编辑告警推�? }}</span>
+          <span class="alert-push-edit-title">{{ isCreate ? '添加告警推送' : '编辑告警推送' }}</span>
           <button type="button" class="alert-push-edit-close" @click="handleCancel">×</button>
         </div>
 

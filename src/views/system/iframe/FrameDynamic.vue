@@ -27,11 +27,13 @@
   const { setTitle } = useTabs();
   setTitle(decodeURIComponent(String(index)) || 'NodeRed');
   
-  // 构建完整�?iframe 路径
+  // 构建完整的 iframe 路径
   const _initPath = computed(() => {
     if (path && code) {
-      // 如果 path 是相对路径，确保�?/ 开�?      const basePath = String(path).startsWith('/') ? path : `/${path}`;
-      // 拼接 code 到路径末�?      return `${basePath}${code}`;
+      // 如果 path 是相对路径，确保以 / 开头
+      const basePath = String(path).startsWith('/') ? path : `/${path}`;
+      // 拼接 code 到路径末尾
+      return `${basePath}${code}`;
     } else if (path) {
       return String(path).startsWith('/') ? path : `/${path}`;
     }

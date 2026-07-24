@@ -27,13 +27,13 @@
         <div v-else class="video-empty">暂无可播放地址</div>
         <div v-if="state.loading" class="video-loading">
           <LoadingOutlined spin />
-          <span>正在准备录像点播�?/span>
+          <span>正在准备录像点播…</span>
         </div>
       </div>
 
       <div class="record-meta">
         <div>
-          <span>摄像�?/span>
+          <span>摄像头</span>
           <b>{{ state.deviceName || '--' }}</b>
         </div>
         <div>
@@ -84,7 +84,7 @@ const [register] = useModalInner((record: Record<string, string>) => {
 
 function handleVideoError() {
   state.loading = false;
-  createMessage.error('录像加载失败，请刷新历史列表后重�?);
+  createMessage.error('录像加载失败，请刷新历史列表后重试');
 }
 
 function resetPlayer() {

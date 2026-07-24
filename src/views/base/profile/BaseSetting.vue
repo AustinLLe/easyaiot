@@ -42,7 +42,7 @@ async function handleSubmit() {
     await updateUserProfileApi(values)
   }
   finally {
-    createMessage.success('更新成功�?)
+    createMessage.success('更新成功！')
   }
 }
 </script>

@@ -37,7 +37,7 @@ const [registerTable] = useTable({
   canResize: true,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '推送历�?,
+  title: '推送历史',
   api: historyQuery,
   columns: [
     ...getColumns(),

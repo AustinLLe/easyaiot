@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     @register="register"
-    title="区域检测配�?
+    title="区域检测配置"
     :width="1200"
     :z-index="props.zIndex"
     :canFullscreen="true"
@@ -11,12 +11,12 @@
     :showCancelBtn="true"
   >
     <div class="device-region-detection-drawer" :class="{ 'draft-fixed-layout': hideDeviceList }">
-      <!-- 摄像头列表：组合模式编辑固定配对时隐藏；算法模式多摄像头时保�?-->
+      <!-- 摄像头列表：组合模式编辑固定配对时隐藏；算法模式多摄像头时保留 -->
       <div v-if="!hideDeviceList" class="device-list-panel">
         <div class="panel-header">
           <a-input-search
             v-model:value="searchKeyword"
-            placeholder="搜索摄像�?
+            placeholder="搜索摄像头"
             style="width: 100%"
             @search="handleSearch"
           />
@@ -44,11 +44,11 @@
               <div class="device-name">{{ device.name || device.id }}</div>
             </div>
           </div>
-          <a-empty v-if="filteredDevices.length === 0" description="暂无摄像�? :image="false" />
+          <a-empty v-if="filteredDevices.length === 0" description="暂无摄像头" :image="false" />
         </div>
       </div>
 
-      <!-- 区域检测绘制区�?-->
+      <!-- 区域检测绘制区域 -->
       <div
         class="region-drawer-panel"
         :class="{ 'region-drawer-panel--full': hideDeviceList }"
@@ -103,7 +103,7 @@ import DeviceRegionDrawer from '@/views/camera/components/DeviceRegionDrawer/ind
 defineOptions({ name: 'DeviceRegionDetectionDrawer', inheritAttrs: false });
 
 const props = withDefaults(defineProps<{
-  /** 嵌套在其他弹窗内时提高层级，避免被父级遮�?*/
+  /** 嵌套在其他弹窗内时提高层级，避免被父级遮挡 */
   zIndex?: number;
 }>(), {
   zIndex: undefined,
@@ -145,7 +145,7 @@ const [register, { setModalProps }] = useModalInner(async (data) => {
     return;
   }
 
-  setModalProps({ title: '区域检测配�? });
+  setModalProps({ title: '区域检测配置' });
 
   if (data?.taskId) {
     taskId.value = data.taskId;
@@ -157,7 +157,7 @@ const [register, { setModalProps }] = useModalInner(async (data) => {
   }
 });
 
-// 状�?
+// 状态
 const taskId = ref<number | null>(null);
 const taskModelIds = ref<number[] | null>(null);
 const devices = ref<DeviceInfo[]>([]);
@@ -189,10 +189,10 @@ const hideModelSelector = computed(() =>
 
 const emptySelectionText = computed(() => {
   if (draftMode.value && draftRow.value?.device_id)
-    return '正在加载摄像头底�?..';
+    return '正在加载摄像头底图...';
   if (draftMode.value)
     return '请选择一个摄像头进行区域配置';
-  return '请选择一个摄像头进行区域检测配�?;
+  return '请选择一个摄像头进行区域检测配置';
 });
 
 function buildDraftModalSubtitle(row: RegionTableRow) {
@@ -278,7 +278,7 @@ async function loadDraftDevices(draft: AlgorithmTaskDraft, row: RegionTableRow) 
     );
 
   if (filtered.length === 0) {
-    createMessage.warning('未找到可用摄像头，请返回上一步绑定摄像头与算�?);
+    createMessage.warning('未找到可用摄像头，请返回上一步绑定摄像头与算法');
     devices.value = [];
     return;
   }
@@ -296,7 +296,7 @@ async function loadDraftDevices(draft: AlgorithmTaskDraft, row: RegionTableRow) 
           device.cover_image_path = context.coverImagePath;
       }
       catch {
-        // 封面加载失败不影响继续编�?
+        // 封面加载失败不影响继续编辑
       }
     }),
   );
@@ -321,7 +321,7 @@ const selectDevice = async (device: DeviceInfo) => {
     // 确保即使数据为空数组，也要设置，这样组件知道已经加载过了
     deviceRegions.value[device.id] = regions;
     
-    // 如果有区域，获取对应的图片路�?
+    // 如果有区域，获取对应的图片路径
     if (regions.length > 0 && regions[0].image_path) {
       deviceImagePaths.value[device.id] = regions[0].image_path;
       if (regions[0].image_id) {
@@ -333,12 +333,12 @@ const selectDevice = async (device: DeviceInfo) => {
       // 优先使用最新的封面图，即使 deviceImagePaths 已经有值，也要检查并更新
       if (device.cover_image_path) {
         deviceImagePaths.value[device.id] = device.cover_image_path;
-        console.log('selectDevice: 使用封面图作为初始图�?', device.cover_image_path);
+        console.log('selectDevice: 使用封面图作为初始图片:', device.cover_image_path);
       }
     }
   } catch (error) {
     console.error('加载设备区域配置失败', error);
-    // 加载失败时，设置为空数组，表示已尝试加载但没有数�?
+    // 加载失败时，设置为空数组，表示已尝试加载但没有数据
     deviceRegions.value[device.id] = [];
     // 加载失败时，如果有封面图，使用封面图作为初始图片
     if (device.cover_image_path) {
@@ -349,7 +349,7 @@ const selectDevice = async (device: DeviceInfo) => {
   
   console.log('selectDevice: 准备设置 selectedDeviceId, deviceRegions:', deviceRegions.value[device.id], 'deviceImagePaths:', deviceImagePaths.value[device.id]);
   
-  // 确保图片路径已设置后再设�?selectedDeviceId，这样组件渲染时就能获取到图片路�?
+  // 确保图片路径已设置后再设置 selectedDeviceId，这样组件渲染时就能获取到图片路径
   // 使用 nextTick 确保响应式更新已完成
   await nextTick();
   selectedDeviceId.value = device.id;
@@ -363,7 +363,7 @@ const selectDevice = async (device: DeviceInfo) => {
 
 // 搜索
 const handleSearch = () => {
-  // 搜索逻辑已在computed中处�?
+  // 搜索逻辑已在computed中处理
 };
 
 // 图片加载错误处理
@@ -392,7 +392,7 @@ const handleRegionSave = (regions: DeviceDetectionRegion[]) => {
     return;
   }
 
-  createMessage.success('区域配置已保�?);
+  createMessage.success('区域配置已保存');
 };
 
 // 图片抓拍
@@ -406,14 +406,14 @@ const handleImageCaptured = (imageId: number, imagePath: string) => {
 // 封面更新
 const handleCoverUpdated = async (imagePath: string) => {
   if (selectedDeviceId.value) {
-    // 更新设备列表中的封面�?
+    // 更新设备列表中的封面图
     const device = devices.value.find(d => d.id === selectedDeviceId.value);
     if (device) {
       (device as any).cover_image_path = imagePath;
     }
     
-    // 同步更新 deviceImagePaths，确保下次打开canvas时使用最新的封面�?
-    // 如果没有区域图片，则使用新的封面图作为canvas的初始图�?
+    // 同步更新 deviceImagePaths，确保下次打开canvas时使用最新的封面图
+    // 如果没有区域图片，则使用新的封面图作为canvas的初始图片
     const regions = deviceRegions.value[selectedDeviceId.value] || [];
     const hasRegionImage = regions.length > 0 && regions[0].image_path;
     if (!hasRegionImage) {
@@ -437,7 +437,7 @@ const handleCoverUpdated = async (imagePath: string) => {
 const loadTaskInfo = async (taskId: number) => {
   try {
     const response = await getAlgorithmTask(taskId);
-    // 处理响应：可能是直接返回任务对象，也可能是包�?code 的对�?
+    // 处理响应：可能是直接返回任务对象，也可能是包含 code 的对象
     let task: any = null;
     if (response && typeof response === 'object' && 'code' in response) {
       if (response.code === 0 && response.data) {
@@ -447,7 +447,7 @@ const loadTaskInfo = async (taskId: number) => {
         return;
       }
     } else if (response && typeof response === 'object' && 'id' in response) {
-      // 直接是任务对�?
+      // 直接是任务对象
       task = response;
     }
     
@@ -468,7 +468,7 @@ const loadTaskInfo = async (taskId: number) => {
 const loadTaskDevices = async (taskId: number) => {
   try {
     const response = await getTaskStreams(taskId);
-    // 处理响应：可能是数组，也可能是包�?code 的对�?
+    // 处理响应：可能是数组，也可能是包含 code 的对象
     let streams: CameraStreamInfo[] = [];
     if (Array.isArray(response)) {
       streams = response;
@@ -476,24 +476,24 @@ const loadTaskDevices = async (taskId: number) => {
       if (response.code === 0 && response.data && Array.isArray(response.data)) {
         streams = response.data;
       } else {
-        createMessage.warning(response.msg || '该任务未关联摄像�?);
+        createMessage.warning(response.msg || '该任务未关联摄像头');
         devices.value = [];
         return;
       }
     } else {
-      createMessage.warning('该任务未关联摄像�?);
+      createMessage.warning('该任务未关联摄像头');
       devices.value = [];
       return;
     }
     
-    // �?CameraStreamInfo 转换�?DeviceInfo 格式
+    // 将 CameraStreamInfo 转换为 DeviceInfo 格式
     devices.value = streams.map(stream => ({
       id: stream.device_id,
       name: stream.device_name,
       http_stream: stream.http_stream,
       rtmp_stream: stream.rtmp_stream,
       source: stream.source,
-      cover_image_path: stream.cover_image_path, // 保留封面图路�?
+      cover_image_path: stream.cover_image_path, // 保留封面图路径
     } as DeviceInfo));
     
     // 如果设备有封面图且已被选择，但没有区域图片，使用封面图作为初始图片
@@ -506,11 +506,11 @@ const loadTaskDevices = async (taskId: number) => {
     }
     
     if (devices.value.length === 0) {
-      createMessage.warning('该任务未关联摄像�?);
+      createMessage.warning('该任务未关联摄像头');
     }
   } catch (error) {
-    console.error('加载任务关联摄像头列表失�?, error);
-    createMessage.error('加载任务关联摄像头列表失�?);
+    console.error('加载任务关联摄像头列表失败', error);
+    createMessage.error('加载任务关联摄像头列表失败');
     devices.value = [];
   }
 };
@@ -530,7 +530,7 @@ const loadDevices = async () => {
 </script>
 
 <style lang="less" scoped>
-// 变量定义 - 专业简洁配色方案（�?train 模型推理界面保持一致）
+// 变量定义 - 专业简洁配色方案（与 train 模型推理界面保持一致）
 @primary-color: #2C3E50;
 @secondary-color: #34495E;
 @accent-color: #495057;

@@ -68,13 +68,13 @@ function onFetchSuccess() {
 
 function userNicknameFormat(row) {
   if (!row.leaderUserId)
-    return '未设�?
+    return '未设置'
 
   for (const user of users.value) {
     if (row.leaderUserId === user.id)
       return user.nickname
   }
-  return `未知�?{row.leaderUserId}】`
+  return `未知【${row.leaderUserId}】`
 }
 
 onMounted(async () => {

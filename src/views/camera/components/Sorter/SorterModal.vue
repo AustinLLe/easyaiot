@@ -33,7 +33,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
   schemas: [
     {
       field: 'sorter_name',
-      label: '排序器名�?,
+      label: '排序器名称',
       component: 'Input',
       required: true,
       componentProps: {
@@ -48,7 +48,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       componentProps: {
         placeholder: '请选择排序类型',
         options: [
-          { label: '置信�?, value: 'confidence' },
+          { label: '置信度', value: 'confidence' },
           { label: '时间', value: 'time' },
           { label: '分数', value: 'score' },
         ],
@@ -72,7 +72,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '描述',
       component: 'InputTextArea',
       componentProps: {
-        placeholder: '请输入描�?,
+        placeholder: '请输入描述',
         rows: 4,
       },
     },
@@ -81,8 +81,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '是否启用',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '�?,
-        unCheckedChildren: '�?,
+        checkedChildren: '是',
+        unCheckedChildren: '否',
       },
     },
   ],
@@ -92,9 +92,9 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
 const modalData = ref<{ type?: string; record?: Sorter }>({});
 
 const modalTitle = computed(() => {
-  if (modalData.value.type === 'view') return '查看排序�?;
-  if (modalData.value.type === 'edit') return '编辑排序�?;
-  return '新建排序�?;
+  if (modalData.value.type === 'view') return '查看排序器';
+  if (modalData.value.type === 'edit') return '编辑排序器';
+  return '新建排序器';
 });
 
 const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) => {
@@ -122,7 +122,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       ]);
     }
   } else {
-    // 新建模式，设置默认�?    await setFieldsValue({
+    // 新建模式，设置默认值
+    await setFieldsValue({
       sorter_type: 'confidence',
       sort_order: 'desc',
       is_enabled: true,

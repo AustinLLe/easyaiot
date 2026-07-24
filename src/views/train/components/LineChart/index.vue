@@ -45,7 +45,8 @@ const props = defineProps({
 const chartDom = ref(null)
 let chartInstance = null
 
-// 初始化图�?const initChart = () => {
+// 初始化图表
+const initChart = () => {
   if (!chartDom.value) return
 
   chartInstance = echarts.init(chartDom.value, props.theme)
@@ -66,7 +67,8 @@ let chartInstance = null
 const getChartOptions = () => {
   if (props.data.length === 0) return {}
 
-  // 提取指标名称（排除timestamp字段�?  const metrics = Object.keys(props.data[0]).filter(key => key !== 'timestamp')
+  // 提取指标名称（排除timestamp字段）
+  const metrics = Object.keys(props.data[0]).filter(key => key !== 'timestamp')
 
   // 准备系列数据
   const series = metrics.map(metric => ({
@@ -165,7 +167,7 @@ const getChartOptions = () => {
     },
     yAxis: {
       type: 'value',
-      name: '指标�?,
+      name: '指标值',
       nameTextStyle: {
         color: '#666',
         padding: [0, 0, 0, 10]
@@ -205,7 +207,8 @@ const getChartOptions = () => {
   }
 }
 
-// 销毁图�?const disposeChart = () => {
+// 销毁图表
+const disposeChart = () => {
   if (chartInstance) {
     chartInstance.dispose()
     chartInstance = null

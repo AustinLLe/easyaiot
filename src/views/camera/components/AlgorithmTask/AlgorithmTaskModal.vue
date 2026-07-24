@@ -17,7 +17,7 @@
           </div>
         </div>
       </a-tab-pane>
-      <a-tab-pane key="status" tab="服务状�? :disabled="!taskId">
+      <a-tab-pane key="status" tab="服务状态" :disabled="!taskId">
         <ServiceStatusTab v-if="taskId && formValues" :task="formValues" />
         <a-empty v-else description="请先保存基础配置" />
       </a-tab-pane>
@@ -70,9 +70,11 @@ const defaultModels = [
   },
 ];
 const modelOptions = ref<Array<{ label: string; value: number }>>([...defaultModels]);
-const modelMap = ref<Map<number, any>>(new Map()); // 存储完整的模型信�?
-// 占位符列表（包含占位符和说明�?const placeholders = [
-  { placeholder: '${object}', description: '检测对�? },
+const modelMap = ref<Map<number, any>>(new Map()); // 存储完整的模型信息
+
+// 占位符列表（包含占位符和说明）
+const placeholders = [
+  { placeholder: '${object}', description: '检测对象' },
   { placeholder: '${event}', description: '事件类型' },
   { placeholder: '${region}', description: '区域信息' },
   { placeholder: '${information}', description: '详细信息' },
@@ -111,7 +113,8 @@ const loadDevices = async () => {
 
 
 
-// 初始化默认模型到映射�?const initDefaultModels = () => {
+// 初始化默认模型到映射中
+const initDefaultModels = () => {
   modelMap.value.set(-1, {
     id: -1,
     name: 'yolo11n.pt',
@@ -126,12 +129,15 @@ const loadDevices = async () => {
   });
 };
 
-// 加载模型列表（用于选择模型�?const loadModels = async () => {
-  // 先初始化默认模型，确保它们始终存�?  initDefaultModels();
+// 加载模型列表（用于选择模型）
+const loadModels = async () => {
+  // 先初始化默认模型，确保它们始终存在
+  initDefaultModels();
 
   try {
     const response = await getModelPage({ pageNo: 1, pageSize: 1000 });
-    // 处理响应数据：可能是转换后的数组，也可能是包�?code/data 的对�?    let allModels: any[] = [];
+    // 处理响应数据：可能是转换后的数组，也可能是包含 code/data 的对象
+    let allModels: any[] = [];
     if (Array.isArray(response)) {
       allModels = response;
     } else if (response && response.code === 0 && response.data) {
@@ -142,7 +148,8 @@ const loadDevices = async () => {
 
     // 构建选项列表和完整模型信息映射（不清空默认模型）
     const dbModelOptions = allModels.map((item: any) => {
-      // 保存完整的模型信�?      modelMap.value.set(item.id, item);
+      // 保存完整的模型信息
+      modelMap.value.set(item.id, item);
 
       return {
         label: `${item.name}${item.version ? ` (v${item.version})` : ''}`,
@@ -173,7 +180,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入任务名�?,
+        placeholder: '请输入任务名称',
       },
     },
     {
@@ -191,7 +198,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'device_ids',
-      label: '关联摄像�?,
+      label: '关联摄像头',
       component: 'Select',
       required: true,
       componentProps: {
@@ -225,13 +232,13 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'cron_expression',
-      label: 'Cron表达�?,
+      label: 'Cron表达式',
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '例如: 0 */5 * * * * (�?分钟)',
+        placeholder: '例如: 0 */5 * * * * (每5分钟)',
       },
-      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示�?分钟执行一�?,
+      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示每5分钟执行一次',
       ifShow: ({ values }) => values.task_type === 'snap',
     },
     {
@@ -239,10 +246,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '抽帧间隔',
       component: 'InputNumber',
       componentProps: {
-        placeholder: '每N帧抓一�?,
+        placeholder: '每N帧抓一次',
         min: 1,
       },
-      helpMessage: '抽帧模式下，每N帧抓一次（默认25�?,
+      helpMessage: '抽帧模式下，每N帧抓一次（默认25）',
       ifShow: ({ values }) => values.task_type === 'snap',
     },
     {
@@ -250,10 +257,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '抽帧间隔',
       component: 'InputNumber',
       componentProps: {
-        placeholder: '每N帧抽一�?,
+        placeholder: '每N帧抽一次',
         min: 1,
       },
-      helpMessage: '实时算法任务中，每N帧抽一次进行检测（默认25�?,
+      helpMessage: '实时算法任务中，每N帧抽一次进行检测（默认25）',
       ifShow: ({ values }) => values.task_type === 'realtime',
     },
     {
@@ -261,15 +268,15 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '启用目标追踪',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '�?,
-        unCheckedChildren: '�?,
+        checkedChildren: '是',
+        unCheckedChildren: '否',
       },
-      helpMessage: '是否启用目标追踪功能，启用后会记录对象出现时间、停留时间、离开时间等信�?,
+      helpMessage: '是否启用目标追踪功能，启用后会记录对象出现时间、停留时间、离开时间等信息',
       ifShow: ({ values }) => values.task_type === 'realtime',
     },
     {
       field: 'tracking_similarity_threshold',
-      label: '追踪相似度阈�?,
+      label: '追踪相似度阈值',
       component: 'InputNumber',
       componentProps: {
         placeholder: '0.2',
@@ -282,7 +289,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'tracking_max_age',
-      label: '追踪最大存活帧�?,
+      label: '追踪最大存活帧数',
       component: 'InputNumber',
       componentProps: {
         placeholder: '25',
@@ -301,7 +308,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         max: 1,
         step: 0.05,
       },
-      helpMessage: '追踪平滑系数�?-1），值越大越平滑',
+      helpMessage: '追踪平滑系数（0-1），值越大越平滑',
       ifShow: ({ values }) => values.task_type === 'realtime' && values.tracking_enabled,
     },
     {
@@ -312,8 +319,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         return h('div', { class: 'alert-event-enabled-wrapper' }, [
           h(Switch, {
             checked: model.alert_event_enabled,
-            checkedChildren: '�?,
-            unCheckedChildren: '�?,
+            checkedChildren: '是',
+            unCheckedChildren: '否',
             disabled: isViewMode.value,
             onChange: async (checked: boolean) => {
               model.alert_event_enabled = checked;
@@ -322,7 +329,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
             },
           }),
           h(Popover, {
-            title: '算法任务占位�?,
+            title: '算法任务占位符',
             trigger: 'hover',
             placement: 'rightTop',
             getPopupContainer: (triggerNode) => triggerNode.parentElement || document.body,
@@ -346,7 +353,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
           }),
         ]);
       },
-      helpMessage: '是否启用告警事件，启用后会记录告警信�?,
+      helpMessage: '是否启用告警事件，启用后会记录告警信息',
       ifShow: ({ values }) => values.task_type === 'realtime' || values.task_type === 'snap',
     },
     {
@@ -357,14 +364,15 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         return h('div', { class: 'full-day-defense-wrapper' }, [
           h(Switch, {
             checked: model.is_full_day_defense,
-            checkedChildren: '�?,
-            unCheckedChildren: '�?,
+            checkedChildren: '是',
+            unCheckedChildren: '否',
             disabled: isViewMode.value,
             onChange: async (checked: boolean) => {
               model.is_full_day_defense = checked;
               // 使用 setFieldsValue 更新表单值，这会触发 field-value-change 事件
               await setFieldsValue({ is_full_day_defense: checked });
-              // 手动触发 handleFieldValueChange 以确�?isFullDayDefense 状态立即更�?              handleFieldValueChange('is_full_day_defense', checked);
+              // 手动触发 handleFieldValueChange 以确保 isFullDayDefense 状态立即更新
+              handleFieldValueChange('is_full_day_defense', checked);
             },
           }),
           h(Popover, {
@@ -373,8 +381,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
             getPopupContainer: (triggerNode) => triggerNode.parentElement || document.body,
           }, {
             content: () => h('div', { class: 'defense-tip-content' }, [
-              h('div', { class: 'tip-item' }, '全天布防模式下，系统将在24小时内持续监控并执行算法检测任务，不受时间限制�?),
-              h('div', { class: 'tip-item' }, '关闭全天布防后，可配置自定义布防时段，仅在指定时间段内执行监控任务，有效节省系统资源�?),
+              h('div', { class: 'tip-item' }, '全天布防模式下，系统将在24小时内持续监控并执行算法检测任务，不受时间限制。'),
+              h('div', { class: 'tip-item' }, '关闭全天布防后，可配置自定义布防时段，仅在指定时间段内执行监控任务，有效节省系统资源。'),
             ]),
             default: () => h(Button, {
               type: 'text',
@@ -427,7 +435,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
   if (modalData.value.record) {
     const record = modalData.value.record;
     taskId.value = record.id;
-    // �?model_ids 中提取模型ID列表（用于回显）
+    // 从 model_ids 中提取模型ID列表（用于回显）
     const modelIds: number[] = [];
     if (record.model_ids && Array.isArray(record.model_ids)) {
       modelIds.push(...record.model_ids);
@@ -442,7 +450,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       }
     }
 
-    // 判断是否全天布防（如�?defense_mode �?'full'，则为全天布防）
+    // 判断是否全天布防（如果 defense_mode 为 'full'，则为全天布防）
     const fullDayDefense = record.defense_mode === 'full';
     isFullDayDefense.value = fullDayDefense;
 
@@ -454,7 +462,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
       };
     } else if (record.defense_mode && record.defense_schedule) {
-      // 非全天布防：恢复保存的配�?      try {
+      // 非全天布防：恢复保存的配置
+      try {
         const schedule = typeof record.defense_schedule === 'string'
           ? JSON.parse(record.defense_schedule)
           : record.defense_schedule;
@@ -464,13 +473,15 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         };
       } catch (e) {
         console.error('解析布防时段配置失败', e);
-        // 解析失败时，使用半防模式并清�?        defenseSchedule.value = {
+        // 解析失败时，使用半防模式并清空
+        defenseSchedule.value = {
           mode: 'half',
           schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
         };
       }
     } else {
-      // 没有配置时，使用半防模式并清�?      defenseSchedule.value = {
+      // 没有配置时，使用半防模式并清空
+      defenseSchedule.value = {
         mode: 'half',
         schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
       };
@@ -494,7 +505,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
 
     formValues.value = { ...formValues.value, ...await getFieldsValue() };
 
-    // 查看模式禁用表单和按�?    if (modalData.value.type === 'view') {
+    // 查看模式禁用表单和按钮
+    if (modalData.value.type === 'view') {
       updateSchema([
         { field: 'task_name', componentProps: { disabled: true } },
         { field: 'task_type', componentProps: { disabled: true } },
@@ -532,7 +544,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
     }
   } else {
     // 新建模式，设置默认值，并确保所有字段可编辑
-    // 先重置所有字段为可编辑状态，避免之前查看模式的disabled状态影�?    updateSchema([
+    // 先重置所有字段为可编辑状态，避免之前查看模式的disabled状态影响
+    updateSchema([
       { field: 'task_name', componentProps: { disabled: false } },
       { field: 'task_type', componentProps: { disabled: false } },
       { field: 'device_ids', componentProps: { disabled: false } },
@@ -561,7 +574,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
     });
     // 更新formValues
     formValues.value = { ...formValues.value, ...await getFieldsValue() };
-    // 重置布防时段为默认值（全天布防�?    defenseSchedule.value = {
+    // 重置布防时段为默认值（全天布防）
+    defenseSchedule.value = {
       mode: 'full', // 默认全防模式
       schedule: Array(7).fill(null).map(() => Array(24).fill(1)), // 默认全部填充
     };
@@ -569,7 +583,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
   }
 });
 
-// 处理表单字段值变�?const handleFieldValueChange = async (key: string, value: any) => {
+// 处理表单字段值变化
+const handleFieldValueChange = async (key: string, value: any) => {
   if (key === 'is_full_day_defense') {
     isFullDayDefense.value = value !== undefined ? value : true;
     // 如果切换到非全天布防，默认设置为半防模式并清空表格，让用户自己选择
@@ -580,7 +595,8 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
       };
     } else {
-      // 如果切换到全天布防，设置为全防模�?      defenseSchedule.value = {
+      // 如果切换到全天布防，设置为全防模式
+      defenseSchedule.value = {
         mode: 'full',
         schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
       };
@@ -589,7 +605,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
     const currentValues = await getFieldsValue();
     formValues.value = { ...currentValues, alert_event_enabled: value };
   } else {
-    // 其他字段变化时，也同步更�?formValues
+    // 其他字段变化时，也同步更新 formValues
     const currentValues = await getFieldsValue();
     formValues.value = { ...currentValues, [key]: value };
   }
@@ -605,7 +621,8 @@ const handleSubmit = async () => {
     if (modalData.value.type !== 'edit') {
       values.is_enabled = 0;
     }
-    // 编辑任务时，不修�?is_enabled 状态（保持原值，通过启动/停止按钮控制�?
+    // 编辑任务时，不修改 is_enabled 状态（保持原值，通过启动/停止按钮控制）
+
     // 根据是否全天布防设置布防时段配置
     const fullDayDefense = values.is_full_day_defense !== undefined ? values.is_full_day_defense : true;
     if (fullDayDefense) {
@@ -617,9 +634,10 @@ const handleSubmit = async () => {
       values.defense_mode = defenseSchedule.value.mode;
       const schedule = defenseSchedule.value.schedule;
 
-      // 验证非全天布防模式下至少选择了一个时�?      const hasSelectedTime = schedule.some(day => day.some(hour => hour === 1));
+      // 验证非全天布防模式下至少选择了一个时段
+      const hasSelectedTime = schedule.some(day => day.some(hour => hour === 1));
       if (!hasSelectedTime) {
-        createMessage.error('非全天布防模式下，请至少选择一个布防时�?);
+        createMessage.error('非全天布防模式下，请至少选择一个布防时段');
         confirmLoading.value = false;
         setDrawerProps({ confirmLoading: false });
         return;
@@ -631,13 +649,14 @@ const handleSubmit = async () => {
     // 移除前端字段，不发送到后端
     delete values.is_full_day_defense;
 
-    // 确保 model_ids 是数组格�?    if (values.model_ids && !Array.isArray(values.model_ids)) {
+    // 确保 model_ids 是数组格式
+    if (values.model_ids && !Array.isArray(values.model_ids)) {
       values.model_ids = [values.model_ids];
     }
 
     // 算法任务（实时和抓拍）必须指定模型ID列表
     if ((values.task_type === 'realtime' || values.task_type === 'snap') && (!values.model_ids || values.model_ids.length === 0)) {
-      createMessage.error('算法任务必须选择至少一个模�?);
+      createMessage.error('算法任务必须选择至少一个模型');
       confirmLoading.value = false;
       setDrawerProps({ confirmLoading: false });
       return;
@@ -645,23 +664,27 @@ const handleSubmit = async () => {
 
     if (modalData.value.type === 'edit' && modalData.value.record) {
       const response = await updateAlgorithmTask(modalData.value.record.id, values);
-      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?      if (response && response.id) {
+      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
+      if (response && response.id) {
         createMessage.success('更新成功');
         taskId.value = modalData.value.record.id;
         emit('success');
         closeDrawer();
       } else {
-        // 如果返回的不是任务对象，可能是错误响应（包含 code �?msg�?        createMessage.error((response as any)?.msg || '更新失败');
+        // 如果返回的不是任务对象，可能是错误响应（包含 code 和 msg）
+        createMessage.error((response as any)?.msg || '更新失败');
       }
     } else {
       const response = await createAlgorithmTask(values);
-      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?      if (response && response.id) {
+      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
+      if (response && response.id) {
         taskId.value = response.id;
         createMessage.success('创建成功');
         emit('success');
         closeDrawer();
       } else {
-        // 如果返回的不是任务对象，可能是错误响应（包含 code �?msg�?        createMessage.error((response as any)?.msg || '创建失败');
+        // 如果返回的不是任务对象，可能是错误响应（包含 code 和 msg）
+        createMessage.error((response as any)?.msg || '创建失败');
       }
     }
   } catch (error: any) {
@@ -690,7 +713,8 @@ const handleSubmit = async () => {
 // 重置表单
 const handleReset = () => {
   resetFields();
-  // 如果是新建模式，重置为默认�?  if (!modalData.value.record) {
+  // 如果是新建模式，重置为默认值
+  if (!modalData.value.record) {
     isFullDayDefense.value = true; // 默认全天布防
     setFieldsValue({
       task_type: 'realtime',
@@ -703,13 +727,15 @@ const handleReset = () => {
       alert_event_enabled: false, // 默认关闭告警事件
       is_full_day_defense: true, // 默认全天布防
     });
-    // 重置布防时段为默认值（全天布防�?    defenseSchedule.value = {
+    // 重置布防时段为默认值（全天布防）
+    defenseSchedule.value = {
       mode: 'full', // 默认全防模式
       schedule: Array(7).fill(null).map(() => Array(24).fill(1)), // 默认全部填充
     };
   } else {
-    // 如果是编辑模式，恢复到原始�?    const record = modalData.value.record;
-    // �?model_ids 中提取模型ID列表（用于回显）
+    // 如果是编辑模式，恢复到原始值
+    const record = modalData.value.record;
+    // 从 model_ids 中提取模型ID列表（用于回显）
     const modelIds: number[] = [];
     if (record.model_ids && Array.isArray(record.model_ids)) {
       modelIds.push(...record.model_ids);
@@ -752,7 +778,8 @@ const handleReset = () => {
         schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
       };
     } else if (record.defense_mode && record.defense_schedule) {
-      // 非全天布防：恢复保存的配�?      try {
+      // 非全天布防：恢复保存的配置
+      try {
         const schedule = typeof record.defense_schedule === 'string'
           ? JSON.parse(record.defense_schedule)
           : record.defense_schedule;
@@ -762,13 +789,15 @@ const handleReset = () => {
         };
       } catch (e) {
         console.error('解析布防时段配置失败', e);
-        // 解析失败时，使用半防模式并清�?        defenseSchedule.value = {
+        // 解析失败时，使用半防模式并清空
+        defenseSchedule.value = {
           mode: 'half',
           schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
         };
       }
     } else {
-      // 没有配置时，使用半防模式并清�?      defenseSchedule.value = {
+      // 没有配置时，使用半防模式并清空
+      defenseSchedule.value = {
         mode: 'half',
         schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
       };

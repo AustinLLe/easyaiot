@@ -25,11 +25,11 @@
               <Switch
                 v-model:checked="localRule.enabled"
                 checked-children="开"
-                un-checked-children="�?
+                un-checked-children="关"
               />
             </FormItem>
 
-            <FormItem label="检测条�? required>
+            <FormItem label="检测条件" required>
               <Table
                 class="condition-table"
                 :columns="conditionColumns"
@@ -117,7 +117,7 @@
 
             <Row :gutter="16">
               <Col :span="12">
-                <FormItem label="持续时间（秒�? required>
+                <FormItem label="持续时间（秒）" required>
                   <InputNumber
                     v-model:value="localRule.duration_sec"
                     placeholder="例如 3"
@@ -127,7 +127,7 @@
                 </FormItem>
               </Col>
               <Col :span="12">
-                <FormItem label="告警抑制时间（秒�? required>
+                <FormItem label="告警抑制时间（秒）" required>
                   <InputNumber
                     v-model:value="localRule.alarm_suppress_time"
                     placeholder="例如 300"
@@ -144,7 +144,7 @@
                   <Switch
                     v-model:checked="localRule.clip_record_enabled"
                     checked-children="开"
-                    un-checked-children="�?
+                    un-checked-children="关"
                   />
                 </FormItem>
               </Col>
@@ -165,23 +165,23 @@
 
             <div v-if="localRule.clip_record_enabled" class="clip-duration-block">
               <div class="clip-duration-row">
-                <span class="clip-duration-label">�?/span>
+                <span class="clip-duration-label">前</span>
                 <InputNumber
                   v-model:value="localRule.clip_before_sec"
                   placeholder="10"
                   :min="0"
                   class="clip-duration-input"
                 />
-                <span class="clip-duration-unit">�?/span>
+                <span class="clip-duration-unit">秒</span>
                 <span class="clip-duration-gap" aria-hidden="true" />
-                <span class="clip-duration-label">�?/span>
+                <span class="clip-duration-label">后</span>
                 <InputNumber
                   v-model:value="localRule.clip_after_sec"
                   placeholder="10"
                   :min="0"
                   class="clip-duration-input"
                 />
-                <span class="clip-duration-unit">�?/span>
+                <span class="clip-duration-unit">秒</span>
               </div>
             </div>
 
@@ -268,7 +268,7 @@ const localRule = ref<AlertRuleDraft>(createEmptyAlertRule(0));
 const conditionColumns = [
   { title: '序号', key: 'seq', width: 56, align: 'center' as const },
   { title: '算法名称', key: 'model_id', width: '22%' },
-  { title: '检测类�?, key: 'class_name', width: '22%' },
+  { title: '检测类别', key: 'class_name', width: '22%' },
   { title: '判断关系', key: 'operator', width: '16%' },
   { title: '数量', key: 'count', width: '14%' },
   { title: '操作', key: 'action', width: 52, align: 'center' as const },

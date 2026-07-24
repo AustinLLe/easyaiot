@@ -10,7 +10,7 @@
       type="info"
       show-icon
       class="mb-4"
-      message="�?AI 服务环境中配�?EDGE_CLOUD_MODEL_API_BASE（云端与边缘相同的算�?API 根路径，例如 https://your-cloud/admin-api/model），可�?EDGE_CLOUD_MODEL_TOKEN�?
+      message="在 AI 服务环境中配置 EDGE_CLOUD_MODEL_API_BASE（云端与边缘相同的算法 API 根路径，例如 https://your-cloud/admin-api/model），可选 EDGE_CLOUD_MODEL_TOKEN。"
     />
     <Spin :spinning="state.loading">
       <Form layout="vertical">
@@ -60,7 +60,7 @@ async function loadCatalog() {
     const rows = (res && res.data) || [];
     state.options = rows.map((row: any) => ({
       value: row.id,
-      label: `${row.name || '未命�?} · v${row.version || ''} · 云端ID:${row.id}`,
+      label: `${row.name || '未命名'} · v${row.version || ''} · 云端ID:${row.id}`,
     }));
     if (!rows.length) {
       createMessage.warning('云端目录为空或未配置云端地址');

@@ -48,9 +48,9 @@
             </Select>
           </FormItem>
 
-          <!-- 输入�?(图片/视频) -->
+          <!-- 输入源 (图片/视频) -->
           <FormItem
-            label="输入�?
+            label="输入源"
             name="input_source"
             v-bind="validateInfos.input_source"
           >
@@ -67,7 +67,7 @@
               <a-button type="primary">点击上传</a-button>
             </Upload>
             <div v-if="modelRef.input_source" style="margin-top: 8px">
-              已上传文�? {{ fileName }}
+              已上传文件: {{ fileName }}
             </div>
           </FormItem>
         </Form>
@@ -102,7 +102,8 @@ const token = userStore.getAccessToken;
 const headers = ref({Authorization: `Bearer ${token}`});
 const {uploadUrl} = useGlobSetting();
 
-// 定义状态管�?const state = reactive({
+// 定义状态管理
+const state = reactive({
   editLoading: false,
   isEdit: false,
   isView: false,
@@ -124,7 +125,8 @@ const uploadAccept = computed(() => {
     : 'video/*';
 });
 
-// 提取文件�?const fileName = computed(() => {
+// 提取文件名
+const fileName = computed(() => {
   return modelRef.input_source.split('/').pop() || modelRef.input_source;
 });
 
@@ -227,8 +229,8 @@ async function handleOk() {
       createMessage.error(res.msg || '操作失败');
     }
   } catch (error) {
-    console.error('表单验证或操作失�?', error);
-    createMessage.error('请检查表�?);
+    console.error('表单验证或操作失败:', error);
+    createMessage.error('请检查表单');
   } finally {
     state.editLoading = false;
   }
@@ -239,7 +241,8 @@ async function handleGetModelPage(params?: any) {
   try {
     const response = await getModelPage(params);
     const items = response.code === 0 ? response.data : [];
-    // 插入默认模型选项（唯一标识�?'default'�?    items.unshift({
+    // 插入默认模型选项（唯一标识为 'default'）
+    items.unshift({
       id: 'default',
       name: '默认模型 (yolov8n.pt)'
     });

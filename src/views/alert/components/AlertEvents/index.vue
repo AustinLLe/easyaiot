@@ -4,7 +4,7 @@
       <template #toolbar>
         <div class="alert-toolbar">
           <div class="alert-toolbar-left">
-            <a-button size="small" @click="handleBatchPush">推�?/a-button>
+            <a-button size="small" @click="handleBatchPush">推送</a-button>
             <a-button size="small" @click="handleBatchAction('process')">处理</a-button>
             <Dropdown>
               <a-button size="small">归档</a-button>
@@ -36,7 +36,7 @@
               class="snapshot-img"
               @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
             />
-            <span v-else class="snapshot-empty">无截�?/span>
+            <span v-else class="snapshot-empty">无截图</span>
           </div>
         </template>
 
@@ -87,7 +87,7 @@
         <template #header>
           <div class="alert-toolbar">
             <div class="alert-toolbar-left">
-              <a-button size="small" @click="handleBatchPush">推�?/a-button>
+              <a-button size="small" @click="handleBatchPush">推送</a-button>
               <a-button size="small" @click="handleBatchAction('process')">处理</a-button>
               <Dropdown>
                 <a-button size="small">归档</a-button>
@@ -248,7 +248,7 @@ function markProcessed(ids: number[], asFalseAlarm = false) {
   persistUiState();
   reload();
   cardListReload();
-  createMessage.success(asFalseAlarm ? '已标记为误报（仅前端�? : '已标记为已处理（仅前端）');
+  createMessage.success(asFalseAlarm ? '已标记为误报（仅前端）' : '已标记为已处理（仅前端）');
 }
 
 function markArchived(ids: number[], archiveType: UiArchiveStatus) {
@@ -262,8 +262,8 @@ function markArchived(ids: number[], archiveType: UiArchiveStatus) {
   cardListReload();
   createMessage.success(
     archiveType === 'correct'
-      ? '已标记为正确报警（仅前端�?
-      : '已标记为错误报警（仅前端�?,
+      ? '已标记为正确报警（仅前端）'
+      : '已标记为错误报警（仅前端）',
   );
 }
 
@@ -318,7 +318,7 @@ function handlePushConfirm(payload: AlertPushDraft) {
   if (isUserPushMode(payload)) {
     const channelText = formatChannels(payload.channels);
     const userText = formatRecipientUserIds(payload.recipient_user_ids);
-    targetText = `${channelText} �?${userText}`;
+    targetText = `${channelText} → ${userText}`;
   }
   else {
     const profileLabelMap = new Map(
@@ -327,7 +327,7 @@ function handlePushConfirm(payload: AlertPushDraft) {
     targetText = formatAddressProfileIds(payload.address_profile_ids, profileLabelMap);
   }
   createMessage.success(
-    `已按�?{getPushModeLabel(payload.push_mode)}」向 ${targetText} 推�?${count} 条报警（仅前端，待后端接入）`,
+    `已按「${getPushModeLabel(payload.push_mode)}」向 ${targetText} 推送 ${count} 条报警（仅前端，待后端接入）`,
   );
   pendingPushIds.value = [];
   clearSelectedRowKeys?.();
@@ -346,7 +346,7 @@ function handleBatchAction(action: string) {
       clearGridSelection();
       break;
     case 'delete':
-      createMessage.info('删除功能待后端接入，当前为界面预�?);
+      createMessage.info('删除功能待后端接入，当前为界面预览');
       clearGridSelection();
       break;
     default:
@@ -369,7 +369,7 @@ function handleBatchExport() {
 const handleViewImage = (record: Record<string, any>) => {
   const url = resolveAlertImageUrl(record);
   if (!url && !record.image_path) {
-    createMessage.warn('告警图片不存�?);
+    createMessage.warn('告警图片不存在');
     return;
   }
   openImageModal(true, {
@@ -395,7 +395,7 @@ const getVideoUrl = (videoUrl: string): string => {
 
 const handleViewVideo = async (record: Record<string, any>) => {
   if (!record.device_id || !record.time) {
-    createMessage.warn('缺少必要信息：设备ID或告警时�?);
+    createMessage.warn('缺少必要信息：设备ID或告警时间');
     return;
   }
 
@@ -415,13 +415,13 @@ const handleViewVideo = async (record: Record<string, any>) => {
       lastVideoErrorMsg = '';
     }
     else {
-      showVideoErrorOnce(result?.message || '暂未找到该时间段的录像文�?);
+      showVideoErrorOnce(result?.message || '暂未找到该时间段的录像文件');
     }
   }
   catch (error: any) {
     const errorData = error?.response?.data || error?.data;
     if (errorData?.code === 400) {
-      showVideoErrorOnce(errorData.message || '暂未找到该时间段的录像文�?);
+      showVideoErrorOnce(errorData.message || '暂未找到该时间段的录像文件');
     }
     else {
       showVideoErrorOnce(error?.response?.data?.message || error?.message || '查询录像失败，请稍后重试');
@@ -478,7 +478,7 @@ function handleCardUpdateArchive(record: Record<string, any>, status: UiArchiveS
 }
 
 function handleCardDelete(_record: Record<string, any>) {
-  createMessage.info('删除功能待后端接入，当前为界面预�?);
+  createMessage.info('删除功能待后端接入，当前为界面预览');
 }
 </script>
 

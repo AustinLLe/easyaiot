@@ -3,7 +3,7 @@
     <Alert
       type="info"
       show-icon
-      message="报警扩展信息，支持创建映射参数与对应 value �?
+      message="报警扩展信息，支持创建映射参数与对应 value 值"
       class="mapping-alert"
     />
 
@@ -15,8 +15,8 @@
     <div v-if="rows.length" class="map-table">
       <div class="map-table-head">
         <span class="col-type">类型</span>
-        <span class="col-source">原始�?/span>
-        <span class="col-target">映射�?/span>
+        <span class="col-source">原始值</span>
+        <span class="col-target">映射值</span>
         <span class="col-action">操作</span>
       </div>
 
@@ -31,7 +31,7 @@
             <Select
               :value="group.key_source || undefined"
               :options="fieldKeyOptions"
-              placeholder="请输入key�?
+              placeholder="请输入key值"
               show-search
               allow-clear
               :disabled="group.locked"
@@ -43,7 +43,7 @@
           <div class="col-target field-control">
             <Input
               v-model:value="group.key_target"
-              placeholder="请输入key�?
+              placeholder="请输入key值"
               :disabled="group.locked"
             />
           </div>
@@ -65,14 +65,14 @@
           <div class="col-source field-control">
             <Input
               v-model:value="group.value_source"
-              placeholder="请输入value�?
+              placeholder="请输入value值"
               :disabled="group.locked"
             />
           </div>
           <div class="col-target field-control">
             <Input
               v-model:value="group.value_target"
-              placeholder="请输入value�?
+              placeholder="请输入value值"
               :disabled="group.locked"
             />
           </div>
@@ -119,11 +119,11 @@ function removeGroup(index: number) {
 function confirmGroup(index: number) {
   const group = rows.value[index];
   if (!group?.key_source?.trim()) {
-    createMessage.warning('请填�?key 原始�?);
+    createMessage.warning('请填写 key 原始值');
     return;
   }
   if (!group.key_target?.trim()) {
-    createMessage.warning('请填�?key 映射�?);
+    createMessage.warning('请填写 key 映射值');
     return;
   }
   group.locked = true;

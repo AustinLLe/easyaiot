@@ -44,9 +44,9 @@ const updateDateTime = () => {
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
-  currentDate.value = `${year}�?{month}�?{day}日`
+  currentDate.value = `${year}年${month}月${day}日`
 
-  const weekDays = ['星期�?, '星期一', '星期�?, '星期�?, '星期�?, '星期�?, '星期�?]
+  const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
   currentDay.value = weekDays[now.getDay()]
 }
 

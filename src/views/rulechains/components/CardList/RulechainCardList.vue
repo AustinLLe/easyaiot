@@ -31,7 +31,7 @@
                       <div class="value">{{ item.id }}</div>
                     </div>
                     <div class="prop">
-                      <div class="label">规则状�?/div>
+                      <div class="label">规则状态</div>
                       <div class="value">{{ !item.disabled ? '启用' : '禁用' }}</div>
                     </div>
                   </div>
@@ -45,7 +45,7 @@
                     @confirm="handleDelete"
                     type="default"
                     placement="topRight"
-                    title="是否确认删除�?
+                    title="是否确认删除？"
                   >
                     <img
                       src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAQCAYAAADJViUEAAAAAXNSR0IArs4c6QAAAi1JREFUOE+Nk89rE0EUx9/bzSZtJNSCBCvoxUhMstmdaYoIlnopglAs6iVC/wJB8SLFi3cVRPSmB0EE6an4owerIuqhIt3OjyRgq15EEHIr2tSYZp5kayTWlDi3N28+7/t+DUKXs1goxPubzYcEMI4Az9dte3IkCGpbn2I3uML5eTLmhKvUeIWxOUB8mhPi5rawYGxnFHGMjPEQ8QwB9AHAZwDYhwA/AHEGAORGs/nC13qtFQhLvn8MEM8hwCgiBgSwYAGsGGOqhFhHophlWUkiSgPiYSI6BACvbMu6jRXGZoHo0WAkMrOnS11bU1WetyOCeBIQT4c1/1b381Je69aDzrsSYxeBSOWVmg/hiu9PAWIxJ+VEy/7oeUl0nPr+IFj9VCgMUKMRS2ldDYUYm7OIHuSUur8Jc36cAC65QoyFNmM3iOirq9SVsu9PI+JQTsoLLV+Z89e2MVczSj1pK48S4i1XSt4TZkzYiGczQiyEsM7n81YkMusKkfoPeMUy5lRW6/Jmw1x3LzrOO1eIoV5wibFqnzHDB7T+EsLv0+nERjxedYXo7wVXOF+3a7XkweXlb3/Ws8zYz13GDO7Wek15XrLhOPWRIFhdLBQGnEYj5mtdrWSzUYpGv7tSRsMNa8+wzNhLQLzrCnFvu1mXOS8i0VR7pJ3wEQB4bBMVM0rNdwb4kErF6onEBBDdQcuazC0tvflLOew650dtgOtENPzPD0J8a4gu56V81vb9Ami8GYzeLnHJAAAAAElFTkSuQmCC"
@@ -90,10 +90,12 @@ import {useMessage} from "@/hooks/web/useMessage";
 const ListItem = List.Item;
 const CardMeta = Card.Meta;
 const TypographyParagraph = Typography.Paragraph;
-// 获取slider属�?const sliderProp = computed(() => useSlider(4));
+// 获取slider属性
+const sliderProp = computed(() => useSlider(4));
 // 组件接收参数
 const props = defineProps({
-  // 请求API的参�?  params: propTypes.object.def({}),
+  // 请求API的参数
+  params: propTypes.object.def({}),
   //api
   api: propTypes.func,
 });
@@ -105,7 +107,8 @@ const data = ref([]);
 const title = "设备列表";
 // 切换每行个数
 // cover图片自适应高度
-//修改pageSize并重新请求数�?
+//修改pageSize并重新请求数据
+
 const height = computed(() => {
   return `h-${120 - grid.value * 6}`;
 });
@@ -151,7 +154,8 @@ function sliderChange(n) {
   fetch();
 }
 
-// 自动请求并暴露内部方�?onMounted(() => {
+// 自动请求并暴露内部方法
+onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
@@ -186,7 +190,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });

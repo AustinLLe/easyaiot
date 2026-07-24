@@ -5,7 +5,7 @@
         <div class="modal-content">
           <!-- 头部区域 -->
           <div class="modal-header">
-            <h3>{{ modelId ? '更新模型部署' : '部署新模型服�? }}</h3>
+            <h3>{{ modelId ? '更新模型部署' : '部署新模型服务' }}</h3>
             <button class="close-button" @click="closeModal">×</button>
           </div>
 
@@ -97,7 +97,7 @@
                 </h4>
                 <div v-if="showAdvanced" class="advanced-options">
                   <div class="form-group">
-                    <label>推理超时(�?</label>
+                    <label>推理超时(秒)</label>
                     <input
                       type="number"
                       v-model="form.timeout"
@@ -107,7 +107,7 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label>自动扩缩�?/label>
+                    <label>自动扩缩容</label>
                     <label class="switch">
                       <input type="checkbox" v-model="form.auto_scale">
                       <span class="slider"></span>
@@ -169,7 +169,7 @@ watch(() => props.initialData, (data) => {
 
 // 浏览MinIO存储
 const browseMinIO = () => {
-  console.log('打开MinIO浏览�?)
+  console.log('打开MinIO浏览器')
   // 实际项目中接入MinIO文件选择API
   form.minio_model_path = 'minio://models/yolov8s-best.pt'
 }

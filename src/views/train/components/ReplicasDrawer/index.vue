@@ -16,7 +16,7 @@
         <template #message>
           <div class="cluster-endpoint-tip">
             <span class="tip-icon">🎉</span>
-            <span class="tip-text">请自行前往算法测试页面，可快速验证该集群实例的推理性能与响应能力，支持实时测试算法推理效果<span class="tip-icon">�?/span></span>
+            <span class="tip-text">请自行前往算法测试页面，可快速验证该集群实例的推理性能与响应能力，支持实时测试算法推理效果<span class="tip-icon">✨</span></span>
           </div>
         </template>
       </Alert>
@@ -160,7 +160,8 @@ const [registerDrawer, {setDrawerProps, closeDrawer}] = useDrawerInner((data) =>
       clusterEndpointUrl.value = '';
     }
   } else if (data && data.replicas) {
-    // 兼容旧版本：如果传入的是replicas数组，使用前端分�?    serviceNameRef.value = '';
+    // 兼容旧版本：如果传入的是replicas数组，使用前端分页
+    serviceNameRef.value = '';
     // 从第一个副本获取model_id
     if (Array.isArray(data.replicas) && data.replicas.length > 0 && data.replicas[0].model_id) {
       modelIdRef.value = data.replicas[0].model_id;
@@ -182,7 +183,8 @@ const [registerLogsModal, {
   closeModal: closeServiceLogsModal
 }] = useModal();
 
-// 表格列定�?const columns = [
+// 表格列定义
+const columns = [
   {
     title: 'ID',
     dataIndex: 'id',
@@ -205,7 +207,7 @@ const [registerLogsModal, {
     ellipsis: true,
   },
   {
-    title: '状�?,
+    title: '状态',
     dataIndex: 'status',
     width: 100,
   },
@@ -238,14 +240,17 @@ const [registerTable, {reload, setTableData}] = useTable({
   useSearchForm: false,
   showTableSetting: true,
   api: async (params) => {
-    // 如果使用后端分页（有serviceName�?    if (serviceNameRef.value) {
+    // 如果使用后端分页（有serviceName）
+    if (serviceNameRef.value) {
       const pageNo = params.pageNo || params.page || 1;
       const pageSize = params.pageSize || 10;
-      // 调用API，传递分页参�?      const response = await getDeployServiceReplicas(serviceNameRef.value, pageNo, pageSize);
+      // 调用API，传递分页参数
+      const response = await getDeployServiceReplicas(serviceNameRef.value, pageNo, pageSize);
       const result = response?.data || response;
       if (result && result.code === 0) {
         const records = Array.isArray(result.data) ? result.data : [];
-        // 从第一个记录获取model_id（如果还没有设置�?        if (records.length > 0 && records[0].model_id && !modelIdRef.value) {
+        // 从第一个记录获取model_id（如果还没有设置）
+        if (records.length > 0 && records[0].model_id && !modelIdRef.value) {
           modelIdRef.value = records[0].model_id;
           clusterEndpointUrl.value = getClusterEndpointUrl(records[0].model_id);
         }
@@ -256,13 +261,14 @@ const [registerTable, {reload, setTableData}] = useTable({
       }
       return { data: [], total: 0 };
     }
-    // 兼容旧版本：前端分页（如果没有serviceName，返回空数据�?    return { data: [], total: 0 };
+    // 兼容旧版本：前端分页（如果没有serviceName，返回空数据）
+    return { data: [], total: 0 };
   },
   pagination: {
     pageSize: 10,
     showSizeChanger: true,
     pageSizeOptions: ['10', '20', '50', '100'],
-    showTotal: (total) => `�?${total} 条`,
+    showTotal: (total) => `共 ${total} 条`,
   },
   canResize: true,
   showIndexColumn: false,
@@ -273,7 +279,8 @@ const [registerTable, {reload, setTableData}] = useTable({
   },
 });
 
-// 状态相�?const getStatusColor = (status) => {
+// 状态相关
+const getStatusColor = (status) => {
   const colorMap = {
     'running': 'green',
     'stopped': 'default',
@@ -285,15 +292,16 @@ const [registerTable, {reload, setTableData}] = useTable({
 
 const getStatusText = (status) => {
   const textMap = {
-    'running': '运行�?,
-    'stopped': '已停�?,
+    'running': '运行中',
+    'stopped': '已停止',
     'error': '错误',
     'offline': '离线'
   };
   return textMap[status] || status;
 };
 
-// 格式化时�?const formatDateTime = (dateString: string) => {
+// 格式化时间
+const formatDateTime = (dateString: string) => {
   if (!dateString || dateString === '--') return '--';
   try {
     const date = new Date(dateString);
@@ -316,7 +324,8 @@ const getStatusText = (status) => {
 const handleStart = async (record) => {
   try {
     const response = await startDeployService(record.id);
-    // 检查响应中是否有警告标�?    if (response && (response as any).warning) {
+    // 检查响应中是否有警告标记
+    if (response && (response as any).warning) {
       // 显示警告信息（模型下载失败但服务记录已创建）
       const warningMsg = (response as any).msg || '模型文件下载失败，请检查模型文件路径和MinIO配置';
       createMessage.warning(warningMsg);
@@ -373,14 +382,14 @@ const handleLogsModalClose = () => {
 // 复制推理接口
 const handleCopyEndpoint = async (endpoint: string) => {
   if (!endpoint || endpoint === '--') {
-    createMessage.warning('推理接口为空，无法复�?);
+    createMessage.warning('推理接口为空，无法复制');
     return;
   }
   
   try {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(endpoint);
-      createMessage.success('推理接口已复制到剪贴�?);
+      createMessage.success('推理接口已复制到剪贴板');
     } else {
       // 降级方案
       const textArea = document.createElement('textarea');
@@ -391,7 +400,7 @@ const handleCopyEndpoint = async (endpoint: string) => {
       textArea.select();
       try {
         document.execCommand('copy');
-        createMessage.success('推理接口已复制到剪贴�?);
+        createMessage.success('推理接口已复制到剪贴板');
       } catch (err) {
         createMessage.error('复制失败，请手动复制');
       }
@@ -406,7 +415,7 @@ const handleCopyEndpoint = async (endpoint: string) => {
 // 复制模型服务地址
 const handleTestCluster = async () => {
   if (!clusterEndpointUrl.value) {
-    createMessage.warning('模型服务地址为空，无法复�?);
+    createMessage.warning('模型服务地址为空，无法复制');
     return;
   }
   
@@ -418,7 +427,7 @@ const handleTestCluster = async () => {
   try {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(fullUrl);
-      createMessage.success('模型服务地址已复制到剪贴�?);
+      createMessage.success('模型服务地址已复制到剪贴板');
     } else {
       // 降级方案
       const textArea = document.createElement('textarea');
@@ -429,7 +438,7 @@ const handleTestCluster = async () => {
       textArea.select();
       try {
         document.execCommand('copy');
-        createMessage.success('模型服务地址已复制到剪贴�?);
+        createMessage.success('模型服务地址已复制到剪贴板');
       } catch (err) {
         createMessage.error('复制失败，请手动复制');
       }

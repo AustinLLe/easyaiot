@@ -57,7 +57,8 @@ const [registerModal, {closeModal}] = useModalInner((data) => {
 const handleCancel = () => {
   stopPolling();
   closeModal();
-  emit('close'); // 通知父组件销�?};
+  emit('close'); // 通知父组件销毁
+};
 
 // 日志文本（边缘端无训练接口，仅展示说明）
 const logs = ref<string>('')
@@ -65,7 +66,7 @@ const logContainer = ref<HTMLElement | null>(null)
 
 // 加载日志数据（边缘端已移除训练接口）
 const loadLogs = async () => {
-  logs.value = '边缘端已移除模型训练，不再提供训练日志�?
+  logs.value = '边缘端已移除模型训练，不再提供训练日志。'
   scrollToBottom()
 }
 
@@ -76,7 +77,9 @@ const refreshLogs = () => {
 
 // 启动轮询
 const startPolling = () => {
-  loadLogs(); // 立即加载一�?  // �?0秒刷新一次日�?  state.pollingInterval = window.setInterval(loadLogs, 10000);
+  loadLogs(); // 立即加载一次
+  // 每10秒刷新一次日志
+  state.pollingInterval = window.setInterval(loadLogs, 10000);
 };
 
 // 停止轮询
@@ -87,7 +90,8 @@ const stopPolling = () => {
   }
 };
 
-// 滚动到底�?const scrollToBottom = () => {
+// 滚动到底部
+const scrollToBottom = () => {
   if (logContainer.value) {
     // 增加延迟确保DOM更新完成
     setTimeout(() => {
@@ -111,13 +115,15 @@ watch(() => state.modelId, (newId) => {
   }
 })
 
-// 组件挂载时加载日�?onMounted(() => {
+// 组件挂载时加载日志
+onMounted(() => {
   if (state.modelId) {
     startPolling();
   }
 })
 
-// 组件卸载时重置状�?onUnmounted(() => {
+// 组件卸载时重置状态
+onUnmounted(() => {
   stopPolling();
   logs.value = '';
   if (logContainer.value) {
@@ -182,12 +188,12 @@ watch(() => state.modelId, (newId) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #121212; /* 深空黑背�?*/
+  background-color: #121212; /* 深空黑背景 */
   color: #e0e0e0; /* 浅灰文字 */
   font-family: 'Consolas', 'Monaco', monospace; /* 等宽字体 */
 }
 
-/* 控制栏样�?*/
+/* 控制栏样式 */
 .control-bar {
   padding: 16px 24px;
   display: flex;
@@ -297,15 +303,15 @@ watch(() => state.modelId, (newId) => {
 }
 
 .log-item.info {
-  border-left-color: #3b82f6; /* 信息�?*/
+  border-left-color: #3b82f6; /* 信息蓝 */
 }
 
 .log-item.warning {
-  border-left-color: #f59e0b; /* 警告�?*/
+  border-left-color: #f59e0b; /* 警告黄 */
 }
 
 .log-item.error {
-  border-left-color: #ef4444; /* 错误�?*/
+  border-left-color: #ef4444; /* 错误红 */
 }
 
 .timestamp {
@@ -370,7 +376,7 @@ watch(() => state.modelId, (newId) => {
   text-align: center;
 }
 
-/* 响应式调�?*/
+/* 响应式调整 */
 @media (max-width: 968px) {
   .modal-content {
     width: 95%;

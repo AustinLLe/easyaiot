@@ -2,9 +2,9 @@
   <div class="service-status-tab">
     <a-spin :spinning="loading">
       <a-row :gutter="16">
-        <!-- 抽帧器状�?-->
+        <!-- 抽帧器状态 -->
         <a-col :span="24" v-if="task.extractor_id">
-          <a-card title="抽帧器状�? :bordered="false" class="service-card">
+          <a-card title="抽帧器状态" :bordered="false" class="service-card">
             <template #extra>
               <a-button type="link" @click="handleViewLogs('extractor')" :disabled="!task.extractor_id">
                 <template #icon><FileTextOutlined /></template>
@@ -12,10 +12,10 @@
               </a-button>
             </template>
             <a-descriptions :column="2" bordered size="small">
-              <a-descriptions-item label="抽帧器名�?>
+              <a-descriptions-item label="抽帧器名称">
                 {{ task.extractor_name || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="运行状�?>
+              <a-descriptions-item label="运行状态">
                 <a-tag :color="getStatusColor(extractorStatus?.status)">
                   {{ getStatusText(extractorStatus?.status) }}
                 </a-tag>
@@ -29,16 +29,16 @@
               <a-descriptions-item label="进程ID">
                 {{ extractorStatus?.process_id || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="最后心跳时�?>
+              <a-descriptions-item label="最后心跳时间">
                 {{ formatTime(extractorStatus?.last_heartbeat) }}
               </a-descriptions-item>
             </a-descriptions>
           </a-card>
         </a-col>
 
-        <!-- 排序器状�?-->
+        <!-- 排序器状态 -->
         <a-col :span="24" v-if="task.sorter_id">
-          <a-card title="排序器状�? :bordered="false" class="service-card">
+          <a-card title="排序器状态" :bordered="false" class="service-card">
             <template #extra>
               <a-button type="link" @click="handleViewLogs('sorter')" :disabled="!task.sorter_id">
                 <template #icon><FileTextOutlined /></template>
@@ -46,10 +46,10 @@
               </a-button>
             </template>
             <a-descriptions :column="2" bordered size="small">
-              <a-descriptions-item label="排序器名�?>
+              <a-descriptions-item label="排序器名称">
                 {{ task.sorter_name || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="运行状�?>
+              <a-descriptions-item label="运行状态">
                 <a-tag :color="getStatusColor(sorterStatus?.status)">
                   {{ getStatusText(sorterStatus?.status) }}
                 </a-tag>
@@ -63,16 +63,16 @@
               <a-descriptions-item label="进程ID">
                 {{ sorterStatus?.process_id || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="最后心跳时�?>
+              <a-descriptions-item label="最后心跳时间">
                 {{ formatTime(sorterStatus?.last_heartbeat) }}
               </a-descriptions-item>
             </a-descriptions>
           </a-card>
         </a-col>
 
-        <!-- 推送器状�?-->
+        <!-- 推送器状态 -->
         <a-col :span="24" v-if="task.pusher_id">
-          <a-card title="推送器状�? :bordered="false" class="service-card">
+          <a-card title="推送器状态" :bordered="false" class="service-card">
             <template #extra>
               <a-button type="link" @click="handleViewLogs('pusher')" :disabled="!task.pusher_id">
                 <template #icon><FileTextOutlined /></template>
@@ -83,7 +83,7 @@
               <a-descriptions-item label="推送器名称">
                 {{ task.pusher_name || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="运行状�?>
+              <a-descriptions-item label="运行状态">
                 <a-tag :color="getStatusColor(pusherStatus?.status)">
                   {{ getStatusText(pusherStatus?.status) }}
                 </a-tag>
@@ -97,14 +97,14 @@
               <a-descriptions-item label="进程ID">
                 {{ pusherStatus?.process_id || '--' }}
               </a-descriptions-item>
-              <a-descriptions-item label="最后心跳时�?>
+              <a-descriptions-item label="最后心跳时间">
                 {{ formatTime(pusherStatus?.last_heartbeat) }}
               </a-descriptions-item>
             </a-descriptions>
           </a-card>
         </a-col>
 
-        <!-- 无服务提�?-->
+        <!-- 无服务提示 -->
         <a-col :span="24" v-if="!task.extractor_id && !task.sorter_id && !task.pusher_id">
           <a-empty description="该算法任务未配置抽帧器、排序器或推送器" />
         </a-col>
@@ -145,7 +145,8 @@ const pusherStatus = ref<Pusher | null>(null);
 
 const [registerLogsModal, { openModal: openLogsModal }] = useModal();
 
-// 加载服务状�?const loadServiceStatus = async () => {
+// 加载服务状态
+const loadServiceStatus = async () => {
   if (!props.task?.id) return;
   
   try {
@@ -160,7 +161,8 @@ const [registerLogsModal, { openModal: openLogsModal }] = useModal();
         statusData = response.data;
       }
     } else {
-      // 直接返回的数据对象（响应转换器已处理�?      statusData = response;
+      // 直接返回的数据对象（响应转换器已处理）
+      statusData = response;
     }
     
     if (statusData) {
@@ -169,7 +171,7 @@ const [registerLogsModal, { openModal: openLogsModal }] = useModal();
       pusherStatus.value = statusData.pusher || null;
     }
   } catch (error) {
-    console.error('加载服务状态失�?, error);
+    console.error('加载服务状态失败', error);
   } finally {
     loading.value = false;
   }
@@ -186,11 +188,11 @@ const handleViewLogs = async (type: 'extractor' | 'sorter' | 'pusher') => {
     switch (type) {
       case 'extractor':
         logsResponse = await getTaskExtractorLogs(props.task.id, { lines: 500 });
-        title = `${props.task.extractor_name || '抽帧�?} - 日志`;
+        title = `${props.task.extractor_name || '抽帧器'} - 日志`;
         break;
       case 'sorter':
         logsResponse = await getTaskSorterLogs(props.task.id, { lines: 500 });
-        title = `${props.task.sorter_name || '排序�?} - 日志`;
+        title = `${props.task.sorter_name || '排序器'} - 日志`;
         break;
       case 'pusher':
         logsResponse = await getTaskPusherLogs(props.task.id, { lines: 500 });
@@ -210,7 +212,8 @@ const handleViewLogs = async (type: 'extractor' | 'sorter' | 'pusher') => {
   }
 };
 
-// 获取状态颜�?const getStatusColor = (status?: string) => {
+// 获取状态颜色
+const getStatusColor = (status?: string) => {
   switch (status) {
     case 'running':
       return 'green';
@@ -223,12 +226,13 @@ const handleViewLogs = async (type: 'extractor' | 'sorter' | 'pusher') => {
   }
 };
 
-// 获取状态文�?const getStatusText = (status?: string) => {
+// 获取状态文本
+const getStatusText = (status?: string) => {
   switch (status) {
     case 'running':
-      return '运行�?;
+      return '运行中';
     case 'stopped':
-      return '已停�?;
+      return '已停止';
     case 'error':
       return '错误';
     default:
@@ -236,7 +240,8 @@ const handleViewLogs = async (type: 'extractor' | 'sorter' | 'pusher') => {
   }
 };
 
-// 格式化时�?const formatTime = (time?: string) => {
+// 格式化时间
+const formatTime = (time?: string) => {
   if (!time) return '--';
   return moment(time).format('YYYY-MM-DD HH:mm:ss');
 };

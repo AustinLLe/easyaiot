@@ -14,7 +14,7 @@
           :indeterminate="isIndeterminate"
           @change="handleToggleAll"
         />
-        <span class="field-label">全�?/span>
+        <span class="field-label">全选</span>
       </label>
 
       <label

@@ -83,7 +83,8 @@ const [register, { closeModal, setModalProps }] = useModalInner((data) => {
   setModalProps({ confirmLoading: false });
 });
 
-// 监听导出状态，更新弹框按钮�?loading 状�?watch(() => state.exporting, (loading) => {
+// 监听导出状态，更新弹框按钮的 loading 状态
+watch(() => state.exporting, (loading) => {
   setModalProps({ confirmLoading: loading });
 });
 

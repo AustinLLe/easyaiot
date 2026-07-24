@@ -21,7 +21,7 @@
           <template #renderItem="{ item }">
             <ListItem class="playback-item">
               <div class="playback-card">
-                <!-- 封面�?-->
+                <!-- 封面图 -->
                 <div class="playback-thumbnail" @click="handleView(item)">
                   <img
                     v-if="item.thumbnail_path"
@@ -32,7 +32,7 @@
                   />
                   <div v-else class="no-thumbnail">
                     <Icon icon="ant-design:video-camera-outlined" :size="48" color="#999" />
-                    <span>无封�?/span>
+                    <span>无封面</span>
                   </div>
                   <!-- 播放按钮遮罩 -->
                   <div class="play-overlay" @click.stop="handlePlay(item)">
@@ -68,9 +68,9 @@
                       <Icon icon="ant-design:eye-filled" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
-                      title="是否确认删除�?
-                      ok-text="�?
-                      cancel-text="�?
+                      title="是否确认删除？"
+                      ok-text="是"
+                      cancel-text="否"
                       @confirm="handleDelete(item)"
                     >
                       <div class="btn" title="删除">
@@ -102,7 +102,8 @@ const ListItem = List.Item;
 
 // 组件接收参数
 const props = defineProps({
-  // 请求API的参�?  params: propTypes.object.def({}),
+  // 请求API的参数
+  params: propTypes.object.def({}),
   // api
   api: propTypes.func
 });
@@ -131,7 +132,7 @@ const [registerForm, { validate }] = useForm({
     },
     {
       field: 'start_time',
-      label: '开始时�?,
+      label: '开始时间',
       component: 'DatePicker',
       componentProps: {
         showTime: true,
@@ -165,7 +166,8 @@ async function handleSubmit() {
 // 获取封面图URL
 const getThumbnailUrl = (thumbnailPath: string) => {
   if (!thumbnailPath) return '';
-  // 如果是完整URL，直接返�?  if (thumbnailPath.startsWith('http://') || thumbnailPath.startsWith('https://')) {
+  // 如果是完整URL，直接返回
+  if (thumbnailPath.startsWith('http://') || thumbnailPath.startsWith('https://')) {
     return thumbnailPath;
   }
   // 否则拼接API前缀
@@ -178,8 +180,9 @@ const handleImageError = (event: Event) => {
   img.style.display = 'none';
 };
 
-// 格式化时�?const formatDuration = (seconds: number) => {
-  if (!seconds) return '0�?;
+// 格式化时长
+const formatDuration = (seconds: number) => {
+  if (!seconds) return '0秒';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -191,7 +194,8 @@ const handleImageError = (event: Event) => {
   }
 };
 
-// 格式化文件大�?const formatFileSize = (bytes: number) => {
+// 格式化文件大小
+const formatFileSize = (bytes: number) => {
   if (!bytes) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -199,7 +203,8 @@ const handleImageError = (event: Event) => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
-// 格式化日期时�?const formatDateTime = (dateTime: string) => {
+// 格式化日期时间
+const formatDateTime = (dateTime: string) => {
   if (!dateTime) return '-';
   const date = new Date(dateTime);
   return date.toLocaleString('zh-CN', {
@@ -210,7 +215,8 @@ const handleImageError = (event: Event) => {
   });
 };
 
-// 自动请求并暴露内部方�?onMounted(() => {
+// 自动请求并暴露内部方法
+onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
@@ -246,7 +252,8 @@ async function fetch(p = {}) {
       });
 
       const res = await api(apiParams);
-      // 根据API返回格式，处理数�?      if (res && res.data) {
+      // 根据API返回格式，处理数据
+      if (res && res.data) {
         data.value = res.data || [];
         total.value = res.total || 0;
       } else if (Array.isArray(res)) {
@@ -280,7 +287,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange
 });

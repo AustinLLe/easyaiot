@@ -42,7 +42,7 @@
                     class="img"
                     @error="() => markSnapshotBroken(item.id)"
                   />
-                  <span v-else class="snapshot-empty">无截�?/span>
+                  <span v-else class="snapshot-empty">无截图</span>
                 </div>
 
                 <div class="alert-info-main">
@@ -57,15 +57,15 @@
                     <span class="meta-value">{{ item.device_name || '-' }}</span>
                   </div>
                   <div class="meta-line">
-                    <span class="meta-label">报警规则�?/span>
+                    <span class="meta-label">报警规则：</span>
                     <span class="meta-value">{{ resolveRuleName(item) }}</span>
                   </div>
                   <div class="meta-line">
-                    <span class="meta-label">报警描述�?/span>
+                    <span class="meta-label">报警描述：</span>
                     <span class="meta-value meta-desc">{{ resolveAlertDescription(item) }}</span>
                   </div>
                   <div class="meta-line">
-                    <span class="meta-label">报警时间�?/span>
+                    <span class="meta-label">报警时间：</span>
                     <span class="meta-value">{{ formatTime(item.time) }}</span>
                   </div>
                   <div class="meta-line meta-status">
@@ -105,13 +105,13 @@
                     >
                       <Icon icon="ant-design:play-circle-outlined" :size="15" color="#3B82F6" />
                     </div>
-                    <div class="btn" title="推�? @click="emit('push', item)">
+                    <div class="btn" title="推送" @click="emit('push', item)">
                       <Icon icon="ant-design:send-outlined" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
-                      title="是否确认删除�?
-                      ok-text="�?
-                      cancel-text="�?
+                      title="是否确认删除？"
+                      ok-text="是"
+                      cancel-text="否"
                       @confirm="emit('delete', item)"
                     >
                       <div class="btn" title="删除">
@@ -154,8 +154,8 @@ import {
 } from '@/views/alert/alertDisplayUtils';
 
 const PROCESS_STATUS_OPTIONS = [
-  { value: 'pending', label: '未处�? },
-  { value: 'processed', label: '已处�? },
+  { value: 'pending', label: '未处理' },
+  { value: 'processed', label: '已处理' },
 ];
 
 const ARCHIVE_STATUS_OPTIONS = [
@@ -284,7 +284,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (totalCount: number) => `�?${totalCount} 条`,
+  showTotal: (totalCount: number) => `总 ${totalCount} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -338,7 +338,7 @@ function canViewVideo(item: Record<string, any>) {
 
 function handleViewImage(record: Record<string, any>) {
   if (!record.image_url && !record.image_path) {
-    createMessage.warn('告警图片不存�?);
+    createMessage.warn('告警图片不存在');
     return;
   }
   emit('viewImage', record);
@@ -346,7 +346,7 @@ function handleViewImage(record: Record<string, any>) {
 
 function handleViewVideo(record: Record<string, any>) {
   if (!canViewVideo(record)) {
-    createMessage.warn('缺少必要信息：设备ID或告警时�?);
+    createMessage.warn('缺少必要信息：设备ID或告警时间');
     return;
   }
   emit('viewVideo', record);

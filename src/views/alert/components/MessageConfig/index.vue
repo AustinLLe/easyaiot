@@ -25,7 +25,7 @@
                 icon: 'material-symbols:delete-outline-rounded',
                 popConfirm: {
                   placement: 'topRight',
-                  title: '是否确认删除�?,
+                  title: '是否确认删除？',
                   confirm: handleDelete.bind(null, record),
                 },
               },

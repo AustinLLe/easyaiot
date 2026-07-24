@@ -9,11 +9,11 @@
     :maskClosable="true"
   >
     <div class="record-video-container">
-      <!-- 顶部操作�?-->
+      <!-- 顶部操作栏 -->
       <div class="record-video-header">
         <div class="header-actions">
           <a-button type="primary" @click="handleSelectAll">
-            {{ isAllSelected ? '取消全�? : '全�? }}
+            {{ isAllSelected ? '取消全选' : '全选' }}
           </a-button>
           <a-button type="primary" @click="handleRefresh">
             刷新
@@ -43,7 +43,7 @@
                   class="video-card-box"
                   @click="handleVideoClick(item)"
                 >
-                  <!-- 选择�?-->
+                  <!-- 选择框 -->
                   <div 
                     class="card-checkbox"
                     :class="{ 'checked': selectedRowKeys.includes(item.object_name) }"
@@ -61,7 +61,7 @@
                       class="card-image"
                     />
                     <div v-else class="no-thumbnail">
-                      <span>无封�?/span>
+                      <span>无封面</span>
                     </div>
                     <!-- 播放图标 -->
                     <div class="play-icon" @click.stop="handlePlay(item)">
@@ -77,15 +77,15 @@
                     <!-- 信息标签 -->
                     <div class="card-info">
                       <div class="info-item">
-                        <span class="info-label">大小�?/span>
+                        <span class="info-label">大小：</span>
                         <span class="info-value">{{ formatSize(item.size) }}</span>
                       </div>
                       <div class="info-item" v-if="item.duration">
-                        <span class="info-label">时长�?/span>
+                        <span class="info-label">时长：</span>
                         <span class="info-value">{{ formatDuration(item.duration) }}</span>
                       </div>
                       <div class="info-item" v-if="item.last_modified">
-                        <span class="info-label">时间�?/span>
+                        <span class="info-label">时间：</span>
                         <span class="info-value">{{ formatTime(item.last_modified) }}</span>
                       </div>
                     </div>
@@ -111,7 +111,7 @@
       </div>
     </div>
     
-    <!-- 视频播放器弹�?-->
+    <!-- 视频播放器弹框 -->
     <DialogPlayer @register="registerPlayerModal" />
   </BasicModal>
 </template>
@@ -138,7 +138,8 @@ const selectedRowKeys = ref<string[]>([]);
 const previewVisible = ref(false);
 const previewVideo = ref<RecordVideo | null>(null);
 
-// 播放器弹�?const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
+// 播放器弹框
+const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
 
 // 分页相关
 const page = ref(1);
@@ -155,7 +156,7 @@ const paginationProp = computed(() => {
     pageSize: pageSize.value,
     current: page.value,
     total: total.value,
-    showTotal: (total: number) => `�?${total} 个录像`,
+    showTotal: (total: number) => `共 ${total} 个录像`,
     onChange: pageChange,
     onShowSizeChange: pageSizeChange,
   };
@@ -174,12 +175,13 @@ function pageSizeChange(_current: number, size: number) {
 }
 
 const getVideoUrl = (record: RecordVideo) => {
-  // 优先使用后台返回�?url 字段，如果没有则使用 object_name 构建
+  // 优先使用后台返回的 url 字段，如果没有则使用 object_name 构建
   if (record.url) {
-    // 如果是完整URL（以http://或https://开头），直接返�?    if (record.url.startsWith('http://') || record.url.startsWith('https://')) {
+    // 如果是完整URL（以http://或https://开头），直接返回
+    if (record.url.startsWith('http://') || record.url.startsWith('https://')) {
       return record.url;
     }
-    // 如果是相对路径（�?api/v1/buckets开头），添加前端启动地址前缀
+    // 如果是相对路径（以/api/v1/buckets开头），添加前端启动地址前缀
     if (record.url.startsWith('/api/v1/buckets')) {
       return `${window.location.origin}${record.url}`;
     }
@@ -199,7 +201,7 @@ const formatSize = (bytes: number) => {
 };
 
 const formatDuration = (seconds: number) => {
-  if (!seconds) return '0�?;
+  if (!seconds) return '0秒';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -236,7 +238,8 @@ const loadVideoList = async () => {
     });
     
     // 响应拦截器处理后的数据结构：{ code, data, msg, total }
-    // 或者直接是数组（如果响应拦截器返回�?data.data�?    if (Array.isArray(response)) {
+    // 或者直接是数组（如果响应拦截器返回了 data.data）
+    if (Array.isArray(response)) {
       // 如果直接返回数组
       videoList.value = response;
       total.value = response.length;
@@ -245,10 +248,12 @@ const loadVideoList = async () => {
       if (response.code === 0) {
         // 成功响应
         if (Array.isArray(response.data)) {
-          // data是数�?          videoList.value = response.data;
+          // data是数组
+          videoList.value = response.data;
           total.value = response.total || response.data.length;
         } else if (response.data && Array.isArray(response.data.items)) {
-          // data.items是数组（某些接口可能这样返回�?          videoList.value = response.data.items;
+          // data.items是数组（某些接口可能这样返回）
+          videoList.value = response.data.items;
           total.value = response.total || response.data.total || response.data.items.length;
         } else {
           videoList.value = [];
@@ -280,19 +285,24 @@ const handleRefresh = () => {
   loadVideoList();
 };
 
-// 全选状态计�?const isAllSelected = computed(() => {
+// 全选状态计算
+const isAllSelected = computed(() => {
   return videoList.value.length > 0 && selectedRowKeys.value.length === videoList.value.length;
 });
 
-// 全�?取消全�?const handleSelectAll = () => {
+// 全选/取消全选
+const handleSelectAll = () => {
   if (isAllSelected.value) {
-    // 取消全�?    selectedRowKeys.value = [];
+    // 取消全选
+    selectedRowKeys.value = [];
   } else {
-    // 全选当前页所有录�?    selectedRowKeys.value = videoList.value.map(item => item.object_name);
+    // 全选当前页所有录像
+    selectedRowKeys.value = videoList.value.map(item => item.object_name);
   }
 };
 
-// 点击录像切换勾选状�?const handleVideoClick = (item: RecordVideo) => {
+// 点击录像切换勾选状态
+const handleVideoClick = (item: RecordVideo) => {
   const key = item.object_name;
   if (selectedRowKeys.value.includes(key)) {
     selectedRowKeys.value = selectedRowKeys.value.filter(k => k !== key);
@@ -315,11 +325,12 @@ const handlePlay = (record: RecordVideo) => {
   const videoUrl = getVideoUrl(record);
   
   if (!videoUrl) {
-    createMessage.warning('录像文件地址无效，无法播�?);
+    createMessage.warning('录像文件地址无效，无法播放');
     return;
   }
   
-  // 使用 DialogPlayer 组件打开播放�?  openPlayerModal(true, {
+  // 使用 DialogPlayer 组件打开播放器
+  openPlayerModal(true, {
     id: modalData.value.space_id || 0,
     http_stream: videoUrl,
   });
@@ -422,7 +433,8 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       }
     }
 
-    // Spin 组件也需�?flex 布局以支持居�?    :deep(.ant-spin-container) {
+    // Spin 组件也需要 flex 布局以支持居中
+    :deep(.ant-spin-container) {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -430,7 +442,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       position: relative;
     }
 
-    // 当没有数据时，让 List �?Empty 组件居中显示
+    // 当没有数据时，让 List 和 Empty 组件居中显示
     :deep(.ant-list) {
       flex: 1;
       display: flex;
@@ -598,7 +610,8 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   }
 }
 
-// 响应式设�?@media (max-width: 768px) {
+// 响应式设计
+@media (max-width: 768px) {
   .record-video-container {
     height: 65vh;
     max-height: 600px;

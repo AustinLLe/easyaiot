@@ -7,7 +7,7 @@
           v-model:value="timeRange"
           :show-time="{ format: 'HH:mm:ss' }"
           format="YYYY-MM-DD HH:mm:ss"
-          placeholder="['开始时�?, '结束时间']"
+          placeholder="['开始时间', '结束时间']"
           class="time-picker"
           @change="handleTimeRangeChange"
         />
@@ -18,7 +18,7 @@
     </div>
     
     <div class="panel-content">
-      <!-- 缩略图列�?-->
+      <!-- 缩略图列表 -->
       <div class="thumbnail-list">
         <div
           v-for="record in recordList"
@@ -30,7 +30,7 @@
             <img 
               v-if="record.thumbnail" 
               :src="record.thumbnail" 
-              alt="缩略�?
+              alt="缩略图"
               class="thumbnail-img"
             />
             <div v-else class="thumbnail-placeholder">
@@ -48,7 +48,7 @@
         </div>
       </div>
       
-      <!-- 时间�?-->
+      <!-- 时间轴 -->
       <div class="timeline-container">
         <div class="timeline">
           <div
@@ -61,7 +61,7 @@
             <div class="hour-line"></div>
           </div>
           
-          <!-- 当前时间指示�?-->
+          <!-- 当前时间指示器 -->
           <div
             class="timeline-indicator"
             :style="{ left: `${(currentHour / 24) * 100}%` }"
@@ -73,7 +73,7 @@
       </div>
     </div>
     
-    <!-- 视频播放器弹�?-->
+    <!-- 视频播放器弹窗 -->
     <DialogPlayer @register="registerPlayerModal" />
   </div>
 </template>
@@ -91,9 +91,11 @@ import { queryAlertRecord } from '@/api/device/calculate'
 const { RangePicker } = DatePicker
 const { createMessage } = useMessage()
 
-// 播放器弹�?const [registerPlayerModal, { openModal: openPlayerModal }] = useModal()
+// 播放器弹窗
+const [registerPlayerModal, { openModal: openPlayerModal }] = useModal()
 
-// 防重复提示：记录最近提示的时间和内�?let lastVideoErrorTime = 0
+// 防重复提示：记录最近提示的时间和内容
+let lastVideoErrorTime = 0
 let lastVideoErrorMsg = ''
 
 defineOptions({
@@ -103,7 +105,8 @@ defineOptions({
 const props = defineProps<{
   recordList?: any[]
   currentTime?: string
-  deviceId?: string | number // 设备ID，用于查询录�?}>()
+  deviceId?: string | number // 设备ID，用于查询录像
+}>()
 
 const emit = defineEmits<{
   (e: 'time-change', time: string): void
@@ -112,12 +115,13 @@ const emit = defineEmits<{
 const timeRange = ref<[Dayjs, Dayjs] | null>(null)
 const selectedRecordId = ref<string | null>(null)
 
-// 时间轴小时标记（�?小时一个）
+// 时间轴小时标记（每2小时一个）
 const hours = computed(() => {
   return Array.from({ length: 13 }, (_, i) => i * 2)
 })
 
-// 当前小时�?-24�?const currentHour = computed(() => {
+// 当前小时（0-24）
+const currentHour = computed(() => {
   if (!props.currentTime) return 12
   const hour = parseInt(props.currentTime.split(' ')[1]?.split(':')[0] || '12')
   const minute = parseInt(props.currentTime.split(' ')[1]?.split(':')[1] || '0')
@@ -130,21 +134,25 @@ const formatCurrentTime = computed(() => {
   return props.currentTime.split(' ')[1]?.substring(0, 5) || '12:00'
 })
 
-// 格式化时�?const formatTime = (time: string) => {
+// 格式化时间
+const formatTime = (time: string) => {
   if (!time) return ''
   return time.split(' ')[1]?.substring(0, 5) || time
 }
 
-// 格式化小�?const formatHour = (hour: number) => {
+// 格式化小时
+const formatHour = (hour: number) => {
   return `${String(hour).padStart(2, '0')}:00`
 }
 
-// 获取录像播放地址（参考录像空间的处理方式�?const getVideoUrl = (videoUrl: string): string => {
+// 获取录像播放地址（参考录像空间的处理方式）
+const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl) return ''
-  // 如果是完整URL，直接返�?  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+  // 如果是完整URL，直接返回
+  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
     return videoUrl
   }
-  // 如果是相对路径（�?api/v1/buckets开头），添加前端启动地址前缀
+  // 如果是相对路径（以/api/v1/buckets开头），添加前端启动地址前缀
   if (videoUrl.startsWith('/api/v1/buckets')) {
     return `${window.location.origin}${videoUrl}`
   }
@@ -156,9 +164,11 @@ const formatCurrentTime = computed(() => {
   return videoUrl
 }
 
-// 防重复提示函数：3秒内相同错误只提示一�?function showVideoErrorOnce(message: string) {
+// 防重复提示函数：3秒内相同错误只提示一次
+function showVideoErrorOnce(message: string) {
   const now = Date.now()
-  // 如果3秒内提示过相同内容，则不再提�?  if (now - lastVideoErrorTime < 3000 && lastVideoErrorMsg === message) {
+  // 如果3秒内提示过相同内容，则不再提示
+  if (now - lastVideoErrorTime < 3000 && lastVideoErrorMsg === message) {
     return
   }
   lastVideoErrorTime = now
@@ -174,15 +184,16 @@ const handlePlay = async (record: any) => {
   selectedRecordId.value = record.id
   emit('time-change', record.time)
   
-  // 检�?openPlayerModal 是否可用
+  // 检查 openPlayerModal 是否可用
   if (!openPlayerModal || typeof openPlayerModal !== 'function') {
-    console.error('openPlayerModal 不可�?', openPlayerModal)
-    createMessage.error('播放器未初始化，请刷新页面重�?)
+    console.error('openPlayerModal 不可用:', openPlayerModal)
+    createMessage.error('播放器未初始化，请刷新页面重试')
     return
   }
   
   try {
-    // 如果record直接有video_url，直接使�?    if (record.video_url || record.url) {
+    // 如果record直接有video_url，直接使用
+    if (record.video_url || record.url) {
       const videoUrl = getVideoUrl(record.video_url || record.url)
       console.log('使用 record 中的 video_url:', videoUrl)
       
@@ -195,7 +206,7 @@ const handlePlay = async (record: any) => {
         console.log('成功调用 openPlayerModal')
       } catch (modalError: any) {
         console.error('调用 openPlayerModal 失败:', modalError)
-        createMessage.error('打开播放器失�? ' + (modalError?.message || '未知错误'))
+        createMessage.error('打开播放器失败: ' + (modalError?.message || '未知错误'))
       }
       return
     }
@@ -204,7 +215,7 @@ const handlePlay = async (record: any) => {
     const deviceId = record.device_id || props.deviceId
     if (!deviceId || !record.time) {
       console.warn('缺少必要信息:', { deviceId, time: record.time })
-      createMessage.warn('缺少必要信息：设备ID或录像时�?)
+      createMessage.warn('缺少必要信息：设备ID或录像时间')
       return
     }
     
@@ -214,7 +225,8 @@ const handlePlay = async (record: any) => {
     const result = await queryAlertRecord({
       device_id: String(deviceId),
       alert_time: record.time,
-      time_range: 60, // 前后60�?    })
+      time_range: 60, // 前后60秒
+    })
 
     console.log('查询录像结果:', result)
 
@@ -236,18 +248,20 @@ const handlePlay = async (record: any) => {
         lastVideoErrorMsg = ''
       } catch (modalError: any) {
         console.error('调用 openPlayerModal 失败:', modalError)
-        createMessage.error('打开播放器失�? ' + (modalError?.message || '未知错误'))
+        createMessage.error('打开播放器失败: ' + (modalError?.message || '未知错误'))
       }
     } else {
-      // 检查是否是业务错误（code=400�?      const errorMsg = result?.message || '暂未找到该时间段的录像文�?
-      console.warn('未找到录�?', errorMsg)
+      // 检查是否是业务错误（code=400）
+      const errorMsg = result?.message || '暂未找到该时间段的录像文件'
+      console.warn('未找到录像:', errorMsg)
       showVideoErrorOnce(errorMsg)
     }
   } catch (error: any) {
     console.error('播放录像失败:', error)
-    // 处理业务错误（HTTP 200但code=400�?    const errorData = error?.response?.data || error?.data
+    // 处理业务错误（HTTP 200但code=400）
+    const errorData = error?.response?.data || error?.data
     if (errorData && errorData.code === 400) {
-      const errorMsg = errorData.message || '暂未找到该时间段的录像文�?
+      const errorMsg = errorData.message || '暂未找到该时间段的录像文件'
       showVideoErrorOnce(errorMsg)
     } else {
       // 其他错误

@@ -29,7 +29,7 @@
           </template>
           <a-input-number
             v-model:value="formState.start_port"
-            placeholder="请输入端�?
+            placeholder="请输入端口"
             :min="8000"
             :max="65535"
           />
@@ -101,7 +101,8 @@ const [register, { closeModal, setModalProps }] = useModalInner(async (data) => 
   await loadModelOptions();
 });
 
-// 监听部署状态，更新弹框按钮�?loading 状�?watch(() => state.deploying, (loading) => {
+// 监听部署状态，更新弹框按钮的 loading 状态
+watch(() => state.deploying, (loading) => {
   setModalProps({ confirmLoading: loading });
 });
 
@@ -130,7 +131,7 @@ const handleSubmit = async () => {
 
   // 验证表单
   if (!isFormValid.value) {
-    createMessage.warning('请填写必填字�?);
+    createMessage.warning('请填写必填字段');
     return; // 表单验证失败，不执行部署
   }
 
@@ -142,7 +143,8 @@ const handleSubmit = async () => {
     };
     
     const response = await deployModel(values);
-    // 检查响应中是否有警告标�?    if (response && (response as any).warning) {
+    // 检查响应中是否有警告标记
+    if (response && (response as any).warning) {
       // 显示警告信息（模型下载失败但服务记录已创建）
       const warningMsg = (response as any).msg || '模型文件下载失败，请检查模型文件路径和MinIO配置';
       createMessage.warning(warningMsg);
@@ -155,7 +157,8 @@ const handleSubmit = async () => {
     }
   } catch (error: any) {
     console.error('部署失败:', error);
-    // 直接显示后端返回的错误信�?    const errorMsg = error.response?.data?.msg || error.message || '部署失败';
+    // 直接显示后端返回的错误信息
+    const errorMsg = error.response?.data?.msg || error.message || '部署失败';
     createMessage.error(errorMsg);
   } finally {
     state.deploying = false;

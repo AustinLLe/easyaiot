@@ -23,7 +23,7 @@
           </div>
         </div>
       </a-tab-pane>
-      <a-tab-pane key="status" tab="服务状�? :disabled="!taskId">
+      <a-tab-pane key="status" tab="服务状态" :disabled="!taskId">
         <ServiceStatusTab v-if="taskId && formValues" :task="formValues" />
         <a-empty v-else description="请先保存基础配置" />
       </a-tab-pane>
@@ -96,11 +96,11 @@ const defaultModels = [
   },
 ];
 const modelOptions = ref<Array<{ label: string; value: number }>>([...defaultModels]);
-const modelMap = ref<Map<number, any>>(new Map()); // 存储完整的模型信�?
+const modelMap = ref<Map<number, any>>(new Map()); // 存储完整的模型信息
 
-// 占位符列表（包含占位符和说明�?
+// 占位符列表（包含占位符和说明）
 const placeholders = [
-  { placeholder: '${object}', description: '检测对�? },
+  { placeholder: '${object}', description: '检测对象' },
   { placeholder: '${event}', description: '事件类型' },
   { placeholder: '${region}', description: '区域信息' },
   { placeholder: '${information}', description: '详细信息' },
@@ -139,7 +139,7 @@ const loadDevices = async () => {
 
 
 
-// 初始化默认模型到映射�?
+// 初始化默认模型到映射中
 const initDefaultModels = () => {
   modelMap.value.set(-1, {
     id: -1,
@@ -155,14 +155,14 @@ const initDefaultModels = () => {
   });
 };
 
-// 加载模型列表（用于选择模型�?
+// 加载模型列表（用于选择模型）
 const loadModels = async () => {
-  // 先初始化默认模型，确保它们始终存�?
+  // 先初始化默认模型，确保它们始终存在
   initDefaultModels();
 
   try {
     const response = await getModelPage({ pageNo: 1, pageSize: 1000 });
-    // 处理响应数据：可能是转换后的数组，也可能是包�?code/data 的对�?
+    // 处理响应数据：可能是转换后的数组，也可能是包含 code/data 的对象
     let allModels: any[] = [];
     if (Array.isArray(response)) {
       allModels = response;
@@ -174,7 +174,7 @@ const loadModels = async () => {
 
     // 构建选项列表和完整模型信息映射（不清空默认模型）
     const dbModelOptions = allModels.map((item: any) => {
-      // 保存完整的模型信�?
+      // 保存完整的模型信息
       modelMap.value.set(item.id, item);
 
       return {
@@ -206,7 +206,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入任务名�?,
+        placeholder: '请输入任务名称',
       },
     },
     {
@@ -224,7 +224,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'device_ids',
-      label: '关联摄像�?,
+      label: '关联摄像头',
       component: 'Select',
       required: true,
       componentProps: {
@@ -258,13 +258,13 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'cron_expression',
-      label: 'Cron表达�?,
+      label: 'Cron表达式',
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '例如: 0 */5 * * * * (�?分钟)',
+        placeholder: '例如: 0 */5 * * * * (每5分钟)',
       },
-      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示�?分钟执行一�?,
+      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示每5分钟执行一次',
       ifShow: ({ values }) => values.task_type === 'snap',
     },
     {
@@ -272,10 +272,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '抽帧间隔',
       component: 'InputNumber',
       componentProps: {
-        placeholder: '每N帧抓一�?,
+        placeholder: '每N帧抓一次',
         min: 1,
       },
-      helpMessage: '抽帧模式下，每N帧抓一次（默认25�?,
+      helpMessage: '抽帧模式下，每N帧抓一次（默认25）',
       ifShow: ({ values }) => values.task_type === 'snap',
     },
     {
@@ -283,10 +283,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '抽帧间隔',
       component: 'InputNumber',
       componentProps: {
-        placeholder: '每N帧抽一�?,
+        placeholder: '每N帧抽一次',
         min: 1,
       },
-      helpMessage: '实时算法任务中，每N帧抽一次进行检测（默认25�?,
+      helpMessage: '实时算法任务中，每N帧抽一次进行检测（默认25）',
       ifShow: ({ values }) => values.task_type === 'realtime',
     },
     {
@@ -294,14 +294,14 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '启用目标追踪',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '�?,
-        unCheckedChildren: '�?,
+        checkedChildren: '是',
+        unCheckedChildren: '否',
       },
       ifShow: ({ values }) => values.task_type === 'realtime',
     },
     {
       field: 'tracking_similarity_threshold',
-      label: '追踪相似度阈�?,
+      label: '追踪相似度阈值',
       component: 'InputNumber',
       componentProps: {
         placeholder: '0.2',
@@ -313,7 +313,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'tracking_max_age',
-      label: '追踪最大存活帧�?,
+      label: '追踪最大存活帧数',
       component: 'InputNumber',
       componentProps: {
         placeholder: '25',
@@ -341,8 +341,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         return h('div', { class: 'alert-event-enabled-wrapper' }, [
           h(Switch, {
             checked: model.alert_event_enabled,
-            checkedChildren: '�?,
-            unCheckedChildren: '�?,
+            checkedChildren: '是',
+            unCheckedChildren: '否',
             disabled: isViewMode.value,
             onChange: async (checked: boolean) => {
               model.alert_event_enabled = checked;
@@ -351,7 +351,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
             },
           }),
           h(Popover, {
-            title: '算法任务占位�?,
+            title: '算法任务占位符',
             trigger: 'hover',
             placement: 'rightTop',
             getPopupContainer: (triggerNode) => triggerNode.parentElement || document.body,
@@ -375,7 +375,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
           }),
         ]);
       },
-      helpMessage: '是否启用告警事件，启用后会记录告警信�?,
+      helpMessage: '是否启用告警事件，启用后会记录告警信息',
       ifShow: ({ values }) => values.task_type === 'realtime' || values.task_type === 'snap',
     },
   ],
@@ -417,7 +417,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   if (modalData.value.record) {
     const record = modalData.value.record;
     taskId.value = record.id;
-    // �?model_ids 中提取模型ID列表（用于回显）
+    // 从 model_ids 中提取模型ID列表（用于回显）
     const modelIds: number[] = [];
     if (record.model_ids && Array.isArray(record.model_ids)) {
       modelIds.push(...record.model_ids);
@@ -454,7 +454,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
 
     formValues.value = { ...formValues.value, ...await getFieldsValue() };
 
-    // 查看模式禁用表单和按�?
+    // 查看模式禁用表单和按钮
     if (modalData.value.type === 'view') {
       updateSchema([
         { field: 'task_name', componentProps: { disabled: true } },
@@ -491,7 +491,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
     }
   } else {
     // 新建模式，设置默认值，并确保所有字段可编辑
-    // 先重置所有字段为可编辑状态，避免之前查看模式的disabled状态影�?
+    // 先重置所有字段为可编辑状态，避免之前查看模式的disabled状态影响
     updateSchema([
       { field: 'task_name', componentProps: { disabled: false } },
       { field: 'task_type', componentProps: { disabled: false } },
@@ -522,13 +522,13 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   }
 });
 
-// 处理表单字段值变�?
+// 处理表单字段值变化
 const handleFieldValueChange = async (key: string, value: any) => {
   if (key === 'alert_event_enabled') {
     const currentValues = await getFieldsValue();
     formValues.value = { ...currentValues, alert_event_enabled: value };
   } else {
-    // 其他字段变化时，也同步更�?formValues
+    // 其他字段变化时，也同步更新 formValues
     const currentValues = await getFieldsValue();
     formValues.value = { ...currentValues, [key]: value };
   }
@@ -544,13 +544,13 @@ const handleSubmit = async () => {
     if (modalData.value.type !== 'edit') {
       values.is_enabled = 0;
     }
-    // 编辑任务时，不修�?is_enabled 状态（保持原值，通过启动/停止按钮控制�?
+    // 编辑任务时，不修改 is_enabled 状态（保持原值，通过启动/停止按钮控制）
 
     const pickerValue = defenseSchedule.value;
     if (!pickerValue.is_full_day_defense) {
       const savedWeeks = pickerValue.defense_week_schedules ?? [];
       if (!savedWeeks.length) {
-        createMessage.error('请至少保存一个周的布防配�?);
+        createMessage.error('请至少保存一个周的布防配置');
         confirmLoading.value = false;
         setModalProps({ confirmLoading: false });
         return;
@@ -559,7 +559,7 @@ const handleSubmit = async () => {
         entry.schedule.some(day => day.some(hour => hour === 1)),
       );
       if (!hasValidWeek) {
-        createMessage.error('已保存的周配置中至少应包含一个布防时�?);
+        createMessage.error('已保存的周配置中至少应包含一个布防时段');
         confirmLoading.value = false;
         setModalProps({ confirmLoading: false });
         return;
@@ -574,14 +574,14 @@ const handleSubmit = async () => {
       : pickerValue.mode;
     values.defense_schedule = JSON.stringify(schedule);
 
-    // 确保 model_ids 是数组格�?
+    // 确保 model_ids 是数组格式
     if (values.model_ids && !Array.isArray(values.model_ids)) {
       values.model_ids = [values.model_ids];
     }
 
     // 算法任务（实时和抓拍）必须指定模型ID列表
     if ((values.task_type === 'realtime' || values.task_type === 'snap') && (!values.model_ids || values.model_ids.length === 0)) {
-      createMessage.error('算法任务必须选择至少一个模�?);
+      createMessage.error('算法任务必须选择至少一个模型');
       confirmLoading.value = false;
       setModalProps({ confirmLoading: false });
       return;
@@ -589,26 +589,26 @@ const handleSubmit = async () => {
 
     if (modalData.value.type === 'edit' && modalData.value.record) {
       const response = await updateAlgorithmTask(modalData.value.record.id, values);
-      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?
+      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
       if (response && response.id) {
         createMessage.success('更新成功');
         taskId.value = modalData.value.record.id;
         emit('success');
         closeModal();
       } else {
-        // 如果返回的不是任务对象，可能是错误响应（包含 code �?msg�?
+        // 如果返回的不是任务对象，可能是错误响应（包含 code 和 msg）
         createMessage.error((response as any)?.msg || '更新失败');
       }
     } else {
       const response = await createAlgorithmTask(values);
-      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?
+      // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
       if (response && response.id) {
         taskId.value = response.id;
         createMessage.success('创建成功');
         emit('success');
         closeModal();
       } else {
-        // 如果返回的不是任务对象，可能是错误响应（包含 code �?msg�?
+        // 如果返回的不是任务对象，可能是错误响应（包含 code 和 msg）
         createMessage.error((response as any)?.msg || '创建失败');
       }
     }

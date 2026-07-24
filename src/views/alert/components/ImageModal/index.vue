@@ -9,7 +9,7 @@
     :maskClosable="true"
   >
     <div class="image-viewer-container">
-      <Spin :spinning="loading" tip="加载�?..">
+      <Spin :spinning="loading" tip="加载中...">
         <div v-if="imageUrl" class="image-wrapper">
           <img
             :src="imageUrl"
@@ -42,12 +42,14 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   imageUrl.value = '';
   
   try {
-    // 优先使用 image_url（后台返回的已处理URL�?    let url = data.image_url;
+    // 优先使用 image_url（后台返回的已处理URL）
+    let url = data.image_url;
 
     // 如果没有 image_url，则使用 image_path 进行处理
     if (!url && data.image_path) {
       const imagePath = data.image_path;
-      // 如果是完整URL，直接使�?      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      // 如果是完整URL，直接使用
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         url = imagePath;
       } else if (imagePath.startsWith('/api/v1/buckets')) {
         // 如果是MinIO路径，添加前端启动地址前缀

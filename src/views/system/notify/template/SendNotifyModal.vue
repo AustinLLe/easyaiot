@@ -72,9 +72,11 @@ async function submit() {
 }
 
 function resetForm() {
-  // 这里需要每次清空动态表�?  reactiveSchemas.splice(0, reactiveSchemas.length)
+  // 这里需要每次清空动态表单
+  reactiveSchemas.splice(0, reactiveSchemas.length)
   reactiveSchemas.push(...baseSendSchemas)
-  // 清除上一次的表单校验和参�?  resetFields()
+  // 清除上一次的表单校验和参数
+  resetFields()
   clearValidate()
 }
 </script>

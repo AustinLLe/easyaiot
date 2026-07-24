@@ -2,13 +2,13 @@
   <div class="section-panel">
     <div class="section-header">
       <h3>基础信息</h3>
-      <p>配置任务名称、任务类型等基础属性�?/p>
+      <p>配置任务名称、任务类型等基础属性。</p>
     </div>
     <Form layout="vertical" class="section-form">
       <FormItem label="任务名称" required>
         <Input
           v-model:value="payload.task_name"
-          placeholder="例如：安全帽检测任�?
+          placeholder="例如：安全帽检测任务"
           allow-clear
           class="field-control"
         />
@@ -68,7 +68,7 @@ const taskTypeOptions = [
 ];
 
 const snapUnitOptions: Array<{ label: string; value: SnapIntervalUnit }> = [
-  { label: '�?, value: 'second' },
+  { label: '秒', value: 'second' },
   { label: '分钟', value: 'minute' },
   { label: '小时', value: 'hour' },
 ];

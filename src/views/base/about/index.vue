@@ -23,7 +23,7 @@ const infoSchema: DescItem[] = [
     render: commonTagRender('blue'),
   },
   {
-    label: '最后编译时�?,
+    label: '最后编译时间',
     field: 'lastBuildTime',
     render: commonTagRender('blue'),
   },
@@ -74,7 +74,7 @@ const [register] = useDescription({
 })
 
 const [registerDev] = useDescription({
-  title: '开发环境依�?,
+  title: '开发环境依赖',
   data: devDependencies,
   schema: devSchema,
   column: 3,
@@ -94,9 +94,10 @@ const [infoRegister] = useDescription({
       <div class="flex items-center justify-between">
         <span class="flex-1">
           <a :href="GITHUB_URL" target="_blank">{{ name }}</a>
-          基于Vue3.0、Vite�?Ant-Design-Vue 、TypeScript
-          的后台解决方案，目标是为中大型项目开�?提供现成的开箱解决方案及丰富的示�?原则上不会限制任何代码用于商用�?br>
-          同时，我们也提供<a :href="SITE_URL" target="_blank">外包服务</a>�?        </span>
+          基于Vue3.0、Vite、 Ant-Design-Vue 、TypeScript
+          的后台解决方案，目标是为中大型项目开发,提供现成的开箱解决方案及丰富的示例,原则上不会限制任何代码用于商用。<br>
+          同时，我们也提供<a :href="SITE_URL" target="_blank">外包服务</a>。
+        </span>
       </div>
     </template>
     <Description class="enter-y" @register="infoRegister" />

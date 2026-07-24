@@ -61,7 +61,7 @@
                       <input
                         type="text"
                         v-model="axis.name"
-                        placeholder="轴名�?
+                        placeholder="轴名称"
                       />
                       <input
                         type="text"
@@ -84,7 +84,7 @@
               </div>
             </div>
 
-            <!-- 导出状态提�?-->
+            <!-- 导出状态提示 -->
             <div v-if="exportStatus" class="export-status" :class="exportStatus.type">
               <i :class="statusIcon"></i>
               <span>{{ exportStatus.message }}</span>
@@ -99,8 +99,8 @@
               @click="exportModel"
               :disabled="!isFormValid || isExporting"
             >
-              <span v-if="isExporting">导出�?..</span>
-              <span v-else>开始导�?/span>
+              <span v-if="isExporting">导出中...</span>
+              <span v-else>开始导出</span>
             </button>
           </div>
         </div>
@@ -135,9 +135,11 @@ const form = reactive({
 // 导出格式选项
 const exportFormats = ref(['onnx', 'tensorrt', 'openvino', 'coreml'])
 
-// 高级设置显示状�?const showAdvanced = ref(false)
+// 高级设置显示状态
+const showAdvanced = ref(false)
 
-// 导出状�?const exportStatus = ref(null)
+// 导出状态
+const exportStatus = ref(null)
 const isExporting = ref(false)
 
 // 验证表单
@@ -146,7 +148,8 @@ const isFormValid = computed(() => {
     form.export_format !== ''
 })
 
-// 状态图�?const statusIcon = computed(() => {
+// 状态图标
+const statusIcon = computed(() => {
   if (!exportStatus.value) return ''
   return exportStatus.value.type === 'success' ? 'icon-check' : 'icon-error'
 })
@@ -164,21 +167,21 @@ const removeAxis = (index) => {
 // 浏览文件
 const browseFile = () => {
   // 实际项目中接入文件系统API
-  console.log('打开文件浏览�?)
+  console.log('打开文件浏览器')
   form.model_path = '/path/to/model.pt'
 }
 
 // 导出模型
 const exportModelHandler = async () => {
   if (!isFormValid.value) {
-    createMessage.error('请填写必填字�?)
+    createMessage.error('请填写必填字段')
     return
   }
 
   isExporting.value = true
   exportStatus.value = {
     type: 'info',
-    message: '模型导出中，请稍�?..'
+    message: '模型导出中，请稍候...'
   }
 
   try {

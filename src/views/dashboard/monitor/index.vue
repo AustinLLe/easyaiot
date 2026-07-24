@@ -5,12 +5,12 @@
       <div>
         <div class="eyebrow">EASYAIOT EDGE</div>
         <h1>首页看板</h1>
-        <p>设备、算法与告警态势实时汇�?/p>
+        <p>设备、算法与告警态势实时汇总</p>
       </div>
       <div class="heading-actions">
         <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
           <Icon icon="ant-design:reload-outlined" :size="16" />
-          {{ loading ? '刷新�? : '刷新数据' }}
+          {{ loading ? '刷新中' : '刷新数据' }}
         </button>
       </div>
     </header>
@@ -43,7 +43,7 @@
                 <strong class="kpi-secondary-value">{{ statistics.alarm_count }}</strong>
               </div>
               <div class="kpi-secondary-item">
-                <span class="kpi-secondary-label">摄像�?/span>
+                <span class="kpi-secondary-label">摄像头</span>
                 <strong class="kpi-secondary-value">{{ statistics.camera_count }}</strong>
               </div>
               <div class="kpi-secondary-item">
@@ -60,7 +60,7 @@
               <span class="panel-kicker">实时报警</span>
               <h2>告警事件</h2>
             </div>
-            <span class="panel-total">今日 {{ todayAlarmCount }} �?/span>
+            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
           </div>
           <div class="alarm-list">
             <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
@@ -100,7 +100,7 @@
               :disabled="!deviceList.length || streamLoading"
               @change="handleDeviceSelect"
             >
-              <option value="">选择摄像�?/option>
+              <option value="">选择摄像头</option>
               <option v-for="device in deviceList" :key="device.id" :value="device.id">
                 {{ device.name || device.id }}
               </option>
@@ -128,7 +128,7 @@
             <div v-else class="video-placeholder">
               <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
               <strong>{{ videoPlaceholderTitle }}</strong>
-              <span>从右侧列表拖入摄像头，或点击摄像头播�?/span>
+              <span>从右侧列表拖入摄像头，或点击摄像头播放</span>
             </div>
             <div v-if="playingDevice" class="video-caption">
               <span>{{ playingDevice.name || playingDevice.id }}</span>
@@ -137,10 +137,10 @@
         </div>
       </article>
 
-      <!-- 右侧：分�?+ 摄像头列�?-->
+      <!-- 右侧：分组 + 摄像头列表 -->
       <article class="panel device-panel">
         <div class="device-section groups-section">
-          <div class="section-label">摄像头分�?/div>
+          <div class="section-label">摄像头分组</div>
           <div v-if="directoryTree.length" class="group-list">
             <button
               v-for="item in flatDirectoryItems"
@@ -155,12 +155,13 @@
             </button>
           </div>
           <div v-else-if="!treeLoading" class="empty-state compact">暂无分组</div>
-          <div v-else class="empty-state compact">加载�?..</div>
+          <div v-else class="empty-state compact">加载中...</div>
         </div>
         <div class="device-section-divider" />
         <div class="device-section cameras-section">
           <div class="section-label">
-            摄像�?            <span v-if="groupCameras.length" class="section-count">{{ groupCameras.length }} �?/span>
+            摄像头
+            <span v-if="groupCameras.length" class="section-count">{{ groupCameras.length }} 台</span>
           </div>
           <div class="camera-list">
             <div
@@ -184,7 +185,7 @@
         </div>
       </article>
 
-      <!-- 中间下：算法占比 + 摄像头排行（视频下方�?-->
+      <!-- 中间下：算法占比 + 摄像头排行（视频下方） -->
       <article class="panel stats-panel">
         <div class="stats-split">
           <section class="stats-block">
@@ -234,7 +235,7 @@
             <div class="panel-title-row compact-title">
               <div>
                 <span class="panel-kicker">报警统计</span>
-                <h2>{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排�? }}</h2>
+                <h2>{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
               </div>
               <div class="panel-title-actions">
                 <div class="period-tabs compact" role="tablist" aria-label="排行统计周期">
@@ -256,7 +257,8 @@
                     :class="['rank-mode-tab', { active: rankMode === 'camera' }]"
                     @click="rankMode = 'camera'"
                   >
-                    摄像�?                  </button>
+                    摄像头
+                  </button>
                   <button
                     type="button"
                     :class="['rank-mode-tab', { active: rankMode === 'directory' }]"
@@ -277,7 +279,7 @@
                 <div class="rank-body">
                   <div class="rank-line">
                     <span :title="item.name">{{ item.name }}</span>
-                    <strong>{{ item.count }} �?/strong>
+                    <strong>{{ item.count }} 次</strong>
                   </div>
                   <div class="rank-bar">
                     <i :style="{ width: `${rankingWidth(item.count, displayRanking)}%` }" />
@@ -287,7 +289,7 @@
               </div>
             </div>
             <div v-else class="empty-state compact">
-              {{ rankMode === 'directory' ? '当前周期暂无分组报警' : '当前周期暂无摄像头报�? }}
+              {{ rankMode === 'directory' ? '当前周期暂无分组报警' : '当前周期暂无摄像头报警' }}
             </div>
           </section>
         </div>
@@ -458,7 +460,7 @@ function rankingWidth(count: number, items: RankingItem[]) {
   return Math.max((count / max) * 100, 8)
 }
 
-const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频�?..' : '请拖入或选择摄像�?)
+const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请拖入或选择摄像头')
 
 function flattenDirectoryTree(nodes: TreeItem[], depth = 0): DirectoryTreeItem[] {
   const items: DirectoryTreeItem[] = []
@@ -583,7 +585,7 @@ function appendUncategorizedDirectory(tree: TreeItem[], devices: DeviceInfo[]) {
     return
   tree.push({
     key: 'dir_uncategorized',
-    title: '未分�?,
+    title: '未分组',
     isDirectory: true,
   })
 }
@@ -751,7 +753,7 @@ async function handlePlayDevice(device: DeviceInfo) {
   }
   catch (error) {
     console.error('播放失败', error)
-    createMessage.error('播放摄像头失�?)
+    createMessage.error('播放摄像头失败')
   }
   finally {
     streamLoading.value = false

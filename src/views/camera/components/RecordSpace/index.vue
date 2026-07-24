@@ -15,7 +15,8 @@
                     <template #icon>
                       <SyncOutlined />
                     </template>
-                    同步Minio数据�?                  </a-button>
+                    同步Minio数据仓
+                  </a-button>
                 </div>
                 <Spin :spinning="loading">
                   <List
@@ -111,7 +112,7 @@ const paginationProp = computed(() => ({
   pageSize: pageSize.value,
   current: page.value,
   total: total.value,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 }));
@@ -139,7 +140,8 @@ const loadSpaceList = async () => {
       pageSize: pageSize.value,
       ...searchParams.value
     });
-    // 后台返回的数据结构可能是�?    // 1. 直接返回数组（响应拦截器已处理）
+    // 后台返回的数据结构可能是：
+    // 1. 直接返回数组（响应拦截器已处理）
     // 2. 返回 { code, data, msg, total } 对象（分页接口）
     if (Array.isArray(response)) {
       // 如果直接返回数组
@@ -150,10 +152,12 @@ const loadSpaceList = async () => {
       if (response.code === 0) {
         // 成功响应
         if (Array.isArray(response.data)) {
-          // data是数�?          spaceList.value = response.data;
+          // data是数组
+          spaceList.value = response.data;
           total.value = response.total || response.data.length;
         } else if (response.data && Array.isArray(response.data.items)) {
-          // data.items是数组（某些接口可能这样返回�?          spaceList.value = response.data.items;
+          // data.items是数组（某些接口可能这样返回）
+          spaceList.value = response.data.items;
           total.value = response.total || response.data.total || response.data.items.length;
         } else {
           spaceList.value = [];
@@ -190,17 +194,18 @@ const handleDelete = async (record: RecordSpace) => {
   try {
     // 如果录像空间关联了设备，提示用户删除设备
     if (record.device_id) {
-      createMessage.warning('录像空间跟随设备，不能单独删除。请删除关联的设备，录像空间会自动删除�?);
+      createMessage.warning('录像空间跟随设备，不能单独删除。请删除关联的设备，录像空间会自动删除。');
       return;
     }
     
-    // 先检查空间下是否有录�?    const videoResponse = await getRecordVideoList(record.id, {
+    // 先检查空间下是否有录像
+    const videoResponse = await getRecordVideoList(record.id, {
       pageNo: 1,
       pageSize: 1,
     });
     
     if (videoResponse.code === 0 && videoResponse.total > 0) {
-      createMessage.warning('该空间下还有录像，无法删除。请先删除所有录像后再删除空间�?);
+      createMessage.warning('该空间下还有录像，无法删除。请先删除所有录像后再删除空间。');
       return;
     }
     
@@ -219,14 +224,15 @@ const handleSuccess = () => {
   loadSpaceList();
 };
 
-// 同步Minio数据�?const handleSyncMinio = async () => {
+// 同步Minio数据仓
+const handleSyncMinio = async () => {
   syncing.value = true;
   try {
     // 响应拦截器已经处理了错误情况，如果能到达这里说明请求成功
-    // 响应拦截器会返回 data.data，所�?response 就是后端返回�?data 字段内容
+    // 响应拦截器会返回 data.data，所以 response 就是后端返回的 data 字段内容
     const data = await syncRecordSpacesToMinio();
     createMessage.success(
-      `同步完成！总计: ${data.total_spaces}，创�? ${data.created_count}，跳�? ${data.skipped_count}，错�? ${data.error_count}`
+      `同步完成！总计: ${data.total_spaces}，创建: ${data.created_count}，跳过: ${data.skipped_count}，错误: ${data.error_count}`
     );
   } catch (error: any) {
     console.error('同步Minio失败', error);
@@ -239,7 +245,8 @@ const handleSuccess = () => {
 
 // 右键菜单相关
 function handleClick(event: MouseEvent) {
-  // 如果点击的不是右键菜单本身，则隐藏菜�?  const target = event.target as HTMLElement;
+  // 如果点击的不是右键菜单本身，则隐藏菜单
+  const target = event.target as HTMLElement;
   if (!target.closest('.ezd-popover') && ezd_popover_hidden.value === "") {
     ezd_popover_hidden.value = "ezd-popover-hidden";
   }
@@ -267,7 +274,7 @@ function handleViewDetail() {
 
 function handleEditDetail() {
   // 编辑功能已禁用，录像空间跟随设备
-  createMessage.info('录像空间信息跟随设备，无法单独编�?);
+  createMessage.info('录像空间信息跟随设备，无法单独编辑');
   ezd_popover_hidden.value = "ezd-popover-hidden";
 }
 
@@ -293,7 +300,7 @@ const [registerForm, {validate}] = useForm({
       label: '空间名称',
       component: 'Input',
       componentProps: {
-        placeholder: '请输入空间名�?,
+        placeholder: '请输入空间名称',
       },
     },
   ],

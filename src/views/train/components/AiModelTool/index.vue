@@ -25,12 +25,12 @@
           </div>
         </div>
 
-        <!-- 算法服务选择（仅在图片推理时显示�?-->
+        <!-- 算法服务选择（仅在图片推理时显示） -->
         <div class="config-section" v-if="state.activeSource === 'image'">
           <div class="section-title">
             <SettingOutlined class="icon" />
             <span>算法服务</span>
-            <Tooltip title="已选择算法服务时，优先通过服务推理；否则使用下方算法列�?>
+            <Tooltip title="已选择算法服务时，优先通过服务推理；否则使用下方算法列表">
               <QuestionCircleOutlined class="icon tip-icon" />
             </Tooltip>
             <ReloadOutlined class="icon refresh-icon" @click="loadDeployServices" :class="{ spinning: state.deployServicesLoading }" title="刷新服务列表" />
@@ -40,7 +40,8 @@
               <select class="select-field" v-model="state.selectedDeployServiceId" @change="handleDeployServiceChange">
                 <option :value="null">请选择算法服务</option>
                 <option v-for="service in state.deployServices" :key="service.id" :value="service.id">
-                  {{ service.model_name }}服务（v{{ service.model_version }}�?                </option>
+                  {{ service.model_name }}服务（v{{ service.model_version }}）
+                </option>
               </select>
             </div>
           </div>
@@ -80,7 +81,7 @@
               </select>
             </div>
 
-            <!-- 动态内容区�?-->
+            <!-- 动态内容区域 -->
             <div class="source-content" v-if="state.activeSource === 'image'">
               <div class="file-upload-wrapper">
                 <input
@@ -126,8 +127,8 @@
             <div class="button-group">
               <button class="btn btn-primary" @click="startDetection" :disabled="getStartButtonDisabled()">
                 <PlayCircleOutlined class="icon" />
-                <span v-if="state.inferenceLoading">推理�?..</span>
-                <span v-else>开始检�?/span>
+                <span v-if="state.inferenceLoading">推理中...</span>
+                <span v-else>开始检测</span>
               </button>
               <div v-if="state.activeSource === 'video' && state.inferenceLoading" class="inline-video-progress">
                 <div class="inline-progress-header">
@@ -138,8 +139,8 @@
                   <div class="inline-progress-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
                 </div>
                 <div class="inline-progress-meta">
-                  <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} �?/span>
-                  <span v-else>已处�?{{ state.videoProcessedFrames }} �?/span>
+                  <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                  <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
                   <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
                 </div>
               </div>
@@ -172,7 +173,7 @@
             <div v-if="state.showOriginal" class="dual-video">
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>原始输入�?/span>
+                  <span>原始输入源</span>
                 </div>
                 <div class="video-content">
                   <div v-if="state.uploadedImage" class="image-preview">
@@ -186,21 +187,21 @@
               </div>
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>检测结�?/span>
+                  <span>检测结果</span>
                 </div>
                 <div class="video-content video-content-scrollable">
                   <div v-if="state.detectionResult" class="detection-result">
-                    <img :src="state.detectionResult" alt="检测结�? class="preview-image" @error="handleImageError">
+                    <img :src="state.detectionResult" alt="检测结果" class="preview-image" @error="handleImageError">
                     <div class="detection-overlay">
                       <div class="detection-info">
-                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目�?/div>
-                        <div class="confidence">平均置信�? {{ state.averageConfidence }}%</div>
+                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目标</div>
+                        <div class="confidence">平均置信度: {{ state.averageConfidence }}%</div>
                       </div>
                     </div>
                   </div>
                   <div v-else class="video-placeholder">
                     <ExperimentOutlined class="icon" />
-                    <span>检测结果将显示在这�?/span>
+                    <span>检测结果将显示在这里</span>
                   </div>
                 </div>
               </div>
@@ -208,21 +209,21 @@
             <div v-else class="single-video">
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>检测结�?/span>
+                  <span>检测结果</span>
                 </div>
                 <div class="video-content video-content-scrollable">
                   <div v-if="state.detectionResult" class="detection-result">
-                    <img :src="state.detectionResult" alt="检测结�? class="preview-image" @error="handleImageError">
+                    <img :src="state.detectionResult" alt="检测结果" class="preview-image" @error="handleImageError">
                     <div class="detection-overlay">
                       <div class="detection-info">
-                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目�?/div>
-                        <div class="confidence">平均置信�? {{ state.averageConfidence }}%</div>
+                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目标</div>
+                        <div class="confidence">平均置信度: {{ state.averageConfidence }}%</div>
                       </div>
                     </div>
                   </div>
                   <div v-else class="video-placeholder">
                     <ExperimentOutlined class="icon" />
-                    <span>检测结果将显示在这�?/span>
+                    <span>检测结果将显示在这里</span>
                   </div>
                 </div>
               </div>
@@ -234,7 +235,7 @@
             <div v-if="state.showOriginal" class="dual-video">
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>原始输入�?/span>
+                  <span>原始输入源</span>
                 </div>
                 <div class="video-content">
                   <div v-if="state.uploadedVideoUrl" class="video-preview">
@@ -272,7 +273,7 @@
               </div>
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>检测结�?/span>
+                  <span>检测结果</span>
                 </div>
                 <div class="video-content">
                   <div v-if="state.detectionResult" class="video-preview">
@@ -283,7 +284,7 @@
                       autoplay
                       class="preview-video"
                       @error="handleVideoError"
-                      @loadedmetadata="() => console.log('视频元数据加载成�?)"
+                      @loadedmetadata="() => console.log('视频元数据加载成功')"
                     ></video>
                   </div>
                   <div v-else-if="state.inferenceLoading" class="video-placeholder video-progress-placeholder">
@@ -294,8 +295,8 @@
                         <div class="progress-bar-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
                       </div>
                       <div class="progress-meta">
-                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} �?/span>
-                        <span v-else>已处�?{{ state.videoProcessedFrames }} �?/span>
+                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                        <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
                         <span>{{ state.videoProgressPercent }}%</span>
                         <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
                       </div>
@@ -303,7 +304,7 @@
                   </div>
                   <div v-else class="video-placeholder">
                     <SearchOutlined class="icon" />
-                    <span>检测结果将显示在这�?/span>
+                    <span>检测结果将显示在这里</span>
                   </div>
                 </div>
               </div>
@@ -311,7 +312,7 @@
             <div v-else class="single-video">
               <div class="video-wrapper">
                 <div class="video-title">
-                  <span>检测结�?/span>
+                  <span>检测结果</span>
                 </div>
                 <div class="video-content">
                   <div v-if="state.detectionResult" class="video-preview">
@@ -322,7 +323,7 @@
                       autoplay
                       class="preview-video"
                       @error="handleVideoError"
-                      @loadedmetadata="() => console.log('视频元数据加载成�?)"
+                      @loadedmetadata="() => console.log('视频元数据加载成功')"
                     ></video>
                   </div>
                   <div v-else-if="state.inferenceLoading" class="video-placeholder video-progress-placeholder">
@@ -333,8 +334,8 @@
                         <div class="progress-bar-fill" :style="{ width: `${state.videoProgressPercent}%` }"></div>
                       </div>
                       <div class="progress-meta">
-                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} �?/span>
-                        <span v-else>已处�?{{ state.videoProcessedFrames }} �?/span>
+                        <span v-if="state.videoTotalFrames > 0">{{ state.videoProcessedFrames }} / {{ state.videoTotalFrames }} 帧</span>
+                        <span v-else>已处理 {{ state.videoProcessedFrames }} 帧</span>
                         <span>{{ state.videoProgressPercent }}%</span>
                         <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
                       </div>
@@ -342,7 +343,7 @@
                   </div>
                   <div v-else class="video-placeholder">
                     <SearchOutlined class="icon" />
-                    <span>检测结果将显示在这�?/span>
+                    <span>检测结果将显示在这里</span>
                   </div>
                 </div>
               </div>
@@ -444,18 +445,20 @@ interface AppState {
   inferenceHistory: InferenceHistoryRecord[];
   historyLoading: boolean;
   selectedHistoryRecordId: string;
-  historyInputSource: string | null; // 保存历史记录�?input_source URL
+  historyInputSource: string | null; // 保存历史记录的 input_source URL
   deployServices: DeployService[]; // 部署服务列表
   selectedDeployServiceId: number | null; // 选中的部署服务ID
-  deployServicesLoading: boolean; // 部署服务加载状�?}
+  deployServicesLoading: boolean; // 部署服务加载状态
+}
 
-// 状态管�?const state = reactive<AppState>({
+// 状态管理
+const state = reactive<AppState>({
   activeSource: 'image',
   confidenceThreshold: 70,
   cooldownTime: 5,
   showOriginal: true,
   detectionStatus: 'idle',
-  statusText: '就绪 - 等待输入�?,
+  statusText: '就绪 - 等待输入源',
   leftPanelCollapsed: false,
   showAdvancedSettings: false,
   uploadedImage: null,
@@ -487,9 +490,10 @@ interface AppState {
   deployServicesLoading: false
 });
 
-// 轮询超时时间�?分钟�?const POLLING_TIMEOUT = 5 * 60 * 1000;
+// 轮询超时时间（5分钟）
+const POLLING_TIMEOUT = 5 * 60 * 1000;
 const VIDEO_POLLING_TIMEOUT = 60 * 60 * 1000;
-// 轮询间隔�?秒）
+// 轮询间隔（1秒）
 const POLLING_INTERVAL = 1000;
 
 const sourceOptions = [
@@ -519,7 +523,8 @@ const loadDetectionParams = async () => {
       showOriginal: true
     }), 300));
 
-    // 更新状�?    state.confidenceThreshold = params.confidenceThreshold;
+    // 更新状态
+    state.confidenceThreshold = params.confidenceThreshold;
     state.cooldownTime = params.cooldownTime;
     state.showOriginal = params.showOriginal;
   } catch (error) {
@@ -535,13 +540,15 @@ const getStartButtonDisabled = (): boolean => {
     return true;
   }
   
-  // 图片推理：需要有模型服务或模型选择，以及图片文�?  if (state.activeSource === 'image') {
+  // 图片推理：需要有模型服务或模型选择，以及图片文件
+  if (state.activeSource === 'image') {
     const hasModel = state.selectedDeployServiceId || state.selectedModelId;
     const hasImage = state.uploadedImageFile || state.historyInputSource;
     return !hasModel || !hasImage;
   }
   
-  // 视频推理：需要有模型选择，以及视频文�?  if (state.activeSource === 'video') {
+  // 视频推理：需要有模型选择，以及视频文件
+  if (state.activeSource === 'video') {
     const hasModel = state.selectedModelId;
     const hasVideo = state.uploadedVideoFile || state.historyInputSource;
     return !hasModel || !hasVideo;
@@ -594,20 +601,21 @@ const formatVideoElapsedTime = (seconds: number): string => {
   if (minutes <= 0) {
     return `${remainingSeconds}秒`;
   }
-  return `${minutes}�?{remainingSeconds.toString().padStart(2, '0')}秒`;
+  return `${minutes}分${remainingSeconds.toString().padStart(2, '0')}秒`;
 };
 
 const getVideoProgressTitle = (): string => {
   if (state.videoTotalFrames > 0 && state.videoProcessedFrames >= state.videoTotalFrames) {
-    return '正在生成可播放结果视�?;
+    return '正在生成可播放结果视频';
   }
-  return state.videoTotalFrames > 0 ? '视频推理处理�? : '视频推理任务运行�?;
+  return state.videoTotalFrames > 0 ? '视频推理处理中' : '视频推理任务运行中';
 };
 
 const startDetection = async () => {
-  // 检查是否有可用的模型（模型服务或模型选择�?  const hasModel = state.selectedDeployServiceId || state.selectedModelId;
+  // 检查是否有可用的模型（模型服务或模型选择）
+  const hasModel = state.selectedDeployServiceId || state.selectedModelId;
   if (!hasModel) {
-    createMessage.warning('请先选择算法或算法服�?);
+    createMessage.warning('请先选择算法或算法服务');
     return;
   }
 
@@ -623,7 +631,7 @@ const startDetection = async () => {
 
   state.inferenceLoading = true;
   state.detectionStatus = 'running';
-  state.statusText = '推理�?..';
+  state.statusText = '推理中...';
   state.detectionResult = null;
   state.currentInferenceRecordId = null;
   if (state.activeSource === 'video') {
@@ -649,18 +657,18 @@ const startDetection = async () => {
     } else if (state.selectedModelId === 'yolov11') {
       formData.append('model_file_path', 'yolo11n.pt');
     }
-    // 注意：用户上传的模型不需要传�?model_file_path，后端会根据 model_id �?MinIO 下载
+    // 注意：用户上传的模型不需要传递 model_file_path，后端会根据 model_id 从 MinIO 下载
 
     // 根据输入源类型添加文件或URL
     if (state.activeSource === 'image' && state.uploadedImageFile) {
       formData.append('file', state.uploadedImageFile);
     } else if (state.activeSource === 'image' && state.historyInputSource) {
-      // 从历史记录还原的图片，使�?input_source URL
+      // 从历史记录还原的图片，使用 input_source URL
       formData.append('input_source', state.historyInputSource);
     } else if (state.activeSource === 'video' && state.uploadedVideoFile) {
       formData.append('file', state.uploadedVideoFile);
     } else if (state.activeSource === 'video' && state.historyInputSource) {
-      // 从历史记录还原的视频，使�?input_source URL
+      // 从历史记录还原的视频，使用 input_source URL
       formData.append('input_source', state.historyInputSource);
     }
 
@@ -668,7 +676,7 @@ const startDetection = async () => {
     let response;
     let useClusterService = false;
     
-    // 优先�?：模型服务（仅在图片推理时）
+    // 优先级1：模型服务（仅在图片推理时）
     if (state.selectedDeployServiceId && state.activeSource === 'image') {
       const selectedService = state.deployServices.find(s => s.id === state.selectedDeployServiceId);
       if (selectedService && selectedService.model_id) {
@@ -676,30 +684,33 @@ const startDetection = async () => {
         const clusterModelId = selectedService.model_id;
         response = await runClusterInference(clusterModelId, formData);
       } else {
-        createMessage.warning('选中的算法服务无效，将使用算法列表接�?);
+        createMessage.warning('选中的算法服务无效，将使用算法列表接口');
         useClusterService = false;
       }
     }
     
-    // 优先�?：模型选择（如果未选择模型服务�?    if (!useClusterService) {
+    // 优先级2：模型选择（如果未选择模型服务）
+    if (!useClusterService) {
       // 调用推理接口
       // 重要：用户上传的模型应该传递实际的 model_id（数字），而不是转换为 0
-      // 只有默认模型（yolov8/yolov11）才传�?0
+      // 只有默认模型（yolov8/yolov11）才传递 0
       let modelId: number;
       if (state.selectedModelId === 'yolov8' || state.selectedModelId === 'yolov11') {
         modelId = 0; // 默认模型使用 0
       } else if (typeof state.selectedModelId === 'number') {
         modelId = state.selectedModelId; // 用户上传的模型使用实际的 ID
       } else if (typeof state.selectedModelId === 'string' && state.selectedModelId !== '') {
-        // 如果 selectedModelId 是字符串且不是空字符串，尝试转换为数�?        const parsedId = parseInt(state.selectedModelId, 10);
+        // 如果 selectedModelId 是字符串且不是空字符串，尝试转换为数字
+        const parsedId = parseInt(state.selectedModelId, 10);
         modelId = isNaN(parsedId) ? 0 : parsedId;
       } else {
-        modelId = 0; // 默认�?      }
+        modelId = 0; // 默认值
+      }
       
       response = await runInference(modelId, formData);
     }
     
-    // �?isTransformResponse: false 时，返回的是整个 Axios 响应对象，需要访�?response.data 获取实际响应
+    // 当 isTransformResponse: false 时，返回的是整个 Axios 响应对象，需要访问 response.data 获取实际响应
     const responseData = response.data || response;
     
     if (responseData.code === 0) {
@@ -710,16 +721,20 @@ const startDetection = async () => {
         // 优先使用 result_url（检测结果图片），如果没有则使用 image_url（原始图片作为后备）
         let imagePath = '';
         if (result.result_url) {
-          // result_url 是检测结果图片的URL，直接使�?          imagePath = result.result_url;
+          // result_url 是检测结果图片的URL，直接使用
+          imagePath = result.result_url;
         } else if (result.image_url) {
-          // image_url 是原始输入图片，不是检测结果，但可以作为后�?          imagePath = result.image_url;
+          // image_url 是原始输入图片，不是检测结果，但可以作为后备
+          imagePath = result.image_url;
         }
         
-        // 使用 getMediaUrl 处理路径，确保可以正确访�?        state.detectionResult = imagePath ? getMediaUrl(imagePath) : null;
+        // 使用 getMediaUrl 处理路径，确保可以正确访问
+        state.detectionResult = imagePath ? getMediaUrl(imagePath) : null;
         
-        // 设置检测数�?        state.detectionCount = result.detection_count || 0;
+        // 设置检测数量
+        state.detectionCount = result.detection_count || 0;
         
-        // 计算平均置信度（�?detections 数组中计算）
+        // 计算平均置信度（从 detections 数组中计算）
         if (result.detections && Array.isArray(result.detections) && result.detections.length > 0) {
           const totalConfidence = result.detections.reduce((sum: number, det: any) => {
             return sum + (det.confidence || 0);
@@ -729,11 +744,15 @@ const startDetection = async () => {
           state.averageConfidence = result.average_confidence ? Math.round(result.average_confidence * 100) : 0;
         }
       } else if (state.activeSource === 'video') {
-        // 视频推理是异步的，需要轮询获取结�?        if (responseData.data?.record_id) {
+        // 视频推理是异步的，需要轮询获取结果
+        if (responseData.data?.record_id) {
           state.currentInferenceRecordId = responseData.data.record_id;
           startPollingInferenceResult(responseData.data.record_id);
-          createMessage.success('视频推理任务已提交，处理�?..');
-          // 视频推理是异步的，不在这里设置完成状态，由轮询函数处�?          // 也不在这里设�?inferenceLoading = false，保持加载状态直到轮询完�?          return; // 提前返回，不执行后面的完成状态设�?        } else if (result.output_path) {
+          createMessage.success('视频推理任务已提交，处理中...');
+          // 视频推理是异步的，不在这里设置完成状态，由轮询函数处理
+          // 也不在这里设置 inferenceLoading = false，保持加载状态直到轮询完成
+          return; // 提前返回，不执行后面的完成状态设置
+        } else if (result.output_path) {
           // 如果立即返回了结果路径，直接使用
           state.detectionResult = result.output_path;
           state.detectionStatus = 'completed';
@@ -748,7 +767,8 @@ const startDetection = async () => {
         }
       }
       
-      // 图片推理在这里设置完成状�?      state.detectionStatus = 'completed';
+      // 图片推理在这里设置完成状态
+      state.detectionStatus = 'completed';
       state.statusText = '推理完成';
       createMessage.success('推理执行成功');
     } else {
@@ -762,21 +782,22 @@ const startDetection = async () => {
     // 检查是否是模型不存在的错误
     let errorMessage = '推理执行失败，请重试';
     
-    // 检�?HTTP 状态码
+    // 检查 HTTP 状态码
     if (error.response?.status === 400) {
-      errorMessage = '模型不存�?;
+      errorMessage = '模型不存在';
     }
-    // 检查响应数据中�?code �?msg
+    // 检查响应数据中的 code 和 msg
     else if (error.response?.data) {
       const responseData = error.response.data;
-      if (responseData.code === 400 || (responseData.msg && (responseData.msg.includes('不存�?) || responseData.msg.includes('模型')))) {
-        errorMessage = '模型不存�?;
+      if (responseData.code === 400 || (responseData.msg && (responseData.msg.includes('不存在') || responseData.msg.includes('模型')))) {
+        errorMessage = '模型不存在';
       } else if (responseData.msg) {
         errorMessage = responseData.msg;
       }
     }
-    // 检查错误消息中是否包含"不存�?�?模型"关键�?    else if (error.message && (error.message.includes('不存�?) || (error.message.includes('模型') && error.message.includes('400')))) {
-      errorMessage = '模型不存�?;
+    // 检查错误消息中是否包含"不存在"或"模型"关键词
+    else if (error.message && (error.message.includes('不存在') || (error.message.includes('模型') && error.message.includes('400')))) {
+      errorMessage = '模型不存在';
     }
     // 使用默认错误消息
     else if (error.message) {
@@ -808,13 +829,15 @@ const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {
-    // 清理之前的视频URL和历史记�?    cleanupVideoUrl();
-    state.historyInputSource = null; // 清除历史记录�?input_source
+    // 清理之前的视频URL和历史记录
+    cleanupVideoUrl();
+    state.historyInputSource = null; // 清除历史记录的 input_source
     state.uploadedImageFile = file;
     const reader = new FileReader();
     reader.onload = (e) => {
       state.uploadedImage = e.target?.result as string;
-      state.detectionResult = null; // 清除之前的检测结�?    };
+      state.detectionResult = null; // 清除之前的检测结果
+    };
     reader.readAsDataURL(file);
   }
 };
@@ -823,15 +846,17 @@ const handleVideoUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {
-    // 清理之前的视频URL和历史记�?    cleanupVideoUrl();
-    state.historyInputSource = null; // 清除历史记录�?input_source
+    // 清理之前的视频URL和历史记录
+    cleanupVideoUrl();
+    state.historyInputSource = null; // 清除历史记录的 input_source
     
-    // 清除之前的错误状�?    state.videoLoadError = null;
+    // 清除之前的错误状态
+    state.videoLoadError = null;
     state.videoErrorDetails = null;
     
     // 验证文件类型
     if (!file.type.startsWith('video/')) {
-      createMessage.warning('请选择有效的视频文�?);
+      createMessage.warning('请选择有效的视频文件');
       // 清空输入
       if (target) {
         target.value = '';
@@ -839,9 +864,10 @@ const handleVideoUpload = (event: Event) => {
       return;
     }
     
-    // 检查文件大小（限制�?2GB�?    const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+    // 检查文件大小（限制为 2GB）
+    const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
     if (file.size > maxSize) {
-      createMessage.warning('视频文件过大，请选择小于 2GB 的文�?);
+      createMessage.warning('视频文件过大，请选择小于 2GB 的文件');
       if (target) {
         target.value = '';
       }
@@ -849,12 +875,13 @@ const handleVideoUpload = (event: Event) => {
     }
     
     state.uploadedVideoFile = file;
-    state.detectionResult = null; // 清除之前的检测结�?    resetVideoInferenceProgress();
+    state.detectionResult = null; // 清除之前的检测结果
+    resetVideoInferenceProgress();
     
     try {
       // 创建视频预览URL
       state.uploadedVideoUrl = URL.createObjectURL(file);
-      console.log('视频文件已加�?', {
+      console.log('视频文件已加载:', {
         name: file.name,
         size: file.size,
         type: file.type || '未知类型',
@@ -862,11 +889,12 @@ const handleVideoUpload = (event: Event) => {
         lastModified: new Date(file.lastModified).toLocaleString()
       });
       
-      // 检查视频格式支�?      if (!file.type) {
-        console.warn('文件类型未知，可能无法正常播�?);
-        createMessage.warning('文件类型未知，如果无法播放，请尝试使�?MP4 格式（H.264 编码�?);
+      // 检查视频格式支持
+      if (!file.type) {
+        console.warn('文件类型未知，可能无法正常播放');
+        createMessage.warning('文件类型未知，如果无法播放，请尝试使用 MP4 格式（H.264 编码）');
       } else if (!file.type.includes('mp4') && !file.type.includes('webm') && !file.type.includes('ogg')) {
-        console.warn('视频格式可能不被浏览器支�?', file.type);
+        console.warn('视频格式可能不被浏览器支持:', file.type);
         createMessage.warning(`视频格式 ${file.type} 可能不被浏览器支持，建议使用 MP4 格式（H.264 编码）`);
       }
     } catch (error) {
@@ -905,7 +933,8 @@ const loadDeployServices = async () => {
   try {
     const response = await getDeployServicePage({ pageNo: 1, pageSize: 100 });
     if (response.code === 0) {
-      // 只显示运行中的服�?      state.deployServices = (response.data || []).filter((service: DeployService) => 
+      // 只显示运行中的服务
+      state.deployServices = (response.data || []).filter((service: DeployService) => 
         service.status === 'running' && service.model_id
       );
     }
@@ -944,7 +973,7 @@ const handleModelChange = () => {
 const handleSourceChange = () => {
   stopPollingInferenceResult();
   cleanupVideoUrl();
-  state.historyInputSource = null; // 清除历史记录�?input_source
+  state.historyInputSource = null; // 清除历史记录的 input_source
   state.detectionResult = null;
   resetVideoInferenceProgress();
   
@@ -959,7 +988,7 @@ const handleSourceChange = () => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement;
   console.error('图片加载失败:', img.src);
-  createMessage.error('图片加载失败，请检查图片路�?);
+  createMessage.error('图片加载失败，请检查图片路径');
 };
 
 // 处理视频加载错误（检测结果视频）
@@ -977,16 +1006,16 @@ const handleVideoError = (event: Event) => {
     let errorMsg = '视频加载失败';
     switch (errorCode) {
       case MediaError.MEDIA_ERR_ABORTED:
-        errorMsg = '视频加载被中�?;
+        errorMsg = '视频加载被中止';
         break;
       case MediaError.MEDIA_ERR_NETWORK:
-        errorMsg = '视频网络错误，请检查网络连�?;
+        errorMsg = '视频网络错误，请检查网络连接';
         break;
       case MediaError.MEDIA_ERR_DECODE:
         errorMsg = '视频解码失败，视频格式可能不支持';
         break;
       case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-        errorMsg = '视频格式不支持，请检查视频编码格�?;
+        errorMsg = '视频格式不支持，请检查视频编码格式';
         break;
       default:
         errorMsg = `视频加载失败 (错误代码: ${errorCode})`;
@@ -997,7 +1026,8 @@ const handleVideoError = (event: Event) => {
   }
 };
 
-// 处理原始输入视频的错�?const handleInputVideoError = (event: Event) => {
+// 处理原始输入视频的错误
+const handleInputVideoError = (event: Event) => {
   const video = event.target as HTMLVideoElement;
   const errorInfo = {
     src: video.src,
@@ -1019,16 +1049,16 @@ const handleVideoError = (event: Event) => {
     errorCode = video.error.code;
     switch (errorCode) {
       case MediaError.MEDIA_ERR_ABORTED:
-        errorMsg = '视频加载被中止，可能是文件损坏或格式不支�?;
+        errorMsg = '视频加载被中止，可能是文件损坏或格式不支持';
         break;
       case MediaError.MEDIA_ERR_NETWORK:
-        errorMsg = '视频网络错误，请检查文件是否完�?;
+        errorMsg = '视频网络错误，请检查文件是否完整';
         break;
       case MediaError.MEDIA_ERR_DECODE:
-        errorMsg = '视频解码失败，视频编码格式可能不被浏览器支持（建议使�?H.264 编码�?MP4 格式�?;
+        errorMsg = '视频解码失败，视频编码格式可能不被浏览器支持（建议使用 H.264 编码的 MP4 格式）';
         break;
       case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-        errorMsg = '视频格式不支持，请检查视频编码格式（建议使用 MP4/H.264�?;
+        errorMsg = '视频格式不支持，请检查视频编码格式（建议使用 MP4/H.264）';
         break;
       default:
         errorMsg = `视频加载失败 (错误代码: ${errorCode})`;
@@ -1037,7 +1067,8 @@ const handleVideoError = (event: Event) => {
     errorMsg = '视频加载失败，请检查视频文件是否损坏或格式是否正确';
   }
   
-  // 设置错误状�?  state.videoLoadError = errorMsg;
+  // 设置错误状态
+  state.videoLoadError = errorMsg;
   if (state.uploadedVideoFile) {
     state.videoErrorDetails = {
       type: state.uploadedVideoFile.type || '未知',
@@ -1053,21 +1084,24 @@ const handleVideoError = (event: Event) => {
   });
 };
 
-// 处理原始视频元数据加�?const handleInputVideoLoaded = (event: Event) => {
+// 处理原始视频元数据加载
+const handleInputVideoLoaded = (event: Event) => {
   const video = event.target as HTMLVideoElement;
-  console.log('原始视频元数据加载成�?', {
+  console.log('原始视频元数据加载成功:', {
     duration: video.duration,
     videoWidth: video.videoWidth,
     videoHeight: video.videoHeight,
     readyState: video.readyState,
     networkState: video.networkState
   });
-  // 清除错误状�?  state.videoLoadError = null;
+  // 清除错误状态
+  state.videoLoadError = null;
   state.videoErrorDetails = null;
 };
 
-// 处理原始视频开始加�?const handleInputVideoLoadStart = (event: Event) => {
-  console.log('原始视频开始加�?);
+// 处理原始视频开始加载
+const handleInputVideoLoadStart = (event: Event) => {
+  console.log('原始视频开始加载');
   state.videoLoadError = null;
   state.videoErrorDetails = null;
 };
@@ -1108,10 +1142,11 @@ const formatFileSize = (bytes: number): string => {
 // 获取媒体文件的访问URL
 const getMediaUrl = (path: string): string => {
   if (!path) return '';
-  // 如果已经是完整的HTTP/HTTPS URL，直接返�?  if (path.startsWith('http://') || path.startsWith('https://')) {
+  // 如果已经是完整的HTTP/HTTPS URL，直接返回
+  if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // 如果是相对路径（�?/ 开头），直接返回（假设可以通过API服务器直接访问）
+  // 如果是相对路径（以 / 开头），直接返回（假设可以通过API服务器直接访问）
   if (path.startsWith('/')) {
     return path;
   }
@@ -1129,17 +1164,21 @@ const handleVideoClick = (event: Event) => {
   }
 };
 
-// 开始轮询推理结�?const startPollingInferenceResult = (recordId: number) => {
-  // 清除之前的轮�?  stopPollingInferenceResult();
+// 开始轮询推理结果
+const startPollingInferenceResult = (recordId: number) => {
+  // 清除之前的轮询
+  stopPollingInferenceResult();
   
   state.currentInferenceRecordId = recordId;
   state.pollingStartTime = Date.now();
   
-  // 立即查询一�?  pollInferenceResult(recordId);
+  // 立即查询一次
+  pollInferenceResult(recordId);
   
   // 设置定时轮询
   state.pollingTimer = window.setInterval(() => {
-    // 检查超�?    const timeoutMs = state.activeSource === 'video' ? VIDEO_POLLING_TIMEOUT : POLLING_TIMEOUT;
+    // 检查超时
+    const timeoutMs = state.activeSource === 'video' ? VIDEO_POLLING_TIMEOUT : POLLING_TIMEOUT;
     if (state.pollingStartTime && Date.now() - state.pollingStartTime > timeoutMs) {
       stopPollingInferenceResult();
       createMessage.warning('推理任务超时，请刷新页面重试');
@@ -1157,11 +1196,12 @@ const pollInferenceResult = async (recordId: number) => {
   try {
     const response = await getInferenceTaskDetail(recordId);
     
-    // 处理响应数据：isTransformResponse: true 时，response 直接是任务数据对�?    // 否则 response 可能�?{code: 0, data: {...}, msg: "success"} 格式
+    // 处理响应数据：isTransformResponse: true 时，response 直接是任务数据对象
+    // 否则 response 可能是 {code: 0, data: {...}, msg: "success"} 格式
     let taskData;
     if (response && typeof response === 'object') {
       if ('code' in response && 'data' in response) {
-        // 响应是包装格�?{code: 0, data: {...}, msg: "success"}
+        // 响应是包装格式 {code: 0, data: {...}, msg: "success"}
         if (response.code === 0) {
           taskData = response.data;
         } else {
@@ -1169,7 +1209,7 @@ const pollInferenceResult = async (recordId: number) => {
           return;
         }
       } else if ('status' in response) {
-        // 响应直接是任务数据对�?{status: "COMPLETED", ...}
+        // 响应直接是任务数据对象 {status: "COMPLETED", ...}
         taskData = response;
       } else {
         console.error('无法解析响应数据格式:', response);
@@ -1187,18 +1227,21 @@ const pollInferenceResult = async (recordId: number) => {
     
     const status = taskData.status;
     
-    // 确保状态匹配（不区分大小写�?    const normalizedStatus = status?.toUpperCase();
+    // 确保状态匹配（不区分大小写）
+    const normalizedStatus = status?.toUpperCase();
     if (state.activeSource === 'video') {
       updateVideoInferenceProgress(taskData);
     }
     
     if (normalizedStatus === 'COMPLETED') {
-      // 推理完成，立即停止轮�?      stopPollingInferenceResult();
+      // 推理完成，立即停止轮询
+      stopPollingInferenceResult();
       state.inferenceLoading = false;
       state.detectionStatus = 'completed';
       state.statusText = '推理完成';
       
-      // 获取结果路径并显�?      const outputPath = taskData.output_path;
+      // 获取结果路径并显示
+      const outputPath = taskData.output_path;
       if (outputPath) {
         state.detectionResult = outputPath;
         createMessage.success('视频推理完成');
@@ -1212,7 +1255,8 @@ const pollInferenceResult = async (recordId: number) => {
           }
         });
       } else {
-        // 状态是完成但没有输出路�?        console.warn('推理任务已完成但未找到输出路�?);
+        // 状态是完成但没有输出路径
+        console.warn('推理任务已完成但未找到输出路径');
         createMessage.warning('推理任务已完成，但未找到输出路径');
       }
     } else if (normalizedStatus === 'FAILED') {
@@ -1227,7 +1271,7 @@ const pollInferenceResult = async (recordId: number) => {
       // 仍在处理中，继续轮询
       const frameText = state.videoTotalFrames > 0
         ? `${state.videoProcessedFrames}/${state.videoTotalFrames} 帧`
-        : `已处�?${state.videoProcessedFrames} 帧`;
+        : `已处理 ${state.videoProcessedFrames} 帧`;
       state.statusText = `${getVideoProgressTitle()}... ${state.videoProgressPercent}% (${frameText})`;
     }
   } catch (error: any) {
@@ -1273,7 +1317,8 @@ const loadInferenceHistory = async () => {
   }
 };
 
-// 格式化历史记录标�?const formatHistoryRecordLabel = (record: InferenceHistoryRecord): string => {
+// 格式化历史记录标签
+const formatHistoryRecordLabel = (record: InferenceHistoryRecord): string => {
   const date = new Date(record.start_time);
   const dateStr = date.toLocaleString('zh-CN', {
     month: '2-digit',
@@ -1282,8 +1327,8 @@ const loadInferenceHistory = async () => {
     minute: '2-digit'
   });
   const statusMap: Record<string, string> = {
-    'COMPLETED': '已完�?,
-    'PROCESSING': '处理�?,
+    'COMPLETED': '已完成',
+    'PROCESSING': '处理中',
     'FAILED': '失败'
   };
   const status = statusMap[record.status] || record.status;
@@ -1293,7 +1338,8 @@ const loadInferenceHistory = async () => {
 // 处理历史记录选择
 const handleHistoryRecordChange = async () => {
   if (!state.selectedHistoryRecordId) {
-    // 清空选择时，清理状�?    state.detectionResult = null;
+    // 清空选择时，清理状态
+    state.detectionResult = null;
     state.detectionCount = 0;
     state.averageConfidence = 0;
     state.historyInputSource = null;
@@ -1306,9 +1352,11 @@ const handleHistoryRecordChange = async () => {
   }
 
   try {
-    // 停止当前的轮�?    stopPollingInferenceResult();
+    // 停止当前的轮询
+    stopPollingInferenceResult();
     
-    // 清理之前的状�?    cleanupVideoUrl();
+    // 清理之前的状态
+    cleanupVideoUrl();
     state.uploadedImage = null;
     state.uploadedImageFile = null;
     state.uploadedVideoFile = null;
@@ -1350,7 +1398,9 @@ const handleHistoryRecordChange = async () => {
 
     // 还原模型选择
     if (taskData.model_id) {
-      // 检查是否是默认模型（model_id �?null �?0 表示默认模型�?      // 这里需要根据实际情况判断，如果 model_id 存在且大�?，则使用该模�?      const modelExists = state.models.find(m => m.id === taskData.model_id);
+      // 检查是否是默认模型（model_id 为 null 或 0 表示默认模型）
+      // 这里需要根据实际情况判断，如果 model_id 存在且大于0，则使用该模型
+      const modelExists = state.models.find(m => m.id === taskData.model_id);
       if (modelExists) {
         state.selectedModelId = taskData.model_id;
       } else {
@@ -1358,30 +1408,35 @@ const handleHistoryRecordChange = async () => {
         state.selectedModelId = 'yolov11';
       }
     } else {
-      // model_id �?null，使用默认模�?      state.selectedModelId = 'yolov11';
+      // model_id 为 null，使用默认模型
+      state.selectedModelId = 'yolov11';
     }
 
-    // 根据 inference_type �?input_source 还原输入�?    const inferenceType = taskData.inference_type || '';
+    // 根据 inference_type 和 input_source 还原输入源
+    const inferenceType = taskData.inference_type || '';
     const inputSource = taskData.input_source || '';
     
-    // 保存历史记录�?input_source，用于后续推�?    if (inputSource) {
+    // 保存历史记录的 input_source，用于后续推理
+    if (inputSource) {
       state.historyInputSource = inputSource;
     }
     
     if (inferenceType === 'image') {
       // 图片
       state.activeSource = 'image';
-      // 如果 input_source �?URL，可以直接使�?      if (inputSource && (inputSource.startsWith('http://') || inputSource.startsWith('https://') || inputSource.startsWith('/'))) {
+      // 如果 input_source 是 URL，可以直接使用
+      if (inputSource && (inputSource.startsWith('http://') || inputSource.startsWith('https://') || inputSource.startsWith('/'))) {
         state.uploadedImage = getMediaUrl(inputSource);
       }
     } else if (inferenceType === 'video') {
       // 视频
       state.activeSource = 'video';
-      // 如果 input_source �?URL，可以直接使�?      if (inputSource && (inputSource.startsWith('http://') || inputSource.startsWith('https://') || inputSource.startsWith('/'))) {
+      // 如果 input_source 是 URL，可以直接使用
+      if (inputSource && (inputSource.startsWith('http://') || inputSource.startsWith('https://') || inputSource.startsWith('/'))) {
         state.uploadedVideoUrl = getMediaUrl(inputSource);
       }
     } else if (inputSource) {
-      // 如果没有 inference_type，尝试根�?input_source 推断
+      // 如果没有 inference_type，尝试根据 input_source 推断
       const lowerSource = inputSource.toLowerCase();
       if (lowerSource.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/)) {
         state.activeSource = 'image';
@@ -1396,13 +1451,15 @@ const handleHistoryRecordChange = async () => {
       }
     }
 
-    // 还原检测结�?    if (taskData.output_path) {
+    // 还原检测结果
+    if (taskData.output_path) {
       state.detectionResult = getMediaUrl(taskData.output_path);
     } else if (taskData.stream_output_url) {
       state.detectionResult = taskData.stream_output_url;
     }
 
-    // 还原状态信�?    if (taskData.status === 'COMPLETED') {
+    // 还原状态信息
+    if (taskData.status === 'COMPLETED') {
       state.detectionStatus = 'completed';
       state.statusText = '推理完成';
     } else if (taskData.status === 'FAILED') {
@@ -1410,13 +1467,13 @@ const handleHistoryRecordChange = async () => {
       state.statusText = '推理失败';
     } else if (taskData.status === 'PROCESSING') {
       state.detectionStatus = 'running';
-      state.statusText = '推理处理�?;
+      state.statusText = '推理处理中';
     } else {
       state.detectionStatus = 'idle';
-      state.statusText = '已加载历史记�?;
+      state.statusText = '已加载历史记录';
     }
 
-    createMessage.success('历史记录已还�?);
+    createMessage.success('历史记录已还原');
   } catch (error: any) {
     console.error('还原历史记录失败:', error);
     createMessage.error(error.message || '还原历史记录失败');
@@ -1425,7 +1482,8 @@ const handleHistoryRecordChange = async () => {
   }
 };
 
-// 初始�?onMounted(() => {
+// 初始化
+onMounted(() => {
   loadDetectionParams();
   loadModels();
   loadInferenceHistory();
@@ -1435,14 +1493,16 @@ const handleHistoryRecordChange = async () => {
   }
 });
 
-// 组件卸载时清�?onUnmounted(() => {
+// 组件卸载时清理
+onUnmounted(() => {
   stopPollingInferenceResult();
   cleanupVideoUrl();
 });
 </script>
 
 <style scoped lang="less">
-// 变量定义 - 专业简洁配色方�?@primary-color: #2C3E50;
+// 变量定义 - 专业简洁配色方案
+@primary-color: #2C3E50;
 @secondary-color: #34495E;
 @accent-color: #495057;
 @success-color: #28A745;
@@ -1492,7 +1552,7 @@ body {
   flex: 1;
   overflow: hidden;
   position: relative;
-  min-width: 0; /* 防止 flex 子元素溢�?*/
+  min-width: 0; /* 防止 flex 子元素溢出 */
   height: 100%;
   margin: 0;
   padding: 0;
@@ -2032,7 +2092,7 @@ body {
   overflow: hidden;
   padding: 0;
   transition: @panel-transition;
-  min-width: 0; /* 防止 flex 子元素溢�?*/
+  min-width: 0; /* 防止 flex 子元素溢出 */
   height: 100%;
 
   .video-container {
@@ -2098,7 +2158,8 @@ body {
         max-width: 100%;
         width: 100%;
 
-        // 可滚动的检测结果区�?        &.video-content-scrollable {
+        // 可滚动的检测结果区域
+        &.video-content-scrollable {
           align-items: flex-start;
           overflow-y: auto;
           overflow-x: hidden;
@@ -2370,7 +2431,7 @@ body {
 
 
 
-/* 响应式调�?*/
+/* 响应式调整 */
 @media (max-width: 1200px) {
   .left-panel {
     width: 280px;

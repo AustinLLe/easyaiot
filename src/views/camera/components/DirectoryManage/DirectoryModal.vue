@@ -36,15 +36,15 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入目录名�?,
+        placeholder: '请输入目录名称',
       },
     },
     {
       field: 'parent_id',
-      label: '父目�?,
+      label: '父目录',
       component: 'TreeSelect',
       componentProps: {
-        placeholder: '请选择父目录（不选则为根目录�?,
+        placeholder: '请选择父目录（不选则为根目录）',
         treeData: [],
         allowClear: true,
         treeDefaultExpandAll: true,
@@ -60,7 +60,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '目录描述',
       component: 'InputTextArea',
       componentProps: {
-        placeholder: '请输入目录描�?,
+        placeholder: '请输入目录描述',
         rows: 4,
       },
     },
@@ -112,7 +112,8 @@ const loadParentDirectoryOptions = async () => {
       // 转换目录树为TreeSelect需要的格式
       const convertToTreeSelect = (directories: DeviceDirectory[], excludeId?: number): any[] => {
         return directories
-          .filter((dir) => dir.id !== excludeId) // 排除当前编辑的目�?          .map((dir) => ({
+          .filter((dir) => dir.id !== excludeId) // 排除当前编辑的目录
+          .map((dir) => ({
             id: dir.id,
             name: dir.name,
             children: dir.children ? convertToTreeSelect(dir.children, excludeId) : [],

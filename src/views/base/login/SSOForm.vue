@@ -23,17 +23,20 @@ const formRef = ref()
 const loading = ref(false)
 
 const loginForm = reactive({
-  scopes: [] as any[], // 已选中�?scope 数组
+  scopes: [] as any[], // 已选中的 scope 数组
 })
 
-// URL 上的 client_id、scope 等参�?const params = reactive({
+// URL 上的 client_id、scope 等参数
+const params = reactive({
   responseType: undefined as any,
   clientId: undefined as any,
   redirectUri: undefined as any,
   state: undefined as any,
-  scopes: [] as any[], // 优先�?query 参数获取；如果未传递，从后端获�?})
+  scopes: [] as any[], // 优先从 query 参数获取；如果未传递，从后端获取
+})
 
-// 客户端信�?let client = reactive({
+// 客户端信息
+let client = reactive({
   name: '',
   logo: '',
 })
@@ -51,11 +54,12 @@ async function init() {
   if (query.scope)
     params.scopes = (query.scope as any).split(' ')
 
-  // 如果�?scope 参数，先执行一次自动授权，看看是否之前都授权过了�?  if (params.scopes.length > 0) {
+  // 如果有 scope 参数，先执行一次自动授权，看看是否之前都授权过了。
+  if (params.scopes.length > 0) {
     const res = await doAuthorize(true, params.scopes, [])
     const href = res
     if (!href) {
-      console.log('自动授权未通过�?)
+      console.log('自动授权未通过！')
       return
     }
     location.href = href
@@ -73,13 +77,14 @@ async function init() {
       if (params.scopes.includes(scope.key))
         scopes.push(scope)
     }
-    // 1.2 如果 params.scope 为空，则使用返回�?scopes 设置�?  }
+    // 1.2 如果 params.scope 为空，则使用返回的 scopes 设置它
+  }
   else {
     scopes = res.scopes
     for (const scope of scopes)
       params.scopes.push(scope.key)
   }
-  // 生成已选中�?checkedScopes
+  // 生成已选中的 checkedScopes
   for (const scope of scopes) {
     if (scope.value)
       loginForm.scopes.push(scope.key)
@@ -105,7 +110,8 @@ async function handleAuthorize(approved) {
       checkedScopes = []
       uncheckedScopes = params.scopes
     }
-    // 提交授权的请�?    const res = await doAuthorize(false, checkedScopes, uncheckedScopes)
+    // 提交授权的请求
+    const res = await doAuthorize(false, checkedScopes, uncheckedScopes)
     if (res) {
       const href = res
       if (!href)
@@ -144,7 +150,9 @@ async function doAuthorize(autoApprove, checkedScopes, uncheckedScopes) {
 }
 
 function formatScope(scope) {
-  // 格式�?scope 授权范围，方便用户理解�?  // 这里仅仅是一�?demo，可以考虑录入到字典数据中，例如说字典类型 "system_oauth2_scope"，它的每�?scope 都是一条字典数据�?  switch (scope) {
+  // 格式化 scope 授权范围，方便用户理解。
+  // 这里仅仅是一个 demo，可以考虑录入到字典数据中，例如说字典类型 "system_oauth2_scope"，它的每个 scope 都是一条字典数据。
+  switch (scope) {
     case 'user.read':
       return t('sys.login.ssoInfoDesc')
     case 'user.write':
@@ -164,7 +172,8 @@ onMounted(() => {
     {{ client.name + t('sys.login.ssoSignInFormTitle') }}
   </h2>
   <Form ref="formRef" class="enter-x p-4" :model="loginForm" @keypress.enter="handleAuthorize(true)">
-    此第三方应用请求获取以下权限�?    <Row class="enter-x">
+    此第三方应用请求获取以下权限：
+    <Row class="enter-x">
       <Col :span="12">
         <template v-for="scope in params.scopes" :key="scope">
           <FormItem>

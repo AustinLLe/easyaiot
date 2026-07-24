@@ -1,6 +1,6 @@
 <template>
   <div class="snap-task-container">
-    <!-- 工具�?-->
+    <!-- 工具栏 -->
     <div class="toolbar">
       <a-button type="primary" @click="handleCreate">
         <template #icon>
@@ -88,7 +88,7 @@
                 <span class="value">{{ item.cron_expression }}</span>
               </div>
               <div class="info-item">
-                <span class="label">状�?</span>
+                <span class="label">状态:</span>
                 <a-switch :checked="item.is_enabled" size="small" @change="handleToggleEnabled(item)" />
               </div>
               <div class="info-item">
@@ -133,7 +133,8 @@ const handleClickSwap = () => {
   }
 };
 
-// 表格列定�?const getBasicColumns = () => [
+// 表格列定义
+const getBasicColumns = () => [
   {
     title: '任务名称',
     dataIndex: 'task_name',
@@ -155,12 +156,12 @@ const handleClickSwap = () => {
     width: 80,
   },
   {
-    title: 'Cron表达�?,
+    title: 'Cron表达式',
     dataIndex: 'cron_expression',
     width: 150,
   },
   {
-    title: '状�?,
+    title: '状态',
     dataIndex: 'status',
     width: 80,
   },
@@ -203,7 +204,7 @@ const [registerTable, { reload }] = useTable({
         label: '任务名称',
         component: 'Input',
         componentProps: {
-          placeholder: '请输入任务名�?,
+          placeholder: '请输入任务名称',
         },
       },
       {
@@ -217,10 +218,10 @@ const [registerTable, { reload }] = useTable({
       },
       {
         field: 'status',
-        label: '状�?,
+        label: '状态',
         component: 'Select',
         componentProps: {
-          placeholder: '请选择状�?,
+          placeholder: '请选择状态',
           options: [
             { label: '正常', value: 0 },
             { label: '异常', value: 1 },
@@ -315,13 +316,14 @@ const handleDelete = async (record: SnapTask) => {
   }
 };
 
-// 切换启用状�?const handleToggleEnabled = async (record: SnapTask) => {
+// 切换启用状态
+const handleToggleEnabled = async (record: SnapTask) => {
   try {
     let response;
     if (record.is_enabled) {
       response = await stopSnapTask(record.id);
       if (response.code === 0) {
-        createMessage.success('任务已停�?);
+        createMessage.success('任务已停用');
         handleSuccess();
       } else {
         createMessage.error(response.msg || '停用失败');
@@ -329,7 +331,7 @@ const handleDelete = async (record: SnapTask) => {
     } else {
       response = await startSnapTask(record.id);
       if (response.code === 0) {
-        createMessage.success('任务已启�?);
+        createMessage.success('任务已启用');
         handleSuccess();
       } else {
         createMessage.error(response.msg || '启用失败');

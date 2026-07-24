@@ -49,7 +49,7 @@
                   </div>
                   <div class="flex" style="justify-content: space-between;">
                     <div class="prop">
-                      <div class="label">摄像�?/div>
+                      <div class="label">摄像头</div>
                       <div class="value">{{ item.device_name || '-' }}</div>
                     </div>
                     <div class="prop">
@@ -97,7 +97,8 @@ const ListItem = List.Item;
 
 // 组件接收参数
 const props = defineProps({
-  // 请求API的参�?  params: propTypes.object.def({}),
+  // 请求API的参数
+  params: propTypes.object.def({}),
   // api
   api: propTypes.func,
 });
@@ -130,84 +131,84 @@ const [registerForm, { validate }] = useForm({
       componentProps: {
         options: [
           {value: null, label: '全部'},
-          {value: "�?, label: "�?},
-          {value: "自行�?, label: "自行�?},
+          {value: "人", label: "人"},
+          {value: "自行车", label: "自行车"},
           {value: "汽车", label: "汽车"},
-          {value: "摩托�?, label: "摩托�?},
+          {value: "摩托车", label: "摩托车"},
           {value: "飞机", label: "飞机"},
           {value: "公共汽车", label: "公共汽车"},
           {value: "火车", label: "火车"},
           {value: "卡车", label: "卡车"},
-          {value: "�?, label: "�?},
+          {value: "船", label: "船"},
           {value: "交通灯", label: "交通灯"},
-          {value: "消防�?, label: "消防�?},
+          {value: "消防栓", label: "消防栓"},
           {value: "停车标志", label: "停车标志"},
-          {value: "停车收费�?, label: "停车收费�?},
+          {value: "停车收费表", label: "停车收费表"},
           {value: "长凳", label: "长凳"},
-          {value: "�?, label: "�?},
-          {value: "�?, label: "�?},
-          {value: "�?, label: "�?},
-          {value: "�?, label: "�?},
-          {value: "�?, label: "�?},
+          {value: "鸟", label: "鸟"},
+          {value: "猫", label: "猫"},
+          {value: "狗", label: "狗"},
+          {value: "马", label: "马"},
+          {value: "羊", label: "羊"},
           {value: "母牛", label: "母牛"},
           {value: "大象", label: "大象"},
-          {value: "�?, label: "�?},
+          {value: "熊", label: "熊"},
           {value: "斑马", label: "斑马"},
-          {value: "长颈�?, label: "长颈�?},
+          {value: "长颈鹿", label: "长颈鹿"},
           {value: "背包", label: "背包"},
           {value: "雨伞", label: "雨伞"},
-          {value: "手提�?, label: "手提�?},
+          {value: "手提包", label: "手提包"},
           {value: "领带", label: "领带"},
-          {value: "手提�?, label: "手提�?},
+          {value: "手提箱", label: "手提箱"},
           {value: "飞盘", label: "飞盘"},
-          {value: "滑雪�?, label: "滑雪�?},
+          {value: "滑雪板", label: "滑雪板"},
           {value: "运动用球", label: "运动用球"},
           {value: "风筝", label: "风筝"},
-          {value: "棒球�?, label: "棒球�?},
+          {value: "棒球棍", label: "棒球棍"},
           {value: "棒球手套", label: "棒球手套"},
           {value: "滑板", label: "滑板"},
-          {value: "冲浪�?, label: "冲浪�?},
-          {value: "网球�?, label: "网球�?},
+          {value: "冲浪板", label: "冲浪板"},
+          {value: "网球拍", label: "网球拍"},
           {value: "瓶子", label: "瓶子"},
           {value: "酒杯", label: "酒杯"},
           {value: "杯子", label: "杯子"},
-          {value: "�?, label: "�?},
+          {value: "叉", label: "叉"},
           {value: "刀", label: "刀"},
           {value: "勺子", label: "勺子"},
-          {value: "�?, label: "�?},
+          {value: "碗", label: "碗"},
           {value: "香蕉", label: "香蕉"},
           {value: "苹果", label: "苹果"},
-          {value: "三明�?, label: "三明�?},
+          {value: "三明治", label: "三明治"},
           {value: "橙子", label: "橙子"},
-          {value: "西兰�?, label: "西兰�?},
-          {value: "胡萝�?, label: "胡萝�?},
+          {value: "西兰花", label: "西兰花"},
+          {value: "胡萝卜", label: "胡萝卜"},
           {value: "热狗", label: "热狗"},
           {value: "披萨", label: "披萨"},
-          {value: "甜甜�?, label: "甜甜�?},
+          {value: "甜甜圈", label: "甜甜圈"},
           {value: "糕饼", label: "糕饼"},
           {value: "椅子", label: "椅子"},
           {value: "沙发", label: "沙发"},
           {value: "盆栽植物", label: "盆栽植物"},
-          {value: "�?, label: "�?},
+          {value: "床", label: "床"},
           {value: "餐桌", label: "餐桌"},
           {value: "马桶", label: "马桶"},
-          {value: "显示�?, label: "显示�?},
-          {value: "笔记本电�?, label: "笔记本电�?},
+          {value: "显示器", label: "显示器"},
+          {value: "笔记本电脑", label: "笔记本电脑"},
           {value: "鼠标", label: "鼠标"},
-          {value: "遥控�?, label: "遥控�?},
+          {value: "遥控器", label: "遥控器"},
           {value: "键盘", label: "键盘"},
           {value: "手机", label: "手机"},
-          {value: "微波�?, label: "微波�?},
+          {value: "微波炉", label: "微波炉"},
           {value: "烤箱", label: "烤箱"},
           {value: "烤面包机", label: "烤面包机"},
-          {value: "洗手�?, label: "洗手�?},
+          {value: "洗手池", label: "洗手池"},
           {value: "冰箱", label: "冰箱"},
-          {value: "�?, label: "�?},
+          {value: "书", label: "书"},
           {value: "时钟", label: "时钟"},
           {value: "花瓶", label: "花瓶"},
           {value: "剪刀", label: "剪刀"},
-          {value: "泰迪�?, label: "泰迪�?},
-          {value: "吹风�?, label: "吹风�?},
+          {value: "泰迪熊", label: "泰迪熊"},
+          {value: "吹风机", label: "吹风机"},
           {value: "牙刷", label: "牙刷"},
         ],
       },
@@ -220,7 +221,7 @@ const [registerForm, { validate }] = useForm({
       componentProps: {
         options: [
           {value: null, label: '全部'},
-          {value: "行人检�?, label: "行人检�?},
+          {value: "行人检测", label: "行人检测"},
         ]
       },
       defaultValue: null,
@@ -231,7 +232,7 @@ const [registerForm, { validate }] = useForm({
       component: 'RangePicker',
       componentProps: {
         format: 'YYYY-MM-DD HH:mm:ss',
-        placeholder: ['开始时�?, '结束时间'],
+        placeholder: ['开始时间', '结束时间'],
         showTime: { format: 'HH:mm:ss' },
       },
     },
@@ -257,7 +258,8 @@ async function handleSubmit() {
   await fetch(formData);
 }
 
-// 自动请求并暴露内部方�?onMounted(() => {
+// 自动请求并暴露内部方法
+onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
@@ -295,7 +297,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -318,7 +320,7 @@ function formatTime(time: string) {
 
 // 获取任务类型
 function getTaskType(item: any): string | null {
-  // 优先�?information 字段中获�?task_type
+  // 优先从 information 字段中获取 task_type
   let taskType = null;
   if (item.information) {
     if (typeof item.information === 'object' && item.information.task_type) {
@@ -328,11 +330,12 @@ function getTaskType(item: any): string | null {
         const info = JSON.parse(item.information);
         taskType = info?.task_type;
       } catch (e) {
-        // 解析失败，忽�?      }
+        // 解析失败，忽略
+      }
     }
   }
   
-  // 如果 information 中没有，尝试�?item 本身获取
+  // 如果 information 中没有，尝试从 item 本身获取
   if (!taskType && item.task_type) {
     taskType = item.task_type;
   }
@@ -340,7 +343,8 @@ function getTaskType(item: any): string | null {
   return taskType;
 }
 
-// 判断是否是抓拍任�?function isSnapTask(item: any): boolean {
+// 判断是否是抓拍任务
+function isSnapTask(item: any): boolean {
   const taskType = getTaskType(item);
   return taskType === 'snap' || taskType === 'snapshot';
 }
@@ -357,24 +361,27 @@ function getTaskTypeText(item: any): string {
   }
 }
 
-// 获取任务类型样式�?function getTaskTypeClass(item: any): string {
+// 获取任务类型样式类
+function getTaskTypeClass(item: any): string {
   const taskType = getTaskType(item);
   
-  // 根据 task_type 返回样式�?  if (taskType === 'snap' || taskType === 'snapshot') {
+  // 根据 task_type 返回样式类
+  if (taskType === 'snap' || taskType === 'snapshot') {
     return 'task-type-snap';
   } else {
     return 'task-type-realtime';
   }
 }
 
-// 格式化设备ID显示（超�?个字符省略）
+// 格式化设备ID显示（超过8个字符省略）
 function formatDeviceId(deviceId: string | null | undefined): string {
   if (!deviceId) return '-';
   if (deviceId.length <= 8) return deviceId;
   return deviceId.substring(0, 8) + '...';
 }
 
-// 复制设备ID（完整ID�?async function handleCopyDeviceId(deviceId: string | null | undefined) {
+// 复制设备ID（完整ID）
+async function handleCopyDeviceId(deviceId: string | null | undefined) {
   if (!deviceId) {
     createMessage.warn('设备ID为空');
     return;
@@ -395,7 +402,7 @@ function formatDeviceId(deviceId: string | null | undefined): string {
 
 async function handleViewImage(record: object) {
   if (!record['image_url'] && !record['image_path']) {
-    createMessage.warn('告警图片不存�?);
+    createMessage.warn('告警图片不存在');
     return;
   }
   emit('viewImage', record);
@@ -403,7 +410,7 @@ async function handleViewImage(record: object) {
 
 async function handleViewVideo(record: object) {
   if (!record['device_id'] || !record['time']) {
-    createMessage.warn('缺少必要信息：设备ID或告警时�?);
+    createMessage.warn('缺少必要信息：设备ID或告警时间');
     return;
   }
   
@@ -426,10 +433,12 @@ async function handleCopy(record: object) {
   createMessage.success('复制成功');
 }
 
-// 图片处理 - 直接使用后台返回�?minio URL
+// 图片处理 - 直接使用后台返回的 minio URL
 function getImageUrl(imageUrl: string | null | undefined, imagePath: string | null | undefined): string {
-  // 优先使用 image_url（后台返回的 minio URL�?  if (imageUrl) {
-    // 如果是完整URL，直接返�?    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  // 优先使用 image_url（后台返回的 minio URL）
+  if (imageUrl) {
+    // 如果是完整URL，直接返回
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
     // 如果是MinIO路径（以/api/v1/buckets开头），添加前端启动地址前缀
@@ -443,7 +452,7 @@ function getImageUrl(imageUrl: string | null | undefined, imagePath: string | nu
     return imageUrl;
   }
   
-  // 如果没有 image_url，使�?image_path 作为后备
+  // 如果没有 image_url，使用 image_path 作为后备
   if (imagePath) {
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
@@ -531,7 +540,8 @@ function getImageUrl(imageUrl: string | null | undefined, imagePath: string | nu
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-          min-width: 0; // 允许flex子元素收�?        }
+          min-width: 0; // 允许flex子元素收缩
+        }
         
         .task-type-tag {
           flex-shrink: 0;

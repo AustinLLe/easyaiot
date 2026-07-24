@@ -2,7 +2,7 @@
   <div class="section-panel">
     <div class="section-header">
       <h3>摄像头与算法</h3>
-      <p>摄像头模式下，为每个摄像头绑定一个或多个检测算法�?/p>
+      <p>摄像头模式下，为每个摄像头绑定一个或多个检测算法。</p>
     </div>
 
     <div class="binding-panel">
@@ -12,7 +12,8 @@
             <template #icon>
               <VideoCameraOutlined />
             </template>
-            选择摄像�?            <DownOutlined :class="['picker-arrow', { open: cameraPickerOpen }]" />
+            选择摄像头
+            <DownOutlined :class="['picker-arrow', { open: cameraPickerOpen }]" />
           </a-button>
 
           <CameraPickerPanel
@@ -55,7 +56,7 @@
               <a-tag :color="binding.online === false ? 'default' : 'green'">
                 {{ binding.online === false ? '离线' : '在线' }}
               </a-tag>
-              <a-tag v-if="binding.model_ids.length === 0" color="orange">未分配算�?/a-tag>
+              <a-tag v-if="binding.model_ids.length === 0" color="orange">未分配算法</a-tag>
               <a-button type="text" size="small" @click="removeCamera(binding.device_id)">
                 <CloseOutlined />
               </a-button>
@@ -108,7 +109,7 @@
         </div>
       </div>
 
-      <a-empty v-else description="请点击上方「选择摄像头」添加设�? />
+      <a-empty v-else description="请点击上方「选择摄像头」添加设备" />
     </div>
   </div>
 </template>
@@ -153,7 +154,7 @@ const editingModelIds = ref<number[]>([]);
 const modelMetaMap = ref<Map<number, ModelMeta>>(new Map());
 
 const configModeOptions = [
-  { label: '摄像�?, value: 'camera' },
+  { label: '摄像头', value: 'camera' },
   { label: '算法', value: 'algorithm', disabled: true },
 ];
 

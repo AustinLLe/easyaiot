@@ -21,7 +21,8 @@ const isUpdate = ref(true)
 const treeData = ref<TreeItem[]>([])
 const menuKeys = ref<number[]>([])
 const menuHalfKeys = ref<number[]>([])
-// 默认展开的层�?const defaultExpandLevel = ref<number>(1)
+// 默认展开的层级
+const defaultExpandLevel = ref<number>(1)
 // 祖先节点list
 const parentIdSets = ref<Set<number>>(new Set())
 const treeRef = ref()
@@ -48,14 +49,19 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 
   if (unref(isUpdate)) {
     const res = await getTenantPackage(data.record.id)
-    // 默认关联节点  需要排除所有的祖先节点  否则会全部勾�?    // 只保留子节点 关联情况下会自己选中父节�?    // 排除祖先节点后的子节�? 达到"独立"的效�?但可以进行关联选择
+    // 默认关联节点  需要排除所有的祖先节点  否则会全部勾选
+    // 只保留子节点 关联情况下会自己选中父节点
+    // 排除祖先节点后的子节点  达到"独立"的效果 但可以进行关联选择
     const excludeParentIds: number[] = without(res.menuIds, ...Array.from(parentIdSets.value))
-    // 这里的checkedKeys为包含所有节点的数组  用作判断数组是否修改�?    menuKeys.value = res.menuIds
-    // 这里只控制页面显�?不包含祖先节�?    res.menuIds = excludeParentIds
+    // 这里的checkedKeys为包含所有节点的数组  用作判断数组是否修改过
+    menuKeys.value = res.menuIds
+    // 这里只控制页面显示 不包含祖先节点
+    res.menuIds = excludeParentIds
     await setFieldsValue({ ...res })
   }
 
-  // 默认展开的层�?  if (unref(treeRef))
+  // 默认展开的层级
+  if (unref(treeRef))
     unref(treeRef).filterByLevel(defaultExpandLevel.value)
 })
 
@@ -84,9 +90,10 @@ function menuReset() {
 }
 
 /**
- * 父子节点关联情况�?checkedKeys为选中的菜�?e.halfCheckedKeys为父节点数组
- * 父子节点独立情况�?checkedKeys为{checked: number[], halfChecked: number[]} e.halfCheckedKeys为null
- * @param checkedKeys 选中的菜�? * @param event event
+ * 父子节点关联情况下 checkedKeys为选中的菜单 e.halfCheckedKeys为父节点数组
+ * 父子节点独立情况下 checkedKeys为{checked: number[], halfChecked: number[]} e.halfCheckedKeys为null
+ * @param checkedKeys 选中的菜单
+ * @param event event
  */
 function menuCheck(checkedKeys: CheckedKeys, event: CheckedEvent) {
   if (Array.isArray(checkedKeys)) {

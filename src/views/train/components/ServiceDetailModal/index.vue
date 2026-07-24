@@ -33,11 +33,11 @@
                 </div>
               </div>
 
-              <!-- 状态信�?-->
+              <!-- 状态信息 -->
               <div class="detail-section">
-                <h4>状态信�?/h4>
+                <h4>状态信息</h4>
                 <div class="detail-row">
-                  <span class="detail-label">当前状�?</span>
+                  <span class="detail-label">当前状态:</span>
                   <span class="status-badge" :class="service.status">
                     {{ formatStatus(service.status) }}
                   </span>
@@ -61,7 +61,7 @@
                 <h4>资源使用</h4>
                 <div class="resource-metrics">
                   <div class="metric">
-                    <div class="metric-label">CPU使用�?/div>
+                    <div class="metric-label">CPU使用率</div>
                     <div class="progress-bar">
                       <div
                         class="progress-fill"
@@ -81,7 +81,7 @@
                     </div>
                   </div>
                   <div class="metric">
-                    <div class="metric-label">GPU使用�?/div>
+                    <div class="metric-label">GPU使用率</div>
                     <div class="progress-bar">
                       <div
                         class="progress-fill"
@@ -188,11 +188,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'stop', 'start', 'delete', 'view-logs'])
 
-// 格式化状态显�?const formatStatus = (status) => {
+// 格式化状态显示
+const formatStatus = (status) => {
   const statusMap = {
-    running: '运行�?,
-    stopped: '已停�?,
-    deploying: '部署�?,
+    running: '运行中',
+    stopped: '已停止',
+    deploying: '部署中',
     error: '错误'
   }
   return statusMap[status] || status
@@ -202,7 +203,7 @@ const emit = defineEmits(['close', 'stop', 'start', 'delete', 'view-logs'])
 const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text)
     .then(() => {
-      console.log('已复制到剪贴�?', text)
+      console.log('已复制到剪贴板:', text)
       // 实际项目中可添加成功提示
     })
     .catch(err => {
@@ -227,7 +228,7 @@ const startService = () => {
 
 // 删除服务
 const deleteService = () => {
-  if (confirm(`确定要删除服�?${props.service.model_name} 吗？`)) {
+  if (confirm(`确定要删除服务 ${props.service.model_name} 吗？`)) {
     emit('delete', props.service.model_id)
     closeModal()
   }

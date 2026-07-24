@@ -3,13 +3,13 @@
     <FormItem label="启用目标追踪">
       <Switch
         v-model:checked="config.enable_tracking"
-        checked-children="�?
-        un-checked-children="�?
+        checked-children="是"
+        un-checked-children="否"
       />
     </FormItem>
 
     <template v-if="config.enable_tracking">
-      <FormItem label="追踪相似度阈�?>
+      <FormItem label="追踪相似度阈值">
         <InputNumber
           v-model:value="config.tracking_similarity_threshold"
           placeholder="0.2"
@@ -20,7 +20,7 @@
         />
       </FormItem>
 
-      <FormItem label="追踪最大存活帧�?>
+      <FormItem label="追踪最大存活帧数">
         <InputNumber
           v-model:value="config.tracking_max_age"
           placeholder="25"

@@ -17,7 +17,7 @@ function handleEdit(title: string) {
     openModal(true, {})
 }
 function handleSuccess() {
-  createMessage.success('更新成功�?)
+  createMessage.success('更新成功！')
 }
 </script>
 

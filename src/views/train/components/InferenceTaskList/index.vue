@@ -23,7 +23,7 @@
           </a-tag>
         </template>
 
-        <!-- 进度�?-->
+        <!-- 进度列 -->
         <template v-else-if="column.dataIndex === 'progress'">
           <a-progress
             v-if="record?.status === 'PROCESSING'"
@@ -34,7 +34,7 @@
           <span v-else>-</span>
         </template>
 
-        <!-- 操作列（新增执行按钮�?-->
+        <!-- 操作列（新增执行按钮） -->
         <template v-else-if="column.dataIndex === 'action'">
           <TableAction
             :actions="[
@@ -88,7 +88,8 @@ import {deleteInferenceRecord, getInferenceTasks, runInference} from "@/api/devi
 
 const params = {};
 
-// 状态管�?const state = reactive({
+// 状态管理
+const state = reactive({
   records: [],
   currentRecord: {},
   eventSources: {},
@@ -96,8 +97,8 @@ const params = {};
 });
 
 const statusLabels = {
-  PROCESSING: '处理�?,
-  COMPLETED: '已完�?,
+  PROCESSING: '处理中',
+  COMPLETED: '已完成',
   FAILED: '失败'
 };
 
@@ -125,12 +126,14 @@ const [registerExecuteModal, {openModal: openExecuteModal}] = useModal();
 const [registerDetailModal, {openModal: openDetailModal}] = useModal();
 const [registerResultModal, {openModal: openResultModal}] = useModal();
 
-// 计算进度百分�?const calculateProgress = (record): number => {
+// 计算进度百分比
+const calculateProgress = (record): number => {
   if (!record?.processed_frames || !record?.total_frames) return 0;
   return Math.round((record.processed_frames / record.total_frames) * 100);
 };
 
-// 获取状态标签颜�?const getStatusColor = (status: string): string => {
+// 获取状态标签颜色
+const getStatusColor = (status: string): string => {
   const statusColors = {
     COMPLETED: 'green',
     PROCESSING: 'blue',
@@ -139,7 +142,8 @@ const [registerResultModal, {openModal: openResultModal}] = useModal();
   return statusColors[status] || 'gray';
 };
 
-// 表格行样�?const getRowClassName = (record) => {
+// 表格行样式
+const getRowClassName = (record) => {
   return record?.status === 'FAILED' ? 'error-row' : '';
 };
 
@@ -178,7 +182,7 @@ const handleExecute = async (record) => {
 
   try {
     state.executing = true;
-    createMessage.loading({content: '任务执行�?..', key: 'executing', duration: 0});
+    createMessage.loading({content: '任务执行中...', key: 'executing', duration: 0});
 
     // 准备执行参数
     const params = {
@@ -210,7 +214,8 @@ const handleExecute = async (record) => {
   }
 };
 
-// 日期时间格式�?const formatDateTime = (dateString: string): string => {
+// 日期时间格式化
+const formatDateTime = (dateString: string): string => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {

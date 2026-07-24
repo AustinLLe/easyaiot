@@ -59,14 +59,14 @@
             <template #renderItem="{ item }">
               <ListItem :class="item.is_enabled ? 'task-item normal' : 'task-item error'">
                 <div class="task-info">
-                  <div class="status">{{ item.is_enabled ? '运行�? : '已停�? }}</div>
+                  <div class="status">{{ item.is_enabled ? '运行中' : '已停止' }}</div>
                   <div class="title o2" :title="item.task_name || item.id">{{ item.task_name || item.id }}</div>
                   <div class="props">
                     <div class="flex" style="justify-content: space-between;">
                       <div class="prop">
-                        <div class="label">关联摄像�?/div>
+                        <div class="label">关联摄像头</div>
                         <div class="value" style="display: flex; align-items: center; gap: 4px;">
-                          <span>{{ item.device_names && item.device_names.length > 0 ? (item.device_names.length > 1 ? item.device_names[0] + '...' : item.device_names[0]) : '�? }}</span>
+                          <span>{{ item.device_names && item.device_names.length > 0 ? (item.device_names.length > 1 ? item.device_names[0] + '...' : item.device_names[0]) : '无' }}</span>
                           <Icon 
                             v-if="item.device_names && item.device_names.length > 0" 
                             icon="ant-design:copy-outlined" 
@@ -86,7 +86,7 @@
                       </div>
                       <div class="prop">
                         <div class="label">输出质量</div>
-                        <div class="value">{{ item.output_quality === 'low' ? '�? : item.output_quality === 'medium' ? '�? : '�? }}</div>
+                        <div class="value">{{ item.output_quality === 'low' ? '低' : item.output_quality === 'medium' ? '中' : '高' }}</div>
                       </div>
                     </div>
                   </div>
@@ -110,9 +110,9 @@
                       <Icon icon="ant-design:reload-outlined" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
-                      title="是否确认删除�?
-                      ok-text="�?
-                      cancel-text="�?
+                      title="是否确认删除？"
+                      ok-text="是"
+                      cancel-text="否"
                       @confirm="handleDelete(item)"
                     >
                       <div class="btn delete-btn">
@@ -344,7 +344,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: handlePageChange,
   onShowSizeChange: handlePageSizeChange,
 });
@@ -368,19 +368,19 @@ const [registerForm, { validate }] = useForm({
       label: '任务名称',
       component: 'Input',
       componentProps: {
-        placeholder: '请输入任务名�?,
+        placeholder: '请输入任务名称',
       },
     },
     {
       field: 'is_enabled',
-      label: '启用状�?,
+      label: '启用状态',
       component: 'Select',
       componentProps: {
-        placeholder: '请选择启用状�?,
+        placeholder: '请选择启用状态',
         options: [
           { value: '', label: '全部' },
-          { value: 1, label: '已启�? },
-          { value: 0, label: '已禁�? },
+          { value: 1, label: '已启用' },
+          { value: 0, label: '已禁用' },
         ],
       },
     },
@@ -424,7 +424,7 @@ const handleStart = async (record: StreamForwardTask) => {
     const response = await startStreamForwardTask(record.id);
     if (response && (response as any).id) {
       if ((response as any).already_running) {
-        createMessage.warning('任务运行�?);
+        createMessage.warning('任务运行中');
       } else {
         createMessage.success('启动成功');
       }
@@ -436,7 +436,7 @@ const handleStart = async (record: StreamForwardTask) => {
       if ((response as any).code === 0) {
         const data = (response as any).data || response;
         if (data && data.already_running) {
-          createMessage.warning('任务运行�?);
+          createMessage.warning('任务运行中');
         } else {
           createMessage.success('启动成功');
         }
@@ -514,9 +514,10 @@ const handleSuccess = () => {
   }
 };
 
-// 复制摄像头名�?const handleCopyDeviceNames = (item: StreamForwardTask) => {
+// 复制摄像头名称
+const handleCopyDeviceNames = (item: StreamForwardTask) => {
   if (!item.device_names || item.device_names.length === 0) {
-    createMessage.warning('无摄像头名称可复�?);
+    createMessage.warning('无摄像头名称可复制');
     return;
   }
   const deviceNamesText = item.device_names.join(', ');
@@ -539,7 +540,8 @@ defineExpose({
   refresh,
 });
 
-// 组件挂载时加载数�?onMounted(() => {
+// 组件挂载时加载数据
+onMounted(() => {
   if (viewMode.value === 'card') {
     loadTasks();
   }

@@ -41,30 +41,30 @@
                 <!-- 模型信息区域 -->
                 <div class="model-info">
                   <div class="info-row">
-                    <span class="info-label">版本�?/span>
+                    <span class="info-label">版本：</span>
                     <span class="info-value">{{ item.model_version }}</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">创建时间�?/span>
+                    <span class="info-label">创建时间：</span>
                     <span class="info-value">{{ formatDate(item.created_at) }}</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">存储路径�?/span>
+                    <span class="info-label">存储路径：</span>
                     <span class="info-value truncate">{{
                         shortenPath(item.minio_model_path)
                       }}</span>
                   </div>
                 </div>
 
-                <!-- 状态区�?-->
+                <!-- 状态区域 -->
                 <div class="status-section">
                   <Tag :color="item.status === 'running' ? 'green' : 'red'">
-                    {{ item.status === 'running' ? '运行�? : '已停�? }}
+                    {{ item.status === 'running' ? '运行中' : '已停止' }}
                   </Tag>
 
                   <div class="resource-usage">
                     <div class="usage-row">
-                      <span>CPU�?/span>
+                      <span>CPU：</span>
                       <Progress
                         :percent="item.cpu_usage || 0"
                         :stroke-color="getUsageColor(item.cpu_usage)"
@@ -73,7 +73,7 @@
                       />
                     </div>
                     <div class="usage-row">
-                      <span>内存�?/span>
+                      <span>内存：</span>
                       <Progress
                         :percent="item.memory_usage || 0"
                         :stroke-color="getUsageColor(item.memory_usage)"
@@ -127,7 +127,8 @@ const {createMessage} = useMessage();
 
 // 组件接收参数
 const props = defineProps({
-  // 请求API的参�?  params: propTypes.object.def({}),
+  // 请求API的参数
+  params: propTypes.object.def({}),
   // API函数
   api: propTypes.func,
 });
@@ -135,7 +136,8 @@ const props = defineProps({
 // 暴露内部方法
 const emit = defineEmits(['getMethod', 'view', 'toggleStatus']);
 
-// 数据状�?const data = ref([]);
+// 数据状态
+const data = ref([]);
 const state = reactive({
   loading: true,
 });
@@ -150,13 +152,13 @@ const [registerForm, {validate}] = useForm({
     },
     {
       field: 'status',
-      label: '状�?,
+      label: '状态',
       component: 'Select',
       componentProps: {
         options: [
           {label: '全部', value: ''},
-          {label: '运行�?, value: 'running'},
-          {label: '已停�?, value: 'stopped'},
+          {label: '运行中', value: 'running'},
+          {label: '已停止', value: 'stopped'},
         ],
       },
     },
@@ -174,7 +176,8 @@ async function handleSubmit() {
   await fetch(formData);
 }
 
-// 自动请求并暴露内部方�?onMounted(() => {
+// 自动请求并暴露内部方法
+onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
@@ -197,7 +200,8 @@ async function fetch(p = {}) {
   }
 }
 
-// 格式化日�?const formatDate = (dateString) => {
+// 格式化日期
+const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -210,14 +214,16 @@ const shortenPath = (path) => {
   return `${path.substring(0, 15)}...${path.substring(path.length - 15)}`;
 };
 
-// 根据使用率获取颜�?const getUsageColor = (percent) => {
+// 根据使用率获取颜色
+const getUsageColor = (percent) => {
   if (!percent) return '#d9d9d9';
   if (percent < 50) return '#52c41a';
   if (percent < 80) return '#faad14';
   return '#ff4d4f';
 };
 
-// 切换服务状�?const toggleServiceStatus = async (item) => {
+// 切换服务状态
+const toggleServiceStatus = async (item) => {
   try {
     state.loading = true;
     const sid = item.id;
@@ -227,10 +233,10 @@ const shortenPath = (path) => {
     }
     if (item.status === 'running') {
       await stopDeployService(sid);
-      createMessage.success('服务已停�?);
+      createMessage.success('服务已停止');
     } else {
       await startDeployService(sid);
-      createMessage.success('服务已启�?);
+      createMessage.success('服务已启动');
     }
     await fetch();
   } catch (error) {
@@ -256,7 +262,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `�?${total} 条`,
+  showTotal: (total: number) => `总 ${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });

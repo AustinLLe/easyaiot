@@ -2,11 +2,12 @@
   <div class="section-panel">
     <div v-if="showHeader" class="section-header">
       <h3>基础信息</h3>
-      <p>设置模型名称、版本、格式和文件�?/p>
+      <p>设置模型名称、版本、格式和文件。</p>
     </div>
 
     <div class="upload-tip">
-      先上传模型文件，平台会自动识别格式、基础模型和类别标签�?    </div>
+      先上传模型文件，平台会自动识别格式、基础模型和类别标签。
+    </div>
 
     <Form :labelCol="{ span: 5 }" :wrapperCol="{ span: 19 }" :disabled="isView">
       <FormItem label="模型文件" required>
@@ -28,7 +29,7 @@
       </FormItem>
 
       <FormItem label="模型名称" required>
-        <Input v-model:value="draft.name" placeholder="请输入模型名�? />
+        <Input v-model:value="draft.name" placeholder="请输入模型名称" />
       </FormItem>
 
       <FormItem label="版本" required>
@@ -36,7 +37,7 @@
       </FormItem>
 
       <FormItem label="描述">
-        <TextArea v-model:value="draft.description" :rows="4" placeholder="请输入描�? />
+        <TextArea v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
       </FormItem>
 
       <FormItem label="模型格式">
@@ -45,10 +46,10 @@
             v-model:value="draft.model_format"
             :options="formatOptions"
             :disabled="isView"
-            placeholder="上传模型后自动识�?
+            placeholder="上传模型后自动识别"
           />
         </template>
-        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结�?/div>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
       <FormItem label="基础模型">
@@ -56,10 +57,10 @@
           <Input
             v-model:value="draft.base_model"
             :disabled="isView"
-            placeholder="上传模型后自动识�?
+            placeholder="上传模型后自动识别"
           />
         </template>
-        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结�?/div>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
       <FormItem label="类别标签">
@@ -72,10 +73,10 @@
             @blur="applyClassLabelsText"
           />
         </template>
-        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结�?/div>
+        <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
-      <FormItem label="状�?>
+      <FormItem label="状态">
         <Select v-model:value="draft.status" :options="statusOptions" />
       </FormItem>
 
@@ -127,8 +128,8 @@ const formatOptions = [
 
 const statusOptions = [
   { value: 0, label: '草稿' },
-  { value: 1, label: '已发�? },
-  { value: 3, label: '已下�? },
+  { value: 1, label: '已发布' },
+  { value: 3, label: '已下线' },
 ];
 
 type UploadResp = {

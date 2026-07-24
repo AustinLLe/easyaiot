@@ -2,7 +2,7 @@
   <BasicModal
     v-bind="$attrs"
     @register="register"
-    title="添加目录/摄像�?
+    title="添加目录/摄像头"
     @ok="handleSubmit"
     :width="650"
   >
@@ -41,16 +41,16 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       componentProps: {
         options: [
           { label: '添加目录', value: 'directory' },
-          { label: '添加摄像�?, value: 'device' },
+          { label: '添加摄像头', value: 'device' },
         ],
       },
     },
     {
       field: 'parent_id',
-      label: '父目�?,
+      label: '父目录',
       component: 'TreeSelect',
       componentProps: {
-        placeholder: '请选择父目录（不选则为根目录�?,
+        placeholder: '请选择父目录（不选则为根目录）',
         treeData: [],
         allowClear: true,
         treeDefaultExpandAll: true,
@@ -67,7 +67,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入目录名�?,
+        placeholder: '请输入目录名称',
       },
       ifShow: ({ values }) => values.addType === 'directory',
     },
@@ -76,14 +76,14 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '目录描述',
       component: 'InputTextArea',
       componentProps: {
-        placeholder: '请输入目录描�?,
+        placeholder: '请输入目录描述',
         rows: 4,
       },
       ifShow: ({ values }) => values.addType === 'directory',
     },
     {
       field: 'device_ids',
-      label: '选择摄像�?,
+      label: '选择摄像头',
       component: 'Select',
       required: true,
       componentProps: {
@@ -108,9 +108,11 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   // 加载目录树用于父目录选择
   await loadParentDirectoryOptions();
   
-  // 加载摄像头列�?  await loadDeviceOptions();
+  // 加载摄像头列表
+  await loadDeviceOptions();
   
-  // 如果传入了默认类型和父目录ID，设置默认�?  if (data) {
+  // 如果传入了默认类型和父目录ID，设置默认值
+  if (data) {
     if (data.defaultType) {
       await setFieldsValue({ addType: data.defaultType });
     }
@@ -157,7 +159,8 @@ const loadDeviceOptions = async () => {
   try {
     const response = await getDeviceList({
       pageNo: 1,
-      pageSize: 1000, // 获取所有设�?    });
+      pageSize: 1000, // 获取所有设备
+    });
     const data = response.code !== undefined ? response.data : response;
     if (data && Array.isArray(data)) {
       deviceOptions.value = data.map((device: DeviceInfo) => ({
@@ -173,8 +176,8 @@ const loadDeviceOptions = async () => {
       });
     }
   } catch (error) {
-    console.error('加载摄像头列表失�?, error);
-    createMessage.error('加载摄像头列表失�?);
+    console.error('加载摄像头列表失败', error);
+    createMessage.error('加载摄像头列表失败');
   }
 };
 
@@ -224,8 +227,8 @@ const handleSubmit = async () => {
         closeModal();
         emit('success');
       } catch (error) {
-        console.error('添加摄像头失�?, error);
-        createMessage.error('部分摄像头添加失败，请重�?);
+        console.error('添加摄像头失败', error);
+        createMessage.error('部分摄像头添加失败，请重试');
       }
     }
   } catch (error) {

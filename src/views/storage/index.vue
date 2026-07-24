@@ -3,7 +3,7 @@
     <div class="page-heading">
       <div>
         <h1>录像存储中心</h1>
-        <p>查看运行节点磁盘、配置摄像头留存方式，并翻阅已保存录�?/p>
+        <p>查看运行节点磁盘、配置摄像头留存方式，并翻阅已保存录像</p>
       </div>
       <div class="heading-actions">
         <AButton :loading="refreshing" @click="refreshAll(true)">
@@ -24,7 +24,7 @@
             <div class="node-name">{{ overview?.node.name || '当前录像节点' }}</div>
             <div class="node-meta">
               <ABadge status="success" text="在线" />
-              <span>{{ overview?.node.kind === 'development_board' ? '开发板' : '服务�? }}</span>
+              <span>{{ overview?.node.kind === 'development_board' ? '开发板' : '服务器' }}</span>
               <span>{{ overview?.node.platform }} · {{ overview?.node.architecture }}</span>
             </div>
           </div>
@@ -32,13 +32,15 @@
         </div>
 
         <div class="disk-scope-note">
-          此处只展示实际承载录像目录的磁盘，不是服务器全部磁盘清单。整盘已用空间可能还包含同盘�?          Docker 镜像、数据库、模型和日志；下方“录像总占用”才是录像文件自身占用�?        </div>
+          此处只展示实际承载录像目录的磁盘，不是服务器全部磁盘清单。整盘已用空间可能还包含同盘的
+          Docker 镜像、数据库、模型和日志；下方“录像总占用”才是录像文件自身占用。
+        </div>
 
         <div v-if="overview?.disks.length" class="disk-grid">
           <article v-for="disk in overview.disks" :key="disk.id" class="disk-card">
             <div class="disk-card-head">
               <div>
-                <div class="disk-name">录像数据�?/div>
+                <div class="disk-name">录像数据盘</div>
                 <div class="muted">容器挂载 {{ disk.mount_point }} · {{ disk.filesystem }}</div>
               </div>
               <strong :class="usageClass(disk.usage_percent)">{{ disk.usage_percent }}%</strong>
@@ -61,10 +63,10 @@
             </div>
           </article>
         </div>
-        <AEmpty v-else description="未发现可用录像磁�? />
+        <AEmpty v-else description="未发现可用录像磁盘" />
 
         <div class="usage-summary">
-          <div><span>录像总占�?/span><b>{{ formatBytes(overview?.recording_usage.total_bytes) }}</b></div>
+          <div><span>录像总占用</span><b>{{ formatBytes(overview?.recording_usage.total_bytes) }}</b></div>
           <div><span>SRS 连续录像</span><b>{{ formatBytes(overview?.recording_usage.srs_bytes) }}</b></div>
           <div><span>平台录像对象</span><b>{{ formatBytes(overview?.recording_usage.object_bytes) }}</b></div>
           <div><span>到期归档</span><b>{{ formatBytes(overview?.recording_usage.archive_bytes) }}</b></div>
@@ -73,20 +75,20 @@
     </ASpin>
 
     <ATabs v-model:active-key="activeTab" class="content-tabs" :animated="false" @change="handleTabChange">
-      <ATabPane key="policy" tab="摄像头留存策�?>
+      <ATabPane key="policy" tab="摄像头留存策略">
         <div class="tab-toolbar">
           <div>
             <h2>按摄像头配置</h2>
-            <p>关闭“保存历史”后，已完成的录像分片会删除且不进入历史；时长为 0 仍表示永久保留�?/p>
+            <p>关闭“保存历史”后，已完成的录像分片会删除且不进入历史；时长为 0 仍表示永久保留。</p>
           </div>
           <div class="policy-picker">
-            <label>选择摄像�?/label>
+            <label>选择摄像头</label>
             <ASelect
               v-model:value="policyDeviceFilter"
               show-search
               allow-clear
               option-filter-prop="label"
-              placeholder="点击选择最近使用的摄像�?
+              placeholder="点击选择最近使用的摄像头"
               class="camera-select"
             >
               <ASelectOption
@@ -97,7 +99,7 @@
               >
                 <div class="camera-option">
                   <span>{{ policy.device_name }}</span>
-                  <small>{{ policy.latest_recording_at ? `最近录�?${formatRelativeTime(policy.latest_recording_at)}` : '暂无录像' }}</small>
+                  <small>{{ policy.latest_recording_at ? `最近录像 ${formatRelativeTime(policy.latest_recording_at)}` : '暂无录像' }}</small>
                 </div>
               </ASelectOption>
             </ASelect>
@@ -109,10 +111,10 @@
             <div class="current-scheme-title">
               <span>当前生效规则</span>
               <ATag :color="schemeState?.current.matched_scheme_id ? 'green' : 'blue'">
-                {{ schemeState?.current.matched_scheme_id ? '已匹配方�? : '实时汇�? }}
+                {{ schemeState?.current.matched_scheme_id ? '已匹配方案' : '实时汇总' }}
               </ATag>
             </div>
-            <h3>{{ schemeState?.current.name || '读取中�? }}</h3>
+            <h3>{{ schemeState?.current.name || '读取中…' }}</h3>
             <p>{{ schemeState?.current.description }}</p>
             <div class="current-details">
               <ATag v-for="detail in schemeState?.current.details || []" :key="`${detail.save_time}-${detail.save_time_unit}-${detail.save_mode}`">
@@ -123,12 +125,13 @@
 
           <div class="scheme-heading">
             <div>
-              <h3>快速启用留存方�?/h3>
-              <p>启用方案只会更新留存设置；录像将在定时任务或点击“立即执行留存策略”时清理�?/p>
+              <h3>快速启用留存方案</h3>
+              <p>启用方案只会更新留存设置；录像将在定时任务或点击“立即执行留存策略”时清理。</p>
             </div>
             <AButton type="dashed" @click="openCustomScheme">
               <template #icon><PlusOutlined /></template>
-              新建自定义方�?            </AButton>
+              新建自定义方案
+            </AButton>
           </div>
           <ASpin :spinning="schemeLoading">
             <div class="scheme-grid">
@@ -141,7 +144,7 @@
                 <div class="scheme-card-head">
                   <div>
                     <ATag v-if="scheme.recommended" color="green">推荐</ATag>
-                    <ATag v-else-if="!scheme.builtin" color="purple">自定�?/ATag>
+                    <ATag v-else-if="!scheme.builtin" color="purple">自定义</ATag>
                     <ATag v-else>预设</ATag>
                   </div>
                   <APopconfirm v-if="!scheme.builtin" title="确认删除这个自定义方案？" @confirm="removeScheme(scheme)">
@@ -154,7 +157,7 @@
                   <span v-for="(rule, index) in scheme.rules" :key="index">{{ formatSchemeRule(rule) }}</span>
                 </div>
                 <APopconfirm
-                  :title="scheme.warning || `确认将�?{scheme.name}”应用到符合条件的摄像头？`"
+                  :title="scheme.warning || `确认将“${scheme.name}”应用到符合条件的摄像头？`"
                   ok-text="确认启用"
                   cancel-text="取消"
                   @confirm="activateScheme(scheme)"
@@ -165,7 +168,7 @@
                     :disabled="schemeState?.current.matched_scheme_id === scheme.id"
                     :loading="applyingSchemeId === scheme.id"
                   >
-                    {{ schemeState?.current.matched_scheme_id === scheme.id ? '当前已启�? : '启用此方�? }}
+                    {{ schemeState?.current.matched_scheme_id === scheme.id ? '当前已启用' : '启用此方案' }}
                   </AButton>
                 </APopconfirm>
               </article>
@@ -190,10 +193,10 @@
             </template>
             <template v-else-if="column.key === 'usage'">
               <b>{{ formatBytes(record.video_bytes) }}</b>
-              <span class="table-sub">{{ record.video_count }} 段录�?/span>
+              <span class="table-sub">{{ record.video_count }} 段录像</span>
             </template>
             <template v-else-if="column.key === 'recording_enabled'">
-              <ASwitch v-model:checked="record.recording_enabled" checked-children="保存" un-checked-children="不保�? />
+              <ASwitch v-model:checked="record.recording_enabled" checked-children="保存" un-checked-children="不保存" />
             </template>
             <template v-else-if="column.key === 'save_mode'">
               <ASelect v-model:value="record.save_mode" style="width: 128px" :disabled="!record.recording_enabled">
@@ -207,7 +210,7 @@
                 <ASelect v-model:value="record.save_time_unit" style="width: 76px" :disabled="!record.recording_enabled">
                   <ASelectOption value="minute">分钟</ASelectOption>
                   <ASelectOption value="hour">小时</ASelectOption>
-                  <ASelectOption value="day">�?/ASelectOption>
+                  <ASelectOption value="day">天</ASelectOption>
                 </ASelect>
               </div>
               <span v-if="record.save_time === 0" class="forever">永久</span>
@@ -230,7 +233,7 @@
             show-search
             allow-clear
             option-filter-prop="label"
-            placeholder="选择摄像�?
+            placeholder="选择摄像头"
             @change="loadHistory(true)"
           >
             <ASelectOption
@@ -266,7 +269,7 @@
           <AEmpty v-else description="当前筛选条件下暂无录像" />
         </ASpin>
         <div class="history-pagination">
-          <span>�?{{ historyTotal }} 段，{{ formatBytes(historyTotalBytes) }}</span>
+          <span>共 {{ historyTotal }} 段，{{ formatBytes(historyTotalBytes) }}</span>
           <APagination
             v-model:current="historyPage"
             :page-size="historyPageSize"
@@ -282,22 +285,22 @@
 
     <AModal
       v-model:open="customSchemeOpen"
-      title="新建可复用留存方�?
+      title="新建可复用留存方案"
       :confirm-loading="savingCustomScheme"
-      ok-text="保存并启�?
+      ok-text="保存并启用"
       cancel-text="取消"
       @ok="saveCustomScheme"
     >
       <div class="custom-form">
-        <label><span>方案名称</span><AInput v-model:value="customSchemeForm.name" :maxlength="100" placeholder="例如：厂区重点摄像头保留 3 �? /></label>
-        <label><span>说明（可选）</span><ATextarea v-model:value="customSchemeForm.description" :rows="2" :maxlength="500" placeholder="说明适用场景，方便以后复�? /></label>
+        <label><span>方案名称</span><AInput v-model:value="customSchemeForm.name" :maxlength="100" placeholder="例如：厂区重点摄像头保留 3 天" /></label>
+        <label><span>说明（可选）</span><ATextarea v-model:value="customSchemeForm.description" :rows="2" :maxlength="500" placeholder="说明适用场景，方便以后复用" /></label>
         <label>
           <span>应用范围</span>
           <ASelect v-model:value="customSchemeForm.target">
-            <ASelectOption value="all">全部摄像�?/ASelectOption>
-            <ASelectOption value="active">最近活跃的摄像�?/ASelectOption>
+            <ASelectOption value="all">全部摄像头</ASelectOption>
+            <ASelectOption value="active">最近活跃的摄像头</ASelectOption>
             <ASelectOption value="inactive">最近不活跃的摄像头</ASelectOption>
-            <ASelectOption value="selected">指定摄像�?/ASelectOption>
+            <ASelectOption value="selected">指定摄像头</ASelectOption>
           </ASelect>
         </label>
         <label v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'">
@@ -305,8 +308,8 @@
           <div class="inline-field"><AInputNumber v-model:value="customSchemeForm.active_within_hours" :min="1" :max="8760" /><em>小时</em></div>
         </label>
         <label v-if="customSchemeForm.target === 'selected'">
-          <span>选择摄像�?/span>
-          <ASelect v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像�?>
+          <span>选择摄像头</span>
+          <ASelect v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像头">
             <ASelectOption v-for="policy in recentPolicies" :key="policy.device_id" :value="policy.device_id" :label="`${policy.device_name} ${policy.device_id}`">
               {{ policy.device_name }}
             </ASelectOption>
@@ -314,20 +317,20 @@
         </label>
         <label>
           <span>保存历史录像</span>
-          <ASwitch v-model:checked="customSchemeForm.recording_enabled" checked-children="保存" un-checked-children="不保�? />
+          <ASwitch v-model:checked="customSchemeForm.recording_enabled" checked-children="保存" un-checked-children="不保存" />
         </label>
         <label>
           <span>保留时长</span>
           <div class="inline-field">
             <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="retentionMax(customSchemeForm.unit)" :precision="0" />
-            <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="minute">分钟</ASelectOption><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">�?/ASelectOption></ASelect>
+            <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="minute">分钟</ASelectOption><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">天</ASelectOption></ASelect>
           </div>
         </label>
         <label>
           <span>到期处理</span>
           <ASelect v-model:value="customSchemeForm.save_mode"><ASelectOption :value="0">到期删除</ASelectOption><ASelectOption :value="1">到期归档</ASelectOption></ASelect>
         </label>
-        <p class="form-tip">0 表示永久保留。保存后方案会出现在上方，可重复启用或删除�?/p>
+        <p class="form-tip">0 表示永久保留。保存后方案会出现在上方，可重复启用或删除。</p>
       </div>
     </AModal>
   </div>
@@ -411,7 +414,7 @@ const customSchemeForm = reactive({
 });
 
 const policyColumns = [
-  { title: '摄像�?, key: 'camera', width: 260 },
+  { title: '摄像头', key: 'camera', width: 260 },
   { title: '当前占用', key: 'usage', width: 150 },
   { title: '历史录像', key: 'recording_enabled', width: 150 },
   { title: '到期处理', key: 'save_mode', width: 170 },
@@ -532,18 +535,18 @@ async function savePolicy(record: RetentionPolicy | Record<string, any>) {
 }
 
 function targetLabel(target: RetentionRule['target']) {
-  return { all: '全部', active: '活跃', inactive: '不活�?, selected: '指定' }[target];
+  return { all: '全部', active: '活跃', inactive: '不活跃', selected: '指定' }[target];
 }
 
 function formatSchemeRule(rule: RetentionRule) {
   if (rule.recording_enabled === false) return `${targetLabel(rule.target)}：不保存历史录像`;
-  const unitLabel = { minute: '分钟', hour: '小时', day: '�? }[rule.unit];
+  const unitLabel = { minute: '分钟', hour: '小时', day: '天' }[rule.unit];
   const duration = rule.value === 0 ? '永久' : `${rule.value} ${unitLabel}`;
   const action = rule.save_mode === 1 ? '归档' : '删除';
   const activeWindow = rule.target === 'active' || rule.target === 'inactive'
-    ? `�?{rule.active_within_hours || 24} 小时）`
+    ? `（${rule.active_within_hours || 24} 小时）`
     : '';
-  return `${targetLabel(rule.target)}${activeWindow}�?{duration}�?{action}`;
+  return `${targetLabel(rule.target)}${activeWindow}：${duration}后${action}`;
 }
 
 async function activateScheme(scheme: RetentionScheme) {
@@ -565,7 +568,7 @@ function openCustomScheme() {
 
 async function saveCustomScheme() {
   if (!customSchemeForm.name.trim()) {
-    createMessage.warning('请输入方案名�?);
+    createMessage.warning('请输入方案名称');
     return;
   }
   if (customSchemeForm.target === 'selected' && customSchemeForm.device_ids.length === 0) {
@@ -589,14 +592,14 @@ async function saveCustomScheme() {
     }) as RetentionScheme;
     await applyRetentionScheme(scheme.id);
     customSchemeOpen.value = false;
-    createMessage.success(`自定义方案�?{scheme.name}”已保存并启用`);
+    createMessage.success(`自定义方案“${scheme.name}”已保存并启用`);
     await Promise.all([loadPolicies(), loadSchemes()]);
   } finally { savingCustomScheme.value = false; }
 }
 
 async function removeScheme(scheme: RetentionScheme) {
   await deleteRetentionScheme(scheme.id);
-  createMessage.success(`自定义方案�?{scheme.name}”已删除`);
+  createMessage.success(`自定义方案“${scheme.name}”已删除`);
   await loadSchemes();
 }
 
@@ -604,7 +607,7 @@ async function handleCleanup() {
   cleaning.value = true;
   try {
     const result: any = await runRetentionCleanup();
-    createMessage.success(`处理完成：删�?${result.deleted_count || 0}，归�?${result.archived_count || 0}`);
+    createMessage.success(`处理完成：删除 ${result.deleted_count || 0}，归档 ${result.archived_count || 0}`);
     await refreshAll(true);
   } finally { cleaning.value = false; }
 }

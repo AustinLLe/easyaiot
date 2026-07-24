@@ -117,12 +117,12 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入任务名�?,
+        placeholder: '请输入任务名称',
       },
     },
     {
       field: 'device_ids',
-      label: '关联摄像�?,
+      label: '关联摄像头',
       component: 'Select',
       required: true,
       componentProps: {
@@ -135,7 +135,7 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
           return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
         },
       },
-      helpMessage: '选择需要推流转发的摄像头，可多�?,
+      helpMessage: '选择需要推流转发的摄像头，可多选',
     },
     {
       field: 'output_format',
@@ -149,7 +149,7 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
           { label: 'RTSP', value: 'rtsp' },
         ],
       },
-      helpMessage: '选择推流输出格式，RTMP适用于大多数流媒体平台，RTSP适用于专业监控系�?,
+      helpMessage: '选择推流输出格式，RTMP适用于大多数流媒体平台，RTSP适用于专业监控系统',
     },
     {
       field: 'output_quality',
@@ -159,12 +159,12 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
       componentProps: {
         placeholder: '请选择输出质量',
         options: [
-          { label: '�?, value: 'low' },
-          { label: '�?, value: 'medium' },
-          { label: '�?, value: 'high' },
+          { label: '低', value: 'low' },
+          { label: '中', value: 'medium' },
+          { label: '高', value: 'high' },
         ],
       },
-      helpMessage: '选择推流输出质量，质量越高占用带宽越�?,
+      helpMessage: '选择推流输出质量，质量越高占用带宽越大',
     },
     {
       field: 'output_bitrate',
@@ -173,7 +173,7 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
       componentProps: {
         placeholder: '如：512k, 1M, 2M（留空使用默认值）',
       },
-      helpMessage: '自定义输出码率，例如�?12k�?M�?M。留空则根据输出质量自动设置',
+      helpMessage: '自定义输出码率，例如：512k、1M、2M。留空则根据输出质量自动设置',
     },
     {
       field: 'description',
@@ -192,10 +192,10 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
       label: '是否启用',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '�?,
-        unCheckedChildren: '�?,
+        checkedChildren: '是',
+        unCheckedChildren: '否',
       },
-      helpMessage: '创建后是否立即启用任务，启用后任务将自动开始推流转�?,
+      helpMessage: '创建后是否立即启用任务，启用后任务将自动开始推流转发',
     },
   ],
   showActionButtonGroup: false,
@@ -231,7 +231,8 @@ const loadDeviceOptions = async () => {
 const handleReset = async () => {
   resetFields();
   if (modalData.value.record) {
-    // 编辑模式，恢复到原始�?    const record = modalData.value.record;
+    // 编辑模式，恢复到原始值
+    const record = modalData.value.record;
     await setFieldsValue({
       task_name: record.task_name,
       device_ids: record.device_ids || [],
@@ -242,7 +243,8 @@ const handleReset = async () => {
       is_enabled: record.is_enabled !== undefined ? record.is_enabled : false,
     });
   } else {
-    // 新建模式，重置为默认�?    await setFieldsValue({
+    // 新建模式，重置为默认值
+    await setFieldsValue({
       output_format: 'rtmp',
       output_quality: 'high',
       is_enabled: false,
