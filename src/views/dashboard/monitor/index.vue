@@ -451,6 +451,18 @@ const periodOptions = [
   { label: '本月', value: 'month' as PeriodKey },
 ]
 const chartColors = ['#1e5799', '#00cec9', '#52c41a', '#ffe556', '#ff9900', '#9aa8d4', '#6c5ce7', '#fd79a8']
+const pieGradientPairs = [
+  ['#4a90e2', '#1e5799'],
+  ['#00cec9', '#00838f'],
+  ['#73d13d', '#389e0d'],
+  ['#ffe566', '#d4a017'],
+  ['#ffa940', '#d46b08'],
+  ['#b37feb', '#722ed1'],
+  ['#597ef7', '#2f54eb'],
+  ['#ff85c0', '#eb2f96'],
+]
+const PIE_CENTER: [string, string] = ['50%', '62%']
+const PIE_RADIUS: [string, string] = ['42%', '58%']
 
 const algorithmChartRef = ref<HTMLDivElement>()
 const rankingChartRef = ref<HTMLDivElement>()
@@ -473,13 +485,34 @@ function formatPeriodDate(value?: string) {
   return `${year}-${month}-${day}`
 }
 
+function buildPieSegmentStyle(index: number) {
+  const pair = pieGradientPairs[index % pieGradientPairs.length]
+  return {
+    color: {
+      type: 'linear' as const,
+      x: 0,
+      y: 0,
+      x2: 1,
+      y2: 1,
+      colorStops: [
+        { offset: 0, color: pair[0] },
+        { offset: 1, color: pair[1] },
+      ],
+    },
+    shadowBlur: 10,
+    shadowColor: 'rgba(52, 134, 218, 0.28)',
+    borderColor: 'rgba(115, 170, 229, 0.25)',
+    borderWidth: 1,
+  }
+}
+
 function buildAlgorithmPieData(items: RankingItem[]) {
   const topItems = items.slice(0, 5)
   const restItems = items.slice(5)
   const data = topItems.map((item, index) => ({
     name: item.name,
     value: item.count,
-    itemStyle: { color: chartColors[index % chartColors.length] },
+    itemStyle: buildPieSegmentStyle(index),
   }))
   if (restItems.length) {
     const otherCount = restItems.reduce((sum, item) => sum + item.count, 0)
@@ -487,16 +520,44 @@ function buildAlgorithmPieData(items: RankingItem[]) {
       data.push({
         name: '其他',
         value: otherCount,
-        itemStyle: { color: chartColors[5] },
+        itemStyle: buildPieSegmentStyle(5),
       })
     }
   }
   return data
 }
 
+function buildAlgorithmCenterLabel(total: number) {
+  return `{label|总次数}\n{value|${formatAlarmCount(total)}}\n{unit|次}`
+}
+
+function buildAlgorithmCenterRich() {
+  return {
+    label: {
+      fontSize: 11,
+      color: '#9aa8d4',
+      lineHeight: 18,
+    },
+    value: {
+      fontSize: 22,
+      fontWeight: 700,
+      color: '#ffe556',
+      lineHeight: 28,
+      textShadowBlur: 10,
+      textShadowColor: 'rgba(255, 229, 86, 0.35)',
+    },
+    unit: {
+      fontSize: 11,
+      color: '#9aa8d4',
+      lineHeight: 16,
+    },
+  }
+}
+
 function buildAlgorithmChartOptions(animate = false): EChartsOption {
   const total = algorithmPeriodData.value.alarm_count
   const data = buildAlgorithmPieData(algorithmRanking.value)
+  const showOutsideLabel = data.length > 1
 
   return {
     animation: animate,
@@ -520,76 +581,68 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
       itemGap: 10,
       textStyle: { color: '#9aa8d4', fontSize: 10 },
     },
-    graphic: [{
-      type: 'group',
-      left: 'center',
-      top: '56%',
-      children: [
-        {
-          type: 'text',
-          left: 'center',
-          top: -28,
-          style: {
-            text: '总次数',
-            fill: '#9aa8d4',
-            fontSize: 11,
-            textAlign: 'center',
+    series: [
+      {
+        type: 'pie',
+        radius: PIE_RADIUS,
+        center: PIE_CENTER,
+        avoidLabelOverlap: true,
+        animation: animate,
+        animationDuration: animate ? 900 : 0,
+        animationDurationUpdate: 0,
+        label: {
+          show: showOutsideLabel,
+          position: 'outside',
+          formatter: '{b}\n({d}%)',
+          color: '#9aa8d4',
+          fontSize: 10,
+          lineHeight: 14,
+        },
+        labelLine: {
+          show: showOutsideLabel,
+          length: 10,
+          length2: 14,
+          smooth: true,
+          lineStyle: { color: 'rgba(148, 163, 184, 0.35)' },
+        },
+        labelLayout: {
+          hideOverlap: true,
+        },
+        emphasis: {
+          scale: true,
+          scaleSize: 4,
+          itemStyle: {
+            shadowBlur: 16,
+            shadowColor: 'rgba(52, 134, 218, 0.45)',
           },
         },
-        {
-          type: 'text',
-          left: 'center',
-          top: -6,
-          style: {
-            text: formatAlarmCount(total),
-            fill: '#ffffff',
-            fontSize: 20,
-            fontWeight: 700,
-            textAlign: 'center',
-          },
+        data,
+      },
+      {
+        type: 'pie',
+        radius: PIE_RADIUS,
+        center: PIE_CENTER,
+        silent: true,
+        animation: false,
+        z: 10,
+        tooltip: { show: false },
+        label: {
+          show: true,
+          position: 'center',
+          formatter: () => buildAlgorithmCenterLabel(total),
+          rich: buildAlgorithmCenterRich(),
         },
-        {
-          type: 'text',
-          left: 'center',
-          top: 22,
-          style: {
-            text: '次',
-            fill: '#9aa8d4',
-            fontSize: 11,
-            textAlign: 'center',
-          },
+        labelLine: { show: false },
+        itemStyle: {
+          borderWidth: 0,
         },
-      ],
-    }],
-    series: [{
-      type: 'pie',
-      radius: ['38%', '58%'],
-      center: ['50%', '58%'],
-      avoidLabelOverlap: true,
-      animation: animate,
-      animationDuration: animate ? 900 : 0,
-      animationDurationUpdate: 0,
-      label: {
-        show: true,
-        position: 'outside',
-        formatter: '{b}\n({d}%)',
-        color: '#9aa8d4',
-        fontSize: 10,
-        lineHeight: 14,
+        data: [{
+          value: 1,
+          name: '',
+          itemStyle: { color: 'transparent' },
+        }],
       },
-      labelLine: {
-        show: true,
-        length: 10,
-        length2: 14,
-        smooth: true,
-        lineStyle: { color: 'rgba(148, 163, 184, 0.35)' },
-      },
-      labelLayout: {
-        hideOverlap: true,
-      },
-      emphasis: { scale: true, scaleSize: 4 },
-      data,
-    }],
+    ],
   }
 }
 
