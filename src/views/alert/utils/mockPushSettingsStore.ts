@@ -1,4 +1,5 @@
 import type { AlarmPushEndpoint, PushFieldMappingGroup } from '../pushSettings.types';
+import { defHttp } from '@/utils/http/axios';
 import {
   ALGORITHM_OUTPUT_FIELDS,
   ANALYSIS_OUTPUT_FIELDS,
@@ -11,12 +12,17 @@ const VALID_ALGORITHM_KEYS = new Set(ALGORITHM_OUTPUT_FIELDS.map(item => item.ke
 let endpoints: AlarmPushEndpoint[] = [];
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-  });
-  const body = await response.json();
-  if (!response.ok || body.code !== 0)
+  // VIDEO is protected by the platform JWT.  Do not use bare fetch here:
+  // it drops X-Authorization and makes the settings page fail on mount.
+  defHttp.setHeader({ 'X-Authorization': `Bearer ${localStorage.getItem('jwt_token') || ''}` });
+  const method = (options?.method || 'GET').toLowerCase() as 'get' | 'post' | 'put' | 'delete';
+  const response = await defHttp[method]({
+    url,
+    data: options?.body ? JSON.parse(String(options.body)) : undefined,
+    headers: { ignoreCancelToken: true },
+  }, { isTransformResponse: false });
+  const body = (response as any)?.data ?? response;
+  if (body?.code !== 0)
     throw new Error(body.msg || '推送地址请求失败');
   return body.data as T;
 }

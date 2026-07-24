@@ -100,7 +100,14 @@ const rowSelection = computed(() => ({
 }));
 
 async function reload() {
-  endpointList.value = await loadPushProfiles();
+  try {
+    endpointList.value = await loadPushProfiles();
+  }
+  catch (error) {
+    // Keep the editor usable even if the address list cannot be refreshed.
+    endpointList.value = [];
+    createMessage.error(error instanceof Error ? error.message : '加载推送配置失败');
+  }
 }
 
 function openCreate() {
