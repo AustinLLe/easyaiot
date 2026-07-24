@@ -96,6 +96,18 @@
             <span class="panel-kicker">实时监控</span>
           </div>
           <div class="video-actions">
+            <div class="split-toolbar">
+              <button
+                v-for="layout in splitLayouts"
+                :key="layout.value"
+                type="button"
+                :class="['split-btn', { active: currentLayout === layout.value }]"
+                :title="layout.label"
+                @click="switchLayout(layout.value)"
+              >
+                {{ layout.short }}
+              </button>
+            </div>
             <select
               v-model="selectedDeviceId"
               class="camera-select"
@@ -107,33 +119,36 @@
                 {{ device.name || device.id }}
               </option>
             </select>
-            <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-              {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
+            <span :class="['stream-status', { online: activeStreamCount > 0 }]">
+              {{ activeStreamCount > 0 ? `${activeStreamCount} 路播放中` : '等待选择' }}
             </span>
           </div>
         </div>
         <div class="video-stage-wrap">
-          <div
-            class="video-stage"
-            :class="{ 'drag-over': videoDragOver }"
-            @dragover.prevent="videoDragOver = true"
-            @dragleave="handleVideoDragLeave"
-            @drop="handleVideoDrop"
-          >
-            <Jessibuca
-              v-if="currentStreamUrl"
-              :key="currentStreamUrl"
-              :play-url="currentStreamUrl"
-              :has-audio="false"
-              class="video-player"
-            />
-            <div v-else class="video-placeholder">
-              <Icon icon="ant-design:video-camera-outlined" :size="40" color="#60a5fa" />
-              <strong>{{ videoPlaceholderTitle }}</strong>
-              <span>从右侧列表拖入摄像头，或点击摄像头播放</span>
-            </div>
-            <div v-if="playingDevice" class="video-caption">
-              <span>{{ playingDevice.name || playingDevice.id }}</span>
+          <div class="video-monitor-grid" :class="`layout-${currentLayout}`">
+            <div
+              v-for="(video, index) in displayVideos"
+              :key="`${currentLayout}-${video.id}-${index}`"
+              :class="['video-window', { active: activeVideoIndex === index, 'drag-over': videoDragOverIndex === index }]"
+              :style="getVideoStyle(index)"
+              @click="activeVideoIndex = index"
+              @contextmenu.prevent="clearVideoSlot(index)"
+              @dragover.prevent="videoDragOverIndex = index"
+              @dragleave="handleVideoWindowDragLeave($event, index)"
+              @drop="handleVideoWindowDrop($event, index)"
+            >
+              <Jessibuca
+                v-if="video.url"
+                :key="video.url"
+                :play-url="video.url"
+                :has-audio="false"
+                class="video-player"
+              />
+              <div v-else class="video-window-placeholder">
+                <Icon icon="ant-design:video-camera-outlined" :size="22" color="#475569" />
+                <span>{{ streamLoading && activeVideoIndex === index ? '加载中...' : `窗口 ${index + 1}` }}</span>
+              </div>
+              <div v-if="video.url" class="video-window-label">{{ video.name }}</div>
             </div>
           </div>
         </div>
@@ -171,7 +186,7 @@
               :key="device.id"
               class="camera-drag-item"
               draggable="true"
-              :class="{ active: playingDevice?.id === device.id }"
+              :class="{ active: isDevicePlaying(device.id) }"
               @click="selectAndPlayDevice(device)"
               @dragstart="handleCameraDragStart($event, device)"
               @dragend="draggingDeviceId = ''"
@@ -355,6 +370,13 @@ interface AlarmItem {
   device_name?: string
 }
 
+interface VideoSlot {
+  id: string
+  url: string
+  name: string
+  deviceId?: string
+}
+
 const emptyPeriod = (label: string): PeriodStatistics => ({
   label,
   alarm_count: 0,
@@ -372,17 +394,27 @@ const kpiPeriod = ref<PeriodKey>('today')
 const algorithmPeriod = ref<PeriodKey>('today')
 const rankingPeriod = ref<PeriodKey>('today')
 const rankMode = ref<RankMode>('camera')
-const currentStreamUrl = ref('')
-const playingDevice = ref<DeviceInfo | null>(null)
 const deviceList = ref<DeviceInfo[]>([])
 const selectedDeviceId = ref('')
 const treeLoading = ref(false)
 const directoryTree = ref<TreeItem[]>([])
 const selectedDirectoryKey = ref('')
-const videoDragOver = ref(false)
+const videoDragOverIndex = ref(-1)
 const draggingDeviceId = ref('')
 const alarmList = ref<AlarmItem[]>([])
 const todayAlarmCount = ref(0)
+
+const splitLayouts = [
+  { value: '1', label: '1分屏', short: '1' },
+  { value: '4', label: '4分屏', short: '4' },
+  { value: '6', label: '6分屏', short: '6' },
+  { value: '8', label: '8分屏', short: '8' },
+  { value: '9', label: '9分屏', short: '9' },
+  { value: '16', label: '16分屏', short: '16' },
+]
+const currentLayout = ref('1')
+const activeVideoIndex = ref(0)
+const videoSlots = ref<VideoSlot[]>([{ id: 'placeholder-0', url: '', name: '窗口1' }])
 
 let alarmRefreshTimer: ReturnType<typeof setInterval> | null = null
 
@@ -571,7 +603,109 @@ watch(rankingChartKey, () => {
   rankingChartAnimated.value = true
 }, { immediate: true })
 
-const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请拖入或选择摄像头')
+function getMaxVideoCount(layout: string) {
+  const count = Number.parseInt(layout, 10)
+  return Number.isNaN(count) ? 1 : count
+}
+
+function createEmptySlot(index: number): VideoSlot {
+  return { id: `placeholder-${index}`, url: '', name: `窗口${index + 1}` }
+}
+
+function ensureVideoSlotsInitialized() {
+  const maxCount = getMaxVideoCount(currentLayout.value)
+  while (videoSlots.value.length < maxCount)
+    videoSlots.value.push(createEmptySlot(videoSlots.value.length))
+}
+
+const displayVideos = computed(() => {
+  const maxCount = getMaxVideoCount(currentLayout.value)
+  const slots = [...videoSlots.value]
+  while (slots.length < maxCount)
+    slots.push(createEmptySlot(slots.length))
+  return slots.slice(0, maxCount)
+})
+
+const activeStreamCount = computed(() =>
+  displayVideos.value.filter(slot => slot.url).length,
+)
+
+function isDevicePlaying(deviceId: string) {
+  return videoSlots.value.some(slot => slot.deviceId === deviceId && slot.url)
+}
+
+function findEmptyScreen() {
+  const maxCount = getMaxVideoCount(currentLayout.value)
+  for (let i = 0; i < maxCount; i++) {
+    const slot = videoSlots.value[i]
+    if (!slot?.url)
+      return i
+  }
+  return null
+}
+
+function switchLayout(layout: string) {
+  currentLayout.value = layout
+  activeVideoIndex.value = 0
+  ensureVideoSlotsInitialized()
+}
+
+function getVideoStyle(index: number): Record<string, string> {
+  const layout = currentLayout.value
+  if (layout === '6') {
+    if (index === 0)
+      return { gridColumn: '1 / 3', gridRow: '1 / 3' }
+    const pos = index - 1
+    if (pos === 0)
+      return { gridColumn: '3', gridRow: '1' }
+    if (pos === 1)
+      return { gridColumn: '3', gridRow: '2' }
+    return { gridColumn: `${pos - 1}`, gridRow: '3' }
+  }
+  if (layout === '8') {
+    if (index === 0)
+      return { gridColumn: '1 / 4', gridRow: '1 / 3' }
+    if (index < 4) {
+      const pos = index - 1
+      if (pos === 0)
+        return { gridColumn: '4', gridRow: '1' }
+      if (pos === 1)
+        return { gridColumn: '4', gridRow: '2' }
+      return { gridColumn: '4', gridRow: '3' }
+    }
+    const pos = index - 4
+    return { gridColumn: `${pos + 1}`, gridRow: '3' }
+  }
+  return {}
+}
+
+function clearVideoSlot(index: number) {
+  if (!videoSlots.value[index]?.url)
+    return
+  videoSlots.value[index] = createEmptySlot(index)
+}
+
+function handleVideoWindowDragLeave(event: DragEvent, index: number) {
+  const related = event.relatedTarget as Node | null
+  if (!event.currentTarget || (related && (event.currentTarget as Node).contains(related)))
+    return
+  if (videoDragOverIndex.value === index)
+    videoDragOverIndex.value = -1
+}
+
+function handleVideoWindowDrop(event: DragEvent, index: number) {
+  event.preventDefault()
+  videoDragOverIndex.value = -1
+  const deviceId = event.dataTransfer?.getData('application/x-device-id') || draggingDeviceId.value
+  if (!deviceId)
+    return
+  const device = deviceList.value.find(d => d.id === deviceId)
+  if (device) {
+    selectedDeviceId.value = device.id
+    handlePlayDevice(device, index)
+  }
+  draggingDeviceId.value = ''
+}
 
 function flattenDirectoryTree(nodes: TreeItem[], depth = 0): DirectoryTreeItem[] {
   const items: DirectoryTreeItem[] = []
@@ -611,25 +745,6 @@ function handleCameraDragStart(event: DragEvent, device: DeviceInfo) {
   event.dataTransfer?.setData('text/plain', device.name || device.id)
   if (event.dataTransfer)
     event.dataTransfer.effectAllowed = 'copy'
-}
-
-function handleVideoDragLeave(event: DragEvent) {
-  const related = event.relatedTarget as Node | null
-  if (!event.currentTarget || (related && (event.currentTarget as Node).contains(related)))
-    return
-  videoDragOver.value = false
-}
-
-function handleVideoDrop(event: DragEvent) {
-  event.preventDefault()
-  videoDragOver.value = false
-  const deviceId = event.dataTransfer?.getData('application/x-device-id') || draggingDeviceId.value
-  if (!deviceId)
-    return
-  const device = deviceList.value.find(d => d.id === deviceId)
-  if (device)
-    selectAndPlayDevice(device)
-  draggingDeviceId.value = ''
 }
 
 function buildDirectoryTree(flat: DeviceDirectory[]): DeviceDirectory[] {
@@ -849,18 +964,37 @@ async function loadAlarmList() {
   }
 }
 
-async function handlePlayDevice(device: DeviceInfo) {
+async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
   streamLoading.value = true
   try {
     const streamUrl = await ensureOriginalStreamUrl(device)
     if (!streamUrl) {
       createMessage.warning('该摄像头暂无原始流地址')
-      currentStreamUrl.value = ''
-      playingDevice.value = null
       return
     }
-    playingDevice.value = device
-    currentStreamUrl.value = streamUrl
+    ensureVideoSlotsInitialized()
+    let index = targetIndex
+    if (index === undefined) {
+      if (currentLayout.value === '1')
+        index = 0
+      else
+        index = activeVideoIndex.value
+      const slot = videoSlots.value[index]
+      if (slot?.url && currentLayout.value !== '1')
+        index = findEmptyScreen() ?? index
+    }
+    if (index === null || index === undefined) {
+      createMessage.warning('当前没有空窗口，请右键移除后再试')
+      return
+    }
+    videoSlots.value[index] = {
+      id: `video-${device.id}-${index}`,
+      url: streamUrl,
+      name: device.name || device.id,
+      deviceId: device.id,
+    }
+    activeVideoIndex.value = index
+    selectedDeviceId.value = device.id
   }
   catch (error) {
     console.error('播放失败', error)
@@ -872,14 +1006,11 @@ async function handlePlayDevice(device: DeviceInfo) {
 }
 
 function handleDeviceSelect() {
-  if (!selectedDeviceId.value) {
-    currentStreamUrl.value = ''
-    playingDevice.value = null
+  if (!selectedDeviceId.value)
     return
-  }
   const device = deviceList.value.find(d => d.id === selectedDeviceId.value)
   if (device)
-    handlePlayDevice(device)
+    handlePlayDevice(device, currentLayout.value === '1' ? 0 : activeVideoIndex.value)
 }
 
 async function refreshDashboard() {
@@ -1312,6 +1443,15 @@ function handleChartResize() {
   flex-direction: column;
   gap: 4px;
   scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.55) transparent;
+
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.55);
+    border-radius: 4px;
+    &:hover { background: rgba(100, 116, 139, 0.7); }
+  }
 }
 
 .group-item {
@@ -1379,11 +1519,6 @@ function handleChartResize() {
   color: #475569;
 }
 
-.video-stage.drag-over {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, .25);
-}
-
 .panel {
   background: rgba(15, 23, 42, .65);
   border: 1px solid rgba(56, 189, 248, .15);
@@ -1425,6 +1560,34 @@ function handleChartResize() {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.split-toolbar {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: rgba(15, 23, 42, .8);
+  border: 1px solid rgba(148, 163, 184, .12);
+  border-radius: 6px;
+}
+
+.split-btn {
+  border: 0;
+  cursor: pointer;
+  font-size: 11px;
+  min-width: 24px;
+  padding: 4px 6px;
+  color: #64748b;
+  background: transparent;
+  border-radius: 4px;
+  line-height: 1;
+  &.active {
+    color: #e2e8f0;
+    background: rgba(56, 189, 248, .18);
+  }
+  &:hover:not(.active) { color: #94a3b8; background: rgba(148, 163, 184, .08); }
 }
 
 .camera-select {
@@ -1455,22 +1618,81 @@ function handleChartResize() {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-stage {
-  width: 100%;
-  max-height: 100%;
-  aspect-ratio: 16 / 9;
-  position: relative;
-  background: #020617;
-  border: 1px solid rgba(56, 189, 248, .2);
-  border-radius: 10px;
   overflow: hidden;
 }
 
+.video-monitor-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 4px;
+  padding: 2px;
+  background: #020617;
+  border: 1px solid rgba(56, 189, 248, .15);
+  border-radius: 8px;
+  overflow: hidden;
+
+  &.layout-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+  &.layout-4 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+  &.layout-6 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+  &.layout-8 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); }
+  &.layout-9 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+  &.layout-16 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+}
+
+.video-window {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, .12);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+
+  &:hover { border-color: rgba(56, 189, 248, .35); }
+  &.active {
+    border-color: rgba(56, 189, 248, .55);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, .25);
+  }
+  &.drag-over {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, .35);
+  }
+}
+
+.video-window-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #475569;
+  font-size: 11px;
+  background: radial-gradient(circle at 50% 40%, rgba(30, 41, 59, .8), #020617 70%);
+}
+
+.video-window-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 8px 4px;
+  color: #e2e8f0;
+  font-size: 10px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .video-player {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -1483,65 +1705,52 @@ function handleChartResize() {
   min-height: 0;
 }
 
-.video-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #dce8ff;
-  text-align: center;
-  padding: 16px;
-  background: radial-gradient(circle at 50% 40%, #192a48, #080f1c 70%);
-
-  strong { font-size: 14px; }
-  span { font-size: 12px; color: #73809a; max-width: 240px; }
-}
-
-.video-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 20px 12px 8px;
-  color: #fff;
-  font-size: 11px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, .75));
-  pointer-events: none;
-}
-
 .alarm-list {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding-right: 2px;
   scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.55) transparent;
+
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.55);
+    border-radius: 4px;
+    &:hover { background: rgba(100, 116, 139, 0.7); }
+  }
 }
 
 .alarm-item {
   display: flex;
-  gap: 8px;
-  padding: 8px;
-  background: rgba(15, 23, 42, .5);
-  border: 1px solid rgba(148, 163, 184, .1);
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, .07), rgba(15, 23, 42, .65));
+  border: 1px solid rgba(56, 189, 248, .12);
   border-left: 3px solid #f87171;
   border-radius: 8px;
   flex-shrink: 0;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(56, 189, 248, .12), rgba(15, 23, 42, .75));
+    border-color: rgba(56, 189, 248, .22);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
+  }
 }
 
 .alarm-thumb {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   border-radius: 6px;
   overflow: hidden;
-  background: rgba(15, 23, 42, .8);
+  background: rgba(15, 23, 42, .9);
+  border: 1px solid rgba(148, 163, 184, .15);
   display: grid;
   place-items: center;
 
@@ -1608,6 +1817,6 @@ function handleChartResize() {
     max-height: none !important;
   }
   .overview-dashboard { overflow: visible; }
-  .video-stage { aspect-ratio: 16 / 9; max-height: none; min-height: 200px; }
+  .video-monitor-grid { min-height: 200px; }
 }
 </style>
