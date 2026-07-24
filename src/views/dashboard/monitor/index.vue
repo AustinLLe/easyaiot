@@ -4,7 +4,9 @@
     <header class="screen-header">
       <div class="header-center">
         <div class="header-badge">EASYAIOT EDGE</div>
-        <h1 class="screen-title">边缘智能算法应用平台</h1>
+        <div class="screen-title-wrap">
+          <h1 class="screen-title">边缘智能算法应用平台</h1>
+        </div>
         <p class="screen-subtitle">设备 · 算法 · 告警 实时态势感知</p>
       </div>
       <div class="heading-actions">
@@ -92,6 +94,7 @@
         <div class="panel-title-row compact-title">
           <div>
             <span class="panel-kicker">实时监控</span>
+            <h2>视频监控</h2>
           </div>
           <div class="video-actions">
             <div class="split-toolbar">
@@ -1059,23 +1062,25 @@ function handleChartResize() {
 @sugar-gold: #ffe556;
 @sugar-text: #e8eef8;
 @sugar-muted: #9aa8d4;
+@sugar-glow: rgba(52, 134, 218, 0.45);
+@sugar-glow-soft: rgba(52, 134, 218, 0.12);
 
 .sugar-panel-accent() {
   &::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 12px;
-    right: 12px;
+    left: 16px;
+    right: 16px;
     height: 1px;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(52, 134, 218, 0.45) 20%,
-      rgba(115, 170, 229, 0.35) 50%,
-      rgba(52, 134, 218, 0.45) 80%,
+      rgba(52, 134, 218, 0.28) 25%,
+      rgba(115, 170, 229, 0.2) 50%,
+      rgba(52, 134, 218, 0.28) 75%,
       transparent
     );
   }
@@ -1086,7 +1091,10 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background: @sugar-bg;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(52, 134, 218, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(108, 92, 231, 0.06) 0%, transparent 50%),
+    @sugar-bg;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1109,10 +1117,25 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
-    background-size: 24px 24px, 24px 24px, 100% 100%;
+      linear-gradient(rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      radial-gradient(ellipse 70% 55% at 50% 35%, rgba(52, 134, 218, 0.1) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 85% 15%, rgba(108, 92, 231, 0.08) 0%, transparent 55%),
+      linear-gradient(180deg, rgba(40, 30, 47, 0.55) 0%, rgba(10, 22, 40, 0.88) 100%);
+    background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(680px, 80%);
+    height: 180px;
+    background: radial-gradient(ellipse at center top, rgba(52, 134, 218, 0.14) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -1133,10 +1156,64 @@ function handleChartResize() {
   margin-bottom: 8px;
   padding: 6px 120px 10px;
   background: @header-bg center top / 100% 100% no-repeat;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 72px;
+    height: 1px;
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  &::before {
+    left: calc(50% - 220px);
+    background: linear-gradient(90deg, transparent, @sugar-glow);
+  }
+
+  &::after {
+    right: calc(50% - 220px);
+    background: linear-gradient(270deg, transparent, @sugar-glow);
+  }
 }
 
 .header-center {
   text-align: center;
+  position: relative;
+}
+
+.screen-title-wrap {
+  position: relative;
+  display: inline-block;
+  padding: 0 28px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+    border: 1px solid rgba(52, 134, 218, 0.45);
+    pointer-events: none;
+  }
+
+  &::before {
+    left: 0;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -2px -2px 8px rgba(52, 134, 218, 0.2);
+  }
+
+  &::after {
+    right: 0;
+    border-left: none;
+    border-top: none;
+    box-shadow: 2px 2px 8px rgba(52, 134, 218, 0.2);
+  }
 }
 
 .header-badge {
@@ -1150,12 +1227,15 @@ function handleChartResize() {
 
 .screen-title {
   margin: 0;
-  font-size: 23px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   line-height: 1.2;
-  letter-spacing: .12em;
-  color: #fff;
-  text-shadow: 0 0 16px rgba(52, 134, 218, 0.45);
+  letter-spacing: .14em;
+  background: linear-gradient(180deg, #fff 0%, @sugar-light 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(52, 134, 218, 0.4));
 }
 
 .screen-subtitle {
@@ -1179,21 +1259,29 @@ function handleChartResize() {
 .panel-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: @sugar-muted;
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: .18em;
+  letter-spacing: .16em;
   text-transform: uppercase;
 
   &::before {
     content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 1px;
-    background: @sugar-primary;
-    box-shadow: 0 0 6px rgba(52, 134, 218, 0.6);
-    transform: rotate(45deg);
+    width: 4px;
+    height: 12px;
+    background: linear-gradient(180deg, @sugar-light, @sugar-primary);
+    transform: skewX(-18deg);
+    box-shadow: 0 0 8px rgba(52, 134, 218, 0.55);
+    flex-shrink: 0;
+  }
+
+  &::after {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: linear-gradient(180deg, fade(@sugar-light, 50%), fade(@sugar-primary, 50%));
+    transform: skewX(-18deg);
     flex-shrink: 0;
   }
 }
@@ -1338,15 +1426,18 @@ function handleChartResize() {
   }
 
   h2 {
-    margin: 4px 0 0;
-    font-size: 16px;
+    margin: 3px 0 0;
+    font-size: 15px;
     font-weight: 600;
+    font-style: italic;
     color: #fff;
     padding-left: 0;
     border-left: none;
-    letter-spacing: .06em;
+    letter-spacing: .08em;
     line-height: 1.3;
-    text-shadow: 0 0 12px rgba(52, 134, 218, 0.25);
+    text-shadow: 0 0 14px rgba(52, 134, 218, 0.3);
+    transform: skewX(-3deg);
+    transform-origin: left center;
   }
   &.compact-title { margin-bottom: 8px; }
 }
@@ -1505,20 +1596,53 @@ function handleChartResize() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  color: @sugar-muted;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  color: #fff;
   letter-spacing: .06em;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
+  transform: skewX(-3deg);
+  transform-origin: left center;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 12px;
+    background: linear-gradient(180deg, @sugar-light, @sugar-primary);
+    transform: skewX(-18deg);
+    box-shadow: 0 0 8px rgba(52, 134, 218, 0.55);
+    flex-shrink: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(52, 134, 218, 0.45) 0,
+      rgba(52, 134, 218, 0.1) 45%,
+      transparent 100%
+    );
+    transform: skewX(3deg);
+  }
 }
 
 .section-count {
   font-size: 10px;
   font-weight: 500;
-  color: rgba(122, 155, 184, 0.75);
+  font-style: normal;
+  color: @sugar-muted;
+  transform: skewX(3deg);
 }
 
 .group-list,
@@ -1613,12 +1737,14 @@ function handleChartResize() {
 .panel {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(28, 32, 68, 0.82) 0%, rgba(16, 20, 48, 0.88) 100%);
-  border: 1px solid rgba(52, 134, 218, 0.22);
+    linear-gradient(180deg, rgba(28, 32, 68, 0.52) 0%, rgba(16, 20, 48, 0.62) 100%);
+  border: 1px solid rgba(52, 134, 218, 0.28);
   border-radius: 2px;
   box-shadow:
-    inset 0 0 30px rgba(52, 134, 218, 0.04),
-    0 4px 20px rgba(0, 0, 0, 0.25);
+    inset 0 0 40px rgba(52, 134, 218, 0.04),
+    0 0 24px rgba(52, 134, 218, 0.06),
+    0 4px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   min-width: 0;
