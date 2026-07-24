@@ -152,6 +152,7 @@
                     v-if="pointPickerOpen && pointPickerSlotIndex === index"
                     v-model:open="pointPickerOpen"
                     theme="dark"
+                    :show-search="false"
                     single-select
                     defer-confirm
                     :initial-selected-ids="pointPickerInitialSelectedIds"

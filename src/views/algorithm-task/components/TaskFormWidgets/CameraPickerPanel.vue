@@ -1,8 +1,9 @@
 <template>
   <div :class="['camera-picker-panel', { embedded, 'camera-picker-panel--dark': theme === 'dark' }]" @mousedown.stop>
-    <div class="camera-toolbar">
+    <div :class="['camera-toolbar', { 'camera-toolbar--compact': !showSearch }]">
       <span class="toolbar-title">摄像头列表</span>
       <a-input-search
+        v-if="showSearch"
         v-model:value="searchText"
         placeholder="搜索当前分组摄像头"
         allow-clear
@@ -106,8 +107,10 @@ const props = withDefaults(defineProps<{
   /** 为 true 时单选只更新选中态，不自动 emit confirm（由父级点确定再读取） */
   deferConfirm?: boolean;
   theme?: 'light' | 'dark';
+  showSearch?: boolean;
 }>(), {
   theme: 'light',
+  showSearch: true,
 });
 
 const emit = defineEmits<{
@@ -511,6 +514,10 @@ watch(selectedGroupKey, (groupKey) => {
   .toolbar-search {
     max-width: 200px;
   }
+
+  &--compact {
+    justify-content: flex-start;
+  }
 }
 
 .camera-body {
@@ -680,12 +687,15 @@ watch(selectedGroupKey, (groupKey) => {
 }
 
 .camera-picker-panel--dark {
+  width: 380px;
   background: rgba(5, 14, 35, 0.98);
   border: 1px solid rgba(52, 134, 218, 0.35);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   z-index: 2000;
 
   .camera-toolbar {
+    justify-content: flex-start;
+    padding: 10px 14px;
     background: linear-gradient(
       90deg,
       rgba(52, 134, 218, 0.2) 0%,
@@ -697,6 +707,10 @@ watch(selectedGroupKey, (groupKey) => {
     .toolbar-title {
       color: #e8eef8;
     }
+  }
+
+  .camera-body {
+    min-height: 420px;
   }
 
   .toolbar-search :deep(.ant-input),
@@ -711,6 +725,9 @@ watch(selectedGroupKey, (groupKey) => {
   }
 
   .group-panel {
+    width: 108px;
+    max-height: none;
+    align-self: stretch;
     background: rgba(3, 10, 28, 0.45);
     border-right-color: rgba(52, 134, 218, 0.2);
   }
@@ -731,7 +748,15 @@ watch(selectedGroupKey, (groupKey) => {
   }
 
   .device-panel {
+    display: flex;
+    flex-direction: column;
     background: rgba(5, 14, 35, 0.6);
+  }
+
+  .device-list {
+    flex: 1;
+    min-height: 380px;
+    max-height: none;
   }
 
   .device-panel-header {
