@@ -15,12 +15,12 @@
       <a-descriptions-item label="推理类型">
         {{ inferenceTypeMap[record?.inference_type] || record?.inference_type || '-' }}
       </a-descriptions-item>
-      <a-descriptions-item label="状态">
+      <a-descriptions-item label="状�?>
         <a-tag :color="getStatusColor(record?.status)">
           {{ statusMap[record?.status] || record?.status || '-' }}
         </a-tag>
       </a-descriptions-item>
-      <a-descriptions-item label="输入源">
+      <a-descriptions-item label="输入�?>
         <a v-if="record?.input_source" :href="record.input_source" target="_blank">{{ record.input_source }}</a>
         <span v-else>-</span>
       </a-descriptions-item>
@@ -30,7 +30,7 @@
         </a>
         <span v-else>-</span>
       </a-descriptions-item>
-      <a-descriptions-item label="开始时间">
+      <a-descriptions-item label="开始时�?>
         {{ formatDateTime(record?.start_time) }}
       </a-descriptions-item>
       <a-descriptions-item label="结束时间">
@@ -69,8 +69,8 @@ const props = defineProps({
 const [registerModal] = useModalInner();
 
 const statusMap = {
-  PROCESSING: '处理中',
-  COMPLETED: '已完成',
+  PROCESSING: '处理�?,
+  COMPLETED: '已完�?,
   FAILED: '失败',
 };
 

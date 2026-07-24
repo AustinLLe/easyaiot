@@ -3,15 +3,14 @@
     <div class="directory-layout">
       <DirectorySidebar ref="directorySidebarRef" @select="handleSelectDirectory" />
 
-      <!-- 右侧：设备列表 -->
+      <!-- 右侧：设备列�?-->
       <div class="device-content">
         <div class="device-button-group">
           <a-button type="primary" @click="handleAddDevice" :disabled="!selectedDirectoryId">
             <template #icon>
               <PlusOutlined />
             </template>
-            添加摄像头
-          </a-button>
+            添加摄像�?          </a-button>
         </div>
         <BasicTable @register="registerTable">
           <template #bodyCell="{ column, record }">
@@ -23,7 +22,7 @@
               </span>
             </template>
 
-            <!-- 在线状态显示 -->
+            <!-- 在线状态显�?-->
             <template v-else-if="column.dataIndex === 'online'">
               <a-tag :color="record.online ? 'green' : 'red'">
                 {{ record.online ? '在线' : '离线' }}
@@ -75,8 +74,7 @@ const directorySidebarRef = ref<InstanceType<typeof DirectorySidebar>>();
 const selectedDirectoryId = ref<number | null>(null);
 const selectedDirectoryName = ref<string>('');
 
-// 设备流状态映射
-const deviceStreamStatuses = ref<Record<string, string>>({});
+// 设备流状态映�?const deviceStreamStatuses = ref<Record<string, string>>({});
 
 // 选择目录
 const handleSelectDirectory = (directory: DeviceDirectory | null) => {
@@ -92,8 +90,7 @@ const handleSelectDirectory = (directory: DeviceDirectory | null) => {
   reloadDeviceTable();
 };
 
-// 获取设备表格列配置
-const getDeviceColumns = () => {
+// 获取设备表格列配�?const getDeviceColumns = () => {
   return [
     {
       title: '设备ID',
@@ -111,7 +108,7 @@ const getDeviceColumns = () => {
       width: 120,
     },
     {
-      title: '在线状态',
+      title: '在线状�?,
       dataIndex: 'online',
       width: 100,
     },
@@ -162,8 +159,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
       const total = response.code !== undefined ? response.total : (Array.isArray(data) ? data.length : 0);
       
       if (data && Array.isArray(data)) {
-        // 应用筛选条件
-        let filteredData = data;
+        // 应用筛选条�?        let filteredData = data;
         
         if (params.name) {
           filteredData = filteredData.filter((device: DeviceInfo) => 
@@ -183,8 +179,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
           );
         }
         
-        // 初始化设备流状态
-        const devicesWithStatus = filteredData.map((device: DeviceInfo) => {
+        // 初始化设备流状�?        const devicesWithStatus = filteredData.map((device: DeviceInfo) => {
           if (!deviceStreamStatuses.value[device.id]) {
             deviceStreamStatuses.value[device.id] = 'unknown';
           }
@@ -194,9 +189,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
           };
         });
         
-        // 检查设备流状态
-        // 已禁用自动检查设备流状态
-        // checkAllDevicesStreamStatus(filteredData);
+        // 检查设备流状�?        // 已禁用自动检查设备流状�?        // checkAllDevicesStreamStatus(filteredData);
         
         return {
           data: devicesWithStatus,
@@ -228,15 +221,15 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
         label: '设备名称',
         component: 'Input',
         componentProps: {
-          placeholder: '请输入设备名称',
+          placeholder: '请输入设备名�?,
         },
       },
       {
         field: 'online',
-        label: '在线状态',
+        label: '在线状�?,
         component: 'Select',
         componentProps: {
-          placeholder: '请选择在线状态',
+          placeholder: '请选择在线状�?,
           allowClear: true,
           options: [
             { label: '在线', value: true },
@@ -249,7 +242,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
         label: '设备型号',
         component: 'Input',
         componentProps: {
-          placeholder: '请输入设备型号',
+          placeholder: '请输入设备型�?,
         },
       },
     ],
@@ -258,22 +251,20 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
   pagination: true,
   rowKey: 'id',
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
 });
 
-// 获取流状态文本
-const getStreamStatusText = (status: string) => {
+// 获取流状态文�?const getStreamStatusText = (status: string) => {
   const statusMap: Record<string, string> = {
-    'running': '运行中',
-    'stopped': '已停止',
+    'running': '运行�?,
+    'stopped': '已停�?,
     'error': '错误',
     'unknown': '未知'
   };
   return statusMap[status] || status || '未知';
 };
 
-// 获取流状态颜色
-const getStreamStatusColor = (status: string) => {
+// 获取流状态颜�?const getStreamStatusColor = (status: string) => {
   const colorMap: Record<string, string> = {
     'running': 'green',
     'stopped': 'red',
@@ -283,16 +274,14 @@ const getStreamStatusColor = (status: string) => {
   return colorMap[status] || 'default';
 };
 
-// 安全获取设备流状态
-const getDeviceStreamStatus = (deviceId: string) => {
+// 安全获取设备流状�?const getDeviceStreamStatus = (deviceId: string) => {
   if (!deviceStreamStatuses.value || !deviceStreamStatuses.value[deviceId]) {
     return 'unknown';
   }
   return deviceStreamStatuses.value[deviceId];
 };
 
-// 检查单个设备的流状态
-const checkDeviceStreamStatus = async (deviceId: string) => {
+// 检查单个设备的流状�?const checkDeviceStreamStatus = async (deviceId: string) => {
   try {
     if (!deviceStreamStatuses.value) {
       deviceStreamStatuses.value = {};
@@ -304,7 +293,7 @@ const checkDeviceStreamStatus = async (deviceId: string) => {
       deviceStreamStatuses.value[deviceId] = 'error';
     }
   } catch (error) {
-    console.error(`检查设备 ${deviceId} 流状态失败`, error);
+    console.error(`检查设�?${deviceId} 流状态失败`, error);
     if (!deviceStreamStatuses.value) {
       deviceStreamStatuses.value = {};
     }
@@ -312,15 +301,14 @@ const checkDeviceStreamStatus = async (deviceId: string) => {
   }
 };
 
-// 检查所有设备的流状态
-const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
+// 检查所有设备的流状�?const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
   try {
     const deviceIds = devices.map(device => device.id);
     for (const deviceId of deviceIds) {
       await checkDeviceStreamStatus(deviceId);
     }
   } catch (error) {
-    console.error('检查设备流状态失败', error);
+    console.error('检查设备流状态失�?, error);
   }
 };
 
@@ -329,7 +317,7 @@ const getTableActions = (record: DeviceInfo) => {
   const actions = [
     {
       icon: 'octicon:play-16',
-      tooltip: '播放RTMP流',
+      tooltip: '播放RTMP�?,
       onClick: () => handlePlay(record)
     },
     {
@@ -391,8 +379,7 @@ async function handleCopy(text: string) {
   }
 }
 
-// 添加摄像头
-const handleAddDevice = () => {
+// 添加摄像�?const handleAddDevice = () => {
   if (!selectedDirectoryId.value) {
     createMessage.warning('请先选择目录');
     return;

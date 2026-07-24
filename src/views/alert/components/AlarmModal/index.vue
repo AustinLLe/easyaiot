@@ -27,7 +27,7 @@
           <FormItem label="告警对象" name="object" v-bind=validateInfos.object>
             <Input v-model:value="modelRef.object"/>
           </FormItem>
-          <FormItem label="检测区域" name="region" v-bind=validateInfos.region>
+          <FormItem label="检测区�? name="region" v-bind=validateInfos.region>
             <Input v-model:value="modelRef.region"/>
           </FormItem>
           <FormItem label="告警图片" name="image_path" v-bind=validateInfos.image_path>
@@ -115,8 +115,7 @@ function handleCancel() {
 }
 
 function handleOk() {
-  // Alert不需要增加或删除功能，直接关闭弹框
-  closeModal();
+  // Alert不需要增加或删除功能，直接关闭弹�?  closeModal();
   resetFields();
 }
 </script>

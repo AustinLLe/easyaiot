@@ -1,13 +1,12 @@
 <template>
   <div class="frame-extractor-container">
-    <!-- 工具栏 -->
+    <!-- 工具�?-->
     <div class="toolbar">
       <a-button type="primary" @click="handleCreate">
         <template #icon>
           <PlusOutlined />
         </template>
-        新建抽帧器
-      </a-button>
+        新建抽帧�?      </a-button>
       <a-button @click="handleClickSwap" type="default">
         <template #icon>
           <SwapOutlined />
@@ -23,7 +22,7 @@
           <a-switch :checked="record.is_enabled" @change="handleToggleEnabled(record)" />
         </template>
         <template v-else-if="column.dataIndex === 'extractor_type'">
-          <a-tag>{{ record.extractor_type === 'interval' ? '按间隔' : '按时间' }}</a-tag>
+          <a-tag>{{ record.extractor_type === 'interval' ? '按间�? : '按时�? }}</a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'action'">
           <TableAction :actions="getTableActions(record)" />
@@ -72,7 +71,7 @@
               </div>
               <div class="info-item">
                 <span class="label">类型:</span>
-                <a-tag size="small">{{ item.extractor_type === 'interval' ? '按间隔' : '按时间' }}</a-tag>
+                <a-tag size="small">{{ item.extractor_type === 'interval' ? '按间�? : '按时�? }}</a-tag>
               </div>
               <div class="info-item">
                 <span class="label">间隔:</span>
@@ -86,7 +85,7 @@
           </a-card>
         </a-col>
       </a-row>
-      <a-empty v-if="extractorList.length === 0" description="暂无抽帧器" />
+      <a-empty v-if="extractorList.length === 0" description="暂无抽帧�? />
     </div>
 
     <!-- 创建/编辑模态框 -->
@@ -122,15 +121,14 @@ const viewMode = ref<'table' | 'card'>('card');
 const extractorList = ref<FrameExtractor[]>([]);
 const [registerModal, { openDrawer }] = useDrawer();
 
-// 表格列配置
-const getColumns = () => [
+// 表格列配�?const getColumns = () => [
   {
-    title: '抽帧器名称',
+    title: '抽帧器名�?,
     dataIndex: 'extractor_name',
     width: 150,
   },
   {
-    title: '抽帧器编号',
+    title: '抽帧器编�?,
     dataIndex: 'extractor_code',
     width: 150,
   },
@@ -150,7 +148,7 @@ const getColumns = () => [
     width: 200,
   },
   {
-    title: '启用状态',
+    title: '启用状�?,
     dataIndex: 'is_enabled',
     width: 100,
   },
@@ -164,9 +162,9 @@ const getColumns = () => [
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '抽帧器列表',
+  title: '抽帧器列�?,
   api: listFrameExtractors,
   columns: getColumns(),
   useSearchForm: true,
@@ -191,8 +189,8 @@ const loadExtractors = async () => {
       extractorList.value = response.data || [];
     }
   } catch (error) {
-    console.error('加载抽帧器列表失败', error);
-    createMessage.error('加载抽帧器列表失败');
+    console.error('加载抽帧器列表失�?, error);
+    createMessage.error('加载抽帧器列表失�?);
   }
 };
 
@@ -225,7 +223,7 @@ const handleDelete = async (record: FrameExtractor) => {
       createMessage.error(response.msg || '删除失败');
     }
   } catch (error) {
-    console.error('删除抽帧器失败', error);
+    console.error('删除抽帧器失�?, error);
     createMessage.error('删除失败');
   }
 };
@@ -243,7 +241,7 @@ const handleToggleEnabled = async (record: FrameExtractor) => {
       createMessage.error(response.msg || '更新失败');
     }
   } catch (error) {
-    console.error('更新抽帧器状态失败', error);
+    console.error('更新抽帧器状态失�?, error);
     createMessage.error('更新失败');
   }
 };
@@ -272,7 +270,7 @@ const getTableActions = (record: FrameExtractor) => {
       icon: 'material-symbols:delete-outline-rounded',
       tooltip: '删除',
       popConfirm: {
-        title: '确定删除此抽帧器？',
+        title: '确定删除此抽帧器�?,
         confirm: () => handleDelete(record),
       },
     },

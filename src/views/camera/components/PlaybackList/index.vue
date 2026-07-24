@@ -21,7 +21,7 @@
                 class="thumbnail-img"
                 @error="handleImageError"
               />
-              <span v-else class="no-thumbnail">无封面</span>
+              <span v-else class="no-thumbnail">无封�?/span>
             </template>
             <template v-else-if="column.dataIndex === 'duration'">
               {{ formatDuration(record.duration) }}
@@ -97,8 +97,7 @@ function handleClickSwap() {
 // 获取封面图URL
 const getThumbnailUrl = (thumbnailPath: string) => {
   if (!thumbnailPath) return '';
-  // 如果是完整URL，直接返回
-  if (thumbnailPath.startsWith('http://') || thumbnailPath.startsWith('https://')) {
+  // 如果是完整URL，直接返�?  if (thumbnailPath.startsWith('http://') || thumbnailPath.startsWith('https://')) {
     return thumbnailPath;
   }
   // 否则拼接API前缀
@@ -111,9 +110,8 @@ const handleImageError = (event: Event) => {
   img.style.display = 'none';
 };
 
-// 格式化时长
-const formatDuration = (seconds: number) => {
-  if (!seconds) return '0秒';
+// 格式化时�?const formatDuration = (seconds: number) => {
+  if (!seconds) return '0�?;
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -127,8 +125,7 @@ const formatDuration = (seconds: number) => {
   }
 };
 
-// 格式化文件大小
-const formatFileSize = (bytes: number) => {
+// 格式化文件大�?const formatFileSize = (bytes: number) => {
   if (!bytes) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -136,8 +133,7 @@ const formatFileSize = (bytes: number) => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
-// 格式化日期时间
-const formatDateTime = (dateTime: string) => {
+// 格式化日期时�?const formatDateTime = (dateTime: string) => {
   if (!dateTime) return '-';
   const date = new Date(dateTime);
   return date.toLocaleString('zh-CN', {
@@ -150,8 +146,7 @@ const formatDateTime = (dateTime: string) => {
   });
 };
 
-// 表格列定义
-const getColumns = () => {
+// 表格列定�?const getColumns = () => {
   return [
     {
       title: '封面',
@@ -220,10 +215,9 @@ const getTableActions = (record: PlaybackInfo) => {
 // 表单getFieldsValue方法的引用（用于在表格beforeFetch中访问）
 let formGetFieldsValue: (() => Recordable) | null = null;
 
-// 表格配置（先定义，因为表单需要引用reload方法）
-const [registerTable, { reload }] = useTable({
+// 表格配置（先定义，因为表单需要引用reload方法�?const [registerTable, { reload }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '录像回放列表',
   api: getPlaybackList,
@@ -262,7 +256,7 @@ const [registerForm, { validate, getFieldsValue, resetFields }] = useForm({
     },
     {
       field: 'start_time',
-      label: '开始时间',
+      label: '开始时�?,
       component: 'DatePicker',
       componentProps: {
         showTime: true,
@@ -288,8 +282,7 @@ const [registerForm, { validate, getFieldsValue, resetFields }] = useForm({
   resetFunc: handleFormReset
 });
 
-// 保存表单getFieldsValue方法的引用
-formGetFieldsValue = getFieldsValue;
+// 保存表单getFieldsValue方法的引�?formGetFieldsValue = getFieldsValue;
 
 // 表单提交
 async function handleFormSubmit() {
@@ -317,8 +310,7 @@ async function handleFormReset() {
 // 获取录像播放地址
 const getPlaybackUrl = (filePath: string): string => {
   if (!filePath) return '';
-  // 如果是完整URL，直接返回
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+  // 如果是完整URL，直接返�?  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath;
   }
   // 如果是相对路径，拼接API前缀
@@ -335,12 +327,11 @@ const handlePlay = (record: PlaybackInfo) => {
   const httpStream = getPlaybackUrl(record.file_path);
   
   if (!httpStream) {
-    createMessage.warning('录像文件地址无效，无法播放');
+    createMessage.warning('录像文件地址无效，无法播�?);
     return;
   }
   
-  // 打开播放器，与算法任务保持一致
-  openPlayerAddModel(true, {
+  // 打开播放器，与算法任务保持一�?  openPlayerAddModel(true, {
     id: record.device_id,
     http_stream: httpStream,
   });

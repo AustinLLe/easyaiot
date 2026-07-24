@@ -10,7 +10,7 @@
       <Spin :spinning="loading">
         <Empty 
           v-if="!loading && cameraList.length === 0"
-          description="暂无关联摄像头" 
+          description="暂无关联摄像�? 
         />
         <div v-else class="camera-list">
           <div 
@@ -103,15 +103,15 @@ const loadCameraList = async (deviceIds: string[], deviceNames: string[] = []) =
           cameraList.value[index].space = space;
         }
       } catch (error) {
-        console.error(`获取设备 ${deviceId} 的抓拍空间失败:`, error);
-        // 保持 space 为 null
+        console.error(`获取设备 ${deviceId} 的抓拍空间失�?`, error);
+        // 保持 space �?null
       }
     });
     
     await Promise.all(promises);
   } catch (error) {
-    console.error('加载摄像头列表失败:', error);
-    createMessage.error('加载摄像头列表失败');
+    console.error('加载摄像头列表失�?', error);
+    createMessage.error('加载摄像头列表失�?);
   } finally {
     loading.value = false;
   }
@@ -120,7 +120,7 @@ const loadCameraList = async (deviceIds: string[], deviceNames: string[] = []) =
 // 查看抓拍空间 - 直接打开对应空间，不需要再次选择
 const handleViewSnapSpace = async (camera: typeof cameraList.value[0]) => {
   if (!camera.space) {
-    createMessage.warning(`摄像头 ${camera.device_name || camera.device_id} 暂无抓拍空间`);
+    createMessage.warning(`摄像�?${camera.device_name || camera.device_id} 暂无抓拍空间`);
     return;
   }
   

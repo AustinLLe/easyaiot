@@ -42,8 +42,8 @@
       <div class="create-footer">
         <a-button type="link" size="small" @click="handleCancel">取消</a-button>
         <div class="footer-actions">
-          <a-button v-if="!isFirstSection" size="small" @click="handlePrev">上一步</a-button>
-          <a-button v-if="!isLastSection" size="small" type="primary" @click="handleNext">下一步</a-button>
+          <a-button v-if="!isFirstSection" size="small" @click="handlePrev">上一�?/a-button>
+          <a-button v-if="!isLastSection" size="small" type="primary" @click="handleNext">下一�?/a-button>
           <a-button
             v-else
             size="small"
@@ -125,10 +125,10 @@ const sectionList: Array<{
 }> = [
   { key: 'basic', label: '基础信息', icon: InfoCircleOutlined, component: BasicInfoSection },
   { key: 'camera', label: '摄像头与算法', icon: VideoCameraOutlined, component: CameraAlgorithmSection },
-  { key: 'model', label: '算法阈值', icon: ExperimentOutlined, component: ModelDetectionSection },
+  { key: 'model', label: '算法阈�?, icon: ExperimentOutlined, component: ModelDetectionSection },
   { key: 'region', label: '区域选择', icon: BorderOutlined, component: RegionSection },
   { key: 'alert', label: '告警规则', icon: AlertOutlined, component: AlertRuleSection },
-  { key: 'alert_push', label: '告警推送', icon: NotificationOutlined, component: AlertPushSection },
+  { key: 'alert_push', label: '告警推�?, icon: NotificationOutlined, component: AlertPushSection },
 ];
 
 const sectionIndex = computed(() =>
@@ -264,7 +264,7 @@ async function handleSave() {
 
     if (isEditingMock.value && props.mockTaskId != null) {
       updateMockAlgorithmTask(props.mockTaskId, draftSnapshot, fullPayload);
-      createMessage.success('任务已更新（前端 mock）');
+      createMessage.success('任务已更新（前端 mock�?);
       open.value = false;
       emit('success');
       return;

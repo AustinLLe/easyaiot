@@ -26,7 +26,7 @@
             :stopButtonPropagation="true"
             :actions="[
               {
-                // label: '导出规则链',
+                // label: '导出规则�?,
                 tooltip: {
                   title: '详情',
                   placement: 'top',
@@ -35,7 +35,7 @@
                 onClick: handleOpen.bind(null, record),
               },
               {
-                // label: '导出规则链',
+                // label: '导出规则�?,
                 tooltip: {
                   title: '编辑',
                   placement: 'top',
@@ -44,9 +44,9 @@
                 onClick: () => openTargetModal('edit', record),
               },
               {
-                // label: '导出规则链',
+                // label: '导出规则�?,
                 tooltip: {
-                  title: '编辑规则链',
+                  title: '编辑规则�?,
                   placement: 'top',
                 },
                 icon: 'material-symbols:media-link-outline-sharp',
@@ -66,7 +66,7 @@
             ]"
             :dropDownActions="[
               // {
-              //   label: '规则链详情',
+              //   label: '规则链详�?,
               //   icon: 'material-symbols:edit',
               //   onClick: handleOpen.bind(null, record),
               // },
@@ -147,8 +147,7 @@ export default defineComponent({
       isTableMode: false,
     });
 
-    // 请求api时附带参数
-    const params = {};
+    // 请求api时附带参�?    const params = {};
     let cardListReload = () => {
     };
 
@@ -186,7 +185,7 @@ export default defineComponent({
       title: '链式规则列表',
       api: flowsList,
       beforeFetch: (data) => {
-        // 接口请求前 参数处理
+        // 接口请求�?参数处理
         console.log('-------', data);
         let params = {
           page: data.page,
@@ -206,7 +205,7 @@ export default defineComponent({
             list.push(element);
           }
         });
-        console.log('-------！', list);
+        console.log('-------�?, list);
         return list;
       },
       defSort: {
@@ -234,8 +233,7 @@ export default defineComponent({
         onSelect: onSelect,
         onSelectAll: onSelectAll,
         getCheckboxProps(record) {
-          // Demo: 第一行（id为0）的选择框禁用
-          if (record.root) {
+          // Demo: 第一行（id�?）的选择框禁�?          if (record.root) {
             return {disabled: true};
           } else {
             return {disabled: false};
@@ -285,18 +283,18 @@ export default defineComponent({
 
     async function handleDelete(record) {
       if (!record || !record.id || record.id === 'undefined') {
-        createMessage.error('规则链ID无效！');
+        createMessage.error('规则链ID无效�?);
         return;
       }
       try {
         await deleteflows(record.id);
-        createMessage.success('删除成功！');
+        createMessage.success('删除成功�?);
         reload();
         cardListReload();
       }catch (error) {
     console.error(error)
         console.log(error);
-        createMessage.error('删除失败！');
+        createMessage.error('删除失败�?);
       }
     }
 
@@ -314,16 +312,16 @@ export default defineComponent({
       }
       const validKeys = checkedKeys.value.filter((item) => item && item !== 'undefined');
       if (validKeys.length === 0) {
-        createMessage.error('没有有效的规则链ID！');
+        createMessage.error('没有有效的规则链ID�?);
         return;
       }
       try {
         await Promise.all([...validKeys.map((item) => deleteflows(item + ''))]);
-        createMessage.success('删除成功！');
+        createMessage.success('删除成功�?);
       }catch (error) {
     console.error(error)
         console.log(error);
-        createMessage.error('删除失败！');
+        createMessage.error('删除失败�?);
       }
       reload({
         page: 0,
@@ -337,10 +335,9 @@ export default defineComponent({
         createMessage.error('规则链信息无效！');
         return;
       }
-      // 使用代理路径访问 NodeRed，避免跨域问题
-      const nodeRedPath = '/dev-api/nodeRed/#flow/';
+      // 使用代理路径访问 NodeRed，避免跨域问�?      const nodeRedPath = '/dev-api/nodeRed/#flow/';
       go({
-        path: `/rulechains/index/${encodeURIComponent(record.label || '规则链')}`,
+        path: `/rulechains/index/${encodeURIComponent(record.label || '规则�?)}`,
         query: {code: record.id, path: nodeRedPath}
       });
     }

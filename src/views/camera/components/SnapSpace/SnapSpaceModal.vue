@@ -37,8 +37,8 @@
               <div class="alert-title">提示信息</div>
               <ul class="alert-list">
                 <li>空间名称用于标识和管理抓拍图片的存储空间</li>
-                <li>存储模式：标准存储适合频繁访问，归档存储成本更低</li>
-                <li>保存时间：设置为0表示永久保存，>=7表示保存天数</li>
+                <li>存储模式：标准存储适合频繁访问，归档存储成本更�?/li>
+                <li>保存时间：设置为0表示永久保存�?=7表示保存天数</li>
               </ul>
             </div>
           </template>
@@ -75,7 +75,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
         maxlength: 50,
         showCount: true,
       },
-      helpMessage: '用于标识和管理抓拍图片的存储空间，建议使用有意义的名称',
+      helpMessage: '用于标识和管理抓拍图片的存储空间，建议使用有意义的名�?,
     },
     {
       field: 'save_mode',
@@ -93,17 +93,17 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
     },
     {
       field: 'save_time',
-      label: '保存时间（天）',
+      label: '保存时间（天�?,
       component: 'InputNumber',
       required: true,
       componentProps: {
-        placeholder: '请输入保存天数',
+        placeholder: '请输入保存天�?,
         min: 0,
         precision: 0,
         style: { width: '100%' },
-        addonAfter: '天',
+        addonAfter: '�?,
       },
-      helpMessage: '设置为0表示永久保存，>=7表示保存天数（单位：天）',
+      helpMessage: '设置�?表示永久保存�?=7表示保存天数（单位：天）',
     },
     {
       field: 'description',
@@ -166,8 +166,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
     });
     setDrawerProps({ showOkBtn: true });
   } else if (data.type === 'view' && data.record) {
-    // 查看模式：所有字段禁用
-    updateSchema([
+    // 查看模式：所有字段禁�?    updateSchema([
       {
         field: 'space_name',
         componentProps: { disabled: true },
@@ -243,13 +242,12 @@ const handleSubmit = async () => {
     }
   } catch (error: any) {
     console.error('提交失败', error);
-    // 如果错误已经有消息（比如axios拦截器已经显示了），就不再显示"提交失败"
+    // 如果错误已经有消息（比如axios拦截器已经显示了），就不再显�?提交失败"
     const errorMsg = error?.response?.data?.msg || error?.message || '';
     // 如果是业务错误（400等），axios拦截器已经显示了错误消息，不需要再显示
     const status = error?.response?.status;
     if (status && status >= 400 && status < 500 && errorMsg) {
-      // 业务错误且已有错误消息，不重复显示
-      return;
+      // 业务错误且已有错误消息，不重复显�?      return;
     }
     // 其他错误（网络错误等）才显示"提交失败"
     if (!errorMsg) {
@@ -265,8 +263,7 @@ const handleSubmit = async () => {
 const handleReset = () => {
   resetFields();
   if (modalData.value.type === 'edit' && modalData.value.record) {
-    // 编辑模式：恢复到原始值
-    setFieldsValue({
+    // 编辑模式：恢复到原始�?    setFieldsValue({
       space_name: modalData.value.record.space_name,
       save_mode: modalData.value.record.save_mode,
       save_time: modalData.value.record.save_time,

@@ -13,7 +13,7 @@
           <label>迭代次数 (epochs)</label>
           <input type="number" v-model="params.epochs" min="10" max="1000"
                  class="param-input"/>
-          <span class="hint">推荐值: 100-300</span>
+          <span class="hint">推荐�? 100-300</span>
         </div>
 
         <div class="param-group">
@@ -34,7 +34,7 @@
         <h4 class="section-title">资源选择</h4>
 
         <div class="param-group">
-          <label>预训练模型</label>
+          <label>预训练模�?/label>
           <select v-model="selectedModel" class="resource-select">
             <option value="">默认模型 (yolov8n.pt)</option>
             <option v-for="model in modelList"
@@ -45,7 +45,7 @@
           </select>
         </div>
         <div class="param-group">
-          <label>数据集配置</label>
+          <label>数据集配�?/label>
           <select v-model="selectedDataset" class="resource-select">
             <option v-for="dataset in datasetList"
                     :key="dataset.id"
@@ -62,8 +62,7 @@
           取消
         </a-button>
         <a-button type="primary" @click="startTrain">
-          开始训练
-        </a-button>
+          开始训�?        </a-button>
       </div>
     </template>
   </BasicModal>
@@ -77,8 +76,7 @@ import {getDatasetPage} from '@/api/device/dataset'
 import {useMessage} from "@/hooks/web/useMessage";
 import {t} from "@/hooks/web/useI18n";
 
-// 定义模型项类型
-interface ModelItem {
+// 定义模型项类�?interface ModelItem {
   id: string | number;
   name: string;
   version: string;
@@ -126,8 +124,7 @@ const loadModels = async () => {
   }
 }
 
-// 加载数据集列表
-const loadDatasets = async () => {
+// 加载数据集列�?const loadDatasets = async () => {
   try {
     const res = await getDatasetPage({ page: 1, size: 100 })
     datasetList.value = res.data.list || []
@@ -135,15 +132,15 @@ const loadDatasets = async () => {
       selectedDataset.value = datasetList.value[0].zipUrl
     }
   } catch (e) {
-    createMessage.error(t('加载数据集失败'))
-    console.error('加载数据集失败', e)
+    createMessage.error(t('加载数据集失�?))
+    console.error('加载数据集失�?, e)
   }
 }
 
 // 训练启动逻辑
 const startTrain = () => {
   if (!selectedDataset.value) {
-    createMessage.warn(t('请先选择数据集'))
+    createMessage.warn(t('请先选择数据�?))
     return
   }
   const modelPath = selectedModel.value || 'yolov8n.pt'
@@ -203,7 +200,7 @@ const handleCancel = () => closeModal()
   background: white;
 }
 
-/* 按钮组 */
+/* 按钮�?*/
 .btn-confirm {
   background: linear-gradient(135deg, #3498db, #2c3e50);
   border-radius: 6px;

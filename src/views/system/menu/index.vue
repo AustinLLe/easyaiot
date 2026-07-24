@@ -60,13 +60,12 @@ function refreshMenu() {
   createConfirm({
     title: '刷新菜单',
     iconType: 'warning',
-    content: '即将更新缓存刷新浏览器',
+    content: '即将更新缓存刷新浏览�?,
     async onOk() {
       const { refreshMenu } = usePermission()
       await refreshMenu()
       createMessage.success('刷新成功')
-      // 刷新浏览器
-      location.reload()
+      // 刷新浏览�?      location.reload()
     },
   })
 }

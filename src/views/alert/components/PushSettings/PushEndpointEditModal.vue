@@ -7,7 +7,7 @@
     >
       <div class="push-endpoint-edit-dialog" role="dialog" aria-modal="true">
         <div class="push-endpoint-edit-header">
-          <span class="push-endpoint-edit-title">{{ isCreate ? '创建推送' : '编辑推送' }}</span>
+          <span class="push-endpoint-edit-title">{{ isCreate ? '创建推�? : '编辑推�? }}</span>
           <button type="button" class="push-endpoint-edit-close" @click="handleCancel">×</button>
         </div>
 
@@ -16,7 +16,7 @@
             <FormItem label="名称" required>
               <Input
                 v-model:value="localEndpoint.profile_name"
-                placeholder="例如：测试推送"
+                placeholder="例如：测试推�?
                 allow-clear
               />
             </FormItem>
@@ -37,7 +37,7 @@
               />
             </TabPane>
 
-            <TabPane key="headers" tab="请求头">
+            <TabPane key="headers" tab="请求�?>
               <KeyValueEditor v-model:rows="localEndpoint.request_headers" />
             </TabPane>
 
@@ -88,7 +88,7 @@ const { createMessage, createWarningModal } = useMessage();
 
 const PUSH_URL_VALIDATION_ERRORS = new Set([
   '请填写推送地址',
-  '推送地址需以 http:// 或 https:// 开头',
+  '推送地址需�?http:// �?https:// 开�?,
 ]);
 
 const localEndpoint = ref<AlarmPushEndpoint>(createEmptyPushProfile());

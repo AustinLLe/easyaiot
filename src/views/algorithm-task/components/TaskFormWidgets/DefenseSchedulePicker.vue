@@ -4,8 +4,8 @@
       <span class="full-day-label">是否全天布防</span>
       <Switch
         v-model:checked="fullDayDefense"
-        checked-children="是"
-        un-checked-children="否"
+        checked-children="�?
+        un-checked-children="�?
         :disabled="disabled"
         @change="handleFullDayChange"
       />
@@ -29,22 +29,22 @@
       </div>
 
       <div class="week-range-row">
-        <span class="field-label">选择周</span>
+        <span class="field-label">选择�?/span>
         <DatePicker
           :value="weekPickerDate"
           :format="formatWeekRangeDisplay"
-          placeholder="选择周内任意一天"
+          placeholder="选择周内任意一�?
           :disabled="disabled"
           :show-today="false"
           class="week-date-picker"
           @change="handleWeekDateChange"
         />
-        <Tag v-if="isCurrentWeekSaved" color="success">已保存</Tag>
-        <Tag v-else-if="isDirty" color="warning">未保存</Tag>
+        <Tag v-if="isCurrentWeekSaved" color="success">已保�?/Tag>
+        <Tag v-else-if="isDirty" color="warning">未保�?/Tag>
       </div>
 
       <div v-if="savedWeekList.length" class="saved-weeks">
-        <span class="saved-label">已配置周：</span>
+        <span class="saved-label">已配置周�?/span>
         <Tag
           v-for="item in savedWeekList"
           :key="item.key"
@@ -54,7 +54,7 @@
           @click="switchToSavedWeek(item.key)"
           @close.prevent="removeSavedWeek(item.key)"
         >
-          {{ item.label }}<template v-if="item.key === appliedToAllWeeksKey">（已应用到全部周）</template>
+          {{ item.label }}<template v-if="item.key === appliedToAllWeeksKey">（已应用到全部周�?/template>
         </Tag>
       </div>
 
@@ -304,7 +304,7 @@ function confirmDiscardDirty(onOk: () => void) {
     return;
   }
   Modal.confirm({
-    title: '当前周尚未保存',
+    title: '当前周尚未保�?,
     content: '切换后将丢失当前未保存的布防配置，是否继续？',
     okText: '继续切换',
     cancelText: '取消',
@@ -325,7 +325,7 @@ function handleWeekDateChange(date: Dayjs | string | null) {
 
 function saveCurrentWeek() {
   if (!schedule.value.some(day => day.some(hour => hour === 1))) {
-    createMessage.warning('请先配置至少一个布防时段');
+    createMessage.warning('请先配置至少一个布防时�?);
     return;
   }
   weekSchedulesMap.value = {
@@ -335,7 +335,7 @@ function saveCurrentWeek() {
   isDirty.value = false;
   emitValue();
   const [start, end] = weekRange.value;
-  createMessage.success(`已保存 ${start.format('YYYY-MM-DD')} ~ ${end.format('YYYY-MM-DD')} 的布防配置`);
+  createMessage.success(`已保�?${start.format('YYYY-MM-DD')} ~ ${end.format('YYYY-MM-DD')} 的布防配置`);
 }
 
 function clearCurrentWeek() {
@@ -346,11 +346,11 @@ function clearCurrentWeek() {
 function applyToAllWeeks() {
   const templateSource = weekSchedulesMap.value[currentWeekKey.value] ?? schedule.value;
   if (!templateSource.some(day => day.some(hour => hour === 1))) {
-    createMessage.warning('请先配置并保存当前周的布防时段');
+    createMessage.warning('请先配置并保存当前周的布防时�?);
     return;
   }
   if (!Object.keys(weekSchedulesMap.value).length) {
-    createMessage.warning('请先保存当前周配置');
+    createMessage.warning('请先保存当前周配�?);
     return;
   }
 
@@ -364,7 +364,7 @@ function applyToAllWeeks() {
   appliedToAllWeeksKey.value = currentWeekKey.value;
   isDirty.value = false;
   emitValue();
-  createMessage.success('已将当前周配置应用到全部已配置周，切换其他周时将自动沿用该布防时间');
+  createMessage.success('已将当前周配置应用到全部已配置周，切换其他周时将自动沿用该布防时�?);
 }
 
 function switchToSavedWeek(key: string) {

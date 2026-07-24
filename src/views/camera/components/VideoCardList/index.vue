@@ -14,7 +14,7 @@
           <template #header>
             <div
               style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">摄像头列表</span>
+              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">摄像头列�?/span>
               <div style="display: flex; gap: 8px;">
                 <slot name="header"></slot>
               </div>
@@ -74,9 +74,9 @@
                     />
                   </div>
                   <Popconfirm
-                    title="是否确认删除？"
-                    ok-text="是"
-                    cancel-text="否"
+                    title="是否确认删除�?
+                    ok-text="�?
+                    cancel-text="�?
                     @confirm="handleDelete(item)"
                   >
                     <div class="btn">
@@ -119,8 +119,7 @@ const ListItem = List.Item;
 
 // 组件接收参数
 const props = defineProps({
-  // 请求API的参数
-  params: propTypes.object.def({}),
+  // 请求API的参�?  params: propTypes.object.def({}),
   //api
   api: propTypes.func,
 });
@@ -176,19 +175,17 @@ async function handleSubmit() {
 // 设备流状态映射（从父组件传入或本地维护）
 const deviceStreamStatuses = ref<Record<string, string>>({});
 
-// 获取流状态文本
-const getStreamStatusText = (status: string) => {
+// 获取流状态文�?const getStreamStatusText = (status: string) => {
   const statusMap: Record<string, string> = {
-    'running': '运行中',
-    'stopped': '已停止',
+    'running': '运行�?,
+    'stopped': '已停�?,
     'error': '错误',
     'unknown': '未知'
   };
   return statusMap[status] || status || '未知';
 };
 
-// 获取流状态颜色
-const getStreamStatusColor = (status: string) => {
+// 获取流状态颜�?const getStreamStatusColor = (status: string) => {
   const colorMap: Record<string, string> = {
     'running': 'green',
     'stopped': 'red',
@@ -198,8 +195,7 @@ const getStreamStatusColor = (status: string) => {
   return colorMap[status] || 'default';
 };
 
-// 安全获取设备流状态
-const getDeviceStreamStatus = (deviceId: string) => {
+// 安全获取设备流状�?const getDeviceStreamStatus = (deviceId: string) => {
   if (!deviceStreamStatuses.value || !deviceStreamStatuses.value[deviceId]) {
     return 'unknown';
   }
@@ -220,11 +216,9 @@ const getCameraImage = (manufacturer: string) => {
   return OTHER_IMAGE;
 };
 
-// 检查设备流状态
-const checkDeviceStreamStatus = async (deviceId: string) => {
+// 检查设备流状�?const checkDeviceStreamStatus = async (deviceId: string) => {
   try {
-    // 确保 deviceStreamStatuses.value 始终是一个对象
-    if (!deviceStreamStatuses.value) {
+    // 确保 deviceStreamStatuses.value 始终是一个对�?    if (!deviceStreamStatuses.value) {
       deviceStreamStatuses.value = {};
     }
     const response: StreamStatusResponse = await getStreamStatus(deviceId);
@@ -234,36 +228,31 @@ const checkDeviceStreamStatus = async (deviceId: string) => {
       deviceStreamStatuses.value[deviceId] = 'error';
     }
   } catch (error) {
-    console.error(`检查设备 ${deviceId} 流状态失败`, error);
-    // 确保 deviceStreamStatuses.value 始终是一个对象
-    if (!deviceStreamStatuses.value) {
+    console.error(`检查设�?${deviceId} 流状态失败`, error);
+    // 确保 deviceStreamStatuses.value 始终是一个对�?    if (!deviceStreamStatuses.value) {
       deviceStreamStatuses.value = {};
     }
     deviceStreamStatuses.value[deviceId] = 'error';
   }
 };
 
-// 检查所有设备的流状态
-const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
+// 检查所有设备的流状�?const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
   try {
     const deviceIds = devices.map(device => device.id);
     for (const deviceId of deviceIds) {
       await checkDeviceStreamStatus(deviceId);
     }
   } catch (error) {
-    console.error('检查设备流状态失败', error);
+    console.error('检查设备流状态失�?, error);
   }
 };
 
-// 自动请求并暴露内部方法
-onMounted(() => {
+// 自动请求并暴露内部方�?onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
 
-// 监听数据变化，自动检查流状态
-// 已禁用自动检查流状态
-// watch(() => data.value, (newData) => {
+// 监听数据变化，自动检查流状�?// 已禁用自动检查流状�?// watch(() => data.value, (newData) => {
 //   if (newData && newData.length > 0) {
 //     checkAllDevicesStreamStatus(newData);
 //   }
@@ -286,8 +275,7 @@ async function fetch(p = {}) {
         apiParams.search = p.deviceName;
       }
       if (p.online !== undefined && p.online !== '') {
-        // 如果API支持online参数，直接传递；否则可能需要其他处理
-        apiParams.online = p.online;
+        // 如果API支持online参数，直接传递；否则可能需要其他处�?        apiParams.online = p.online;
       }
       
       // 合并其他参数
@@ -298,16 +286,13 @@ async function fetch(p = {}) {
       });
       
       const res = await api(apiParams);
-      // 确保 deviceStreamStatuses.value 始终是一个对象
-      if (!deviceStreamStatuses.value) {
+      // 确保 deviceStreamStatuses.value 始终是一个对�?      if (!deviceStreamStatuses.value) {
         deviceStreamStatuses.value = {};
       }
-      // 根据API返回格式，处理数据
-      if (res && res.data) {
+      // 根据API返回格式，处理数�?      if (res && res.data) {
         data.value = res.data || [];
         total.value = res.total || 0;
-        // 初始化设备流状态
-        data.value.forEach((device: DeviceInfo) => {
+        // 初始化设备流状�?        data.value.forEach((device: DeviceInfo) => {
           if (!deviceStreamStatuses.value[device.id]) {
             deviceStreamStatuses.value[device.id] = 'unknown';
           }
@@ -315,8 +300,7 @@ async function fetch(p = {}) {
       } else if (Array.isArray(res)) {
         data.value = res;
         total.value = res.length;
-        // 初始化设备流状态
-        data.value.forEach((device: DeviceInfo) => {
+        // 初始化设备流状�?        data.value.forEach((device: DeviceInfo) => {
           if (!deviceStreamStatuses.value[device.id]) {
             deviceStreamStatuses.value[device.id] = 'unknown';
           }
@@ -349,7 +333,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (total: number) => `�?${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });

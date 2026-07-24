@@ -33,7 +33,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
   schemas: [
     {
       field: 'extractor_name',
-      label: '抽帧器名称',
+      label: '抽帧器名�?,
       component: 'Input',
       required: true,
       componentProps: {
@@ -48,8 +48,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       componentProps: {
         placeholder: '请选择抽帧类型',
         options: [
-          { label: '按间隔', value: 'interval' },
-          { label: '按时间', value: 'time' },
+          { label: '按间�?, value: 'interval' },
+          { label: '按时�?, value: 'time' },
         ],
       },
     },
@@ -68,7 +68,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '描述',
       component: 'InputTextArea',
       componentProps: {
-        placeholder: '请输入描述',
+        placeholder: '请输入描�?,
         rows: 4,
       },
     },
@@ -77,8 +77,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
       label: '是否启用',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '是',
-        unCheckedChildren: '否',
+        checkedChildren: '�?,
+        unCheckedChildren: '�?,
       },
     },
   ],
@@ -88,9 +88,9 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema }] = 
 const modalData = ref<{ type?: string; record?: FrameExtractor }>({});
 
 const modalTitle = computed(() => {
-  if (modalData.value.type === 'view') return '查看抽帧器';
-  if (modalData.value.type === 'edit') return '编辑抽帧器';
-  return '新建抽帧器';
+  if (modalData.value.type === 'view') return '查看抽帧�?;
+  if (modalData.value.type === 'edit') return '编辑抽帧�?;
+  return '新建抽帧�?;
 });
 
 const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) => {
@@ -118,8 +118,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       ]);
     }
   } else {
-    // 新建模式，设置默认值
-    await setFieldsValue({
+    // 新建模式，设置默认�?    await setFieldsValue({
       extractor_type: 'interval',
       interval: 1,
       is_enabled: true,

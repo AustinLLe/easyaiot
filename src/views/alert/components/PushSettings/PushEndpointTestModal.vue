@@ -7,19 +7,18 @@
     >
       <div class="push-endpoint-test-dialog" role="dialog" aria-modal="true">
         <div class="push-endpoint-test-header">
-          <span class="push-endpoint-test-title">状态</span>
+          <span class="push-endpoint-test-title">状�?/span>
           <button type="button" class="push-endpoint-test-close" @click="handleClose">×</button>
         </div>
 
         <div class="push-endpoint-test-body">
           <div class="test-content-section">
             <div class="test-content-toolbar">
-              <span class="section-label">测试内容：</span>
+              <span class="section-label">测试内容�?/span>
               <div class="toolbar-actions">
                 <Button type="link" size="small" :loading="pushing" @click="handlePush">
                   <SendOutlined />
-                  推送
-                </Button>
+                  推�?                </Button>
                 <Button type="link" size="small" :disabled="pushing" @click="handleReset">
                   <ReloadOutlined />
                   重置
@@ -36,12 +35,12 @@
 
           <div class="result-section">
             <span class="section-label">状态：</span>
-            <div class="result-value">{{ statusText || '—' }}</div>
+            <div class="result-value">{{ statusText || '�? }}</div>
           </div>
 
           <div class="result-section">
-            <span class="section-label">返回结果：</span>
-            <pre class="response-box">{{ responseText || '—' }}</pre>
+            <span class="section-label">返回结果�?/span>
+            <pre class="response-box">{{ responseText || '�? }}</pre>
           </div>
         </div>
       </div>

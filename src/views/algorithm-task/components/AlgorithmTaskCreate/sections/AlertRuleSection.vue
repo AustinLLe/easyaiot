@@ -2,7 +2,7 @@
   <div class="section-panel">
     <div class="section-header">
       <h3>告警规则</h3>
-      <p>配置触发告警的条件、持续时间和抑制策略。</p>
+      <p>配置触发告警的条件、持续时间和抑制策略�?/p>
     </div>
 
     <div class="alert-rule-panel">
@@ -35,7 +35,7 @@
             <Switch
               :checked="!!record.clip_record_enabled"
               checked-children="开"
-              un-checked-children="关"
+              un-checked-children="�?
               size="small"
               @change="(checked: boolean) => handleClipRecordChange(record, checked)"
             />
@@ -44,7 +44,7 @@
             <Switch
               v-model:checked="record.enabled"
               checked-children="开"
-              un-checked-children="关"
+              un-checked-children="�?
               size="small"
             />
           </template>
@@ -161,7 +161,7 @@ function handleDelete(index: number) {
   const ruleLabel = rule?.rule_name?.trim() || `规则 ${rule ? getRuleSeqDisplay(rule, index) : index + 1}`;
   Modal.confirm({
     title: '确认删除',
-    content: `确定删除告警规则「${ruleLabel}」吗？`,
+    content: `确定删除告警规则�?{ruleLabel}」吗？`,
     okText: '删除',
     okType: 'danger',
     cancelText: '取消',

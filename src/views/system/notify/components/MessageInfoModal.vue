@@ -21,7 +21,7 @@ const [descriptionRegister] = useDescription({
 </script>
 
 <template>
-  <BasicModal title="站内信详情" @register="innerRegister">
+  <BasicModal title="站内信详�? @register="innerRegister">
     <Description @register="descriptionRegister" />
   </BasicModal>
 </template>

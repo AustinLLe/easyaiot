@@ -13,7 +13,7 @@ async function init() {
     if (userInfo.socialUsers) {
       for (const j in userInfo.socialUsers) {
         if (accountBindList[i].key === userInfo.socialUsers[j].type) {
-          accountBindList[i].title = '已绑定'
+          accountBindList[i].title = '已绑�?
           break
         }
       }

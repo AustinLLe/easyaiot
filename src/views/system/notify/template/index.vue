@@ -17,7 +17,7 @@ const [registerModal, { openModal }] = useModal()
 const [registerSendModal, { openModal: openSendModal }] = useModal()
 
 const [registerTable, { reload }] = useTable({
-  title: '站内信模板列表',
+  title: '站内信模板列�?,
   api: getNotifyTemplatePage,
   columns,
   formConfig: { labelWidth: 120, schemas: searchFormSchema },

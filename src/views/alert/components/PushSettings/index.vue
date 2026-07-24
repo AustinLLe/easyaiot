@@ -1,12 +1,11 @@
 <template>
   <div class="push-settings-page">
     <div class="page-header">
-      <span class="page-title">报警推送</span>
+      <span class="page-title">报警推�?/span>
       <div class="header-actions">
         <Button type="primary" @click="openCreate">
           <PlusOutlined />
-          创建推送
-        </Button>
+          创建推�?        </Button>
       </div>
     </div>
 
@@ -18,11 +17,11 @@
       row-key="profile_id"
       size="small"
       table-layout="fixed"
-      :locale="{ emptyText: '暂无推送配置，请点击「创建推送」' }"
+      :locale="{ emptyText: '暂无推送配置，请点击「创建推送�? }"
     >
       <template #bodyCell="{ column, record, index }">
         <template v-if="column.key === 'push_url'">
-          <span class="url-text" :title="record.push_url">{{ record.push_url || '—' }}</span>
+          <span class="url-text" :title="record.push_url">{{ record.push_url || '�? }}</span>
         </template>
         <template v-else-if="column.key === 'status'">
           <div class="status-cell">
@@ -89,7 +88,7 @@ const testingEndpoint = ref<AlarmPushEndpoint | null>(null);
 const columns: ColumnsType<AlarmPushEndpoint> = [
   { title: '名称', dataIndex: 'profile_name', key: 'profile_name', width: '18%', ellipsis: true },
   { title: '推送地址', key: 'push_url', width: '42%', ellipsis: true },
-  { title: '状态', key: 'status', width: '20%', align: 'center' },
+  { title: '状�?, key: 'status', width: '20%', align: 'center' },
   { title: '操作', key: 'action', width: '20%', align: 'center' },
 ];
 
@@ -119,11 +118,11 @@ function openEdit(index: number) {
 function handleSave(endpoint: AlarmPushEndpoint) {
   if (editingIndex.value === null) {
     addPushProfile(endpoint);
-    createMessage.success('已创建推送');
+    createMessage.success('已创建推�?);
   }
   else {
     updatePushProfile(endpoint);
-    createMessage.success('已保存推送');
+    createMessage.success('已保存推�?);
   }
   reload();
 }
@@ -134,14 +133,14 @@ function handleDelete(index: number) {
     return;
   Modal.confirm({
     title: '确认删除',
-    content: `确定删除「${item.profile_name}」吗？`,
+    content: `确定删除�?{item.profile_name}」吗？`,
     okText: '删除',
     okType: 'danger',
     cancelText: '取消',
     onOk() {
       if (deletePushProfile(item.profile_id)) {
         selectedRowKeys.value = selectedRowKeys.value.filter(id => id !== item.profile_id);
-        createMessage.success('已删除');
+        createMessage.success('已删�?);
         reload();
       }
     },

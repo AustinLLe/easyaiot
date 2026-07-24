@@ -28,7 +28,7 @@
     <div v-if="advancedFields.length" class="more-section">
       <a-button type="link" class="more-toggle" @click="showAdvanced = !showAdvanced">
         <DownOutlined :class="{ rotated: showAdvanced }" />
-        更多阈值
+        更多阈�?
       </a-button>
 
       <div v-show="showAdvanced">

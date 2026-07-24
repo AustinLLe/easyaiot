@@ -14,7 +14,7 @@
       />
     </FormItem>
 
-    <FormItem v-if="showPushName" label="推送名称" required>
+    <FormItem v-if="showPushName" label="推送名�? required>
       <Input
         v-model:value="pushModel.push_name"
         placeholder="例如：高等级邮件通知"
@@ -26,11 +26,11 @@
       <Switch
         v-model:checked="pushModel.enabled"
         checked-children="开"
-        un-checked-children="关"
+        un-checked-children="�?
       />
     </FormItem>
 
-    <FormItem label="推送模式">
+    <FormItem label="推送模�?>
       <RadioGroup
         v-model:value="pushModel.push_mode"
         :options="PUSH_MODE_OPTIONS"
@@ -38,21 +38,21 @@
     </FormItem>
 
     <template v-if="isUserPushMode(pushModel)">
-      <FormItem label="推送渠道" required>
+      <FormItem label="推送渠�? required>
         <CheckboxGroup
           v-model:value="pushModel.channels"
           :options="CHANNEL_OPTIONS"
         />
       </FormItem>
 
-      <FormItem label="推送用户" required>
+      <FormItem label="推送用�? required>
         <ApiSelect
           v-model:value="pushModel.recipient_user_ids"
           mode="multiple"
           :api="getListSimpleUsers"
           label-field="nickname"
           value-field="id"
-          placeholder="请选择推送用户"
+          placeholder="请选择推送用�?
           placement="bottomLeft"
           :get-popup-container="selectPopupContainer"
           :dropdown-style="SELECT_DROPDOWN_STYLE"
@@ -60,7 +60,7 @@
         />
       </FormItem>
 
-      <FormItem label="推送标题" required>
+      <FormItem label="推送标�? required>
         <Input
           v-model:value="pushModel.content.title_template"
           placeholder="例如：车间门口高等级告警"
@@ -68,7 +68,7 @@
         />
       </FormItem>
 
-      <FormItem label="推送内容包含" required>
+      <FormItem label="推送内容包�? required>
         <CheckboxGroup
           v-model:value="pushModel.content.include_fields"
           :options="CONTENT_FIELD_OPTIONS"
@@ -78,7 +78,7 @@
       <FormItem label="补充说明（可选）">
         <Input.TextArea
           v-model:value="pushModel.content.remark"
-          placeholder="附加在推送正文末尾"
+          placeholder="附加在推送正文末�?
           :rows="2"
         />
       </FormItem>

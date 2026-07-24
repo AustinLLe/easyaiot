@@ -42,7 +42,7 @@
                 icon: 'material-symbols:delete-outline-rounded',
                 popConfirm: {
                   placement: 'topRight',
-                  title: '是否确认删除？',
+                  title: '是否确认删除�?,
                   confirm: handleDelete.bind(null, record),
                 },
               }
@@ -157,7 +157,7 @@ function handleSuccess() {
 
 const [registerTable, { reload, getForm }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '算法管理',
   api: async (params) => {

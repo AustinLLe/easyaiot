@@ -26,8 +26,7 @@ const [innerRegister, { changeLoading, closeModal }] = useModalInner((data: SmsT
   resetForm()
   data.params.forEach((item) => {
     const dySchema: FormSchema = {
-      // 这里加上前缀 防止content/mobile和字段重名
-      field: `key-${item}`,
+      // 这里加上前缀 防止content/mobile和字段重�?      field: `key-${item}`,
       label: `参数{${item}} `,
       component: 'Input',
       componentProps: {
@@ -72,17 +71,15 @@ async function submit() {
 }
 
 function resetForm() {
-  // 这里需要每次清空动态表单
-  reactiveSchemas.splice(0, reactiveSchemas.length)
+  // 这里需要每次清空动态表�?  reactiveSchemas.splice(0, reactiveSchemas.length)
   reactiveSchemas.push(...baseSendSchemas)
-  // 清除上一次的表单校验和参数
-  resetFields()
+  // 清除上一次的表单校验和参�?  resetFields()
   clearValidate()
 }
 </script>
 
 <template>
-  <BasicModal v-bind="$attrs" title="测试发送短信" @register="innerRegister" @ok="submit">
+  <BasicModal v-bind="$attrs" title="测试发送短�? @register="innerRegister" @ok="submit">
     <BasicForm :schemas="reactiveSchemas" @register="register" />
   </BasicModal>
 </template>

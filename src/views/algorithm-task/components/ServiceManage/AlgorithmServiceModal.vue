@@ -14,7 +14,7 @@
       :wrapper-col="{ span: 18 }"
     >
       <a-form-item label="服务名称" name="service_name">
-        <a-input v-model:value="formData.service_name" placeholder="请输入服务名称" />
+        <a-input v-model:value="formData.service_name" placeholder="请输入服务名�? />
       </a-form-item>
       <a-form-item label="服务URL" name="service_url">
         <a-input v-model:value="formData.service_url" placeholder="请输入服务URL" />
@@ -25,10 +25,10 @@
       <a-form-item label="模型ID" name="model_id">
         <a-input-number v-model:value="formData.model_id" placeholder="请输入模型ID" style="width: 100%" />
       </a-form-item>
-      <a-form-item label="阈值" name="threshold">
+      <a-form-item label="阈�? name="threshold">
         <a-input-number
           v-model:value="formData.threshold"
-          placeholder="请输入阈值"
+          placeholder="请输入阈�?
           :min="0"
           :max="1"
           :step="0.01"
@@ -52,7 +52,7 @@
       <a-form-item label="排序顺序" name="sort_order">
         <a-input-number
           v-model:value="formData.sort_order"
-          placeholder="请输入排序顺序"
+          placeholder="请输入排序顺�?
           :min="0"
           style="width: 100%"
         />
@@ -100,10 +100,10 @@ const formData = ref({
 });
 
 const rules = {
-  service_name: [{ required: true, message: '请输入服务名称', trigger: 'blur' }],
+  service_name: [{ required: true, message: '请输入服务名�?, trigger: 'blur' }],
   service_url: [{ required: true, message: '请输入服务URL', trigger: 'blur' }],
   request_method: [{ required: true, message: '请选择请求方法', trigger: 'change' }],
-  timeout: [{ required: true, message: '请输入超时时间', trigger: 'blur' }],
+  timeout: [{ required: true, message: '请输入超时时�?, trigger: 'blur' }],
 };
 
 watch(

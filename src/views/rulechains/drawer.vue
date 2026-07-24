@@ -1,5 +1,5 @@
 <template>
-  <BasicDrawer v-bind="$attrs" @register="register" title="-规则链详情" width="880px">
+  <BasicDrawer v-bind="$attrs" @register="register" title="-规则链详�? width="880px">
     <Tabs v-model:activeKey="activeKey">
       <TabPane v-for="item in tabPaneList" :key="item.componentName" :tab="item.label">
         <component
@@ -46,7 +46,7 @@
       function onDataReceive(data) {
         console.log('Data Received', data);
         id.value = data.id;
-        setDrawerProps({ title: data.data + '-规则链详情' });
+        setDrawerProps({ title: data.data + '-规则链详�? });
         if (id.value) {
           RulesInfo(id.value);
         }
@@ -80,7 +80,7 @@
           { label: '详情', componentName: 'DetailsInfo' },
         ],
         RuleChainsInfo,
-        scopeList: [{ label: '服务端属性', value: 'SERVER_SCOPE' }],
+        scopeList: [{ label: '服务端属�?, value: 'SERVER_SCOPE' }],
         eventList: [
           { label: '错误', value: 'ERROR' },
           { label: '生命周期事件', value: 'LC_EVENT' },

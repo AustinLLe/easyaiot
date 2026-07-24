@@ -1,10 +1,10 @@
 <template>
   <div :class="['camera-picker-panel', { embedded }]" @mousedown.stop>
     <div class="camera-toolbar">
-      <span class="toolbar-title">摄像头列表</span>
+      <span class="toolbar-title">摄像头列�?/span>
       <a-input-search
         v-model:value="searchText"
-        placeholder="搜索当前分组摄像头"
+        placeholder="搜索当前分组摄像�?
         allow-clear
         class="toolbar-search"
       />
@@ -40,9 +40,9 @@
               <CheckOutlined v-if="allChecked" class="select-check" />
               <span v-else-if="indeterminate" class="select-dash" />
             </span>
-            <span>全选</span>
+            <span>全�?/span>
           </div>
-          <span class="selected-count">已选 {{ selectedDeviceIds.length }} 个</span>
+          <span class="selected-count">已�?{{ selectedDeviceIds.length }} �?/span>
         </div>
 
         <a-spin :spinning="loadingDevices">
@@ -61,14 +61,14 @@
                 type="text"
                 size="small"
                 class="preview-btn"
-                title="预览流"
+                title="预览�?
                 @click.stop="handlePreview(device)"
               >
                 <VideoCameraOutlined />
               </a-button>
             </div>
           </div>
-          <a-empty v-else description="当前分组暂无摄像头" />
+          <a-empty v-else description="当前分组暂无摄像�? />
         </a-spin>
       </div>
     </div>
@@ -103,7 +103,7 @@ const props = defineProps<{
   initialSelectedIds?: string[];
   embedded?: boolean;
   singleSelect?: boolean;
-  /** 为 true 时单选只更新选中态，不自动 emit confirm（由父级点确定再读取） */
+  /** �?true 时单选只更新选中态，不自�?emit confirm（由父级点确定再读取�?*/
   deferConfirm?: boolean;
 }>();
 
@@ -293,7 +293,7 @@ function toggleSelectAll() {
 function handlePreview(device: DeviceInfo) {
   const httpStream = device.http_stream || device.ai_http_stream;
   if (!httpStream) {
-    createMessage.warning('该摄像头暂无可用流地址，请先在流媒体中开启转发');
+    createMessage.warning('该摄像头暂无可用流地址，请先在流媒体中开启转�?);
     return;
   }
 
@@ -340,7 +340,7 @@ async function loadDevicesByGroup(groupKey: string) {
     currentDevices.value = unwrapList<DeviceInfo>(response);
   }
   catch (error) {
-    console.error('加载摄像头列表失败', error);
+    console.error('加载摄像头列表失�?, error);
     currentDevices.value = [];
   }
   finally {

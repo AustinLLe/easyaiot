@@ -22,8 +22,7 @@ const treeData = ref<TreeItem[]>([])
 const menuKeys = ref<number[]>([])
 const menuHalfKeys = ref<number[]>([])
 
-// 默认展开的层级
-const defaultExpandLevel = ref<number>(1)
+// 默认展开的层�?const defaultExpandLevel = ref<number>(1)
 // 祖先节点list
 const parentIdSets = ref<Set<number>>(new Set())
 const treeRef = ref()
@@ -43,26 +42,20 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   if (unref(treeData).length === 0) {
     const res = await listSimpleMenus()
     treeData.value = handleTree(res, 'id')
-    // 去重 拿到所有的父节点
-    parentIdSets.value = new Set(res.map(item => item.parentId))
+    // 去重 拿到所有的父节�?    parentIdSets.value = new Set(res.map(item => item.parentId))
   }
   const role = await getRole(data.record.id)
   const menuIds = await listRoleMenus(data.record.id)
 
   // https://www.lodashjs.com/docs/lodash.without
-  // 默认关联节点  需要排除所有的祖先节点  否则会全部勾选
-  // 只保留子节点 关联情况下会自己选中父节点
-  // 排除祖先节点后的子节点  达到"独立"的效果 但可以进行关联选择
+  // 默认关联节点  需要排除所有的祖先节点  否则会全部勾�?  // 只保留子节点 关联情况下会自己选中父节�?  // 排除祖先节点后的子节�? 达到"独立"的效�?但可以进行关联选择
   const excludeParentIds = without(menuIds, ...Array.from(parentIdSets.value))
-  // 这里是后期更新/新增需要用的 需要使用原始参数
-  menuKeys.value = menuIds
-  // 这里是view需要的  需要排除祖先节点才能正常显示  否则传入父节点会勾选所有子节点
+  // 这里是后期更�?新增需要用�?需要使用原始参�?  menuKeys.value = menuIds
+  // 这里是view需要的  需要排除祖先节点才能正常显�? 否则传入父节点会勾选所有子节点
   role.menuIds = excludeParentIds
-  // 这里只负责显示 后期传递参数不使用这里  所以不用祖先节点
-  await setFieldsValue({ ...role })
+  // 这里只负责显�?后期传递参数不使用这里  所以不用祖先节�?  await setFieldsValue({ ...role })
 
-  // 默认展开的层级
-  if (unref(treeRef))
+  // 默认展开的层�?  if (unref(treeRef))
     unref(treeRef).filterByLevel(defaultExpandLevel.value)
 })
 
@@ -92,8 +85,7 @@ function menuCheck(checkedKeys: CheckKeys, event: CheckedEvent) {
   if (Array.isArray(checkedKeys)) {
     // 这里是子节点的ID
     menuKeys.value = checkedKeys as number[]
-    // 这里是父节点的ID 默认空数组
-    menuHalfKeys.value = (event.halfCheckedKeys as number[]) || []
+    // 这里是父节点的ID 默认空数�?    menuHalfKeys.value = (event.halfCheckedKeys as number[]) || []
   }
 }
 </script>

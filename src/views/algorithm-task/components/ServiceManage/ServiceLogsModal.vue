@@ -27,15 +27,15 @@
             :disabled="!autoRefresh"
             @change="handleIntervalChange"
           >
-            <a-select-option :value="3">3秒</a-select-option>
-            <a-select-option :value="5">5秒</a-select-option>
-            <a-select-option :value="10">10秒</a-select-option>
-            <a-select-option :value="30">30秒</a-select-option>
+            <a-select-option :value="3">3�?/a-select-option>
+            <a-select-option :value="5">5�?/a-select-option>
+            <a-select-option :value="10">10�?/a-select-option>
+            <a-select-option :value="30">30�?/a-select-option>
           </a-select>
         </div>
       </div>
       <div class="logs-content-wrapper">
-        <a-spin :spinning="loading" tip="加载日志中...">
+        <a-spin :spinning="loading" tip="加载日志�?..">
           <div class="logs-content" ref="logsContentRef" @scroll="handleScroll" :class="{ 'empty-state': !logs }">
             <div v-if="logs" class="logs-text">
               <pre>{{ logs }}</pre>
@@ -56,8 +56,7 @@
           </a-button>
           <a-button @click="handleScrollToBottom">
             <template #icon><VerticalAlignBottomOutlined /></template>
-            滚动到底部
-          </a-button>
+            滚动到底�?          </a-button>
         </div>
         <div class="logs-footer-right">
           <a-button @click="handleClose">关闭</a-button>
@@ -110,8 +109,7 @@ const refreshTimer = ref<NodeJS.Timeout | null>(null);
 const isScrolling = ref(false);
 
 const [register, {closeModal}] = useModalInner(async (data) => {
-  // 先清除之前的定时器
-  if (refreshTimer.value) {
+  // 先清除之前的定时�?  if (refreshTimer.value) {
     clearInterval(refreshTimer.value);
     refreshTimer.value = null;
   }
@@ -131,14 +129,12 @@ const [register, {closeModal}] = useModalInner(async (data) => {
       await loadLogs(data.taskId, data.serviceType);
     }
     
-    // 确保滚动到底部
-    await nextTick();
+    // 确保滚动到底�?    await nextTick();
     setTimeout(() => {
       scrollToBottom();
     }, 100);
     
-    // 如果有有效的参数，自动开启自动刷新
-    if (data.taskId && data.serviceType) {
+    // 如果有有效的参数，自动开启自动刷�?    if (data.taskId && data.serviceType) {
       autoRefresh.value = true;
       startAutoRefresh();
     }
@@ -153,7 +149,7 @@ const loadLogs = async (taskId: number, serviceType: string) => {
     let logsResponse;
     
     if (serviceType === 'realtime' || serviceType === 'snap') {
-      // 抓拍算法任务也使用 realtime 日志接口
+      // 抓拍算法任务也使�?realtime 日志接口
       logsResponse = await getTaskRealtimeLogs(taskId, { lines: 500 });
     } else if (serviceType === 'extractor') {
       logsResponse = await getTaskExtractorLogs(taskId, { lines: 500 });
@@ -165,8 +161,7 @@ const loadLogs = async (taskId: number, serviceType: string) => {
       return;
     }
     
-    // 响应转换器会将 data.data 直接返回，所以 logsResponse 就是 data.data 的内容
-    // 如果 logsResponse 有 code 字段，说明是完整响应对象；否则就是转换后的 data.data
+    // 响应转换器会�?data.data 直接返回，所�?logsResponse 就是 data.data 的内�?    // 如果 logsResponse �?code 字段，说明是完整响应对象；否则就是转换后�?data.data
     if (logsResponse && typeof logsResponse === 'object') {
       if ('code' in logsResponse) {
         // 完整响应对象
@@ -176,7 +171,7 @@ const loadLogs = async (taskId: number, serviceType: string) => {
           logs.value = `获取日志失败: ${logsResponse.msg || '未知错误'}`;
         }
       } else if ('logs' in logsResponse) {
-        // 转换后的 data.data 对象，直接包含 logs 字段
+        // 转换后的 data.data 对象，直接包�?logs 字段
         logs.value = logsResponse.logs || '';
       } else {
         logs.value = '获取日志失败: 响应数据格式错误';
@@ -210,7 +205,7 @@ const handleRefresh = async () => {
 
 const handleClear = () => {
   logs.value = '';
-  createMessage.success('已清空显示');
+  createMessage.success('已清空显�?);
 };
 
 const handleClose = () => {
@@ -266,12 +261,10 @@ const stopAutoRefresh = () => {
   }
 };
 
-// 监听滚动事件，判断用户是否手动滚动
-const handleScroll = () => {
+// 监听滚动事件，判断用户是否手动滚�?const handleScroll = () => {
   if (!logsContentRef.value) return;
   const {scrollTop, scrollHeight, clientHeight} = logsContentRef.value;
-  // 如果滚动位置不在底部附近（留10px的误差），则认为用户手动滚动了
-  isScrolling.value = scrollTop < scrollHeight - clientHeight - 10;
+  // 如果滚动位置不在底部附近（留10px的误差），则认为用户手动滚动�?  isScrolling.value = scrollTop < scrollHeight - clientHeight - 10;
 };
 
 // 监听日志变化，如果用户在底部附近，自动滚动到底部
@@ -290,8 +283,7 @@ onMounted(() => {
   }
 });
 
-// 组件卸载时清除定时器和事件监听
-onUnmounted(() => {
+// 组件卸载时清除定时器和事件监�?onUnmounted(() => {
   if (refreshTimer.value) {
     clearInterval(refreshTimer.value);
   }
@@ -321,8 +313,7 @@ onUnmounted(() => {
   border: 1px solid #e8e8e8;
   border-radius: 4px;
   margin-bottom: 12px;
-  flex-shrink: 0; // 防止 header 被压缩
-
+  flex-shrink: 0; // 防止 header 被压�?
   .logs-header-left {
     display: flex;
     align-items: center;
@@ -344,8 +335,7 @@ onUnmounted(() => {
 
 .logs-content-wrapper {
   flex: 1;
-  min-height: 0; // 允许 flex 子元素收缩
-  display: flex;
+  min-height: 0; // 允许 flex 子元素收�?  display: flex;
   flex-direction: column;
   overflow: hidden; // 防止 wrapper 滚动
   
@@ -373,8 +363,7 @@ onUnmounted(() => {
   border: 1px solid #d9d9d9;
   border-radius: 4px;
   position: relative;
-  min-height: 0; // 允许 flex 子元素收缩
-
+  min-height: 0; // 允许 flex 子元素收�?
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -415,8 +404,7 @@ onUnmounted(() => {
       word-break: break-all;
       color: inherit;
       
-      // 日志行高亮
-      :deep(span) {
+      // 日志行高�?      :deep(span) {
         display: block;
         padding: 2px 0;
         
@@ -427,8 +415,7 @@ onUnmounted(() => {
     }
   }
 
-  // 空状态样式
-  :deep(.ant-empty) {
+  // 空状态样�?  :deep(.ant-empty) {
     margin: 0;
     
     .ant-empty-description {
@@ -444,9 +431,7 @@ onUnmounted(() => {
   margin-top: 12px;
   padding: 12px 0;
   border-top: 1px solid #e8e8e8;
-  flex-shrink: 0; // 防止 footer 被压缩
-  position: relative; // 确保 footer 在正常文档流中
-  z-index: 10; // 确保 footer 在最上层
+  flex-shrink: 0; // 防止 footer 被压�?  position: relative; // 确保 footer 在正常文档流�?  z-index: 10; // 确保 footer 在最上层
   background: #fff; // 确保 footer 有背景色，不会被内容遮挡
 
   .logs-footer-left {
@@ -460,8 +445,7 @@ onUnmounted(() => {
   }
 }
 
-// 响应式设计
-@media (max-width: 768px) {
+// 响应式设�?@media (max-width: 768px) {
   .logs-container {
     height: 65vh;
     max-height: 600px;

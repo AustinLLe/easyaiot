@@ -35,9 +35,9 @@ const [registerDetailDrawer, { openDrawer: openDetailDrawer }] = useDrawer();
 
 const [registerTable] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '推送历史',
+  title: '推送历�?,
   api: historyQuery,
   columns: [
     ...getColumns(),

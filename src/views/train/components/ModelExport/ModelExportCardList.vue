@@ -72,7 +72,7 @@
                         <DownloadOutlined style="font-size: 16px;"/>
                       </div>
                       <Popconfirm
-                        title="是否确认删除？"
+                        title="是否确认删除�?
                         @confirm="handleDelete(item)"
                       >
                         <div class="btn">
@@ -123,12 +123,12 @@ const [registerForm, {validate, updateSchema}] = useForm({
       label: `状态`,
       component: 'Select',
       componentProps: {
-        placeholder: '请选择状态',
+        placeholder: '请选择状�?,
         allowClear: true,
         options: [
-          {label: '等待中', value: 'PENDING'},
-          {label: '处理中', value: 'PROCESSING'},
-          {label: '已完成', value: 'COMPLETED'},
+          {label: '等待�?, value: 'PENDING'},
+          {label: '处理�?, value: 'PROCESSING'},
+          {label: '已完�?, value: 'COMPLETED'},
           {label: '失败', value: 'FAILED'},
         ],
       },
@@ -136,8 +136,7 @@ const [registerForm, {validate, updateSchema}] = useForm({
   ],
   labelWidth: 80,
   baseColProps: {span: 6},
-  actionColOptions: {span: 12}, // 让按钮在第一行显示
-  autoSubmitOnEnter: true,
+  actionColOptions: {span: 12}, // 让按钮在第一行显�?  autoSubmitOnEnter: true,
   submitFunc: handleSubmit,
 });
 
@@ -147,8 +146,7 @@ onMounted(() => {
   emit('getMethod', fetch);
 });
 
-// 监听params变化，自动刷新数据
-watch(() => props.params, () => {
+// 监听params变化，自动刷新数�?watch(() => props.params, () => {
   fetch();
 }, { deep: true });
 
@@ -157,8 +155,7 @@ async function handleSubmit() {
   await fetch(formData);
 }
 
-// 处理表单字段值变化，实时通知父组件
-function handleFieldValueChange(field: string, value: any) {
+// 处理表单字段值变化，实时通知父组�?function handleFieldValueChange(field: string, value: any) {
   emit('field-value-change', field, value);
 }
 
@@ -194,7 +191,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (total: number) => `�?${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -222,9 +219,9 @@ function getStatusColor(status: string) {
 
 function getStatusText(status: string) {
   const statusMap: Record<string, string> = {
-    'PENDING': '等待中',
-    'PROCESSING': '处理中',
-    'COMPLETED': '已完成',
+    'PENDING': '等待�?,
+    'PROCESSING': '处理�?,
+    'COMPLETED': '已完�?,
     'FAILED': '失败',
   };
   return statusMap[status] || '未知';
@@ -264,7 +261,7 @@ function formatDuration(seconds?: number): string {
   if (minutes <= 0) {
     return `${remainSeconds}秒`;
   }
-  return `${minutes}分${remainSeconds.toString().padStart(2, '0')}秒`;
+  return `${minutes}�?{remainSeconds.toString().padStart(2, '0')}秒`;
 }
 
 function getElapsedText(item: any): string {
@@ -291,10 +288,8 @@ function formatDate(dateString: string) {
 function formatDateTime(dateString: string) {
   if (!dateString) return '--';
   try {
-    // 解析ISO格式时间字符串（可能包含时区信息）
-    const date = new Date(dateString);
-    // 检查日期是否有效
-    if (isNaN(date.getTime())) {
+    // 解析ISO格式时间字符串（可能包含时区信息�?    const date = new Date(dateString);
+    // 检查日期是否有�?    if (isNaN(date.getTime())) {
       return dateString;
     }
     const year = date.getFullYear();
@@ -384,13 +379,11 @@ function handleDownload(record: object) {
   border: 1px solid rgba(0, 0, 0, 0.08);
   
   &.format-onnx {
-    // ONNX 专业配色：深灰蓝系
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+    // ONNX 专业配色：深灰蓝�?    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
   }
   
   &.format-openvino {
-    // OpenVINO 专业配色：深灰紫系
-    background: linear-gradient(135deg, #3d3d3d 0%, #4a4a4a 50%, #3d3d3d 100%);
+    // OpenVINO 专业配色：深灰紫�?    background: linear-gradient(135deg, #3d3d3d 0%, #4a4a4a 50%, #3d3d3d 100%);
   }
 }
 

@@ -53,20 +53,16 @@ const { validForm } = useFormValid(formRef)
 
 const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
-// 获取验证码
-async function getCode() {
-  // 情况一，未开启：则直接登录
-  if (captchaEnable === 'false') {
+// 获取验证�?async function getCode() {
+  // 情况一，未开启：则直接登�?  if (captchaEnable === 'false') {
     await handleLogin({})
   }
   else {
-    // 情况二，已开启：则展示验证码；只有完成验证码的情况，才进行登录
-    // 弹出验证码
-    verify.value.show()
+    // 情况二，已开启：则展示验证码；只有完成验证码的情况，才进行登�?    // 弹出验证�?    verify.value.show()
   }
 }
 
-// 根据域名，获得租户信息 && 获取租户ID
+// 根据域名，获得租户信�?&& 获取租户ID
 async function getTenantId() {
   if (tenantEnable === 'true') {
     const website = location.host
@@ -93,8 +89,7 @@ async function handleLogin(params) {
       password: data.password,
       username: data.username,
       captchaVerification: params.captchaVerification,
-      mode: 'none', // 不要默认的错误提示
-    })
+      mode: 'none', // 不要默认的错误提�?    })
     if (userInfo) {
       console.log(JSON.stringify(userInfo));
       await permissionStore.changePermissionCode(userInfo.permissions)

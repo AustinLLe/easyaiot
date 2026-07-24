@@ -19,12 +19,10 @@ const [register, { setFieldsValue, getFieldsValue, validateFields, resetFields, 
     showActionButtonGroup: false,
   })
 
-// 存储动态生成的字段信息 后续需要进行移除
-let dyFields: string[] = []
+// 存储动态生成的字段信息 后续需要进行移�?let dyFields: string[] = []
 
 const [innerRegister, { changeLoading, changeOkLoading, closeModal }] = useModalInner(async (data: MailTemplate) => {
-  // 打开时进行清空
-  await resetForm()
+  // 打开时进行清�?  await resetForm()
   const dyschemas: FormSchema[] = []
   data.params.forEach((item) => {
     // 这里加上前缀 防止和content/mail字段重名
@@ -71,7 +69,7 @@ async function submit() {
       templateParams: {},
     }
     Object.keys(fields).forEach((key) => {
-      // 这几个是固定的字段 不用处理
+      // 这几个是固定的字�?不用处理
       const fixedKeys = ['mail', 'code', 'content']
       if (fixedKeys.includes(key))
         return
@@ -92,16 +90,14 @@ async function submit() {
 }
 
 async function resetForm() {
-  // 这里需要清空动态表单
-  await removeDySchemas()
-  // 清除上一次的表单校验和参数
-  await resetFields()
+  // 这里需要清空动态表�?  await removeDySchemas()
+  // 清除上一次的表单校验和参�?  await resetFields()
   await clearValidate()
 }
 </script>
 
 <template>
-  <BasicModal v-bind="$attrs" title="发送邮件" width="600px" @register="innerRegister" @ok="submit" @cancel="resetForm">
+  <BasicModal v-bind="$attrs" title="发送邮�? width="600px" @register="innerRegister" @ok="submit" @cancel="resetForm">
     <BasicForm @register="register" />
   </BasicModal>
 </template>

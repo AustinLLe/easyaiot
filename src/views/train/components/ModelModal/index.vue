@@ -26,7 +26,7 @@
       <div class="model-edit-modal">
         <div class="edit-body">
           <aside class="edit-nav">
-            <div class="nav-title">配置项</div>
+            <div class="nav-title">配置�?/div>
             <button
               v-for="item in sectionList"
               :key="item.key"
@@ -131,7 +131,7 @@ const sectionList: Array<{
   component: Component;
 }> = [
   { key: 'basic', label: '基础信息', icon: InfoCircleOutlined, component: ModelBasicInfoSection },
-  { key: 'threshold', label: '默认阈值', icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
+  { key: 'threshold', label: '默认阈�?, icon: ExperimentOutlined, component: ModelDefaultThresholdSection },
   { key: 'draw_object', label: '绘制对象', icon: PartitionOutlined, component: ModelDrawObjectSection },
   { key: 'draw_style', label: '绘制样式', icon: BgColorsOutlined, component: ModelDefaultDrawStyleSection },
 ];
@@ -186,13 +186,13 @@ function handleCancel() {
 
 function validateBasicInfo(): string | null {
   if (!draft.value.name?.trim())
-    return '请输入模型名称';
+    return '请输入模型名�?;
   if (!draft.value.version?.trim())
-    return '请输入模型版本';
+    return '请输入模型版�?;
   if (!draft.value.imageUrl?.trim())
-    return '请上传模型图片';
+    return '请上传模型图�?;
   if (!draft.value.filePath?.trim())
-    return '请上传模型文件';
+    return '请上传模型文�?;
   return null;
 }
 
@@ -240,7 +240,7 @@ async function submitModel() {
     await api(buildApiPayload());
     if (draft.value.id)
       clearModelExtensionProfileCache(draft.value.id);
-    createMessage.success('已保存');
+    createMessage.success('已保�?);
     closeModal();
     resetDraft();
     emits('success');

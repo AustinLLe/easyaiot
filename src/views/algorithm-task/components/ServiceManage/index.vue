@@ -32,7 +32,7 @@
             <template v-else-if="column.dataIndex === 'server_info'">
               <div class="server-info">
                 <div v-if="record.server_ip">
-                  <span class="label">服务器:</span>
+                  <span class="label">服务�?</span>
                   <span>{{ record.server_ip }}</span>
                   <span v-if="record.port">:{{ record.port }}</span>
                 </div>
@@ -41,7 +41,7 @@
                   <span>{{ record.process_id }}</span>
                 </div>
                 <div v-if="record.last_heartbeat">
-                  <span class="label">最后心跳:</span>
+                  <span class="label">最后心�?</span>
                   <span>{{ formatDateTime(record.last_heartbeat) }}</span>
                 </div>
               </div>
@@ -183,7 +183,7 @@
     <!-- 摄像头选择模态框 -->
     <BasicModal
       v-model:open="cameraSelectVisible"
-      title="选择摄像头"
+      title="选择摄像�?
       @ok="handleConfirmCamera"
       @cancel="cameraSelectVisible = false"
     >
@@ -255,8 +255,7 @@ const [registerLogsModal, {openModal: openLogsModal}] = useModal();
 const [registerPlayerModal, {openModal: openPlayerModal}] = useModal();
 const [registerSnapImageModal, {openModal: openSnapImageModal}] = useModal();
 
-// 摄像头选择和播放相关
-const cameraSelectVisible = ref(false);
+// 摄像头选择和播放相�?const cameraSelectVisible = ref(false);
 const cameraStreams = ref<CameraStreamInfo[]>([]);
 const selectedCameraIndex = ref<number>(0);
 
@@ -288,16 +287,12 @@ const serviceList = computed(() => {
   console.log('计算服务列表 - taskInfo:', taskInfo.value);
   console.log('计算服务列表 - realtimeServiceInfo:', realtimeServiceInfo.value);
 
-  // 实时算法任务：显示统一服务（即使服务状态为空也显示）
-  if (taskInfo.value && taskInfo.value.task_type === 'realtime') {
-    // 获取关联的设备名称（多个设备用逗号分隔）
-    const deviceNames = taskInfo.value.device_names || [];
+  // 实时算法任务：显示统一服务（即使服务状态为空也显示�?  if (taskInfo.value && taskInfo.value.task_type === 'realtime') {
+    // 获取关联的设备名称（多个设备用逗号分隔�?    const deviceNames = taskInfo.value.device_names || [];
     const deviceNameStr = deviceNames.length > 0 ? deviceNames.join(', ') : undefined;
     
-    // 总是显示实时算法服务，即使服务状态信息为空
-    if (realtimeServiceInfo.value) {
-      // 有服务状态信息
-      const serviceItem = {
+    // 总是显示实时算法服务，即使服务状态信息为�?    if (realtimeServiceInfo.value) {
+      // 有服务状态信�?      const serviceItem = {
         id: `realtime_${taskInfo.value.id}`,
         service_type: 'realtime',
         service_name: '实时算法服务',
@@ -311,7 +306,7 @@ const serviceList = computed(() => {
         raw_data: realtimeServiceInfo.value,
         actionLoading: false,
       };
-      console.log('添加实时服务项:', serviceItem);
+      console.log('添加实时服务�?', serviceItem);
       list.push(serviceItem);
     } else {
       // 没有服务状态信息，显示默认项（服务未启动）
@@ -329,25 +324,21 @@ const serviceList = computed(() => {
         raw_data: null,
         actionLoading: false,
       };
-      console.log('添加默认实时服务项:', defaultItem);
+      console.log('添加默认实时服务�?', defaultItem);
       list.push(defaultItem);
     }
   }
 
-  // 抓拍算法任务：为每个关联的设备显示一条服务记录
-  if (taskInfo.value && taskInfo.value.task_type === 'snap') {
-    // 获取关联的设备列表
-    const deviceIds = taskInfo.value.device_ids || [];
+  // 抓拍算法任务：为每个关联的设备显示一条服务记�?  if (taskInfo.value && taskInfo.value.task_type === 'snap') {
+    // 获取关联的设备列�?    const deviceIds = taskInfo.value.device_ids || [];
     const deviceNames = taskInfo.value.device_names || [];
     
     if (deviceIds.length > 0) {
-      // 为每个设备创建一条服务记录
-      deviceIds.forEach((deviceId: string, index: number) => {
+      // 为每个设备创建一条服务记�?      deviceIds.forEach((deviceId: string, index: number) => {
         const deviceName = deviceNames[index] || deviceId;
         
     if (snapServiceInfo.value) {
-      // 有服务状态信息
-      const serviceItem = {
+      // 有服务状态信�?      const serviceItem = {
             id: `snap_${taskInfo.value.id}_${deviceId}`,
         service_type: 'snap',
             service_name: `抓拍算法服务 - ${deviceName}`,
@@ -362,7 +353,7 @@ const serviceList = computed(() => {
         raw_data: snapServiceInfo.value,
         actionLoading: false,
       };
-      console.log('添加抓拍服务项:', serviceItem);
+      console.log('添加抓拍服务�?', serviceItem);
       list.push(serviceItem);
     } else {
       // 没有服务状态信息，显示默认项（服务未启动）
@@ -381,13 +372,12 @@ const serviceList = computed(() => {
             raw_data: null,
             actionLoading: false,
           };
-          console.log('添加默认抓拍服务项:', defaultItem);
+          console.log('添加默认抓拍服务�?', defaultItem);
           list.push(defaultItem);
         }
       });
     } else {
-      // 没有关联设备，显示一条默认记录
-      if (snapServiceInfo.value) {
+      // 没有关联设备，显示一条默认记�?      if (snapServiceInfo.value) {
         const serviceItem = {
           id: `snap_${taskInfo.value.id}`,
           service_type: 'snap',
@@ -423,8 +413,7 @@ const serviceList = computed(() => {
     }
   }
 
-  // 添加算法模型服务（兼容旧版本）
-  if (taskInfo.value && taskInfo.value.algorithm_services && Array.isArray(taskInfo.value.algorithm_services)) {
+  // 添加算法模型服务（兼容旧版本�?  if (taskInfo.value && taskInfo.value.algorithm_services && Array.isArray(taskInfo.value.algorithm_services)) {
     taskInfo.value.algorithm_services.forEach((service: any) => {
       let server_ip: string | undefined;
       let port: string | undefined;
@@ -461,21 +450,20 @@ const serviceList = computed(() => {
     });
   }
 
-  console.log('最终服务列表:', list);
+  console.log('最终服务列�?', list);
   return list;
 });
 
-// 表格列定义
-const getColumns = () => [
+// 表格列定�?const getColumns = () => [
   {
-    title: '摄像头',
+    title: '摄像�?,
     dataIndex: 'device_name',
     width: 150,
     fixed: 'left',
     customRender: ({text}: { text: string }) => text || '--',
   },
   {
-    title: '运行状态',
+    title: '运行状�?,
     dataIndex: 'status',
     width: 100,
   },
@@ -498,13 +486,13 @@ const getColumns = () => [
     customRender: ({text}: { text: number }) => text || '--',
   },
   {
-    title: '最后心跳',
+    title: '最后心�?,
     dataIndex: 'last_heartbeat',
     width: 180,
     customRender: ({text}: { text: string }) => text ? formatDateTime(text) : '--',
   },
   {
-    title: '服务器信息',
+    title: '服务器信�?,
     dataIndex: 'server_info',
     width: 220,
   },
@@ -532,8 +520,7 @@ const getServiceIcon = (serviceType: string) => {
   return iconMap[serviceType] || 'ant-design:appstore-outlined';
 };
 
-// 获取状态颜色
-const getStatusColor = (status: string) => {
+// 获取状态颜�?const getStatusColor = (status: string) => {
   const colorMap: Record<string, string> = {
     running: 'green',
     stopped: 'default',
@@ -542,18 +529,16 @@ const getStatusColor = (status: string) => {
   return colorMap[status] || 'default';
 };
 
-// 获取状态文本
-const getStatusText = (status: string) => {
+// 获取状态文�?const getStatusText = (status: string) => {
   const textMap: Record<string, string> = {
-    running: '运行中',
-    stopped: '已停止',
+    running: '运行�?,
+    stopped: '已停�?,
     error: '错误',
   };
   return textMap[status] || status;
 };
 
-// 格式化时间
-const formatDateTime = (dateString: string) => {
+// 格式化时�?const formatDateTime = (dateString: string) => {
   if (!dateString) return '--';
   try {
     const date = new Date(dateString);
@@ -576,14 +561,13 @@ const formatDateTime = (dateString: string) => {
 const loadServiceInfo = async (taskId: number) => {
   loading.value = true;
   try {
-    // 并行获取任务详情和服务状态
-    const [taskResponse, servicesStatusResponse] = await Promise.all([
+    // 并行获取任务详情和服务状�?    const [taskResponse, servicesStatusResponse] = await Promise.all([
       getAlgorithmTask(taskId).catch((err) => {
         console.error('获取任务信息失败', err);
         return null;
       }),
       getTaskServicesStatus(taskId).catch((err) => {
-        console.error('获取服务状态失败', err);
+        console.error('获取服务状态失�?, err);
         return null;
       }),
     ]);
@@ -591,8 +575,7 @@ const loadServiceInfo = async (taskId: number) => {
     // 处理任务详情响应
     if (taskResponse) {
       if (taskResponse && typeof taskResponse === 'object' && 'code' in taskResponse) {
-        // 如果是完整响应对象（包含 code 字段）
-        if (taskResponse.code !== 0) {
+        // 如果是完整响应对象（包含 code 字段�?        if (taskResponse.code !== 0) {
           createMessage.error(taskResponse.msg || '获取任务信息失败');
           return;
         }
@@ -605,18 +588,16 @@ const loadServiceInfo = async (taskId: number) => {
 
     console.log('任务信息:', taskInfo.value);
 
-    // 处理服务状态响应
-    if (servicesStatusResponse) {
+    // 处理服务状态响�?    if (servicesStatusResponse) {
       if (servicesStatusResponse && typeof servicesStatusResponse === 'object' && 'code' in servicesStatusResponse) {
         // 完整响应对象
         if (servicesStatusResponse.code === 0 && servicesStatusResponse.data) {
           extractorInfo.value = servicesStatusResponse.data.extractor || null;
           sorterInfo.value = servicesStatusResponse.data.sorter || null;
           pusherInfo.value = servicesStatusResponse.data.pusher || null;
-          // 即使 realtime_service 为 null，也要设置为 null（而不是 undefined）
-          realtimeServiceInfo.value = servicesStatusResponse.data.realtime_service ?? null;
+          // 即使 realtime_service �?null，也要设置为 null（而不�?undefined�?          realtimeServiceInfo.value = servicesStatusResponse.data.realtime_service ?? null;
           snapServiceInfo.value = servicesStatusResponse.data.snap_service ?? null;
-          console.log('服务状态数据:', servicesStatusResponse.data);
+          console.log('服务状态数�?', servicesStatusResponse.data);
           console.log('实时服务信息:', realtimeServiceInfo.value);
           console.log('实时服务信息类型:', typeof realtimeServiceInfo.value);
           console.log('实时服务信息是否为null:', realtimeServiceInfo.value === null);
@@ -625,26 +606,24 @@ const loadServiceInfo = async (taskId: number) => {
           console.warn('服务状态响应code不为0:', servicesStatusResponse);
         }
       } else {
-        // 直接返回的数据对象（响应转换器已处理）
-        const statusData = servicesStatusResponse as any;
+        // 直接返回的数据对象（响应转换器已处理�?        const statusData = servicesStatusResponse as any;
         extractorInfo.value = statusData.extractor || null;
         sorterInfo.value = statusData.sorter || null;
         pusherInfo.value = statusData.pusher || null;
         realtimeServiceInfo.value = statusData.realtime_service ?? null;
         snapServiceInfo.value = statusData.snap_service ?? null;
         console.log('服务状态数据（已转换）:', statusData);
-        console.log('实时服务信息（已转换）:', realtimeServiceInfo.value);
-        console.log('实时服务信息类型（已转换）:', typeof realtimeServiceInfo.value);
+        console.log('实时服务信息（已转换�?', realtimeServiceInfo.value);
+        console.log('实时服务信息类型（已转换�?', typeof realtimeServiceInfo.value);
       }
     } else {
-      console.warn('服务状态响应为空');
-      // 如果统一接口失败，回退到分别获取
-      const promises: Promise<any>[] = [];
+      console.warn('服务状态响应为�?);
+      // 如果统一接口失败，回退到分别获�?      const promises: Promise<any>[] = [];
 
       if (taskInfo.value?.extractor_id) {
         promises.push(
           getFrameExtractor(taskInfo.value.extractor_id).catch((err) => {
-            console.error('获取抽帧器信息失败', err);
+            console.error('获取抽帧器信息失�?, err);
             return null;
           })
         );
@@ -655,7 +634,7 @@ const loadServiceInfo = async (taskId: number) => {
       if (taskInfo.value?.sorter_id) {
         promises.push(
           getSorter(taskInfo.value.sorter_id).catch((err) => {
-            console.error('获取排序器信息失败', err);
+            console.error('获取排序器信息失�?, err);
             return null;
           })
         );
@@ -676,8 +655,7 @@ const loadServiceInfo = async (taskId: number) => {
 
       const results = await Promise.all(promises);
 
-      // 处理抽帧器响应
-      if (results[0]) {
+      // 处理抽帧器响�?      if (results[0]) {
         if (results[0] && typeof results[0] === 'object' && 'code' in results[0]) {
           extractorInfo.value = results[0].code === 0 ? results[0].data : null;
         } else {
@@ -687,8 +665,7 @@ const loadServiceInfo = async (taskId: number) => {
         extractorInfo.value = null;
       }
 
-      // 处理排序器响应
-      if (results[1]) {
+      // 处理排序器响�?      if (results[1]) {
         if (results[1] && typeof results[1] === 'object' && 'code' in results[1]) {
           sorterInfo.value = results[1].code === 0 ? results[1].data : null;
         } else {
@@ -714,7 +691,7 @@ const loadServiceInfo = async (taskId: number) => {
     createMessage.error('加载服务信息失败');
   } finally {
     loading.value = false;
-    console.log('加载完成，loading状态:', loading.value);
+    console.log('加载完成，loading状�?', loading.value);
     console.log('加载完成，taskInfo:', taskInfo.value);
     console.log('加载完成，serviceList长度:', serviceList.value.length);
     console.log('加载完成，serviceList内容:', serviceList.value);
@@ -729,11 +706,11 @@ const loadServiceInfo = async (taskId: number) => {
 // 查看日志
 const handleViewLogs = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 对于抓拍算法任务，使用 'snap' 作为服务类型，但实际调用 realtime 日志接口
+  // 对于抓拍算法任务，使�?'snap' 作为服务类型，但实际调用 realtime 日志接口
   const serviceType = record.service_type === 'snap' ? 'realtime' : record.service_type;
   
   openLogsModal(true, {
@@ -745,8 +722,7 @@ const handleViewLogs = async (record: any) => {
 
 // 查看抓拍空间
 const handleViewSnapSpaces = async (record: any) => {
-  // 如果记录中有设备ID，直接使用该设备的抓拍空间
-  if (record.device_id && record.device_name) {
+  // 如果记录中有设备ID，直接使用该设备的抓拍空�?  if (record.device_id && record.device_name) {
     const deviceId = record.device_id;
     const deviceName = record.device_name;
     
@@ -759,23 +735,21 @@ const handleViewSnapSpaces = async (record: any) => {
       if (space) {
         handleViewSnapImages(space.id, deviceId, deviceName);
       } else {
-        createMessage.warning(`摄像头 ${deviceName} 暂无抓拍空间`);
+        createMessage.warning(`摄像�?${deviceName} 暂无抓拍空间`);
       }
     } catch (error) {
-      console.error(`获取设备 ${deviceId} 的抓拍空间失败:`, error);
+      console.error(`获取设备 ${deviceId} 的抓拍空间失�?`, error);
       createMessage.error('获取抓拍空间失败');
     }
     return;
   }
 
-  // 兼容旧逻辑：如果没有设备ID，使用任务的所有设备（这种情况应该不会出现）
-  if (!taskInfo.value || !taskInfo.value.device_ids || taskInfo.value.device_ids.length === 0) {
+  // 兼容旧逻辑：如果没有设备ID，使用任务的所有设备（这种情况应该不会出现�?  if (!taskInfo.value || !taskInfo.value.device_ids || taskInfo.value.device_ids.length === 0) {
     createMessage.warning('任务未关联摄像头');
     return;
   }
 
-  // 如果只有一个摄像头，直接打开该摄像头的抓拍空间
-  if (taskInfo.value.device_ids.length === 1) {
+  // 如果只有一个摄像头，直接打开该摄像头的抓拍空�?  if (taskInfo.value.device_ids.length === 1) {
     const deviceId = taskInfo.value.device_ids[0];
     const deviceName = taskInfo.value.device_names?.[0] || deviceId;
     
@@ -788,17 +762,16 @@ const handleViewSnapSpaces = async (record: any) => {
       if (space) {
         handleViewSnapImages(space.id, deviceId, deviceName);
       } else {
-        createMessage.warning(`摄像头 ${deviceName} 暂无抓拍空间`);
+        createMessage.warning(`摄像�?${deviceName} 暂无抓拍空间`);
       }
     } catch (error) {
-      console.error(`获取设备 ${deviceId} 的抓拍空间失败:`, error);
+      console.error(`获取设备 ${deviceId} 的抓拍空间失�?`, error);
       createMessage.error('获取抓拍空间失败');
     }
     return;
   }
 
-  // 多个摄像头，显示列表（这种情况应该不会出现，因为每条记录都有device_id）
-  snapSpacesVisible.value = true;
+  // 多个摄像头，显示列表（这种情况应该不会出现，因为每条记录都有device_id�?  snapSpacesVisible.value = true;
   snapSpacesLoading.value = true;
   snapSpacesList.value = [];
 
@@ -822,7 +795,7 @@ const handleViewSnapSpaces = async (record: any) => {
           space: space,
         };
       } catch (error) {
-        console.error(`获取设备 ${deviceId} 的抓拍空间失败:`, error);
+        console.error(`获取设备 ${deviceId} 的抓拍空间失�?`, error);
         return {
           device_id: deviceId,
           device_name: taskInfo.value?.device_names?.find((name: string, index: number) => 
@@ -857,22 +830,20 @@ const handleViewSnapImages = (spaceId: number, deviceId: string, deviceName?: st
 // 启动服务（通过启动算法任务来启动服务）
 const handleStart = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await startAlgorithmTask(taskInfo.value.id);
-    // 处理响应（由于 isTransformResponse: true，成功时返回的是任务对象）
-    let alreadyRunning = false;
+    // 处理响应（由�?isTransformResponse: true，成功时返回的是任务对象�?    let alreadyRunning = false;
     if (response && (response as any).id) {
-      // 直接返回的是任务对象，检查 already_running 字段
+      // 直接返回的是任务对象，检�?already_running 字段
       alreadyRunning = (response as any).already_running || false;
       if (alreadyRunning) {
-        createMessage.warning('任务运行中');
+        createMessage.warning('任务运行�?);
       } else {
         createMessage.success('服务启动成功');
       }
@@ -881,12 +852,11 @@ const handleStart = async (record: any) => {
         await loadServiceInfo(taskInfo.value!.id);
       }, 2000);
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 完整响应对象（这种情况应该很少见）
-      if ((response as any).code === 0) {
+      // 完整响应对象（这种情况应该很少见�?      if ((response as any).code === 0) {
         const data = (response as any).data || response;
         alreadyRunning = data?.already_running || false;
         if (alreadyRunning) {
-          createMessage.warning('任务运行中');
+          createMessage.warning('任务运行�?);
         } else {
           createMessage.success('服务启动成功');
         }
@@ -910,23 +880,20 @@ const handleStart = async (record: any) => {
 // 停止服务（通过停止算法任务来停止服务）
 const handleStop = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await stopAlgorithmTask(taskInfo.value.id);
-    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
-    if (response && (response as any).id) {
+    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?    if (response && (response as any).id) {
       createMessage.success('服务停止成功');
       // 重新加载服务信息
       await loadServiceInfo(taskInfo.value.id);
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
-      if ((response as any).code === 0) {
+      // 如果返回的是完整响应对象（包�?code�?      if ((response as any).code === 0) {
         createMessage.success('服务停止成功');
         // 重新加载服务信息
         await loadServiceInfo(taskInfo.value.id);
@@ -947,23 +914,20 @@ const handleStop = async (record: any) => {
 // 重启服务（通过重启算法任务来重启服务）
 const handleRestart = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await restartAlgorithmTask(taskInfo.value.id);
-    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
-    if (response && (response as any).id) {
+    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?    if (response && (response as any).id) {
       createMessage.success('服务重启成功');
       // 重新加载服务信息
       await loadServiceInfo(taskInfo.value.id);
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
-      if ((response as any).code === 0) {
+      // 如果返回的是完整响应对象（包�?code�?      if ((response as any).code === 0) {
         createMessage.success('服务重启成功');
         // 重新加载服务信息
         await loadServiceInfo(taskInfo.value.id);
@@ -1008,29 +972,26 @@ const handlePlayStream = async () => {
   
   try {
     // 获取推流地址列表
-    // 注意：由于 isTransformResponse: true，响应转换器会直接返回 data.data
-    // 所以 response 可能是数组，也可能是包含 code 的完整响应对象
-    const response = await getTaskStreams(taskInfo.value.id);
+    // 注意：由�?isTransformResponse: true，响应转换器会直接返�?data.data
+    // 所�?response 可能是数组，也可能是包含 code 的完整响应对�?    const response = await getTaskStreams(taskInfo.value.id);
     console.log('获取推流地址响应:', response);
     
-    // 处理响应：可能是数组，也可能是包含 code 的对象
-    let streams: CameraStreamInfo[] = [];
+    // 处理响应：可能是数组，也可能是包�?code 的对�?    let streams: CameraStreamInfo[] = [];
     if (Array.isArray(response)) {
-      // 直接是数组
-      streams = response;
-      console.log('响应是数组，摄像头数量:', streams.length);
+      // 直接是数�?      streams = response;
+      console.log('响应是数组，摄像头数�?', streams.length);
     } else if (response && typeof response === 'object' && 'code' in response) {
       // 完整响应对象
       if (response.code === 0 && response.data && Array.isArray(response.data)) {
         streams = response.data;
-        console.log('响应是对象，摄像头数量:', streams.length);
+        console.log('响应是对象，摄像头数�?', streams.length);
       } else {
         console.warn('响应code不为0或data不是数组:', response);
         createMessage.warning(response.msg || '该任务未关联摄像头或暂无推流地址');
         return;
       }
     } else {
-      console.warn('响应格式不正确:', response);
+      console.warn('响应格式不正�?', response);
       createMessage.warning('该任务未关联摄像头或暂无推流地址');
       return;
     }
@@ -1042,8 +1003,7 @@ const handlePlayStream = async () => {
     
     cameraStreams.value = streams;
     
-    // 过滤出有推流地址的摄像头（优先检查AI HTTP流地址）
-    const availableStreams = cameraStreams.value.filter(s => 
+    // 过滤出有推流地址的摄像头（优先检查AI HTTP流地址�?    const availableStreams = cameraStreams.value.filter(s => 
       s.ai_http_stream || s.pusher_rtmp_url || s.rtmp_stream || s.pusher_http_url || s.http_stream
     );
     
@@ -1052,12 +1012,10 @@ const handlePlayStream = async () => {
       return;
     }
     
-    // 如果只有一个摄像头，直接播放
-    if (availableStreams.length === 1) {
+    // 如果只有一个摄像头，直接播�?    if (availableStreams.length === 1) {
       playCameraStream(availableStreams[0]);
     } else {
-      // 多个摄像头，显示选择对话框
-      cameraStreams.value = availableStreams;
+      // 多个摄像头，显示选择对话�?      cameraStreams.value = availableStreams;
       selectedCameraIndex.value = 0;
       cameraSelectVisible.value = true;
     }
@@ -1089,26 +1047,22 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
-    // 如果路径为空，使用默认路径
-    if (!path) {
+    // 如果路径为空，使用默认路�?    if (!path) {
       path = 'live';
     }
     
-    // 添加.flv后缀（如果还没有）
-    if (!path.endsWith('.flv')) {
+    // 添加.flv后缀（如果还没有�?    if (!path.endsWith('.flv')) {
       path = `${path}.flv`;
     }
     
-    // 生成HTTP FLV地址（默认使用8080端口）
-    return `http://${server}:8080/${path}`;
+    // 生成HTTP FLV地址（默认使�?080端口�?    return `http://${server}:8080/${path}`;
   } catch (error) {
     console.error('RTMP地址转换失败:', error);
     return null;
   }
 };
 
-// 播放摄像头推流
-const playCameraStream = (stream: CameraStreamInfo) => {
+// 播放摄像头推�?const playCameraStream = (stream: CameraStreamInfo) => {
   // 优先使用AI HTTP流地址
   // 其次使用推送器的HTTP地址
   // 再次使用推送器的RTMP地址，转换为HTTP地址
@@ -1142,12 +1096,11 @@ const playCameraStream = (stream: CameraStreamInfo) => {
   }
   
   if (!httpStream) {
-    createMessage.warning(`摄像头 ${stream.device_name} 暂无推流地址`);
+    createMessage.warning(`摄像�?${stream.device_name} 暂无推流地址`);
     return;
   }
   
-  // 打开播放器
-  openPlayerModal(true, {
+  // 打开播放�?  openPlayerModal(true, {
     id: stream.device_id,
     http_stream: httpStream,
   });
@@ -1161,8 +1114,7 @@ const handleClose = () => {
 
 // 注册抽屉
 const [register] = useModalInner(async (data) => {
-  // 重置状态
-  taskInfo.value = null;
+  // 重置状�?  taskInfo.value = null;
   extractorInfo.value = null;
   sorterInfo.value = null;
   pusherInfo.value = null;

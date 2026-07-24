@@ -65,7 +65,7 @@
               下载
             </a-button>
             <a-popconfirm
-              title="确定删除此导出记录吗？"
+              title="确定删除此导出记录吗�?
               ok-text="确认"
               cancel-text="取消"
               @confirm="handleDelete(record)"
@@ -161,16 +161,14 @@ const formatColors: Record<string, string> = {
   openvino: 'cyan',
 };
 
-// 状态标签映射
-const statusLabels: Record<string, string> = {
-  PENDING: '等待中',
-  PROCESSING: '处理中',
-  COMPLETED: '已完成',
+// 状态标签映�?const statusLabels: Record<string, string> = {
+  PENDING: '等待�?,
+  PROCESSING: '处理�?,
+  COMPLETED: '已完�?,
   FAILED: '失败',
 };
 
-// 状态徽章映射
-const getStatusBadgeStatus = (status: string): 'default' | 'processing' | 'success' | 'error' => {
+// 状态徽章映�?const getStatusBadgeStatus = (status: string): 'default' | 'processing' | 'success' | 'error' => {
   const statusMap: Record<string, 'default' | 'processing' | 'success' | 'error'> = {
     PENDING: 'default',
     PROCESSING: 'processing',
@@ -185,8 +183,7 @@ const state = reactive({
   isTableMode: false,
 });
 
-// 数据状态
-const models = ref<any[]>([]);
+// 数据状�?const models = ref<any[]>([]);
 const modelOptions = ref<any[]>([]);
 const exportLoading = reactive({
   onnx: false,
@@ -219,15 +216,15 @@ function handleDel(record: any) {
 
 // 处理表单字段值变化（卡片模式，实时监听）
 function handleFieldValueChange(field: string, value: any) {
-  // 不再需要处理 model_id 变化
+  // 不再需要处�?model_id 变化
 }
 
 // 处理表格表单字段值变化（表格模式，实时监听）
 function handleTableFieldValueChange(field: string, value: any) {
-  // 不再需要处理 model_id 变化
+  // 不再需要处�?model_id 变化
 }
 
-// 判断是否为 pt 模型（可导出的模型）
+// 判断是否�?pt 模型（可导出的模型）
 const isPtModel = (model: any): boolean => {
   if (!model.model_path) {
     return false;
@@ -239,24 +236,22 @@ const isPtModel = (model: any): boolean => {
 
 // 加载模型列表（只加载 pt 格式的模型）
 const loadModels = async () => {
-  // 如果正在加载或已加载，避免重复请求
-  if (modelsLoading.value || modelsLoaded.value) {
+  // 如果正在加载或已加载，避免重复请�?  if (modelsLoading.value || modelsLoaded.value) {
     return;
   }
   
   modelsLoading.value = true;
   try {
     const response = await getModelPage({ page: 1, size: 100 });
-    // 处理响应数据：可能是转换后的数组，也可能是包含 code/data 的对象
-    let allModels: any[] = [];
+    // 处理响应数据：可能是转换后的数组，也可能是包�?code/data 的对�?    let allModels: any[] = [];
     if (Array.isArray(response)) {
       // 如果响应直接是数组（已转换）
       allModels = response;
     } else if (response && response.code === 0 && response.data) {
-      // 如果响应包含 code 和 data
+      // 如果响应包含 code �?data
       allModels = Array.isArray(response.data) ? response.data : [];
     } else if (response && response.data && Array.isArray(response.data)) {
-      // 如果响应有 data 字段且是数组
+      // 如果响应�?data 字段且是数组
       allModels = response.data;
     } else if (response && Array.isArray(response)) {
       allModels = response;
@@ -324,7 +319,7 @@ function formatDuration(seconds?: number): string {
   if (minutes <= 0) {
     return `${remainSeconds}秒`;
   }
-  return `${minutes}分${remainSeconds.toString().padStart(2, '0')}秒`;
+  return `${minutes}�?{remainSeconds.toString().padStart(2, '0')}秒`;
 }
 
 function getElapsedText(record: any): string {
@@ -351,13 +346,12 @@ const getExportListApi = async (params: any) => {
       model_id: params.model_id || undefined,
       format: params.format || undefined,
       status: params.status || undefined,
-      search: params.search || undefined,  // 支持按模型名称搜索
-      page: params.page || 1,
+      search: params.search || undefined,  // 支持按模型名称搜�?      page: params.page || 1,
       per_page: params.pageSize || 10,
     });
     
-    // transformResponseHook 会在 code === 0 时返回 data 部分
-    // 所以 res 应该是 { items: [...], total: ... } 格式
+    // transformResponseHook 会在 code === 0 时返�?data 部分
+    // 所�?res 应该�?{ items: [...], total: ... } 格式
     const data = res || {};
     
     // 使用后端返回的model_name，如果没有则从模型列表中查找
@@ -372,8 +366,7 @@ const getExportListApi = async (params: any) => {
         modelName = model?.name || `模型${item.model_id}`;
         modelVersion = model?.version || null;
       } else {
-        // 如果后端返回了model_name，也尝试获取版本号
-        const model = models.value.find((m: any) => m.id === item.model_id);
+        // 如果后端返回了model_name，也尝试获取版本�?        const model = models.value.find((m: any) => m.id === item.model_id);
         modelVersion = model?.version || null;
       }
       
@@ -408,7 +401,7 @@ const getExportListApi = async (params: any) => {
 // 表格配置
 const [registerTable, { reload, getForm }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '模型导出记录',
   api: async (params) => {
@@ -456,19 +449,17 @@ const [registerTable, { reload, getForm }] = useTable({
 
 // 打开导出确认弹框
 const handleExport = () => {
-  // 打开确认弹框，让用户在弹框中选择模型和格式
-  openExportModal(true, {});
+  // 打开确认弹框，让用户在弹框中选择模型和格�?  openExportModal(true, {});
 };
 
-// 确认导出后执行实际导出
-const handleExportConfirm = async (data: {
+// 确认导出后执行实际导�?const handleExportConfirm = async (data: {
   modelId: number;
   format: 'onnx' | 'openvino';
 }) => {
   const { modelId, format } = data;
 
   if (!modelId || !format) {
-    createMessage.warning('请选择PT模型和导出格式');
+    createMessage.warning('请选择PT模型和导出格�?);
     return;
   }
 
@@ -476,10 +467,10 @@ const handleExportConfirm = async (data: {
   try {
     const res = await exportModel(modelId, format, {});
     
-    // transformResponseHook 会在 code === 0 时返回 data 部分
-    // 所以 res 应该是 { task_id, export_id, ... } 格式
+    // transformResponseHook 会在 code === 0 时返�?data 部分
+    // 所�?res 应该�?{ task_id, export_id, ... } 格式
     if (res) {
-      createMessage.success('导出任务已提交，列表将自动刷新进度');
+      createMessage.success('导出任务已提交，列表将自动刷新进�?);
       
       // 关闭弹框
       closeExportModal();
@@ -487,8 +478,7 @@ const handleExportConfirm = async (data: {
       // 刷新列表
       handleSuccess();
       
-      // 开始轮询状态
-      const taskId = res.task_id;
+      // 开始轮询状�?      const taskId = res.task_id;
       const exportId = res.export_id;
       if (exportId) {
         startPolling(exportId, true);
@@ -536,7 +526,7 @@ async function pollExportStatus(key: number | string) {
       }
     }
   } catch (error) {
-    console.error('状态检查失败', error);
+    console.error('状态检查失�?, error);
   }
 }
 
@@ -573,7 +563,7 @@ const handleDownload = async (record: any) => {
     } else if (response.data instanceof Blob) {
       blob = response.data;
     } else {
-      throw new Error('无效的响应格式');
+      throw new Error('无效的响应格�?);
     }
     
     // 创建下载链接
@@ -581,8 +571,7 @@ const handleDownload = async (record: any) => {
     const link = document.createElement('a');
     link.href = url;
     
-    // 从响应头或记录中获取文件名
-    const fileName = `${record.model_id || 'model'}_${record.format}.${getFileExtension(record.format)}`;
+    // 从响应头或记录中获取文件�?    const fileName = `${record.model_id || 'model'}_${record.format}.${getFileExtension(record.format)}`;
     link.download = fileName;
     
     document.body.appendChild(link);
@@ -605,7 +594,7 @@ const handleDownload = async (record: any) => {
 const handleDelete = async (record: any) => {
   try {
     await deleteExportedModel(record.id);
-    createMessage.success('导出记录已删除');
+    createMessage.success('导出记录已删�?);
     handleSuccess();
   } catch (error: any) {
     console.error('删除失败:', error);
@@ -613,8 +602,7 @@ const handleDelete = async (record: any) => {
   }
 };
 
-// 获取文件扩展名
-const getFileExtension = (format: string): string => {
+// 获取文件扩展�?const getFileExtension = (format: string): string => {
   const extensions: Record<string, string> = {
     onnx: 'onnx',
     openvino: 'zip', // OpenVINO导出为目录，通常打包为zip
@@ -622,12 +610,10 @@ const getFileExtension = (format: string): string => {
   return extensions[format] || 'bin';
 };
 
-// 格式化日期
-const formatDate = (dateString: string): string => {
+// 格式化日�?const formatDate = (dateString: string): string => {
   if (!dateString) return '--';
   try {
-    // dayjs会自动解析ISO格式时间字符串（包括时区信息）
-    const date = dayjs(dateString);
+    // dayjs会自动解析ISO格式时间字符串（包括时区信息�?    const date = dayjs(dateString);
     if (!date.isValid()) {
       return dateString;
     }
@@ -637,13 +623,11 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// 初始化
-onMounted(() => {
+// 初始�?onMounted(() => {
   loadModels();
 });
 
-// 组件卸载时清理轮询
-onUnmounted(() => {
+// 组件卸载时清理轮�?onUnmounted(() => {
   pollingIntervals.value.forEach((interval) => {
     clearInterval(interval);
   });

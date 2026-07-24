@@ -25,7 +25,7 @@
                 icon: 'material-symbols:delete-outline-rounded',
                 popConfirm: {
                   placement: 'topRight',
-                  title: '是否确认删除？',
+                  title: '是否确认删除�?,
                   confirm: handleDelete.bind(null, record),
                 },
               },
@@ -58,7 +58,7 @@ const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '消息配置',
   api: messageConfigQuery,

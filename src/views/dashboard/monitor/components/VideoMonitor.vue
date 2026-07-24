@@ -1,25 +1,23 @@
 <template>
   <div class="video-monitor">
     <div class="monitor-header">
-      <!-- 流类型切换 Tab -->
+      <!-- 流类型切�?Tab -->
       <div class="stream-type-tabs">
         <div
           :class="['tab-item', { active: streamType === 'video' }]"
           @click="switchStreamType('video')"
         >
-          视频流
-        </div>
+          视频�?        </div>
         <div
           :class="['tab-item', { active: streamType === 'ai' }]"
           @click="switchStreamType('ai')"
         >
-          AI流
-        </div>
+          AI�?        </div>
       </div>
       <div class="header-title">实时监控</div>
       <div class="header-time">{{ currentTime }}</div>
       <div class="header-location">{{ currentLocation }}</div>
-      <!-- 分屏切换工具栏 -->
+      <!-- 分屏切换工具�?-->
       <div class="split-toolbar">
         <div
           v-for="layout in splitLayouts"
@@ -45,7 +43,7 @@
       >
         <div class="video-container">
           <div v-if="!video.url" class="video-placeholder">
-            <img src="@/assets/images/bigscreen/camera-icon.svg" alt="摄像头" class="camera-icon" />
+            <img src="@/assets/images/bigscreen/camera-icon.svg" alt="摄像�? class="camera-icon" />
             <div class="placeholder-text">{{ video.name || `视频${index + 1}` }}</div>
           </div>
           <Jessibuca
@@ -65,10 +63,10 @@
     <div v-if="dashboardConfig.showBottomRecords" class="alert-record-list">
       <div class="alert-record-header">
         <span class="header-title">告警录像</span>
-        <span class="header-count">共 {{ alertRecordList.length }} 条</span>
+        <span class="header-count">�?{{ alertRecordList.length }} �?/span>
       </div>
       <div class="alert-record-wrapper">
-        <!-- 左滑动按钮 -->
+        <!-- 左滑动按�?-->
         <div
           v-if="canScrollLeft"
           class="scroll-btn scroll-btn-left"
@@ -76,7 +74,7 @@
         >
           <Icon icon="ant-design:left-outlined" :size="20" />
         </div>
-        <!-- 右滑动按钮 -->
+        <!-- 右滑动按�?-->
         <div
           v-if="canScrollRight"
           class="scroll-btn scroll-btn-right"
@@ -114,7 +112,7 @@
     
     <div class="boxfoot"></div>
     
-    <!-- 视频播放器弹窗 -->
+    <!-- 视频播放器弹�?-->
     <DialogPlayer @register="registerPlayerModal" />
   </div>
 </template>
@@ -149,14 +147,12 @@ const dashboardConfig = computed(() => props.dashboardConfig || defaultMonitorDa
 
 const { createMessage } = useMessage()
 
-// 播放器弹窗
-const [registerPlayerModal, { openModal: openPlayerModal }] = useModal()
+// 播放器弹�?const [registerPlayerModal, { openModal: openPlayerModal }] = useModal()
 
 const currentTime = ref('')
 const activeVideoIndex = ref(0)
 const currentLayout = ref('1')
-const streamType = ref<'video' | 'ai'>('video') // 流类型：'video' 视频流，'ai' AI流
-const videoRefs = ref<(InstanceType<typeof Jessibuca> | null)[]>([])
+const streamType = ref<'video' | 'ai'>('video') // 流类型：'video' 视频流，'ai' AI�?const videoRefs = ref<(InstanceType<typeof Jessibuca> | null)[]>([])
 const alertRecordList = ref<any[]>([])
 const loadingRecords = ref(false)
 const scrollContainerRef = ref<HTMLElement | null>(null)
@@ -164,18 +160,15 @@ const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
 const internalVideoList = ref<any[]>([])
 
-// 防重复提示：记录最近提示的时间和内容
-let lastVideoErrorTime = 0
+// 防重复提示：记录最近提示的时间和内�?let lastVideoErrorTime = 0
 let lastVideoErrorMsg = ''
 
-// 获取录像播放地址（参考录像空间的处理方式）
-const getVideoUrl = (videoUrl: string): string => {
+// 获取录像播放地址（参考录像空间的处理方式�?const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl) return ''
-  // 如果是完整URL，直接返回
-  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+  // 如果是完整URL，直接返�?  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
     return videoUrl
   }
-  // 如果是相对路径（以/api/v1/buckets开头），添加前端启动地址前缀
+  // 如果是相对路径（�?api/v1/buckets开头），添加前端启动地址前缀
   if (videoUrl.startsWith('/api/v1/buckets')) {
     return `${window.location.origin}${videoUrl}`
   }
@@ -187,11 +180,9 @@ const getVideoUrl = (videoUrl: string): string => {
   return videoUrl
 }
 
-// 防重复提示函数：3秒内相同错误只提示一次
-function showVideoErrorOnce(message: string) {
+// 防重复提示函数：3秒内相同错误只提示一�?function showVideoErrorOnce(message: string) {
   const now = Date.now()
-  // 如果3秒内提示过相同内容，则不再提示
-  if (now - lastVideoErrorTime < 3000 && lastVideoErrorMsg === message) {
+  // 如果3秒内提示过相同内容，则不再提�?  if (now - lastVideoErrorTime < 3000 && lastVideoErrorMsg === message) {
     return
   }
   lastVideoErrorTime = now
@@ -216,14 +207,12 @@ const setVideoRef = (el: any, index: number) => {
   }
 }
 
-// 获取视频列表（填充到需要的数量）
-const videoListWithPlaceholder = computed(() => {
+// 获取视频列表（填充到需要的数量�?const videoListWithPlaceholder = computed(() => {
   // 合并内部列表和props列表
   const baseList = props.videoList || []
   const maxCount = getMaxVideoCount(currentLayout.value)
   
-  // 初始化内部列表（如果为空）
-  if (internalVideoList.value.length === 0 && baseList.length > 0) {
+  // 初始化内部列表（如果为空�?  if (internalVideoList.value.length === 0 && baseList.length > 0) {
     internalVideoList.value = baseList.map((v, i) => ({
       ...v,
       id: v.id || `video-${i}`,
@@ -244,14 +233,12 @@ const videoListWithPlaceholder = computed(() => {
   return internalVideoList.value.slice(0, maxCount)
 })
 
-// 获取当前布局需要的最大视频数量
-const getMaxVideoCount = (layout: string) => {
+// 获取当前布局需要的最大视频数�?const getMaxVideoCount = (layout: string) => {
   const count = parseInt(layout)
   return isNaN(count) ? 1 : count
 }
 
-// 显示的视频列表
-const displayVideos = computed(() => {
+// 显示的视频列�?const displayVideos = computed(() => {
   return videoListWithPlaceholder.value
 })
 
@@ -260,28 +247,25 @@ const activeVideos = computed(() => {
   return internalVideoList.value.filter(video => video && video.url && video.url.trim() !== '')
 })
 
-// 获取当前应该显示的 location
+// 获取当前应该显示�?location
 const currentLocation = computed(() => {
   // 如果有正在播放的视频，优先使用第一个视频的 location
   if (activeVideos.value.length > 0) {
     const firstVideo = activeVideos.value[0]
-    // 如果视频对象有 location，使用它
+    // 如果视频对象�?location，使用它
     if (firstVideo.location) {
       return firstVideo.location
     }
-    // 如果视频对象没有 location，但 props.device 有，使用 props.device 的 location
+    // 如果视频对象没有 location，但 props.device 有，使用 props.device �?location
     if (props.device?.location) {
       return props.device.location
     }
   }
-  // 如果没有正在播放的视频，重置为初始状态
-  return '未选择设备'
+  // 如果没有正在播放的视频，重置为初始状�?  return '未选择设备'
 })
 
-// 切换流类型
-const switchStreamType = (type: 'video' | 'ai') => {
-  // 如果已经是当前类型，不需要切换
-  if (streamType.value === type) {
+// 切换流类�?const switchStreamType = (type: 'video' | 'ai') => {
+  // 如果已经是当前类型，不需要切�?  if (streamType.value === type) {
     return
   }
   
@@ -289,28 +273,24 @@ const switchStreamType = (type: 'video' | 'ai') => {
   videoRefs.value.forEach((ref, index) => {
     if (ref) {
       try {
-        // 先尝试停止播放
-        if (ref && typeof ref.pause === 'function') {
+        // 先尝试停止播�?        if (ref && typeof ref.pause === 'function') {
           try {
             ref.pause()
           } catch (e) {
-            // 忽略停止播放的错误
-          }
+            // 忽略停止播放的错�?          }
         }
-        // 再销毁实例
-        if (ref && typeof ref.destroy === 'function') {
+        // 再销毁实�?        if (ref && typeof ref.destroy === 'function') {
           if (ref.jessibuca) {
             ref.destroy()
           }
         }
       } catch (error) {
-        console.warn(`销毁播放器 ${index} 时出错:`, error)
+        console.warn(`销毁播放器 ${index} 时出�?`, error)
       }
     }
   })
   
-  // 2. 清空所有引用
-  videoRefs.value = []
+  // 2. 清空所有引�?  videoRefs.value = []
   
   // 3. 清空视频列表
   internalVideoList.value = []
@@ -318,14 +298,11 @@ const switchStreamType = (type: 'video' | 'ai') => {
   // 4. 重置选中索引
   activeVideoIndex.value = 0
   
-  // 5. 更新流类型
-  streamType.value = type
+  // 5. 更新流类�?  streamType.value = type
   
-  // 6. 等待 DOM 更新后重新初始化视频列表（根据当前布局）
-  nextTick(() => {
+  // 6. 等待 DOM 更新后重新初始化视频列表（根据当前布局�?  nextTick(() => {
     const maxCount = getMaxVideoCount(currentLayout.value)
-    // 确保列表完全清空后再初始化
-    internalVideoList.value = []
+    // 确保列表完全清空后再初始�?    internalVideoList.value = []
     for (let i = 0; i < maxCount; i++) {
       internalVideoList.value.push({
         id: `placeholder-${i}`,
@@ -335,7 +312,7 @@ const switchStreamType = (type: 'video' | 'ai') => {
     }
   })
   
-  createMessage.success(`已切换到${type === 'video' ? '视频流' : 'AI流'}模式，可以点击左侧设备树播放`)
+  createMessage.success(`已切换到${type === 'video' ? '视频�? : 'AI�?}模式，可以点击左侧设备树播放`)
 }
 
 // 切换布局
@@ -344,8 +321,7 @@ const switchLayout = (layout: string) => {
   activeVideoIndex.value = 0
 }
 
-// 获取视频窗口的类名
-const getVideoClass = (index: number) => {
+// 获取视频窗口的类�?const getVideoClass = (index: number) => {
   const classes: string[] = []
 
   if (index === activeVideoIndex.value) {
@@ -355,36 +331,29 @@ const getVideoClass = (index: number) => {
   return classes.join(' ')
 }
 
-// 获取视频窗口的样式（用于特殊布局）
-const getVideoStyle = (index: number) => {
+// 获取视频窗口的样式（用于特殊布局�?const getVideoStyle = (index: number) => {
   const layout = currentLayout.value
 
-  // 6分屏：左上大屏（2x2）+ 5个小屏，网格：3行3列
-  if (layout === '6') {
+  // 6分屏：左上大屏（2x2�? 5个小屏，网格�?�?�?  if (layout === '6') {
     if (index === 0) {
-      // 左上大屏，占据2行2列
-      return {
+      // 左上大屏，占�?�?�?      return {
         gridColumn: '1 / 3',
         gridRow: '1 / 3'
       }
     } else {
-      // 其他5个小屏：第1行第3列、第2行第3列、第3行第1、2、3列
-      const pos = index - 1
+      // 其他5个小屏：�?行第3列、第2行第3列、第3行第1�?�?�?      const pos = index - 1
       if (pos === 0) {
-        // 第1行第3列
-        return {
+        // �?行第3�?        return {
           gridColumn: '3',
           gridRow: '1'
         }
       } else if (pos === 1) {
-        // 第2行第3列
-        return {
+        // �?行第3�?        return {
           gridColumn: '3',
           gridRow: '2'
         }
       } else {
-        // 第3行的3个位置
-        return {
+        // �?行的3个位�?        return {
           gridColumn: `${pos - 1}`,
           gridRow: '3'
         }
@@ -392,38 +361,33 @@ const getVideoStyle = (index: number) => {
     }
   }
 
-  // 8分屏：左侧大屏（2x2）+ 右侧3个小屏（一列）+ 下侧4个小屏，网格：3行4列
-  if (layout === '8') {
+  // 8分屏：左侧大屏（2x2�? 右侧3个小屏（一列）+ 下侧4个小屏，网格�?�?�?  if (layout === '8') {
     if (index === 0) {
-      // 左侧大屏，占据第1-2行，第1-2列（2x2）
-      return {
+      // 左侧大屏，占据第1-2行，�?-2列（2x2�?      return {
         gridColumn: '1 / 4',
         gridRow: '1 / 3'
       }
     } else if (index < 4) {
-      // 右侧3个小屏：全部放在第4列，垂直排列
+      // 右侧3个小屏：全部放在�?列，垂直排列
       const pos = index - 1
       if (pos === 0) {
-        // 第1行第4列
-        return {
+        // �?行第4�?        return {
           gridColumn: '4',
           gridRow: '1'
         }
       } else if (pos === 1) {
-        // 第2行第4列
-        return {
+        // �?行第4�?        return {
           gridColumn: '4',
           gridRow: '2'
         }
       } else {
-        // 第3行第4列
-        return {
+        // �?行第4�?        return {
           gridColumn: '4',
           gridRow: '3'
         }
       }
     } else {
-      // 下侧4个小屏：第3行第1、2、3列，第4列已经被占用
+      // 下侧4个小屏：�?行第1�?�?列，�?列已经被占用
       const pos = index - 4
       return {
         gridColumn: `${pos + 1}`,
@@ -443,23 +407,20 @@ const handleVideoClick = (index: number) => {
 
 // 处理视频右键点击
 const handleVideoRightClick = (index: number, event: MouseEvent) => {
-  // 移除该位置的视频流
-  if (internalVideoList.value[index]) {
-    // 先清理视频元素
-    if (videoRefs.value[index]) {
+  // 移除该位置的视频�?  if (internalVideoList.value[index]) {
+    // 先清理视频元�?    if (videoRefs.value[index]) {
       const jessibucaInstance = videoRefs.value[index]
       try {
         // 检查实例是否存在且有效
         if (jessibucaInstance && typeof jessibucaInstance.destroy === 'function') {
-          // 检查 jessibuca 实例是否存在
+          // 检�?jessibuca 实例是否存在
           if (jessibucaInstance.jessibuca) {
             jessibucaInstance.destroy()
           }
         }
       } catch (error) {
-        console.warn('销毁播放器实例时出错:', error)
-        // 即使销毁失败，也继续清理
-      }
+        console.warn('销毁播放器实例时出�?', error)
+        // 即使销毁失败，也继续清�?      }
       // 清空引用
       videoRefs.value[index] = null
     }
@@ -486,31 +447,26 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     const url = new URL(rtmpUrl)
     let path = url.pathname.substring(1) // 去掉开头的 /
     
-    // 如果路径为空，使用默认路径
-    if (!path) {
+    // 如果路径为空，使用默认路�?    if (!path) {
       path = 'live'
     }
     
-    // 添加.flv后缀（如果还没有）
-    if (!path.endsWith('.flv')) {
+    // 添加.flv后缀（如果还没有�?    if (!path.endsWith('.flv')) {
       path = `${path}.flv`
     }
     
-    // Jessibuca 需要绝对 HTTP-FLV 地址；相对路径会被误判为 WebSocket 流。
-    return `${window.location.origin}/${path}`
+    // Jessibuca 需要绝�?HTTP-FLV 地址；相对路径会被误判为 WebSocket 流�?    return `${window.location.origin}/${path}`
   } catch (error) {
     console.error('RTMP地址转换失败:', error)
     return null
   }
 }
 
-// 兼容数据库中的旧绝对地址（例如 127.0.0.1:8080），AI 流始终走同源网关。
-const normalizeAiStreamUrl = (streamUrl: string): string => {
+// 兼容数据库中的旧绝对地址（例�?127.0.0.1:8080），AI 流始终走同源网关�?const normalizeAiStreamUrl = (streamUrl: string): string => {
   try {
     const url = new URL(streamUrl, window.location.origin)
     if (url.pathname.startsWith('/ai/')) {
-      // 保留同源网关，但显式使用 http(s) 协议，避免播放器选择 WebSocketLoader。
-      return `${window.location.origin}${url.pathname}${url.search}`
+      // 保留同源网关，但显式使用 http(s) 协议，避免播放器选择 WebSocketLoader�?      return `${window.location.origin}${url.pathname}${url.search}`
     }
   } catch (error) {
     console.warn('AI流地址解析失败，使用原地址:', streamUrl, error)
@@ -518,8 +474,7 @@ const normalizeAiStreamUrl = (streamUrl: string): string => {
   return streamUrl
 }
 
-// 查找空屏幕
-const findEmptyScreen = (): number | null => {
+// 查找空屏�?const findEmptyScreen = (): number | null => {
   const maxCount = getMaxVideoCount(currentLayout.value)
   // 确保内部列表已初始化
   if (internalVideoList.value.length === 0) {
@@ -528,16 +483,14 @@ const findEmptyScreen = (): number | null => {
   
   for (let i = 0; i < maxCount; i++) {
     const video = internalVideoList.value[i]
-    // 判断是否为空屏幕：没有视频对象，或者没有URL，或者URL为空字符串
-    if (!video || !video.url || video.url.trim() === '') {
+    // 判断是否为空屏幕：没有视频对象，或者没有URL，或者URL为空字符�?    if (!video || !video.url || video.url.trim() === '') {
       return i
     }
   }
   return null
 }
 
-// 播放设备流
-const playDeviceStream = (device: any) => {
+// 播放设备�?const playDeviceStream = (device: any) => {
   // 根据当前流类型选择使用 http_stream 还是 ai_http
   let streamUrl: string | null = null
   
@@ -548,8 +501,7 @@ const playDeviceStream = (device: any) => {
     } else if (device.device && device.device.ai_http_stream) {
       streamUrl = normalizeAiStreamUrl(device.device.ai_http_stream)
     } else if (device.ai_rtmp_stream) {
-      // 如果没有 ai_http_stream，尝试使用 ai_rtmp_stream 并转换
-      streamUrl = convertRtmpToHttp(device.ai_rtmp_stream)
+      // 如果没有 ai_http_stream，尝试使�?ai_rtmp_stream 并转�?      streamUrl = convertRtmpToHttp(device.ai_rtmp_stream)
     } else if (device.device && device.device.ai_rtmp_stream) {
       streamUrl = convertRtmpToHttp(device.device.ai_rtmp_stream)
     } else {
@@ -557,8 +509,7 @@ const playDeviceStream = (device: any) => {
       return
     }
   } else {
-    // 视频流模式：优先使用HTTP流地址（大屏地址使用摄像头的http地址）
-    if (device.http_stream) {
+    // 视频流模式：优先使用HTTP流地址（大屏地址使用摄像头的http地址�?    if (device.http_stream) {
       streamUrl = device.http_stream
     } else if (device.device && device.device.http_stream) {
       // 如果设备对象在device属性中
@@ -580,8 +531,7 @@ const playDeviceStream = (device: any) => {
   // 确保内部列表已初始化
   const maxCount = getMaxVideoCount(currentLayout.value)
   if (internalVideoList.value.length === 0) {
-    // 初始化内部列表
-    for (let i = 0; i < maxCount; i++) {
+    // 初始化内部列�?    for (let i = 0; i < maxCount; i++) {
       internalVideoList.value.push({
         id: `placeholder-${i}`,
         url: '',
@@ -590,7 +540,7 @@ const playDeviceStream = (device: any) => {
     }
   }
   
-  // 如果是1分屏布局，直接在主屏幕（第一个屏幕）播放
+  // 如果�?分屏布局，直接在主屏幕（第一个屏幕）播放
   let targetIndex: number | null = null
   if (currentLayout.value === '1') {
     targetIndex = 0
@@ -600,8 +550,7 @@ const playDeviceStream = (device: any) => {
   }
   
   if (targetIndex !== null) {
-    // 如果目标位置已经有视频在播放，先停止并销毁
-    if (videoRefs.value[targetIndex]) {
+    // 如果目标位置已经有视频在播放，先停止并销�?    if (videoRefs.value[targetIndex]) {
       const existingInstance = videoRefs.value[targetIndex]
       try {
         if (existingInstance && typeof existingInstance.destroy === 'function') {
@@ -647,7 +596,7 @@ const playDeviceStream = (device: any) => {
           if (retryCount < maxRetries) {
             setTimeout(tryPlay, retryDelay)
           } else {
-            console.error('播放器实例未创建，无法播放')
+            console.error('播放器实例未创建，无法播�?)
             createMessage.error('播放器初始化失败，请重试')
           }
         }
@@ -683,15 +632,13 @@ const updateTime = () => {
 // 监听设备变化
 watch(() => props.device, (newDevice) => {
   if (newDevice) {
-    // 这里可以加载新设备的视频流
-  }
+    // 这里可以加载新设备的视频�?  }
 }, { immediate: true })
 
 // 监听视频列表变化
 watch(() => props.videoList, (newList) => {
   if (newList && newList.length > 0) {
-    // 如果内部列表为空，则初始化内部列表
-    if (internalVideoList.value.length === 0) {
+    // 如果内部列表为空，则初始化内部列�?    if (internalVideoList.value.length === 0) {
       internalVideoList.value = newList.map((v, i) => ({
         ...v,
         id: v.id || `video-${i}`,
@@ -702,8 +649,7 @@ watch(() => props.videoList, (newList) => {
   }
 }, { immediate: true })
 
-// 监听布局变化，调整内部视频列表
-watch(() => currentLayout.value, (newLayout) => {
+// 监听布局变化，调整内部视频列�?watch(() => currentLayout.value, (newLayout) => {
   const maxCount = getMaxVideoCount(newLayout)
   // 如果当前列表长度超过新布局的最大数量，截断
   if (internalVideoList.value.length > maxCount) {
@@ -711,13 +657,11 @@ watch(() => currentLayout.value, (newLayout) => {
   }
 })
 
-// 监听正在播放的视频列表变化，通知父组件
-watch(activeVideos, (newVideos) => {
+// 监听正在播放的视频列表变化，通知父组�?watch(activeVideos, (newVideos) => {
   emit('video-list-change', newVideos.map(v => ({ name: v.name, id: v.id })))
 }, { deep: true, immediate: true })
 
-// 检查滚动状态
-const checkScrollStatus = () => {
+// 检查滚动状�?const checkScrollStatus = () => {
   if (!scrollContainerRef.value) return
   const container = scrollContainerRef.value
   canScrollLeft.value = container.scrollLeft > 0
@@ -728,7 +672,7 @@ const checkScrollStatus = () => {
 const scrollLeft = () => {
   if (!scrollContainerRef.value) return
   const container = scrollContainerRef.value
-  const scrollAmount = 220 // 每次滑动一个卡片宽度 + gap
+  const scrollAmount = 220 // 每次滑动一个卡片宽�?+ gap
   container.scrollBy({
     left: -scrollAmount,
     behavior: 'smooth'
@@ -739,7 +683,7 @@ const scrollLeft = () => {
 const scrollRight = () => {
   if (!scrollContainerRef.value) return
   const container = scrollContainerRef.value
-  const scrollAmount = 220 // 每次滑动一个卡片宽度 + gap
+  const scrollAmount = 220 // 每次滑动一个卡片宽�?+ gap
   container.scrollBy({
     left: scrollAmount,
     behavior: 'smooth'
@@ -765,16 +709,16 @@ const loadAlertRecords = async () => {
     })
     if (response && response.alert_list) {
       alertRecordList.value = response.alert_list.map((item: any) => {
-        // 优先使用 image_url（后台返回的 minio URL），如果没有则使用 image_path
+        // 优先使用 image_url（后台返回的 minio URL），如果没有则使�?image_path
         let imageUrl = item.image_url || item.image_path || null
         
         // 如果没有level字段，根据event类型设置默认级别
         let level = item.level || '告警'
         if (!item.level) {
           // 可以根据event类型设置默认级别
-          if (item.event && (item.event.includes('火') || item.event.includes('fire'))) {
-            level = '一级'
-          } else if (item.event && (item.event.includes('烟') || item.event.includes('smoke'))) {
+          if (item.event && (item.event.includes('�?) || item.event.includes('fire'))) {
+            level = '一�?
+          } else if (item.event && (item.event.includes('�?) || item.event.includes('smoke'))) {
             level = '二级'
           }
         }
@@ -794,8 +738,7 @@ const loadAlertRecords = async () => {
   }
 }
 
-// 格式化时间
-const formatTime = (timeStr: string) => {
+// 格式化时�?const formatTime = (timeStr: string) => {
   if (!timeStr) return ''
   const date = new Date(timeStr)
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -808,7 +751,7 @@ const formatTime = (timeStr: string) => {
 // 处理录像点击
 const handleRecordClick = async (record: any) => {
   if (!record.device_id || !record.time) {
-    createMessage.warn('缺少必要信息：设备ID或告警时间')
+    createMessage.warn('缺少必要信息：设备ID或告警时�?)
     return
   }
   
@@ -817,8 +760,7 @@ const handleRecordClick = async (record: any) => {
     const result = await queryAlertRecord({
       device_id: record.device_id,
       alert_time: record.time,
-      time_range: 60, // 前后60秒
-    })
+      time_range: 60, // 前后60�?    })
 
     if (result && result.video_url) {
       // 处理录像URL，添加前缀
@@ -833,16 +775,14 @@ const handleRecordClick = async (record: any) => {
       lastVideoErrorTime = 0
       lastVideoErrorMsg = ''
     } else {
-      // 检查是否是业务错误（code=400）
-      const errorMsg = result?.message || '暂未找到该时间段的录像文件'
+      // 检查是否是业务错误（code=400�?      const errorMsg = result?.message || '暂未找到该时间段的录像文�?
       showVideoErrorOnce(errorMsg)
     }
   } catch (error: any) {
     console.error('查询录像失败:', error)
-    // 处理业务错误（HTTP 200但code=400）
-    const errorData = error?.response?.data || error?.data
+    // 处理业务错误（HTTP 200但code=400�?    const errorData = error?.response?.data || error?.data
     if (errorData && errorData.code === 400) {
-      const errorMsg = errorData.message || '暂未找到该时间段的录像文件'
+      const errorMsg = errorData.message || '暂未找到该时间段的录像文�?
       showVideoErrorOnce(errorMsg)
     } else {
       // 其他错误
@@ -867,19 +807,15 @@ onMounted(() => {
   // 初始加载告警录像列表
   loadAlertRecords()
   
-  // 错峰刷新：延迟2秒开始，每5秒刷新一次告警录像列表（2秒、7秒、12秒...）
-  delayTimer = setTimeout(() => {
-    // 检查组件是否仍然挂载
-    if (!isMounted) return
+  // 错峰刷新：延�?秒开始，�?秒刷新一次告警录像列表（2秒�?秒�?2�?..�?  delayTimer = setTimeout(() => {
+    // 检查组件是否仍然挂�?    if (!isMounted) return
     
     loadAlertRecords()
     
-    // 再次检查组件是否仍然挂载
-    if (!isMounted) return
+    // 再次检查组件是否仍然挂�?    if (!isMounted) return
     
     recordTimer = setInterval(() => {
-      // 每次执行前检查组件是否仍然挂载
-      if (!isMounted) {
+      // 每次执行前检查组件是否仍然挂�?      if (!isMounted) {
         if (recordTimer) {
           clearInterval(recordTimer)
           recordTimer = null
@@ -891,8 +827,7 @@ onMounted(() => {
     }, dashboardConfig.value.refreshIntervalSeconds * 1000)
   }, 2000)
   
-  // 等待DOM渲染后检查滚动状态
-  scrollCheckTimer = setTimeout(() => {
+  // 等待DOM渲染后检查滚动状�?  scrollCheckTimer = setTimeout(() => {
     if (isMounted) {
       checkScrollStatus()
     }
@@ -905,8 +840,7 @@ onMounted(() => {
 onUnmounted(() => {
   isMounted = false
   
-  // 清理延迟定时器
-  if (delayTimer) {
+  // 清理延迟定时�?  if (delayTimer) {
     clearTimeout(delayTimer)
     delayTimer = null
   }
@@ -937,8 +871,7 @@ onUnmounted(() => {
   videoRefs.value = []
 })
 
-// 监听告警列表变化，更新滚动状态
-watch(() => alertRecordList.value, () => {
+// 监听告警列表变化，更新滚动状�?watch(() => alertRecordList.value, () => {
   setTimeout(() => {
     checkScrollStatus()
   }, 100)
@@ -1102,38 +1035,32 @@ watch(() => props.dashboardConfig, () => {
   background-size: 20px 20px;
   background-color: #000;
 
-  // 1分屏 - 全屏单画面
-  &.layout-1 {
+  // 1分屏 - 全屏单画�?  &.layout-1 {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
   }
 
-  // 4分屏 - 2行2列
-  &.layout-4 {
+  // 4分屏 - 2�?�?  &.layout-4 {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
   }
 
-  // 6分屏 - 左上大屏（2x2）+ 5个小屏，网格：3行3列
-  &.layout-6 {
+  // 6分屏 - 左上大屏�?x2�? 5个小屏，网格�?�?�?  &.layout-6 {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
   }
 
-  // 8分屏 - 左侧大屏（2x2）+ 右侧3个小屏（一列）+ 下侧4个小屏，网格：3行4列
-  &.layout-8 {
+  // 8分屏 - 左侧大屏�?x2�? 右侧3个小屏（一列）+ 下侧4个小屏，网格�?�?�?  &.layout-8 {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
   }
 
-  // 9分屏 - 3行3列
-  &.layout-9 {
+  // 9分屏 - 3�?�?  &.layout-9 {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
   }
 
-  // 16分屏 - 4行4列
-  &.layout-16 {
+  // 16分屏 - 4�?�?  &.layout-16 {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
   }

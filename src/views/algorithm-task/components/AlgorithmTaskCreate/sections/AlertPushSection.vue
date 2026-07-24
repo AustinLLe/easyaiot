@@ -1,15 +1,15 @@
 <template>
   <div class="section-panel">
     <div class="section-header">
-      <h3>告警推送</h3>
-      <p>配置告警触发后的推送渠道与推送内容，支持按用户推送或推送地址等方式。</p>
+      <h3>告警推�?/h3>
+      <p>配置告警触发后的推送渠道与推送内容，支持按用户推送或推送地址等方式�?/p>
     </div>
 
     <div class="alert-push-panel">
       <div class="table-toolbar">
         <Button type="primary" @click="openCreate">
           <PlusOutlined />
-          添加告警推送
+          添加告警推�?
         </Button>
       </div>
 
@@ -18,7 +18,7 @@
         :columns="tableColumns"
         :data-source="payload.alert_push_configs"
         :pagination="false"
-        :locale="{ emptyText: '暂未添加告警推送，请点击上方按钮添加' }"
+        :locale="{ emptyText: '暂未添加告警推送，请点击上方按钮添�? }"
         row-key="push_id"
         size="middle"
         table-layout="fixed"
@@ -44,7 +44,7 @@
             <Switch
               v-model:checked="record.enabled"
               checked-children="开"
-              un-checked-children="关"
+              un-checked-children="�?
               size="small"
             />
           </template>
@@ -109,10 +109,10 @@ const profileLabelMap = ref(new Map<string, string>());
 
 const tableColumns: ColumnsType<AlertPushDraft> = [
   { title: '关联规则', key: 'rule_ids', width: '14%', ellipsis: true },
-  { title: '推送名称', dataIndex: 'push_name', key: 'push_name', ellipsis: true },
-  { title: '推送模式', key: 'push_mode', width: '11%', ellipsis: true },
-  { title: '推送渠道/地址', key: 'channels', width: '13%', ellipsis: true },
-  { title: '推送用户', key: 'recipient_user_ids', width: '13%', ellipsis: true },
+  { title: '推送名�?, dataIndex: 'push_name', key: 'push_name', ellipsis: true },
+  { title: '推送模�?, key: 'push_mode', width: '11%', ellipsis: true },
+  { title: '推送渠�?地址', key: 'channels', width: '13%', ellipsis: true },
+  { title: '推送用�?, key: 'recipient_user_ids', width: '13%', ellipsis: true },
   { title: '是否启用', key: 'enabled', width: '10%', align: 'center' },
   { title: '操作', key: 'action', width: '12%', align: 'center' },
 ];
@@ -121,7 +121,7 @@ onMounted(async () => {
   profileLabelMap.value = new Map(
     getPushProfiles().map(item => [
       item.profile_id,
-      `${item.profile_name}（${truncatePushUrl(item.push_url, 28)}）`,
+      `${item.profile_name}�?{truncatePushUrl(item.push_url, 28)}）`,
     ]),
   );
 
@@ -145,7 +145,7 @@ function openCreate() {
   if (!payload.value.alert_rules?.length) {
     createWarningModal({
       title: '提示',
-      content: '请先在「告警规则」步骤中添加至少一条告警规则',
+      content: '请先在「告警规则」步骤中添加至少一条告警规�?,
       zIndex: 4100,
       getContainer: () => document.body,
     });
@@ -174,10 +174,10 @@ function handleEditSave(push: AlertPushDraft) {
 }
 
 function handleDelete(index: number) {
-  const pushName = payload.value.alert_push_configs[index]?.push_name || '该推送';
+  const pushName = payload.value.alert_push_configs[index]?.push_name || '该推�?;
   Modal.confirm({
     title: '确认删除',
-    content: `确定删除告警推送「${pushName}」吗？`,
+    content: `确定删除告警推送�?{pushName}」吗？`,
     okText: '删除',
     okType: 'danger',
     cancelText: '取消',

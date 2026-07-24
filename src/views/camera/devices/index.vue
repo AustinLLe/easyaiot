@@ -154,8 +154,8 @@ const handleToggleViewMode = () => {
 }
 
 const getStreamStatusText = (status: string) => ({
-  running: '运行中',
-  stopped: '已停止',
+  running: '运行�?,
+  stopped: '已停�?,
   error: '错误',
   unknown: '未知',
 }[status] || status)
@@ -181,9 +181,9 @@ const checkDeviceStreamStatus = async (deviceId: string) => {
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '摄像头列表',
+  title: '摄像头列�?,
   api: fetchDeviceList,
   columns: getBasicColumns(),
   useSearchForm: true,
@@ -205,7 +205,7 @@ const [registerTable, { reload }] = useTable({
 })
 
 const getTableActions = (record) => {
-  const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP流', onClick: () => handlePlay(record) }]
+  const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP�?, onClick: () => handlePlay(record) }]
   const currentStatus = deviceStreamStatuses.value?.[record.id] || 'unknown'
   actions.splice(1, 0, currentStatus === 'running'
     ? { icon: 'ant-design:pause-circle-outlined', tooltip: '停止RTSP转发', onClick: () => handleDisableRtsp(record) }
@@ -225,7 +225,7 @@ const handleEnableRtsp = async (record) => {
   try {
     const response = await startStreamForwarding(record.id)
     if (response.code === 0) {
-      createMessage.success({ content: 'RTSP转发已启动', key: 'rtsp' })
+      createMessage.success({ content: 'RTSP转发已启�?, key: 'rtsp' })
       deviceStreamStatuses.value[record.id] = 'running'
       if (videoCardListRef.value?.deviceStreamStatuses)
         videoCardListRef.value.deviceStreamStatuses[record.id] = 'running'
@@ -249,7 +249,7 @@ const handleDisableRtsp = async (record) => {
   try {
     const response = await stopStreamForwarding(record.id)
     if (response.code === 0) {
-      createMessage.success({ content: 'RTSP转发已停止', key: 'rtsp' })
+      createMessage.success({ content: 'RTSP转发已停�?, key: 'rtsp' })
       deviceStreamStatuses.value[record.id] = 'stopped'
       if (videoCardListRef.value?.deviceStreamStatuses)
         videoCardListRef.value.deviceStreamStatuses[record.id] = 'stopped'

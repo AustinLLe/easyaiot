@@ -7,20 +7,20 @@
     >
       <div class="threshold-edit-dialog" role="dialog" aria-modal="true">
         <div class="threshold-edit-header">
-          <span class="threshold-edit-title">模型与检测参数</span>
+          <span class="threshold-edit-title">模型与检测参�?/span>
           <button type="button" class="threshold-edit-close" @click="handleCancel">×</button>
         </div>
 
         <div class="threshold-edit-body">
-          <!-- 检测模型 -->
+          <!-- 检测模�?-->
           <div class="model-row">
             <span class="model-label">检测模型：</span>
             <span class="model-name">{{ modelDisplayName }}</span>
           </div>
 
-          <!-- 参与检测类别 -->
+          <!-- 参与检测类�?-->
           <div class="class-section">
-            <div class="class-section-title">参与检测类别</div>
+            <div class="class-section-title">参与检测类�?/div>
             <ClassWhitelistSelect v-model:value="localConfig.detection_config.class_whitelist" />
           </div>
 
@@ -143,7 +143,7 @@ interface ParamFieldDef {
 const paramFields: ParamFieldDef[] = [
   {
     key: 'conf',
-    label: '置信度阈值',
+    label: '置信度阈�?,
     desc: '低了误报多，高了可能漏检',
     type: 'number',
     min: 0,
@@ -153,8 +153,8 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'iou',
-    label: '重叠框过滤',
-    desc: '用来过滤重复框',
+    label: '重叠框过�?,
+    desc: '用来过滤重复�?,
     type: 'number',
     min: 0,
     max: 1,
@@ -164,7 +164,7 @@ const paramFields: ParamFieldDef[] = [
   {
     key: 'imgsz',
     label: '推理尺寸',
-    desc: '越大越准但越慢',
+    desc: '越大越准但越�?,
     type: 'select',
     options: [
       { label: '320', value: 320 },
@@ -175,12 +175,12 @@ const paramFields: ParamFieldDef[] = [
   },
   {
     key: 'min_box_area',
-    label: '最小目标面积',
-    desc: '过滤远处小目标',
+    label: '最小目标面�?,
+    desc: '过滤远处小目�?,
     type: 'number',
     min: 0,
     step: 1,
-    range: '范围: ≥0',
+    range: '范围: �?',
   },
   {
     key: 'max_detections',
@@ -189,16 +189,16 @@ const paramFields: ParamFieldDef[] = [
     type: 'number',
     min: 1,
     step: 1,
-    range: '范围: ≥1',
+    range: '范围: �?',
   },
   {
     key: 'extract_interval',
     label: '抽帧间隔',
-    desc: '每隔多少帧检测一次',
+    desc: '每隔多少帧检测一�?,
     type: 'number',
     min: 1,
     step: 1,
-    range: '范围: ≥1',
+    range: '范围: �?',
   },
 ];
 
@@ -215,7 +215,7 @@ const modeOptions = THRESHOLD_MODE_OPTIONS.map(item => ({
   value: item.value,
 }));
 
-const modelDisplayName = computed(() => props.row?.model_name || '—');
+const modelDisplayName = computed(() => props.row?.model_name || '�?);
 
 function getGlobalDefaults() {
   return {
@@ -440,7 +440,7 @@ function handleSave() {
   font-weight: 500;
 }
 
-/* 类别勾选 */
+/* 类别勾�?*/
 .class-section {
   margin-bottom: 16px;
 }

@@ -23,14 +23,14 @@
             <ListItem class="model-list-item">
               <div class="model-card-box">
                 <div class="model-card-cont">
-                  <!-- 正方形图片容器 -->
+                  <!-- 正方形图片容�?-->
                   <div class="model-image-container" @click="handleView(item)">
                     <img
                       :src="item.imageUrl || '/images/model-preview.jpg'"
                       alt="算法图片"
                       class="model-image"
                     />
-                    <!-- 图片上的小卡片 -->
+                    <!-- 图片上的小卡�?-->
                     <div class="image-badges">
                       <div class="badge badge-format" v-if="getFormatText(item)">
                         {{ getFormatText(item) }}
@@ -48,7 +48,7 @@
                   <!-- 标签区域 -->
                   <div class="model-tags">
                     <Tag color="#1890ff">ID: {{ item.id }}</Tag>
-                    <Tag color="#52c41a">版本: {{ item.version || '未指定' }}</Tag>
+                    <Tag color="#52c41a">版本: {{ item.version || '未指�? }}</Tag>
                     <Tag color="#8c8c8c">{{ formatDate(item.created_at) }}</Tag>
                   </div>
 
@@ -77,7 +77,7 @@
                         <template #icon><EditOutlined /></template>
                       </Button>
                       <Popconfirm
-                        title="是否确认删除？"
+                        title="是否确认删除�?
                         @confirm="handleDelete(item)"
                       >
                         <Button
@@ -221,7 +221,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (total: number) => `�?${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -253,11 +253,11 @@ function getStatusColor(status: number) {
 function getStatusText(status: number) {
   switch (status) {
     case 0:
-      return '未部署';
+      return '未部�?;
     case 1:
-      return '已部署';
+      return '已部�?;
     case 3:
-      return '已下线';
+      return '已下�?;
     default:
       return '未知';
   }
@@ -286,11 +286,9 @@ function getFormatText(item: any): string {
     if (path.endsWith('.tflite')) {
       return 'TensorFlow Lite';
     }
-    // 默认返回 PyTorch（因为大多数模型是 PyTorch 格式）
-    return 'PyTorch';
+    // 默认返回 PyTorch（因为大多数模型�?PyTorch 格式�?    return 'PyTorch';
   }
-  // 如果没有路径信息，返回空字符串
-  return '';
+  // 如果没有路径信息，返回空字符�?  return '';
 }
 
 function handleDelete(record: object) {
@@ -322,8 +320,7 @@ function handleEdit(record: object) {
   }
 }
 
-// 列表项样式
-.model-list-item {
+// 列表项样�?.model-list-item {
   padding: 0 !important;
   height: 100%;
   display: flex;
@@ -448,7 +445,7 @@ function handleEdit(record: object) {
   object-fit: cover;
 }
 
-/* 图片上的小卡片 */
+/* 图片上的小卡�?*/
 .image-badges {
   position: absolute;
   top: 8px;

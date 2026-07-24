@@ -1,12 +1,12 @@
 <template>
   <div class="model-export-container">
-    <!-- 标题与描述 -->
+    <!-- 标题与描�?-->
     <div class="header-section">
       <h2 class="page-title">模型导出管理</h2>
       <p class="page-description">管理已导出的模型文件，支持下载或删除操作</p>
     </div>
 
-    <!-- 搜索过滤区 -->
+    <!-- 搜索过滤�?-->
     <div class="filter-section">
       <a-input-search
         v-model:value="searchValue"
@@ -16,7 +16,7 @@
       />
       <a-select
         v-model:value="formatFilter"
-        placeholder="筛选导出格式"
+        placeholder="筛选导出格�?
         class="format-filter"
         :options="formatOptions"
       />
@@ -48,10 +48,10 @@
         </a-dropdown>
       </template>
 
-      <!-- 空状态提示 -->
+      <!-- 空状态提�?-->
       <template #empty>
         <a-empty description="暂无导出记录" image="/images/empty.svg">
-          <p class="empty-tip">提示：导出任务通常需要3-5分钟完成</p>
+          <p class="empty-tip">提示：导出任务通常需�?-5分钟完成</p>
           <a-button type="primary" @click="openExportModal">立即导出</a-button>
         </a-empty>
       </template>
@@ -91,7 +91,7 @@
                 color: 'error',
                 popConfirm: {
                   placement: 'topRight',
-                  title: '确定删除此导出记录?',
+                  title: '确定删除此导出记�?',
                   okText: '确认',
                   cancelText: '取消',
                   confirm: () => handleDelete(record),
@@ -143,8 +143,7 @@
 
         <a-form-item :wrapper-col="{ span: 14, offset: 6 }">
           <a-button type="primary" html-type="submit" :loading="exportLoading">
-            开始导出
-          </a-button>
+            开始导�?          </a-button>
           <a-button style="margin-left: 10px" @click="exportModalVisible = false">
             取消
           </a-button>
@@ -175,8 +174,7 @@ import {
   downloadExportedModel,
   getExportModelList,
   exportModel,
-  getExportStatus // 新增状态查询接口
-} from '@/api/device/model';
+  getExportStatus // 新增状态查询接�?} from '@/api/device/model';
 import { getExportModelColumns } from './data';
 import dayjs from 'dayjs';
 
@@ -210,8 +208,7 @@ const formatColors = {
   openvino: 'cyan',
 };
 
-// 状态常量（新增）
-const exportStatus = {
+// 状态常量（新增�?const exportStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
   COMPLETED: 'COMPLETED',
@@ -219,9 +216,9 @@ const exportStatus = {
 };
 
 const statusLabels = {
-  PENDING: '等待中',
-  PROCESSING: '处理中',
-  COMPLETED: '已完成',
+  PENDING: '等待�?,
+  PROCESSING: '处理�?,
+  COMPLETED: '已完�?,
   FAILED: '失败'
 };
 
@@ -232,13 +229,11 @@ const statusColors = {
   FAILED: 'red'
 };
 
-// 搜索和过滤
-const searchValue = ref('');
+// 搜索和过�?const searchValue = ref('');
 const formatFilter = ref('');
 const formatOptions = exportFormats.map(f => ({ value: f.value, label: f.label }));
 
-// 导出模态框状态
-const exportModalVisible = ref(false);
+// 导出模态框状�?const exportModalVisible = ref(false);
 const exportLoading = ref(false);
 const selectedFormat = ref('');
 const exportForm = reactive({
@@ -273,8 +268,7 @@ const [registerTable, { reload, updateTableDataRecord }] = useTable({
   pagination: { pageSize: 8 },
 });
 
-// 初始化加载数据
-onMounted(() => {
+// 初始化加载数�?onMounted(() => {
   reload();
 });
 
@@ -303,10 +297,9 @@ const handleExportSubmit = async () => {
   exportLoading.value = true;
   try {
     const res = await exportModel(modelId.value, selectedFormat.value, exportForm);
-    message.success('导出任务已提交，请稍后刷新查看');
+    message.success('导出任务已提交，请稍后刷新查�?);
 
-    // 添加临时记录到表格
-    const tempRecord = {
+    // 添加临时记录到表�?    const tempRecord = {
       id: Date.now(), // 临时ID
       exportId: res.exportId,
       model_name: currentModelName,
@@ -316,11 +309,9 @@ const handleExportSubmit = async () => {
       size: 0
     };
 
-    // 添加到表格数据（伪代码，需根据实际表格实现）
-    addTableRow(tempRecord);
+    // 添加到表格数据（伪代码，需根据实际表格实现�?    addTableRow(tempRecord);
 
-    // 开始轮询状态
-    startPolling(res.exportId);
+    // 开始轮询状�?    startPolling(res.exportId);
   } catch (error) {
     message.error(`导出失败: ${error.message}`);
   } finally {
@@ -329,14 +320,12 @@ const handleExportSubmit = async () => {
   }
 };
 
-// 状态轮询（新增）
-const startPolling = (exportId: string) => {
+// 状态轮询（新增�?const startPolling = (exportId: string) => {
   const pollingInterval = setInterval(async () => {
     try {
       const statusRes = await getExportStatus(exportId);
 
-      // 更新表格中对应记录的状态
-      updateRecordStatus(exportId, statusRes.status, statusRes.size);
+      // 更新表格中对应记录的状�?      updateRecordStatus(exportId, statusRes.status, statusRes.size);
 
       if (statusRes.status === exportStatus.COMPLETED ||
         statusRes.status === exportStatus.FAILED) {
@@ -347,10 +336,9 @@ const startPolling = (exportId: string) => {
         }
       }
     } catch (error) {
-      console.error('状态检查失败', error);
+      console.error('状态检查失�?, error);
     }
-  }, 5000); // 每5秒检查一次
-};
+  }, 5000); // �?秒检查一�?};
 
 // 下载模型（重构）
 const handleDownload = async (record) => {
@@ -381,7 +369,7 @@ const handleDownload = async (record) => {
   } catch (error) {
     // 细化错误处理
     if (error.response?.status === 404) {
-      message.error('文件不存在，请重新导出');
+      message.error('文件不存在，请重新导�?);
       updateRecordStatus(record.exportId, exportStatus.FAILED);
     } else if (error.response?.status === 403) {
       message.error('无下载权限，请联系管理员');
@@ -395,7 +383,7 @@ const handleDownload = async (record) => {
 const handleDelete = async (record) => {
   try {
     await deleteExportedModel(record.id);
-    message.success(`已删除 ${record.model_name} 的导出记录`);
+    message.success(`已删�?${record.model_name} 的导出记录`);
     reload();
   } catch (error) {
     message.error('删除操作失败');
@@ -424,8 +412,7 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-// 日期格式化（优化）
-const formatDate = (dateString: string) => {
+// 日期格式化（优化�?const formatDate = (dateString: string) => {
   return dayjs(dateString).fromNow() + ` (${dayjs(dateString).format('MM-DD HH:mm')})`;
 };
 
@@ -512,7 +499,7 @@ const updateRecordStatus = (exportId: string, status: string, size?: number) => 
     cursor: pointer;
   }
 
-  /* 新增状态标签样式 */
+  /* 新增状态标签样�?*/
   .ant-tag {
     &-orange { background: #fff7e6; border-color: #ffd591; color: #fa8c16; }
     &-blue { background: #e6f7ff; border-color: #91d5ff; color: #1890ff; }
@@ -526,7 +513,7 @@ const updateRecordStatus = (exportId: string, status: string, size?: number) => 
     cursor: not-allowed;
   }
 
-  /* 空状态提示 */
+  /* 空状态提�?*/
   .empty-tip {
     color: #8c8c8c;
     margin-bottom: 16px;

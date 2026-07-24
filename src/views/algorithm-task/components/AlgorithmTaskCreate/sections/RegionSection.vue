@@ -16,7 +16,7 @@
         <Input.Search
           v-if="payload.param_config_mode === 'combo'"
           v-model:value="cameraSearchText"
-          placeholder="搜索摄像头名称"
+          placeholder="搜索摄像头名�?
           allow-clear
           class="toolbar-search"
         />
@@ -127,7 +127,7 @@ const tableColumns = computed<ColumnsType<RegionTableRow>>(() => {
 
   if (payload.value.param_config_mode === 'combo') {
     columns.push({
-      title: '摄像头名称',
+      title: '摄像头名�?,
       dataIndex: 'device_name',
       key: 'device_name',
       width: 160,
@@ -164,9 +164,9 @@ const tableColumns = computed<ColumnsType<RegionTableRow>>(() => {
 const emptyDescription = computed(() => {
   const { cameraCount, pairCount } = bindingStats.value;
   if (!cameraCount)
-    return '请先在「摄像头与算法」步骤添加摄像头并绑定算法';
+    return '请先在「摄像头与算法」步骤添加摄像头并绑定算�?;
   if (!pairCount)
-    return '已选择摄像头，但尚未绑定算法，请返回上一步为每个摄像头添加算法';
+    return '已选择摄像头，但尚未绑定算法，请返回上一步为每个摄像头添加算�?;
   if (tableRows.value.length && !filteredRows.value.length)
     return '没有符合搜索条件的记录，请调整搜索关键词';
   return '暂无可配置的分析区域';

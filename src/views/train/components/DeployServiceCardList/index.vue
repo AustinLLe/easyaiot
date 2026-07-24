@@ -24,12 +24,12 @@
             <ListItem class="deploy-service-list-item">
               <div class="deploy-service-card-box">
                 <div class="deploy-service-card-cont">
-                  <!-- 模型标题：模型名称 + 版本号 -->
+                  <!-- 模型标题：模型名�?+ 版本�?-->
                   <h6 class="deploy-service-card-title">
                     <a>{{ getModelTitleWithVersion(item) }}</a>
                   </h6>
 
-                  <!-- 状态标签和副本数 -->
+                  <!-- 状态标签和副本�?-->
                   <div class="status-format-wrapper">
                     <span class="status-tag" :class="`status-${item.status}`">
                       {{ getStatusText(item.status, item.running_count) }}
@@ -38,11 +38,11 @@
                       停止中：{{ item.stopped_count }}
                     </span>
                     <span class="replica-tag" v-if="item.replica_count" @click="handleViewReplicas(item)">
-                      副本数: {{ item.replica_count }}
+                      副本�? {{ item.replica_count }}
                     </span>
                   </div>
 
-                  <!-- 服务名称（带复制图标） -->
+                  <!-- 服务名称（带复制图标�?-->
                   <div class="deploy-service-name">
                     <span class="service-name-value" :title="item.service_name">{{ getServiceNameDisplay(item.service_name) }}</span>
                     <CopyOutlined 
@@ -96,7 +96,7 @@
                         <ReloadOutlined style="font-size: 16px;"/>
                       </div>
                       <Popconfirm
-                        title="确定删除此部署服务?"
+                        title="确定删除此部署服�?"
                         @confirm="handleDelete(item)"
                       >
                         <div class="btn" title="删除服务">
@@ -241,13 +241,11 @@ onBeforeUnmount(() => {
   clearServiceRefreshTimers();
 });
 
-// 监听params变化，自动刷新数据
-watch(() => props.params, () => {
+// 监听params变化，自动刷新数�?watch(() => props.params, () => {
   fetch();
 }, {deep: true});
 
-// 处理表单字段值变化，实时通知父组件
-function handleFieldValueChange(field: string, value: any) {
+// 处理表单字段值变化，实时通知父组�?function handleFieldValueChange(field: string, value: any) {
   emit('field-value-change', field, value);
 }
 
@@ -263,19 +261,17 @@ async function fetch(p = {}) {
         pageSize: pageSize.value,
         ...p
       };
-      // 将model_id传递给后端，如果为空则删除该参数
-      if (requestParams.model_id === '' || requestParams.model_id === undefined) {
+      // 将model_id传递给后端，如果为空则删除该参�?      if (requestParams.model_id === '' || requestParams.model_id === undefined) {
         delete requestParams.model_id;
       }
       const res = await api(requestParams);
 
-      // 处理返回格式：后端返回 { code: 0, data: [...], total: ... }
+      // 处理返回格式：后端返�?{ code: 0, data: [...], total: ... }
       if (res && res.data) {
         data.value = Array.isArray(res.data) ? res.data : [];
         total.value = res.total || 0;
       } else if (res && res.success && res.data) {
-        // 兼容其他可能的返回格式
-        data.value = res.data.items || res.data.list || (Array.isArray(res.data) ? res.data : []);
+        // 兼容其他可能的返回格�?        data.value = res.data.items || res.data.list || (Array.isArray(res.data) ? res.data : []);
         total.value = res.data.total || res.total || 0;
       } else {
         data.value = [];
@@ -300,7 +296,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (total: number) => `�?${total} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -319,10 +315,8 @@ function pageSizeChange(_current: number, size: number) {
 function formatDateTime(dateString: string) {
   if (!dateString) return '--';
   try {
-    // 解析ISO格式时间字符串（可能包含时区信息）
-    const date = new Date(dateString);
-    // 检查日期是否有效
-    if (isNaN(date.getTime())) {
+    // 解析ISO格式时间字符串（可能包含时区信息�?    const date = new Date(dateString);
+    // 检查日期是否有�?    if (isNaN(date.getTime())) {
       return dateString;
     }
     const year = date.getFullYear();
@@ -339,13 +333,13 @@ function formatDateTime(dateString: string) {
 
 function getStatusText(status: string, runningCount?: number) {
   const textMap: Record<string, string> = {
-    'running': '运行中',
-    'stopped': '已停止'
+    'running': '运行�?,
+    'stopped': '已停�?
   };
   const baseText = textMap[status] || status || '未知';
-  // 如果是运行中状态且有running_count，显示"运行中：3"格式
+  // 如果是运行中状态且有running_count，显�?运行中：3"格式
   if (status === 'running' && runningCount !== undefined && runningCount > 0) {
-    return `${baseText}：${runningCount}`;
+    return `${baseText}�?{runningCount}`;
   }
   return baseText;
 }
@@ -388,13 +382,12 @@ function getFormatText(item: any): string {
   return '';
 }
 
-// 获取模型标题：模型名称 + 版本号
-function getModelTitleWithVersion(item: any): string {
+// 获取模型标题：模型名�?+ 版本�?function getModelTitleWithVersion(item: any): string {
   const modelName = item.model_name || '未知模型';
   const version = item.model_version || item.version || '';
   
   if (version) {
-    // 如果版本号没有 v 前缀，则添加
+    // 如果版本号没�?v 前缀，则添加
     const versionText = version.startsWith('v') ? version : `v${version}`;
     return `${modelName} ${versionText}`;
   }
@@ -402,14 +395,12 @@ function getModelTitleWithVersion(item: any): string {
   return modelName;
 }
 
-// 显示完整的服务名称
-function getServiceNameDisplay(serviceName: string): string {
+// 显示完整的服务名�?function getServiceNameDisplay(serviceName: string): string {
   if (!serviceName || serviceName === '--') {
     return '--';
   }
   
-  // 直接返回完整的服务名称
-  return serviceName;
+  // 直接返回完整的服务名�?  return serviceName;
 }
 
 // 复制到剪贴板
@@ -439,8 +430,7 @@ function copyToClipboard(text: string, label: string) {
   });
 }
 
-// 生成并复制测试命令
-function copyTestCommand(item: any) {
+// 生成并复制测试命�?function copyTestCommand(item: any) {
   const serverIp = item.server_ip || 'localhost';
   const port = item.port || '8889';
   const testCommand = `curl -X POST -F 'file=@your_image.jpg' http://${serverIp}:${port}/inference`;
@@ -454,16 +444,14 @@ const handleStart = async (record: any) => {
   try {
     const result = await batchStartDeployService(record.service_name);
     
-    // 现在 API 返回完整响应对象（包含 code、msg、data）
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // 现在 API 返回完整响应对象（包�?code、msg、data�?    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (result && responseData.code === 0) {
       const data = responseData.data || {};
       const successCount = data.success_count || 0;
       const failCount = data.fail_count || 0;
       const errors = data.errors || [];
       
-      // 优先使用后台返回的 msg
+      // 优先使用后台返回�?msg
       if (responseData.msg) {
         // 根据成功/失败情况选择消息类型
         if (failCount === 0) {
@@ -488,15 +476,14 @@ const handleStart = async (record: any) => {
             const hasModelError = errors.some(err => 
               err.includes('MinIO') || 
               err.includes('Minio') || 
-              err.includes('模型文件不存在') || 
+              err.includes('模型文件不存�?) || 
               err.includes('模型文件下载失败')
             );
             
             if (hasModelError) {
               errorMessage = '模型不存在，启动失败';
             } else {
-              // 其他错误，显示第一个错误信息
-              errorMessage = errors[0] || '批量启动失败';
+              // 其他错误，显示第一个错误信�?              errorMessage = errors[0] || '批量启动失败';
             }
           }
           
@@ -505,13 +492,13 @@ const handleStart = async (record: any) => {
         // 如果部分成功部分失败
         else {
           // 检查是否有模型文件相关错误
-          let warningMessage = `批量启动部分成功：成功 ${successCount} 个，失败 ${failCount} 个`;
+          let warningMessage = `批量启动部分成功：成�?${successCount} 个，失败 ${failCount} 个`;
           
           if (errors.length > 0) {
             const hasModelError = errors.some(err => 
               err.includes('MinIO') || 
               err.includes('Minio') || 
-              err.includes('模型文件不存在') || 
+              err.includes('模型文件不存�?) || 
               err.includes('模型文件下载失败')
             );
             
@@ -525,8 +512,7 @@ const handleStart = async (record: any) => {
       }
     } else {
       console.log(JSON.stringify(result))
-      // code !== 0 的情况
-      createMessage.error(responseData?.msg || '批量启动失败');
+      // code !== 0 的情�?      createMessage.error(responseData?.msg || '批量启动失败');
     }
     
     await fetch();
@@ -534,11 +520,10 @@ const handleStart = async (record: any) => {
       scheduleServiceStatusRefresh(record.service_name, 'running');
     }
   } catch (error: any) {
-    // 如果进入 catch，说明请求失败
-    console.error('批量启动异常:', error);
+    // 如果进入 catch，说明请求失�?    console.error('批量启动异常:', error);
     const errorData = error?.response?.data || error?.data || {};
-    const errorMsg = errorData.msg || error?.message || '批量启动失败，请检查网络连接';
-    createMessage.error(`批量启动失败：${errorMsg}`);
+    const errorMsg = errorData.msg || error?.message || '批量启动失败，请检查网络连�?;
+    createMessage.error(`批量启动失败�?{errorMsg}`);
   }
 };
 
@@ -547,8 +532,7 @@ const handleStop = async (record: any) => {
   if (record.status !== 'running') return;
   try {
     const result = await batchStopDeployService(record.service_name);
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (responseData.code === 0) {
       createMessage.success(responseData.msg || '批量停止成功');
     } else {
@@ -566,8 +550,7 @@ const handleRestart = async (record: any) => {
   if (record.status !== 'running') return;
   try {
     const result = await batchRestartDeployService(record.service_name);
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (responseData.code === 0) {
       createMessage.success(responseData.msg || '批量重启成功');
     } else {

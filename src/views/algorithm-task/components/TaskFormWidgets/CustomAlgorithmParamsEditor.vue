@@ -16,8 +16,7 @@
     </div>
 
     <div v-if="mode === 'inherit' && !effectiveKeys.length" class="inherit-empty">
-      该模型未在算法管理中配置扩展参数，请先在「算法管理 → 阈值配置 → 扩展」中维护。
-    </div>
+      该模型未在算法管理中配置扩展参数，请先在「算法管�?�?阈值配�?�?扩展」中维护�?    </div>
 
     <div v-else-if="rows.length" class="param-cards">
       <div v-for="(row, index) in rows" :key="row.id" class="param-card">
@@ -25,7 +24,7 @@
           <template v-if="mode === 'define'">
             <Input
               v-model:value="row.key"
-              placeholder="参数名"
+              placeholder="参数�?
               class="param-field param-name-field"
               :disabled="disabled"
               @change="syncParams"
@@ -39,7 +38,7 @@
             />
             <Input
               v-model:value="row.value"
-              placeholder="参数值"
+              placeholder="参数�?
               class="param-field param-value-field"
               :disabled="disabled"
               @change="syncParams"
@@ -59,13 +58,13 @@
             <div class="param-card-text">
               <div class="param-card-title">{{ row.key }}</div>
               <div class="param-card-desc">
-                {{ row.description || '继承自算法管理，仅可修改参数值' }}
+                {{ row.description || '继承自算法管理，仅可修改参数�? }}
               </div>
             </div>
             <div class="param-card-input">
               <Input
                 v-model:value="row.value"
-                placeholder="参数值"
+                placeholder="参数�?
                 class="param-value-input"
                 :disabled="disabled"
                 @change="syncParams"
@@ -89,7 +88,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   /** define=模型管理可新建；inherit=算法任务仅继承模型已定义参数 */
   mode?: 'define' | 'inherit';
-  /** inherit 模式下固定的参数名列表（来自模型详情） */
+  /** inherit 模式下固定的参数名列表（来自模型详情�?*/
   paramKeys?: string[];
 }>(), {
   mode: 'define',

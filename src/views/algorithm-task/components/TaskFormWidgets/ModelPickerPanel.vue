@@ -24,9 +24,9 @@
             <CheckOutlined v-if="allChecked" class="select-check" />
             <span v-else-if="indeterminate" class="select-dash" />
           </span>
-          <span>全选</span>
+          <span>全�?/span>
         </div>
-        <span class="selected-count">已选 {{ selectedModelIds.length }} 个</span>
+        <span class="selected-count">已�?{{ selectedModelIds.length }} �?/span>
       </div>
 
       <a-spin :spinning="loading">

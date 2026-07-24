@@ -15,7 +15,7 @@ const ListItemMeta = List.Item.Meta
           <ListItemMeta>
             <template #title>
               {{ item.title }}
-              <Switch class="float-right mr-7.5 mt-0" checked-children="开" un-checked-children="关" default-checked />
+              <Switch class="float-right mr-7.5 mt-0" checked-children="开" un-checked-children="�? default-checked />
             </template>
             <template #description>
               <div>{{ item.description }}</div>

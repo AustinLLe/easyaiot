@@ -11,7 +11,7 @@
       <a-tab-pane key="basic" tab="基础配置">
         <BasicForm @register="registerForm" />
       </a-tab-pane>
-      <a-tab-pane key="regions" tab="检测区域" :disabled="!taskId">
+      <a-tab-pane key="regions" tab="检测区�? :disabled="!taskId">
         <RegionDrawer
           v-if="taskId"
           :device-id="formValues.device_id"
@@ -22,7 +22,7 @@
           @save="handleRegionsSave"
           @image-captured="handleImageCaptured"
         />
-        <a-empty v-else description="请先保存基础配置，然后才能配置检测区域" />
+        <a-empty v-else description="请先保存基础配置，然后才能配置检测区�? />
       </a-tab-pane>
     </a-tabs>
   </BasicDrawer>
@@ -113,7 +113,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '请输入任务名称',
+        placeholder: '请输入任务名�?,
       },
     },
     {
@@ -150,31 +150,31 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'cron_expression',
-      label: 'Cron表达式',
+      label: 'Cron表达�?,
       component: 'Input',
       required: true,
       componentProps: {
-        placeholder: '例如: 0 */5 * * * * (每5分钟)',
+        placeholder: '例如: 0 */5 * * * * (�?分钟)',
       },
-      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示每5分钟执行一次',
+      helpMessage: '标准Cron表达式，例如: 0 */5 * * * * 表示�?分钟执行一�?,
     },
     {
       field: 'frame_skip',
       label: '抽帧间隔',
       component: 'InputNumber',
       componentProps: {
-        placeholder: '每N帧抓一次',
+        placeholder: '每N帧抓一�?,
         min: 1,
       },
-      helpMessage: '抽帧模式下，每N帧抓一次（默认1）',
+      helpMessage: '抽帧模式下，每N帧抓一次（默认1�?,
     },
     {
       field: 'algorithm_enabled',
       label: '启用算法',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '是',
-        unCheckedChildren: '否',
+        checkedChildren: '�?,
+        unCheckedChildren: '�?,
       },
     },
     {
@@ -184,9 +184,9 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       componentProps: {
         placeholder: '请选择算法类型',
         options: [
-          { label: '火焰烟雾检测', value: 'FIRE' },
+          { label: '火焰烟雾检�?, value: 'FIRE' },
           { label: '人群聚集计数', value: 'CROWD' },
-          { label: '吸烟检测', value: 'SMOKE' },
+          { label: '吸烟检�?, value: 'SMOKE' },
         ],
       },
       ifShow: ({ values }) => values.algorithm_enabled,
@@ -203,10 +203,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'algorithm_threshold',
-      label: '算法阈值',
+      label: '算法阈�?,
       component: 'InputNumber',
       componentProps: {
-        placeholder: '请输入算法阈值',
+        placeholder: '请输入算法阈�?,
         min: 0,
         max: 1,
         step: 0.1,
@@ -215,11 +215,11 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
     },
     {
       field: 'algorithm_night_mode',
-      label: '仅夜间启用',
+      label: '仅夜间启�?,
       component: 'Switch',
       componentProps: {
-        checkedChildren: '是',
-        unCheckedChildren: '否',
+        checkedChildren: '�?,
+        unCheckedChildren: '�?,
       },
       helpMessage: '仅在23:00-08:00启用算法',
       ifShow: ({ values }) => values.algorithm_enabled,
@@ -229,8 +229,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '启用告警',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '是',
-        unCheckedChildren: '否',
+        checkedChildren: '�?,
+        unCheckedChildren: '�?,
       },
     },
     {
@@ -248,8 +248,8 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
       label: '自动命名',
       component: 'Switch',
       componentProps: {
-        checkedChildren: '是',
-        unCheckedChildren: '否',
+        checkedChildren: '�?,
+        unCheckedChildren: '�?,
       },
     },
     {
@@ -273,8 +273,7 @@ const modalTitle = computed(() => {
   return '新建算法任务';
 });
 
-// 加载区域的检测区域
-const loadRegions = async (taskId: number) => {
+// 加载区域的检测区�?const loadRegions = async (taskId: number) => {
   try {
     const response = await getDetectionRegions(taskId);
     // API返回格式: { code: 0, data: [...], msg: 'success' } 或直接返回data
@@ -290,7 +289,7 @@ const loadRegions = async (taskId: number) => {
       initialRegions.value = [];
     }
   } catch (error) {
-    console.error('加载检测区域失败', error);
+    console.error('加载检测区域失�?, error);
     initialRegions.value = [];
   }
 };
@@ -328,8 +327,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       auto_filename: data.record.auto_filename,
       custom_filename_prefix: data.record.custom_filename_prefix,
     });
-    // 加载检测区域
-    await loadRegions(data.record.id);
+    // 加载检测区�?    await loadRegions(data.record.id);
   } else if (data.type === 'view' && data.record) {
     taskId.value = data.record.id;
     setFieldsValue({
@@ -350,19 +348,16 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       custom_filename_prefix: data.record.custom_filename_prefix,
     });
     setDrawerProps({ showOkBtn: false });
-    // 加载检测区域
-    await loadRegions(data.record.id);
+    // 加载检测区�?    await loadRegions(data.record.id);
   }
 });
 
-// 监听表单值变化
-const updateFormValues = () => {
+// 监听表单值变�?const updateFormValues = () => {
   try {
     const values = getFieldsValue();
     formValues.value = values;
   } catch (e) {
-    // 表单可能还未初始化
-  }
+    // 表单可能还未初始�?  }
 };
 
 const handleSubmit = async () => {
@@ -376,8 +371,7 @@ const handleSubmit = async () => {
         createMessage.success('更新成功');
         // 更新taskId（虽然不会变，但确保一致性）
         taskId.value = modalData.value.record.id;
-        // 更新表单值
-        updateFormValues();
+        // 更新表单�?        updateFormValues();
       } else {
         createMessage.error(response.msg || '更新失败');
         return;
@@ -387,10 +381,8 @@ const handleSubmit = async () => {
       if (response.code === 0 && response.data) {
         taskId.value = response.data.id;
         createMessage.success('创建成功');
-        // 更新表单值
-        updateFormValues();
-        // 创建成功后切换到区域配置标签页
-        activeTab.value = 'regions';
+        // 更新表单�?        updateFormValues();
+        // 创建成功后切换到区域配置标签�?        activeTab.value = 'regions';
       } else {
         createMessage.error(response.msg || '创建失败');
         return;
@@ -399,11 +391,8 @@ const handleSubmit = async () => {
     
     // 如果是查看模式，不关闭模态框
     if (modalData.value.type === 'view') {
-      // 查看模式不关闭
-    } else {
-      // 编辑或创建模式，可以选择关闭或继续配置区域
-      // 这里不自动关闭，让用户决定
-    }
+      // 查看模式不关�?    } else {
+      // 编辑或创建模式，可以选择关闭或继续配置区�?      // 这里不自动关闭，让用户决�?    }
   } catch (error) {
     console.error('提交失败', error);
     createMessage.error('提交失败');
@@ -420,16 +409,14 @@ const handleRegionsSave = async (regions: DetectionRegion[]) => {
   }
 
   try {
-    // 获取现有的区域
-    const existingRegionsResponse = await getDetectionRegions(taskId.value);
+    // 获取现有的区�?    const existingRegionsResponse = await getDetectionRegions(taskId.value);
     // API返回格式: { code: 0, data: [...], msg: 'success' } 或直接返回data
     const existingRegionsData = existingRegionsResponse.code !== undefined 
       ? (existingRegionsResponse.code === 0 ? existingRegionsResponse.data : [])
       : existingRegionsResponse;
     const existingIds = (existingRegionsData || []).map((r: DetectionRegion) => r.id);
 
-    // 保存或更新区域
-    for (const region of regions) {
+    // 保存或更新区�?    for (const region of regions) {
       if (region.id && existingIds.includes(region.id)) {
         // 更新现有区域
         const updateResponse = await updateDetectionRegion(region.id, {
@@ -451,8 +438,7 @@ const handleRegionsSave = async (regions: DetectionRegion[]) => {
           return;
         }
       } else {
-        // 创建新区域
-        const createResponse = await createDetectionRegion({
+        // 创建新区�?        const createResponse = await createDetectionRegion({
           task_id: taskId.value,
           region_name: region.region_name,
           region_type: region.region_type,

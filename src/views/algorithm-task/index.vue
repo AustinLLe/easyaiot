@@ -58,7 +58,7 @@
             <template #renderItem="{ item }">
               <ListItem :class="item.is_enabled ? 'task-item normal' : 'task-item error'">
                 <div class="task-info">
-                  <div class="status">{{ item.is_enabled ? '运行中' : '已停止' }}</div>
+                  <div class="status">{{ item.is_enabled ? '运行�? : '已停�? }}</div>
                   <div class="title o2">{{ item.task_name || item.id }}</div>
                   <div class="props">
                     <div class="flex" style="justify-content: space-between;">
@@ -69,7 +69,7 @@
                     </div>
                     <div class="flex" style="justify-content: space-between;">
                       <div class="prop" v-if="item.device_names && item.device_names.length > 0">
-                        <div class="label">关联摄像头</div>
+                        <div class="label">关联摄像�?/div>
                         <div class="value" style="display: flex; align-items: center; gap: 4px;">
                           <span>{{ item.device_names.length > 1 ? item.device_names[0] + '...' : item.device_names[0] }}</span>
                           <CopyOutlined
@@ -111,9 +111,9 @@
                       <Icon icon="ant-design:heart-outlined" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
-                      title="是否确认删除？"
-                      ok-text="是"
-                      cancel-text="否"
+                      title="是否确认删除�?
+                      ok-text="�?
+                      cancel-text="�?
                       :disabled="item.is_enabled"
                       @confirm="handleDelete(item)"
                     >
@@ -157,7 +157,7 @@
     <!-- 服务管理 -->
     <ServiceManageDrawer @register="registerServiceModal" @success="handleSuccess" />
     
-    <!-- 区域检测配置 -->
+    <!-- 区域检测配�?-->
     <DeviceRegionDetectionDrawer @register="registerRegionModal" />
     
     <!-- 抓拍空间 -->
@@ -169,7 +169,7 @@
     <!-- 摄像头选择模态框 -->
     <BasicModal
       v-model:open="cameraSelectVisible"
-      title="选择摄像头"
+      title="选择摄像�?
       @ok="handleConfirmCamera"
       @cancel="cameraSelectVisible = false"
     >
@@ -184,16 +184,16 @@
           style="display: block; margin-bottom: 12px;"
         >
           <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- 封面图 -->
+            <!-- 封面�?-->
             <div v-if="stream.cover_image_path" style="width: 80px; height: 60px; flex-shrink: 0;">
               <img
                 :src="stream.cover_image_path"
-                alt="封面图"
+                alt="封面�?
                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;"
               />
             </div>
             <div v-else style="width: 80px; height: 60px; flex-shrink: 0; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
-              无封面
+              无封�?
             </div>
             <!-- 设备信息 -->
             <div style="flex: 1;">
@@ -283,7 +283,7 @@ const editingTaskId = ref<number | null>(null);
 const editingDraft = ref<AlgorithmTaskDraft | null>(null);
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
 
-// 摄像头选择和播放相关
+// 摄像头选择和播放相�?
 const cameraSelectVisible = ref(false);
 const cameraStreams = ref<CameraStreamInfo[]>([]);
 const selectedCameraIndex = ref<number>(0);
@@ -304,7 +304,7 @@ const searchParams = ref<{
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '算法任务列表',
   api: fetchAlgorithmTaskListMerged,
@@ -342,7 +342,7 @@ const [registerTable, { reload }] = useTable({
   },
 });
 
-// 检查任务是否有摄像头列表
+// 检查任务是否有摄像头列�?
 const hasCameras = (record: AlgorithmTask) => {
   return (record.device_ids && record.device_ids.length > 0) || 
          (record.device_names && record.device_names.length > 0);
@@ -353,10 +353,10 @@ const hasModels = (record: AlgorithmTask) => {
   return record.model_ids && Array.isArray(record.model_ids) && record.model_ids.length > 0;
 };
 
-// 复制摄像头名称
+// 复制摄像头名�?
 const handleCopyDeviceNames = (item: AlgorithmTask) => {
   if (!item.device_names || item.device_names.length === 0) {
-    createMessage.warning('无摄像头名称可复制');
+    createMessage.warning('无摄像头名称可复�?);
     return;
   }
   const deviceNamesText = item.device_names.join(', ');
@@ -365,7 +365,7 @@ const handleCopyDeviceNames = (item: AlgorithmTask) => {
 
 import type { ActionItem } from '@/components/Table';
 
-// 获取表格操作按钮（启动 / 编辑 / 心跳 / 删除）
+// 获取表格操作按钮（启�?/ 编辑 / 心跳 / 删除�?
 const getTableActions = (record: AlgorithmTask): ActionItem[] => {
   const actions: ActionItem[] = [];
 
@@ -387,7 +387,7 @@ const getTableActions = (record: AlgorithmTask): ActionItem[] => {
     disabled: record.is_enabled,
     onClick: () => {
       if (record.is_enabled) {
-        createMessage.warning('任务运行中，无法编辑，请先停止任务');
+        createMessage.warning('任务运行中，无法编辑，请先停止任�?);
         return;
       }
       handleEdit(record);
@@ -471,7 +471,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (total: number) => `�?${total} 条`,
   onChange: handlePageChange,
   onShowSizeChange: handlePageSizeChange,
 });
@@ -500,7 +500,7 @@ const [registerForm, { validate }] = useForm({
       label: '任务名称',
       component: 'Input',
       componentProps: {
-        placeholder: '请输入任务名称',
+        placeholder: '请输入任务名�?,
       },
     },
     {
@@ -518,14 +518,14 @@ const [registerForm, { validate }] = useForm({
     },
     {
       field: 'is_enabled',
-      label: '启用状态',
+      label: '启用状�?,
       component: 'Select',
       componentProps: {
-        placeholder: '请选择启用状态',
+        placeholder: '请选择启用状�?,
         options: [
           { value: '', label: '全部' },
-          { value: 1, label: '已启用' },
-          { value: 0, label: '已禁用' },
+          { value: 1, label: '已启�? },
+          { value: 0, label: '已禁�? },
         ],
       },
     },
@@ -557,7 +557,7 @@ const handleView = (record: AlgorithmTask) => {
 
 const handleEdit = (record: AlgorithmTask) => {
   if (record.is_enabled) {
-    createMessage.warning('任务运行中，无法编辑，请先停止任务');
+    createMessage.warning('任务运行中，无法编辑，请先停止任�?);
     return;
   }
   const enriched = enrichTaskWithMode(record);
@@ -565,7 +565,7 @@ const handleEdit = (record: AlgorithmTask) => {
   if (isMockAlgorithmTask(record.id)) {
     const draft = getMockDraftByTaskId(record.id);
     if (!draft) {
-      createMessage.error('未找到 mock 任务配置');
+      createMessage.error('未找�?mock 任务配置');
       return;
     }
     editingMockId.value = record.id;
@@ -588,13 +588,13 @@ const handleManageServices = (record: AlgorithmTask) => {
 };
 
 const handleOpenRegionDetection = (record?: AlgorithmTask) => {
-  // 校验：只有在停用状态下才能配置区域检测
+  // 校验：只有在停用状态下才能配置区域检�?
   if (record && record.is_enabled) {
-    createMessage.warning('任务运行中，无法配置，请先停止任务');
+    createMessage.warning('任务运行中，无法配置，请先停止任�?);
     return;
   }
   if (record) {
-    // 传入任务ID，只显示该任务关联的摄像头
+    // 传入任务ID，只显示该任务关联的摄像�?
     openRegionModal(true, { taskId: record.id });
   } else {
     // 兼容旧逻辑：不传入任务ID，显示所有摄像头
@@ -616,7 +616,7 @@ const handleOpenSnapSpace = (record: AlgorithmTask) => {
 
 const handleDelete = async (record: AlgorithmTask) => {
   if (record.is_enabled) {
-    createMessage.warning('任务运行中，无法删除，请先停止任务');
+    createMessage.warning('任务运行中，无法删除，请先停止任�?);
     return;
   }
   if (isMockAlgorithmTask(record.id)) {
@@ -647,28 +647,28 @@ const handleDelete = async (record: AlgorithmTask) => {
 const handleStart = async (record: AlgorithmTask) => {
   if (isMockAlgorithmTask(record.id)) {
     if (setMockTaskEnabled(record.id, true)) {
-      createMessage.success('启动成功（前端 mock）');
+      createMessage.success('启动成功（前�?mock�?);
       handleSuccess();
     }
     return;
   }
   try {
     const response = await startAlgorithmTask(record.id);
-    // 由于 isTransformResponse: true，成功时返回的是任务对象（data.data），而不是包含 code 的响应对象
+    // 由于 isTransformResponse: true，成功时返回的是任务对象（data.data），而不是包�?code 的响应对�?
     if (response && (response as any).id) {
       // 检查是否有 already_running 字段
       if ((response as any).already_running) {
-        createMessage.warning('任务运行中');
+        createMessage.warning('任务运行�?);
       } else {
         createMessage.success('启动成功');
       }
       handleSuccess();
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
+      // 如果返回的是完整响应对象（包�?code�?
       if ((response as any).code === 0) {
         const data = (response as any).data || response;
         if (data && data.already_running) {
-          createMessage.warning('任务运行中');
+          createMessage.warning('任务运行�?);
         } else {
           createMessage.success('启动成功');
         }
@@ -688,19 +688,19 @@ const handleStart = async (record: AlgorithmTask) => {
 const handleStop = async (record: AlgorithmTask) => {
   if (isMockAlgorithmTask(record.id)) {
     if (setMockTaskEnabled(record.id, false)) {
-      createMessage.success('已停止（前端 mock）');
+      createMessage.success('已停止（前端 mock�?);
       handleSuccess();
     }
     return;
   }
   try {
     const response = await stopAlgorithmTask(record.id);
-    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包含 code 的响应对象
+    // 由于 isTransformResponse: true，成功时返回的是任务对象，而不是包�?code 的响应对�?
     if (response && (response as any).id) {
       createMessage.success('停止成功');
       handleSuccess();
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
+      // 如果返回的是完整响应对象（包�?code�?
       if ((response as any).code === 0) {
         createMessage.success('停止成功');
         handleSuccess();
@@ -730,7 +730,7 @@ const handleToggleEnabled = async (record: AlgorithmTask) => {
       createMessage.error(response.msg || '更新失败');
     }
   } catch (error) {
-    console.error('更新算法任务状态失败', error);
+    console.error('更新算法任务状态失�?, error);
     createMessage.error('更新失败');
   }
 };
@@ -755,29 +755,29 @@ const handlePlayStream = async (record: AlgorithmTask) => {
   
   try {
     // 获取推流地址列表
-    // 注意：由于 isTransformResponse: true，响应转换器会直接返回 data.data
-    // 所以 response 可能是数组，也可能是包含 code 的完整响应对象
+    // 注意：由�?isTransformResponse: true，响应转换器会直接返�?data.data
+    // 所�?response 可能是数组，也可能是包含 code 的完整响应对�?
     const response = await getTaskStreams(record.id);
     console.log('获取推流地址响应:', response);
     
-    // 处理响应：可能是数组，也可能是包含 code 的对象
+    // 处理响应：可能是数组，也可能是包�?code 的对�?
     let streams: CameraStreamInfo[] = [];
     if (Array.isArray(response)) {
-      // 直接是数组
+      // 直接是数�?
       streams = response;
-      console.log('响应是数组，摄像头数量:', streams.length);
+      console.log('响应是数组，摄像头数�?', streams.length);
     } else if (response && typeof response === 'object' && 'code' in response) {
       // 完整响应对象
       if (response.code === 0 && response.data && Array.isArray(response.data)) {
         streams = response.data;
-        console.log('响应是对象，摄像头数量:', streams.length);
+        console.log('响应是对象，摄像头数�?', streams.length);
       } else {
         console.warn('响应code不为0或data不是数组:', response);
         createMessage.warning(response.msg || '该任务未关联摄像头或暂无推流地址');
         return;
       }
     } else {
-      console.warn('响应格式不正确:', response);
+      console.warn('响应格式不正�?', response);
       createMessage.warning('该任务未关联摄像头或暂无推流地址');
       return;
     }
@@ -790,7 +790,7 @@ const handlePlayStream = async (record: AlgorithmTask) => {
     cameraStreams.value = streams;
     currentTask.value = record;
     
-    // 过滤出有推流地址的摄像头（优先检查AI HTTP流地址）
+    // 过滤出有推流地址的摄像头（优先检查AI HTTP流地址�?
     const availableStreams = cameraStreams.value.filter(s => 
       s.ai_http_stream || s.pusher_rtmp_url || s.rtmp_stream || s.pusher_http_url || s.http_stream
     );
@@ -800,11 +800,11 @@ const handlePlayStream = async (record: AlgorithmTask) => {
       return;
     }
     
-    // 如果只有一个摄像头，直接播放
+    // 如果只有一个摄像头，直接播�?
     if (availableStreams.length === 1) {
       playCameraStream(availableStreams[0]);
     } else {
-      // 多个摄像头，显示选择对话框
+      // 多个摄像头，显示选择对话�?
       cameraStreams.value = availableStreams;
       selectedCameraIndex.value = 0;
       cameraSelectVisible.value = true;
@@ -837,17 +837,17 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
-    // 如果路径为空，使用默认路径
+    // 如果路径为空，使用默认路�?
     if (!path) {
       path = 'live';
     }
     
-    // 添加.flv后缀（如果还没有）
+    // 添加.flv后缀（如果还没有�?
     if (!path.endsWith('.flv')) {
       path = `${path}.flv`;
     }
     
-    // 生成HTTP FLV地址（默认使用8080端口）
+    // 生成HTTP FLV地址（默认使�?080端口�?
     return `http://${server}:8080/${path}`;
   } catch (error) {
     console.error('RTMP地址转换失败:', error);
@@ -855,7 +855,7 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
   }
 };
 
-// 播放摄像头推流
+// 播放摄像头推�?
 const playCameraStream = (stream: CameraStreamInfo) => {
   // 优先使用AI HTTP流地址
   // 其次使用推送器的HTTP地址
@@ -890,11 +890,11 @@ const playCameraStream = (stream: CameraStreamInfo) => {
   }
   
   if (!httpStream) {
-    createMessage.warning(`摄像头 ${stream.device_name} 暂无推流地址`);
+    createMessage.warning(`摄像�?${stream.device_name} 暂无推流地址`);
     return;
   }
   
-  // 打开播放器
+  // 打开播放�?
   openPlayerModal(true, {
     id: stream.device_id,
     http_stream: httpStream,
@@ -1114,7 +1114,7 @@ onMounted(() => {
               }
             }
 
-            // 添加一个小的背景高亮效果
+            // 添加一个小的背景高亮效�?
             &::after {
               content: '';
               position: absolute;

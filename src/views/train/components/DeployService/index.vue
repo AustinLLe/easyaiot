@@ -27,7 +27,7 @@
         </template>
         <template v-if="column.dataIndex === 'replicas'">
           <span class="replica-tag-table" v-if="record.replica_count" @click="handleViewReplicas(record)">
-            副本数: {{ record.replica_count }}
+            副本�? {{ record.replica_count }}
           </span>
           <span v-else>--</span>
         </template>
@@ -60,7 +60,7 @@
                 tooltip: { title: '删除', placement: 'top' },
                 popConfirm: {
                   placement: 'topRight',
-                  title: '确定删除此部署服务?',
+                  title: '确定删除此部署服�?',
                   confirm: () => handleDelete(record)
                 },
                 style: 'color: #ff4d4f; padding: 0 8px; font-size: 16px;'
@@ -87,8 +87,7 @@
         <template #header>
           <a-button type="primary" @click="openDeployModal(true, {isEdit: false, isView: false})">
             <Icon icon="ant-design:plus-circle-outlined"/>
-            部署新服务
-          </a-button>
+            部署新服�?          </a-button>
           <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
             切换视图
           </a-button>
@@ -190,16 +189,14 @@ const handleBatchStart = async (record) => {
   try {
     const result = await batchStartDeployService(record.service_name);
     
-    // 现在 API 返回完整响应对象（包含 code、msg、data）
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // 现在 API 返回完整响应对象（包�?code、msg、data�?    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (result && responseData.code === 0) {
       const data = responseData.data || {};
       const successCount = data.success_count || 0;
       const failCount = data.fail_count || 0;
       const errors = data.errors || [];
       
-      // 优先使用后台返回的 msg
+      // 优先使用后台返回�?msg
       if (responseData.msg) {
         // 根据成功/失败情况选择消息类型
         if (failCount === 0) {
@@ -224,15 +221,14 @@ const handleBatchStart = async (record) => {
             const hasModelError = errors.some(err => 
               err.includes('MinIO') || 
               err.includes('Minio') || 
-              err.includes('模型文件不存在') || 
+              err.includes('模型文件不存�?) || 
               err.includes('模型文件下载失败')
             );
             
             if (hasModelError) {
               errorMessage = '模型不存在，启动失败';
             } else {
-              // 其他错误，显示第一个错误信息
-              errorMessage = errors[0] || '批量启动失败';
+              // 其他错误，显示第一个错误信�?              errorMessage = errors[0] || '批量启动失败';
             }
           }
           
@@ -241,13 +237,13 @@ const handleBatchStart = async (record) => {
         // 如果部分成功部分失败
         else {
           // 检查是否有模型文件相关错误
-          let warningMessage = `批量启动部分成功：成功 ${successCount} 个，失败 ${failCount} 个`;
+          let warningMessage = `批量启动部分成功：成�?${successCount} 个，失败 ${failCount} 个`;
           
           if (errors.length > 0) {
             const hasModelError = errors.some(err => 
               err.includes('MinIO') || 
               err.includes('Minio') || 
-              err.includes('模型文件不存在') || 
+              err.includes('模型文件不存�?) || 
               err.includes('模型文件下载失败')
             );
             
@@ -260,8 +256,7 @@ const handleBatchStart = async (record) => {
         }
       }
     } else {
-      // code !== 0 的情况
-      createMessage.error(responseData?.msg || '批量启动失败');
+      // code !== 0 的情�?      createMessage.error(responseData?.msg || '批量启动失败');
     }
     
     reload();
@@ -270,11 +265,10 @@ const handleBatchStart = async (record) => {
       scheduleActionRefresh();
     }
   } catch (error: any) {
-    // 如果进入 catch，说明请求失败
-    console.error('批量启动异常:', error);
+    // 如果进入 catch，说明请求失�?    console.error('批量启动异常:', error);
     const errorData = error?.response?.data || error?.data || {};
-    const errorMsg = errorData.msg || error?.message || '批量启动失败，请检查网络连接';
-    createMessage.error(`批量启动失败：${errorMsg}`);
+    const errorMsg = errorData.msg || error?.message || '批量启动失败，请检查网络连�?;
+    createMessage.error(`批量启动失败�?{errorMsg}`);
   }
 };
 
@@ -282,8 +276,7 @@ const handleBatchStart = async (record) => {
 const handleBatchStop = async (record) => {
   try {
     const result = await batchStopDeployService(record.service_name);
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (responseData.code === 0) {
       createMessage.success(responseData.msg || '批量停止成功');
     } else {
@@ -301,8 +294,7 @@ const handleBatchStop = async (record) => {
 const handleBatchRestart = async (record) => {
   try {
     const result = await batchRestartDeployService(record.service_name);
-    // 当 isTransformResponse: false 时，实际数据在 result.data 中
-    const responseData = result?.data || {};
+    // �?isTransformResponse: false 时，实际数据�?result.data �?    const responseData = result?.data || {};
     if (responseData.code === 0) {
       createMessage.success(responseData.msg || '批量重启成功');
     } else {
@@ -359,8 +351,7 @@ const handleDelete = async (record) => {
   }
 };
 
-// 状态相关
-const getStatusColor = (status) => {
+// 状态相�?const getStatusColor = (status) => {
   const colorMap = {
     'running': 'green',
     'stopped': 'default'
@@ -370,20 +361,19 @@ const getStatusColor = (status) => {
 
 const getStatusText = (status, runningCount) => {
   const textMap = {
-    'running': '运行中',
-    'stopped': '已停止'
+    'running': '运行�?,
+    'stopped': '已停�?
   };
   const baseText = textMap[status] || status;
-  // 如果是运行中状态且有running_count，显示"运行中：3"格式
+  // 如果是运行中状态且有running_count，显�?运行中：3"格式
   if (status === 'running' && runningCount !== undefined && runningCount > 0) {
-    return `${baseText}：${runningCount}`;
+    return `${baseText}�?{runningCount}`;
   }
   return baseText;
 };
 
 // 轮询相关
-const pollingInterval = ref<number>(10000); // 默认10秒
-const pollingTimer = ref<NodeJS.Timeout | null>(null);
+const pollingInterval = ref<number>(10000); // 默认10�?const pollingTimer = ref<NodeJS.Timeout | null>(null);
 const isPollingActive = ref<boolean>(true);
 const actionRefreshTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
@@ -402,7 +392,7 @@ const scheduleActionRefresh = (attempts = 30) => {
       await reload();
       cardListReload();
     } catch (error) {
-      console.error('状态刷新失败:', error);
+      console.error('状态刷新失�?', error);
     }
 
     if (remaining <= 1) {
@@ -418,13 +408,12 @@ const scheduleActionRefresh = (attempts = 30) => {
 
 const [registerTable, {reload, getForm}] = useTable({
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '',
   api: async (params) => {
     const requestParams = {...params};
-    // 将model_id传递给后端，如果为空则删除该参数
-    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
+    // 将model_id传递给后端，如果为空则删除该参�?    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
       delete requestParams.model_id;
     }
     return getDeployServicePage(requestParams);
@@ -444,8 +433,7 @@ const [registerTable, {reload, getForm}] = useTable({
 const startPolling = async () => {
   if (!isPollingActive.value) return;
   
-  // 只有在表格模式下才进行轮询刷新
-  if (!state.isTableMode) {
+  // 只有在表格模式下才进行轮询刷�?  if (!state.isTableMode) {
     pollingTimer.value = setTimeout(startPolling, pollingInterval.value);
     return;
   }
@@ -475,23 +463,20 @@ onBeforeUnmount(() => {
   clearActionRefreshTimer();
 });
 
-// 监听表格模式切换，切换到表格模式时立即刷新
-watch(() => state.isTableMode, (isTableMode) => {
+// 监听表格模式切换，切换到表格模式时立即刷�?watch(() => state.isTableMode, (isTableMode) => {
   if (isTableMode) {
-    // 切换到表格模式时，等待表格注册完成后再刷新
-    nextTick(() => {
+    // 切换到表格模式时，等待表格注册完成后再刷�?    nextTick(() => {
       try {
         reload();
       } catch (error) {
         // 如果表格还未注册，忽略错误，等待下次轮询
-        console.warn('表格尚未注册，跳过刷新');
+        console.warn('表格尚未注册，跳过刷�?);
       }
     });
   }
 });
 
-// 监听模型选项变化，更新表单配置
-watch(() => modelOptions.value, (newOptions) => {
+// 监听模型选项变化，更新表单配�?watch(() => modelOptions.value, (newOptions) => {
   if (newOptions.length > 0) {
     const form = getForm();
     if (form) {
@@ -511,8 +496,7 @@ watch(() => modelOptions.value, (newOptions) => {
 
 <style lang="less" scoped>
 .deploy-service-container {
-  // 样式可以根据需要添加
-}
+  // 样式可以根据需要添�?}
 
 .replica-tag-table {
   display: inline-block;

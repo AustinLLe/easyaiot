@@ -22,7 +22,7 @@ const [registerDescription] = useDescription({
 </script>
 
 <template>
-  <BasicModal v-bind="$attrs" title="发送邮件详情" width="800px" @register="registerModalInner" @ok="closeModal">
+  <BasicModal v-bind="$attrs" title="发送邮件详�? width="800px" @register="registerModalInner" @ok="closeModal">
     <Description @register="registerDescription" />
   </BasicModal>
 </template>

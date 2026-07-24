@@ -133,8 +133,7 @@ import { ref, watch, computed, onUnmounted } from 'vue';
 interface Props {
   modelValue?: {
     mode?: string;
-    schedule?: number[][]; // 7天×24小时的二维数组，1表示激活，0表示未激活
-  };
+    schedule?: number[][]; // 7天�?4小时的二维数组，1表示激活，0表示未激�?  };
   disabled?: boolean;
 }
 
@@ -169,21 +168,18 @@ const schedule = ref<number[][]>(
   props.modelValue?.schedule || Array(7).fill(null).map(() => Array(24).fill(0))
 );
 
-// 拖拽状态
-const isDragging = ref(false);
+// 拖拽状�?const isDragging = ref(false);
 const dragStart = ref<{ day: number; hour: number; targetValue?: number } | null>(null);
 const dragEnd = ref<{ day: number; hour: number } | null>(null);
 
-// 监听外部值变化
-watch(
+// 监听外部值变�?watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
       const newMode = newVal.mode || 'full';
       const newSchedule = newVal.schedule;
       
-      // 如果模式改变了，需要同步更新内部状态
-      if (defenseMode.value !== newMode) {
+      // 如果模式改变了，需要同步更新内部状�?      if (defenseMode.value !== newMode) {
         defenseMode.value = newMode;
       }
       
@@ -191,8 +187,7 @@ watch(
       if (newSchedule) {
         schedule.value = JSON.parse(JSON.stringify(newSchedule));
       } else {
-        // 如果没有提供schedule，根据模式生成默认值
-        if (newMode === 'full') {
+        // 如果没有提供schedule，根据模式生成默认�?        if (newMode === 'full') {
           schedule.value = Array(7).fill(null).map(() => Array(24).fill(1));
         } else if (newMode === 'day') {
           schedule.value = Array(7).fill(null).map(() =>
@@ -203,8 +198,7 @@ watch(
             Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
           );
         } else {
-          // 半防模式：全部清空
-          schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
+          // 半防模式：全部清�?          schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
         }
       }
     }
@@ -212,23 +206,19 @@ watch(
   { deep: true, immediate: true }
 );
 
-// 格式化小时显示
-const formatHour = (hour: number) => {
+// 格式化小时显�?const formatHour = (hour: number) => {
   return `${hour.toString().padStart(2, '0')}:00`;
 };
 
-// 判断是否为日间（6:00-21:00）
-const isDayTime = (hour: number) => {
+// 判断是否为日间（6:00-21:00�?const isDayTime = (hour: number) => {
   return hour >= 6 && hour < 21;
 };
 
-// 判断是否为夜间（21:00-6:00）
-const isNightTime = (hour: number) => {
+// 判断是否为夜间（21:00-6:00�?const isNightTime = (hour: number) => {
   return hour >= 21 || hour < 6;
 };
 
-// 判断某个时段是否激活
-const isActive = (day: number, hour: number) => {
+// 判断某个时段是否激�?const isActive = (day: number, hour: number) => {
   if (defenseMode.value === 'full') {
     return true;
   }
@@ -248,21 +238,19 @@ const handleModeChange = (value: string) => {
   defenseMode.value = mode;
   
   if (mode === 'full') {
-    // 全防模式：全部填充
-    schedule.value = Array(7).fill(null).map(() => Array(24).fill(1));
+    // 全防模式：全部填�?    schedule.value = Array(7).fill(null).map(() => Array(24).fill(1));
   } else if (mode === 'day') {
-    // 日间模式：6:00-21:00填充
+    // 日间模式�?:00-21:00填充
     schedule.value = Array(7).fill(null).map(() =>
       Array(24).fill(0).map((_, hour) => (hour >= 6 && hour < 21 ? 1 : 0))
     );
   } else if (mode === 'night') {
-    // 夜间模式：21:00-6:00填充
+    // 夜间模式�?1:00-6:00填充
     schedule.value = Array(7).fill(null).map(() =>
       Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
     );
   } else if (mode === 'half') {
-    // 半防模式：全部清空，让用户自己选
-    schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
+    // 半防模式：全部清空，让用户自己�?    schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
   }
   
   emitValue();
@@ -271,8 +259,7 @@ const handleModeChange = (value: string) => {
 // 鼠标按下
 const handleMouseDown = (e: MouseEvent, day: number, hour: number) => {
   if (props.disabled || defenseMode.value !== 'half') return;
-  // 只处理左键
-  if (e.button !== 0) return;
+  // 只处理左�?  if (e.button !== 0) return;
   
   e.preventDefault();
   e.stopPropagation();
@@ -281,18 +268,15 @@ const handleMouseDown = (e: MouseEvent, day: number, hour: number) => {
   dragStart.value = { day, hour };
   dragEnd.value = { day, hour };
   
-  // 记录起始单元格的原始状态
-  const startValue = schedule.value[day][hour];
+  // 记录起始单元格的原始状�?  const startValue = schedule.value[day][hour];
   // 计算目标值（切换后的值）
   const targetValue = startValue === 1 ? 0 : 1;
   
-  // 更新拖拽状态中的目标值
-  if (dragStart.value) {
+  // 更新拖拽状态中的目标�?  if (dragStart.value) {
     dragStart.value.targetValue = targetValue;
   }
   
-  // 切换当前单元格状态
-  schedule.value[day][hour] = targetValue;
+  // 切换当前单元格状�?  schedule.value[day][hour] = targetValue;
   
   emitValue();
 };
@@ -309,7 +293,7 @@ const handleMouseEnter = (day: number, hour: number) => {
   const startHour = Math.min(dragStart.value.hour, dragEnd.value.hour);
   const endHour = Math.max(dragStart.value.hour, dragEnd.value.hour);
   
-  // 使用保存的目标值（在 mousedown 时切换后的值）
+  // 使用保存的目标值（�?mousedown 时切换后的值）
   const targetValue = dragStart.value.targetValue !== undefined ? dragStart.value.targetValue : 1;
   
   // 更新范围内的所有单元格
@@ -324,8 +308,7 @@ const handleMouseEnter = (day: number, hour: number) => {
 
 // 鼠标释放
 const handleMouseUp = (e: MouseEvent) => {
-  // 只处理左键
-  if (e.button !== 0) return;
+  // 只处理左�?  if (e.button !== 0) return;
   
   if (isDragging.value) {
     isDragging.value = false;
@@ -334,8 +317,7 @@ const handleMouseUp = (e: MouseEvent) => {
   }
 };
 
-// 发出值变化事件
-const emitValue = () => {
+// 发出值变化事�?const emitValue = () => {
   emit('update:modelValue', {
     mode: defenseMode.value,
     schedule: JSON.parse(JSON.stringify(schedule.value)),

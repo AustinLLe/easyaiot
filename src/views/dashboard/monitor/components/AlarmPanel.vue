@@ -3,8 +3,7 @@
     <div class="panel-header">
       <div class="header-title">告警事件</div>
       <div class="header-count">
-        今日告警 <span class="count-number">{{ todayAlarmCount }}</span> 次
-      </div>
+        今日告警 <span class="count-number">{{ todayAlarmCount }}</span> �?      </div>
     </div>
     
     <div class="panel-content">
@@ -80,7 +79,7 @@ const getAlarmIcon = (type: string) => {
 // 获取告警颜色
 const getAlarmColor = (level: string) => {
   const colorMap: Record<string, string> = {
-    '一级': '#ff4d4f',
+    '一�?: '#ff4d4f',
     '二级': '#ff9800',
     '三级': '#ffc107',
     '四级': '#1890ff'
@@ -90,7 +89,7 @@ const getAlarmColor = (level: string) => {
 
 // 获取任务类型
 const getTaskType = (alarm: any): string | null => {
-  // 优先从 information 字段中获取 task_type
+  // 优先�?information 字段中获�?task_type
   let taskType = null
   if (alarm.information) {
     if (typeof alarm.information === 'object' && alarm.information.task_type) {
@@ -100,12 +99,11 @@ const getTaskType = (alarm: any): string | null => {
         const info = JSON.parse(alarm.information)
         taskType = info?.task_type
       } catch (e) {
-        // 解析失败，忽略
-      }
+        // 解析失败，忽�?      }
     }
   }
   
-  // 如果 information 中没有，尝试从 alarm 本身获取
+  // 如果 information 中没有，尝试�?alarm 本身获取
   if (!taskType && alarm.task_type) {
     taskType = alarm.task_type
   }
@@ -125,27 +123,23 @@ const getTaskTypeText = (alarm: any): string => {
   }
 }
 
-// 获取任务类型样式类
-const getTaskTypeClass = (alarm: any): string => {
+// 获取任务类型样式�?const getTaskTypeClass = (alarm: any): string => {
   const taskType = getTaskType(alarm)
   
-  // 根据 task_type 返回样式类
-  if (taskType === 'snap' || taskType === 'snapshot') {
+  // 根据 task_type 返回样式�?  if (taskType === 'snap' || taskType === 'snapshot') {
     return 'task-type-snap'
   } else {
     return 'task-type-realtime'
   }
 }
 
-// 获取图片URL - 优先使用后台返回的 image_url (minio URL)
+// 获取图片URL - 优先使用后台返回�?image_url (minio URL)
 const getImageUrl = (alarm: any): string | null => {
-  // 优先使用 image_url（后台返回的 minio URL）
-  let imageUrl = alarm.image_url || alarm.image
+  // 优先使用 image_url（后台返回的 minio URL�?  let imageUrl = alarm.image_url || alarm.image
   
   if (!imageUrl) return null
   
-  // 如果是完整URL，直接返回
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  // 如果是完整URL，直接返�?  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     return imageUrl
   }
   
@@ -154,19 +148,17 @@ const getImageUrl = (alarm: any): string | null => {
     return `${window.location.origin}${imageUrl}`
   }
   
-  // 如果是相对路径（以/api开头），添加前端启动地址前缀
+  // 如果是相对路径（�?api开头），添加前端启动地址前缀
   if (imageUrl.startsWith('/api/')) {
     return `${window.location.origin}${imageUrl}`
   }
   
-  // 其他情况直接返回（后台已经返回完整的 minio URL）
-  return imageUrl
+  // 其他情况直接返回（后台已经返回完整的 minio URL�?  return imageUrl
 }
 
 // 处理图片加载错误
 const handleImageError = (alarm: any) => {
-  // 标记图片加载失败，显示占位图标
-  alarm.imageError = true
+  // 标记图片加载失败，显示占位图�?  alarm.imageError = true
 }
 
 // 处理图片加载成功

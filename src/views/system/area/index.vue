@@ -26,7 +26,7 @@ const [register, { expandAll, collapseAll, reload }] = useTable({
   bordered: true,
   showIndexColumn: false,
   canResize: true,
-  resizeHeightOffset: 24,
+  resizeHeightOffset: 36,
 })
 
 function handleCreate() {

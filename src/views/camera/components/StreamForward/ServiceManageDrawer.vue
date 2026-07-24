@@ -38,7 +38,7 @@
             <template v-else-if="column.dataIndex === 'server_info'">
               <div class="server-info">
                 <div v-if="record.server_ip">
-                  <span class="label">服务器:</span>
+                  <span class="label">服务�?</span>
                   <span>{{ record.server_ip }}</span>
                   <span v-if="record.port">:{{ record.port }}</span>
                 </div>
@@ -47,7 +47,7 @@
                   <span>{{ record.process_id }}</span>
                 </div>
                 <div v-if="record.last_heartbeat">
-                  <span class="label">最后心跳:</span>
+                  <span class="label">最后心�?</span>
                   <span>{{ formatDateTime(record.last_heartbeat) }}</span>
                 </div>
               </div>
@@ -160,8 +160,7 @@ import StreamForwardLogsModal from './StreamForwardLogsModal.vue';
 import {useModal} from '@/components/Modal';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 
-// 摄像头推流信息类型
-interface CameraStreamInfo {
+// 摄像头推流信息类�?interface CameraStreamInfo {
   device_id: string;
   device_name: string;
   rtmp_stream?: string;
@@ -181,8 +180,7 @@ const [registerPlayerModal, {openModal: openPlayerModal}] = useModal();
 const loading = ref(false);
 const taskInfo = ref<StreamForwardTask | null>(null);
 const serviceStatusInfo = ref<any>(null);
-const cameraStreamsList = ref<CameraStreamInfo[]>([]); // 存储摄像头推流信息列表
-
+const cameraStreamsList = ref<CameraStreamInfo[]>([]); // 存储摄像头推流信息列�?
 const drawerTitle = computed(() => {
   return '推流转发服务管理';
 });
@@ -195,24 +193,22 @@ const serviceList = computed(() => {
   if (taskInfo.value) {
     const deviceIds = taskInfo.value.device_ids || [];
     const deviceNames = taskInfo.value.device_names || [];
-    // 优先考虑 is_enabled 字段：如果 is_enabled=false，即使服务状态是 running 也应该显示为 stopped
+    // 优先考虑 is_enabled 字段：如�?is_enabled=false，即使服务状态是 running 也应该显示为 stopped
     let status = 'stopped';
     if (taskInfo.value.is_enabled) {
-      // is_enabled=true 时，再根据服务状态信息判断
-      status = serviceStatusInfo.value 
+      // is_enabled=true 时，再根据服务状态信息判�?      status = serviceStatusInfo.value 
         ? (serviceStatusInfo.value.status || serviceStatusInfo.value.run_status || 'stopped')
         : 'stopped';
     }
     
-    // 为每个摄像头创建一条记录
-    deviceIds.forEach((deviceId: string, index: number) => {
+    // 为每个摄像头创建一条记�?    deviceIds.forEach((deviceId: string, index: number) => {
       const deviceName = deviceNames[index] || deviceId;
       const cameraStream = cameraStreamsList.value.find(s => s.device_id === deviceId);
       
       const serviceItem = {
         id: `stream_forward_${taskInfo.value!.id}_${deviceId}`,
         service_type: 'stream_forward',
-        service_name: deviceName || `摄像头 ${index + 1}`,
+        service_name: deviceName || `摄像�?${index + 1}`,
         device_id: deviceId,
         device_name: deviceName,
         status: status,
@@ -234,8 +230,7 @@ const serviceList = computed(() => {
   return list;
 });
 
-// 表格列定义
-const getColumns = () => [
+// 表格列定�?const getColumns = () => [
   {
     title: '服务名称',
     dataIndex: 'service_name',
@@ -243,7 +238,7 @@ const getColumns = () => [
     fixed: 'left',
   },
   {
-    title: '运行状态',
+    title: '运行状�?,
     dataIndex: 'status',
     width: 100,
   },
@@ -266,13 +261,13 @@ const getColumns = () => [
     customRender: ({text}: { text: number }) => text || '--',
   },
   {
-    title: '最后心跳',
+    title: '最后心�?,
     dataIndex: 'last_heartbeat',
     width: 180,
     customRender: ({text}: { text: string }) => text ? formatDateTime(text) : '--',
   },
   {
-    title: '服务器信息',
+    title: '服务器信�?,
     dataIndex: 'server_info',
     width: 280,
   },
@@ -295,8 +290,7 @@ const getServiceIcon = (serviceType: string) => {
   return iconMap[serviceType] || 'ant-design:appstore-outlined';
 };
 
-// 获取状态颜色
-const getStatusColor = (status: string) => {
+// 获取状态颜�?const getStatusColor = (status: string) => {
   const colorMap: Record<string, string> = {
     running: 'green',
     stopped: 'default',
@@ -305,18 +299,16 @@ const getStatusColor = (status: string) => {
   return colorMap[status] || 'default';
 };
 
-// 获取状态文本
-const getStatusText = (status: string) => {
+// 获取状态文�?const getStatusText = (status: string) => {
   const textMap: Record<string, string> = {
-    running: '运行中',
-    stopped: '已停止',
+    running: '运行�?,
+    stopped: '已停�?,
     error: '错误',
   };
   return textMap[status] || status;
 };
 
-// 格式化时间
-const formatDateTime = (dateString: string) => {
+// 格式化时�?const formatDateTime = (dateString: string) => {
   if (!dateString) return '--';
   try {
     const date = new Date(dateString);
@@ -339,14 +331,13 @@ const formatDateTime = (dateString: string) => {
 const loadServiceInfo = async (taskId: number) => {
   loading.value = true;
   try {
-    // 并行获取任务详情、服务状态和摄像头推流信息
-    const [taskResponse, statusResponse, streamsResponse] = await Promise.all([
+    // 并行获取任务详情、服务状态和摄像头推流信�?    const [taskResponse, statusResponse, streamsResponse] = await Promise.all([
       getStreamForwardTask(taskId).catch((err) => {
         console.error('获取任务信息失败', err);
         return null;
       }),
       getStreamForwardTaskStatus(taskId).catch((err) => {
-        console.error('获取服务状态失败', err);
+        console.error('获取服务状态失�?, err);
         return null;
       }),
       getStreamForwardTaskStreams(taskId).catch((err) => {
@@ -358,8 +349,7 @@ const loadServiceInfo = async (taskId: number) => {
     // 处理任务详情响应
     if (taskResponse) {
       if (taskResponse && typeof taskResponse === 'object' && 'code' in taskResponse) {
-        // 如果是完整响应对象（包含 code 字段）
-        if (taskResponse.code !== 0) {
+        // 如果是完整响应对象（包含 code 字段�?        if (taskResponse.code !== 0) {
           createMessage.error(taskResponse.msg || '获取任务信息失败');
           return;
         }
@@ -370,8 +360,7 @@ const loadServiceInfo = async (taskId: number) => {
       }
     }
 
-    // 处理服务状态响应
-    if (statusResponse) {
+    // 处理服务状态响�?    if (statusResponse) {
       if (statusResponse && typeof statusResponse === 'object' && 'code' in statusResponse) {
         // 完整响应对象
         if (statusResponse.code === 0 && statusResponse.data) {
@@ -380,15 +369,13 @@ const loadServiceInfo = async (taskId: number) => {
           console.warn('服务状态响应code不为0:', statusResponse);
         }
       } else {
-        // 直接返回的数据对象（响应转换器已处理）
-        serviceStatusInfo.value = statusResponse as any;
+        // 直接返回的数据对象（响应转换器已处理�?        serviceStatusInfo.value = statusResponse as any;
       }
     } else {
-      console.warn('服务状态响应为空');
+      console.warn('服务状态响应为�?);
     }
 
-    // 处理摄像头推流信息响应
-    if (streamsResponse) {
+    // 处理摄像头推流信息响�?    if (streamsResponse) {
       let streams: CameraStreamInfo[] = [];
       if (Array.isArray(streamsResponse)) {
         streams = streamsResponse;
@@ -415,7 +402,7 @@ const loadServiceInfo = async (taskId: number) => {
 // 查看日志
 const handleViewLogs = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
@@ -428,22 +415,21 @@ const handleViewLogs = async (record: any) => {
 // 启动服务（通过启动推流转发任务来启动服务）
 const handleStart = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await startStreamForwardTask(taskInfo.value.id);
     // 处理响应
     let alreadyRunning = false;
     if (response && (response as any).id) {
-      // 直接返回的是任务对象，检查 already_running 字段
+      // 直接返回的是任务对象，检�?already_running 字段
       alreadyRunning = (response as any).already_running || false;
       if (alreadyRunning) {
-        createMessage.warning('任务运行中');
+        createMessage.warning('任务运行�?);
       } else {
         createMessage.success('服务启动成功');
       }
@@ -457,7 +443,7 @@ const handleStart = async (record: any) => {
         const data = (response as any).data || response;
         alreadyRunning = data?.already_running || false;
         if (alreadyRunning) {
-          createMessage.warning('任务运行中');
+          createMessage.warning('任务运行�?);
         } else {
           createMessage.success('服务启动成功');
         }
@@ -481,12 +467,11 @@ const handleStart = async (record: any) => {
 // 停止服务（通过停止推流转发任务来停止服务）
 const handleStop = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await stopStreamForwardTask(taskInfo.value.id);
@@ -496,8 +481,7 @@ const handleStop = async (record: any) => {
       // 重新加载服务信息
       await loadServiceInfo(taskInfo.value.id);
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
-      if ((response as any).code === 0) {
+      // 如果返回的是完整响应对象（包�?code�?      if ((response as any).code === 0) {
         createMessage.success('服务停止成功');
         // 重新加载服务信息
         await loadServiceInfo(taskInfo.value.id);
@@ -518,12 +502,11 @@ const handleStop = async (record: any) => {
 // 重启服务（通过重启推流转发任务来重启服务）
 const handleRestart = async (record: any) => {
   if (!taskInfo.value) {
-    createMessage.warning('任务信息不存在');
+    createMessage.warning('任务信息不存�?);
     return;
   }
 
-  // 设置加载状态
-  record.actionLoading = true;
+  // 设置加载状�?  record.actionLoading = true;
 
   try {
     const response = await restartStreamForwardTask(taskInfo.value.id);
@@ -533,8 +516,7 @@ const handleRestart = async (record: any) => {
       // 重新加载服务信息
       await loadServiceInfo(taskInfo.value.id);
     } else if (response && typeof response === 'object' && 'code' in response) {
-      // 如果返回的是完整响应对象（包含 code）
-      if ((response as any).code === 0) {
+      // 如果返回的是完整响应对象（包�?code�?      if ((response as any).code === 0) {
         createMessage.success('服务重启成功');
         // 重新加载服务信息
         await loadServiceInfo(taskInfo.value.id);
@@ -584,7 +566,7 @@ const handlePlayStream = async (record: any) => {
   }
   
   if (!record.device_id) {
-    createMessage.warning('该记录未关联摄像头');
+    createMessage.warning('该记录未关联摄像�?);
     return;
   }
   
@@ -596,7 +578,7 @@ const handlePlayStream = async (record: any) => {
       // 直接播放当前摄像头的推流
       playCameraStream(cameraStream);
     } else {
-      createMessage.warning(`摄像头 ${record.device_name || record.device_id} 暂无推流地址`);
+      createMessage.warning(`摄像�?${record.device_name || record.device_id} 暂无推流地址`);
     }
   } catch (error) {
     console.error('播放推流失败', error);
@@ -617,26 +599,22 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
-    // 如果路径为空，使用默认路径
-    if (!path) {
+    // 如果路径为空，使用默认路�?    if (!path) {
       path = 'live';
     }
     
-    // 添加.flv后缀（如果还没有）
-    if (!path.endsWith('.flv')) {
+    // 添加.flv后缀（如果还没有�?    if (!path.endsWith('.flv')) {
       path = `${path}.flv`;
     }
     
-    // 生成HTTP FLV地址（默认使用8080端口）
-    return `http://${server}:8080/${path}`;
+    // 生成HTTP FLV地址（默认使�?080端口�?    return `http://${server}:8080/${path}`;
   } catch (error) {
     console.error('RTMP地址转换失败:', error);
     return null;
   }
 };
 
-// 播放摄像头推流
-const playCameraStream = (stream: CameraStreamInfo) => {
+// 播放摄像头推�?const playCameraStream = (stream: CameraStreamInfo) => {
   // 优先使用RTMP地址，转换为HTTP地址
   // 其次使用已有的HTTP地址
   let httpStream: string | null = null;
@@ -652,12 +630,11 @@ const playCameraStream = (stream: CameraStreamInfo) => {
   }
   
   if (!httpStream) {
-    createMessage.warning(`摄像头 ${stream.device_name} 暂无推流地址`);
+    createMessage.warning(`摄像�?${stream.device_name} 暂无推流地址`);
     return;
   }
   
-  // 打开播放器
-  openPlayerModal(true, {
+  // 打开播放�?  openPlayerModal(true, {
     id: stream.device_id,
     http_stream: httpStream,
   });
@@ -665,8 +642,7 @@ const playCameraStream = (stream: CameraStreamInfo) => {
 
 // 注册抽屉
 const [register] = useDrawerInner(async (data) => {
-  // 重置状态
-  taskInfo.value = null;
+  // 重置状�?  taskInfo.value = null;
   serviceStatusInfo.value = null;
   cameraStreamsList.value = [];
 

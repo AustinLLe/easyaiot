@@ -12,7 +12,7 @@ defineOptions({ name: 'SystemMessage' })
 const { t } = useI18n()
 
 const [registerTable] = useTable({
-  title: '站内信记录列表',
+  title: '站内信记录列�?,
   api: getNotifyMessagePage,
   columns,
   formConfig: { labelWidth: 120, schemas: searchFormSchema },

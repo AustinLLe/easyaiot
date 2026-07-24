@@ -10,7 +10,7 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
           <a-space>
-            <a-popconfirm title="确定要删除吗？" @confirm="handleDelete(record.id)">
+            <a-popconfirm title="确定要删除吗�? @confirm="handleDelete(record.id)">
               <a-button type="link" size="small" danger>删除</a-button>
             </a-popconfirm>
           </a-space>
@@ -51,7 +51,7 @@ const columns = [
   { title: '服务名称', dataIndex: 'service_name', key: 'service_name' },
   { title: '服务URL', dataIndex: 'service_url', key: 'service_url', ellipsis: true },
   { title: '服务类型', dataIndex: 'service_type', key: 'service_type' },
-  { title: '阈值', dataIndex: 'threshold', key: 'threshold' },
+  { title: '阈�?, dataIndex: 'threshold', key: 'threshold' },
   { title: '排序', dataIndex: 'sort_order', key: 'sort_order' },
   { title: '启用', key: 'is_enabled', width: 80 },
   { title: '操作', key: 'action', width: 120 },
@@ -98,7 +98,7 @@ const handleToggleEnabled = async (record: AlgorithmModelService) => {
       createMessage.error(response.msg || '更新失败');
     }
   } catch (error) {
-    console.error('更新算法服务状态失败', error);
+    console.error('更新算法服务状态失�?, error);
     createMessage.error('更新失败');
   }
 };

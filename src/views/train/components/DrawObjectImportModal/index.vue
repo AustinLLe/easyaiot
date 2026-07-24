@@ -102,7 +102,7 @@ async function handleFileChange(event: Event) {
     visible.value = false;
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '导入失败，请检查文件格式';
+    const message = error instanceof Error ? error.message : '导入失败，请检查文件格�?;
     createMessage.error(message);
   }
   finally {

@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="region-drawer-container">
-    <!-- 工具栏 -->
+    <!-- 工具�?-->
     <div class="toolbar">
       <a-button type="primary" @click="handleCapture" :loading="capturing">
         <template #icon>
@@ -27,7 +27,7 @@
       <!-- 左侧区域列表 -->
       <div class="region-panel">
         <div class="panel-header">
-          <span>检测区域 ({{ regions.length }})</span>
+          <span>检测区�?({{ regions.length }})</span>
         </div>
         <div class="region-list">
           <div
@@ -59,7 +59,7 @@
       <!-- 画布区域 -->
       <div class="canvas-area">
         <div v-if="!currentImage" class="empty-state">
-          <a-empty description="请先抓拍一张图片作为绘制基准">
+          <a-empty description="请先抓拍一张图片作为绘制基�?>
             <template #image>
               <CameraOutlined style="font-size: 48px; color: #ccc" />
             </template>
@@ -85,13 +85,13 @@
         <div v-if="selectedRegion" class="config-content">
           <a-form :model="selectedRegion" layout="vertical" size="small">
             <a-form-item label="区域名称">
-              <a-input v-model:value="selectedRegion.region_name" placeholder="请输入区域名称" />
+              <a-input v-model:value="selectedRegion.region_name" placeholder="请输入区域名�? />
             </a-form-item>
             <a-form-item label="算法类型">
               <a-select v-model:value="selectedRegion.algorithm_type" placeholder="请选择算法类型">
-                <a-select-option value="FIRE">火焰烟雾检测</a-select-option>
+                <a-select-option value="FIRE">火焰烟雾检�?/a-select-option>
                 <a-select-option value="CROWD">人群聚集计数</a-select-option>
-                <a-select-option value="SMOKE">吸烟检测</a-select-option>
+                <a-select-option value="SMOKE">吸烟检�?/a-select-option>
               </a-select>
             </a-form-item>
             <a-form-item label="算法模型ID">
@@ -102,10 +102,10 @@
                 style="width: 100%"
               />
             </a-form-item>
-            <a-form-item label="算法阈值">
+            <a-form-item label="算法阈�?>
               <a-input-number
                 v-model:value="selectedRegion.algorithm_threshold"
-                placeholder="请输入算法阈值"
+                placeholder="请输入算法阈�?
                 :min="0"
                 :max="1"
                 :step="0.1"
@@ -120,7 +120,7 @@
                 style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer"
               />
             </a-form-item>
-            <a-form-item label="透明度">
+            <a-form-item label="透明�?>
               <a-slider
                 v-model:value="selectedRegion.opacity"
                 :min="0"
@@ -137,7 +137,7 @@
           </a-form>
         </div>
         <div v-else class="empty-config">
-          <a-empty description="请选择一个区域进行配置" :image="false" />
+          <a-empty description="请选择一个区域进行配�? :image="false" />
         </div>
       </div>
     </div>
@@ -168,8 +168,7 @@ const emit = defineEmits<{
 
 const { createMessage } = useMessage();
 
-// 状态
-const capturing = ref(false);
+// 状�?const capturing = ref(false);
 const currentImage = ref<HTMLImageElement | null>(null);
 const currentImageId = ref<number | null>(props.initialImageId || null);
 const currentImagePath = ref<string | null>(props.initialImagePath || null);
@@ -179,15 +178,13 @@ const imageLoaded = ref(false);
 const regions = ref<DetectionRegion[]>(props.initialRegions || []);
 const selectedRegionId = ref<number | string | null>(null);
 
-// Canvas状态
-const canvas = ref<HTMLCanvasElement | null>(null);
+// Canvas状�?const canvas = ref<HTMLCanvasElement | null>(null);
 const ctx = ref<CanvasRenderingContext2D | null>(null);
 const isDrawing = ref(false);
 const currentPoints = ref<Array<{ x: number; y: number }>>([]);
 const imageDisplaySize = ref({ x: 0, y: 0, width: 0, height: 0 });
 
-// 计算属性
-const selectedRegion = computed(() => {
+// 计算属�?const selectedRegion = computed(() => {
   if (selectedRegionId.value === null) return null;
   return regions.value.find(r => (r.id || regions.value.indexOf(r)) === selectedRegionId.value) || null;
 });
@@ -206,8 +203,7 @@ const loadImage = (src: string) => {
   img.src = src;
 };
 
-// 初始化画布
-const initCanvas = () => {
+// 初始化画�?const initCanvas = () => {
   if (!canvas.value) return;
   ctx.value = canvas.value.getContext('2d');
   resizeCanvas();
@@ -254,8 +250,7 @@ const draw = () => {
     drawRegion(region);
   });
 
-  // 绘制当前正在绘制的区域
-  if (isDrawing.value && currentPoints.value.length > 0) {
+  // 绘制当前正在绘制的区�?  if (isDrawing.value && currentPoints.value.length > 0) {
     drawCurrentRegion();
   }
 };
@@ -307,8 +302,7 @@ const drawRegion = (region: DetectionRegion) => {
   ctx.value.restore();
 };
 
-// 绘制当前正在创建的区域
-const drawCurrentRegion = () => {
+// 绘制当前正在创建的区�?const drawCurrentRegion = () => {
   if (!ctx.value || !imageDisplaySize.value || currentPoints.value.length === 0) return;
 
   const { x: imgX, y: imgY, width: imgWidth, height: imgHeight } = imageDisplaySize.value;
@@ -335,8 +329,7 @@ const drawCurrentRegion = () => {
 
     ctx.value.stroke();
 
-    // 绘制点
-    currentPoints.value.forEach(point => {
+    // 绘制�?    currentPoints.value.forEach(point => {
       const canvasPoint = toCanvasCoords(point);
       ctx.value.beginPath();
       ctx.value.arc(canvasPoint.x, canvasPoint.y, 4, 0, Math.PI * 2);
@@ -373,13 +366,11 @@ const handleMouseMove = (e: MouseEvent) => {
 };
 
 const handleMouseUp = () => {
-  // 多边形绘制在双击时完成
-};
+  // 多边形绘制在双击时完�?};
 
 const handleDoubleClick = () => {
   if (isDrawing.value && currentPoints.value.length >= 3) {
-    // 创建新区域
-    const newRegion: DetectionRegion = {
+    // 创建新区�?    const newRegion: DetectionRegion = {
       id: Date.now(), // 临时ID
       task_id: props.taskId || 0,
       region_name: `区域 ${regions.value.length + 1}`,
@@ -466,7 +457,7 @@ const handleClear = () => {
 // 保存区域
 const handleSave = () => {
   if (regions.value.length === 0) {
-    createMessage.warning('请至少绘制一个区域');
+    createMessage.warning('请至少绘制一个区�?);
     return;
   }
   emit('save', regions.value);
@@ -483,13 +474,11 @@ watch(
   { deep: true }
 );
 
-// 初始化
-onMounted(() => {
+// 初始�?onMounted(() => {
   initCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  // 如果有初始图片，加载它
-  if (props.initialImagePath) {
+  // 如果有初始图片，加载�?  if (props.initialImagePath) {
     loadImage(props.initialImagePath);
   }
 });

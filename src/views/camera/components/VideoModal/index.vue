@@ -41,7 +41,7 @@
             </template>
           </BasicTable>
         </Form>
-        <!-- 直连设备表单（新增：摄像头类型选择） -->
+        <!-- 直连设备表单（新增：摄像头类型选择�?-->
         <Form
           :labelCol="{ span: 6 }"
           :model="validateInfos"
@@ -49,10 +49,10 @@
           :disabled="state.isView"
           v-else-if="state.type === 'source' && !state.isEdit && !state.isView"
         >
-          <FormItem label="摄像头类型" name="cameraType" v-bind=validateInfos.cameraType>
+          <FormItem label="摄像头类�? name="cameraType" v-bind=validateInfos.cameraType>
             <Select
               v-model:value="modelRef.cameraType"
-              placeholder="请选择摄像头类型"
+              placeholder="请选择摄像头类�?
               :options="state.cameraTypeList"
               @change="handleCameraTypeChange"
             />
@@ -68,7 +68,7 @@
               style="width: 100%"
             />
           </FormItem>
-          <!-- 自定义类型：显示完整RTSP地址输入框 -->
+          <!-- 自定义类型：显示完整RTSP地址输入�?-->
           <template v-if="modelRef.cameraType === 'custom'">
             <FormItem label="RTSP地址" name="source" v-bind=validateInfos.source>
               <Input 
@@ -86,25 +86,25 @@
               </Input>
             </FormItem>
             <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
-              <Input v-model:value="modelRef.name" placeholder="请输入设备名称"/>
+              <Input v-model:value="modelRef.name" placeholder="请输入设备名�?/>
             </FormItem>
           </template>
           <!-- 海康/大华/宇视类型：显示IP、端口、用户名、密码输入框 -->
           <template v-else-if="modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview'">
             <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
-              <Input v-model:value="modelRef.name" placeholder="请输入设备名称"/>
+              <Input v-model:value="modelRef.name" placeholder="请输入设备名�?/>
             </FormItem>
             <FormItem label="摄像头IP" name="ip" v-bind=validateInfos.ip>
               <Input v-model:value="modelRef.ip" placeholder="请输入摄像头IP地址" @blur="generateRtspUrl"/>
             </FormItem>
-            <FormItem label="摄像头端口" name="port" v-bind=validateInfos.port>
+            <FormItem label="摄像头端�? name="port" v-bind=validateInfos.port>
               <Input v-model:value="modelRef.port" placeholder="请输入摄像头端口" type="number" @blur="generateRtspUrl"/>
             </FormItem>
-            <FormItem label="用户名" name="username" v-bind=validateInfos.username>
+            <FormItem label="用户�? name="username" v-bind=validateInfos.username>
               <Input v-model:value="modelRef.username" placeholder="请输入用户名" @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="密码" name="password" v-bind=validateInfos.password>
-              <Input.Password v-model:value="modelRef.password" placeholder="请输入密码" @blur="generateRtspUrl"/>
+              <Input.Password v-model:value="modelRef.password" placeholder="请输入密�? @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="码流类型" name="stream" v-bind=validateInfos.stream>
               <Select
@@ -198,7 +198,7 @@
               </FormItem>
             </Col>
             <Col :span="12">
-              <FormItem label="用户名" name="username" v-bind=validateInfos.username>
+              <FormItem label="用户�? name="username" v-bind=validateInfos.username>
                 <Input v-model:value="modelRef.username"/>
               </FormItem>
             </Col>
@@ -265,26 +265,26 @@ const state = reactive({
   record: null,
   editLoading: false,
   streamList: [
-    {label: "主码流", value: 0},
-    {label: "子码流", value: 1},
+    {label: "主码�?, value: 0},
+    {label: "子码�?, value: 1},
   ],
   cameraTypeList: [
-    {label: "自定义", value: 'custom'},
+    {label: "自定�?, value: 'custom'},
     {label: "海康", value: 'hikvision'},
     {label: "大华", value: 'dahua'},
     {label: "宇视", value: 'uniview'},
   ],
   enableForwardList: [
     {label: "启用", value: true},
-    {label: "不启用", value: false},
+    {label: "不启�?, value: false},
   ],
   supportMoveList: [
     {label: "支持", value: true},
-    {label: "不支持", value: false},
+    {label: "不支�?, value: false},
   ],
   supportZoomList: [
     {label: "支持", value: true},
-    {label: "不支持", value: false},
+    {label: "不支�?, value: false},
   ],
 });
 
@@ -367,8 +367,7 @@ const [register, {closeModal}] = useModalInner(async (data) => {
 
   if (state.isEdit || state.isView) {
     modelEdit(record);
-    // 编辑/查看时也需要更新验证规则
-    Object.assign(rulesRef, getRules());
+    // 编辑/查看时也需要更新验证规�?    Object.assign(rulesRef, getRules());
   }
 });
 
@@ -426,24 +425,20 @@ const [
   rowKey: 'ip',
 });
 
-// 动态验证规则函数
-const getRules = () => {
+// 动态验证规则函�?const getRules = () => {
   const baseRules: any = {
-    name: [{required: true, message: '请输入设备名称', trigger: ['change']}],
+    name: [{required: true, message: '请输入设备名�?, trigger: ['change']}],
     // 编辑模式下，cameraType 不是必填的（因为编辑的设备可能没有这个字段）
-    // 只有新增直连设备时才需要 cameraType
-    cameraType: state.isEdit ? [] : [{required: true, message: '请选择摄像头类型', trigger: ['change']}],
+    // 只有新增直连设备时才需�?cameraType
+    cameraType: state.isEdit ? [] : [{required: true, message: '请选择摄像头类�?, trigger: ['change']}],
   };
 
-  // 根据摄像头类型动态设置验证规则
-  if (modelRef.cameraType === 'custom') {
-    // 自定义类型：source必填，ip和port不需要验证
-    baseRules.source = [{required: true, message: '请输入RTSP取流地址', trigger: ['change']}];
+  // 根据摄像头类型动态设置验证规�?  if (modelRef.cameraType === 'custom') {
+    // 自定义类型：source必填，ip和port不需要验�?    baseRules.source = [{required: true, message: '请输入RTSP取流地址', trigger: ['change']}];
     baseRules.ip = [];
     baseRules.port = [];
   } else if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
-    // 海康/大华/宇视类型：ip、port、username、password必填，source自动生成不需要验证
-    baseRules.ip = [
+    // 海康/大华/宇视类型：ip、port、username、password必填，source自动生成不需要验�?    baseRules.ip = [
       {required: true, message: '请输入摄像头IP地址', trigger: ['change']},
       {
         validator: (_rule, value) => {
@@ -456,7 +451,7 @@ const getRules = () => {
           if (isLocalhost || ipPattern.test(value)) {
             return Promise.resolve();
           }
-          return Promise.reject('请输入正确的IP地址格式，localhost也是正确的');
+          return Promise.reject('请输入正确的IP地址格式，localhost也是正确�?);
         },
         trigger: ['change']
       }
@@ -470,10 +465,10 @@ const getRules = () => {
           }
           const numValue = Number(value);
           if (isNaN(numValue)) {
-            return Promise.reject('端口必须是数字');
+            return Promise.reject('端口必须是数�?);
           }
           if (numValue < 1 || numValue > 65535) {
-            return Promise.reject('端口范围必须在1-65535之间');
+            return Promise.reject('端口范围必须�?-65535之间');
           }
           return Promise.resolve();
         },
@@ -481,11 +476,10 @@ const getRules = () => {
       }
     ];
     baseRules.username = [{required: true, message: '请输入用户名', trigger: ['change']}];
-    baseRules.password = [{required: true, message: '请输入密码', trigger: ['change']}];
+    baseRules.password = [{required: true, message: '请输入密�?, trigger: ['change']}];
     baseRules.source = [];
   } else {
-    // 默认情况：所有字段都是可选的，但如果有值则需要符合格式
-    baseRules.source = [{required: false, message: '请输入RTSP取流地址', trigger: ['change']}];
+    // 默认情况：所有字段都是可选的，但如果有值则需要符合格�?    baseRules.source = [{required: false, message: '请输入RTSP取流地址', trigger: ['change']}];
     baseRules.ip = [
       {required: false, message: '请输入摄像头IP地址', trigger: ['change']},
       {
@@ -499,7 +493,7 @@ const getRules = () => {
           if (isLocalhost || ipPattern.test(value)) {
             return Promise.resolve();
           }
-          return Promise.reject('请输入正确的IP地址格式，localhost也是正确的');
+          return Promise.reject('请输入正确的IP地址格式，localhost也是正确�?);
         },
         trigger: ['change']
       }
@@ -513,10 +507,10 @@ const getRules = () => {
           }
           const numValue = Number(value);
           if (isNaN(numValue)) {
-            return Promise.reject('端口必须是数字');
+            return Promise.reject('端口必须是数�?);
           }
           if (numValue < 1 || numValue > 65535) {
-            return Promise.reject('端口范围必须在1-65535之间');
+            return Promise.reject('端口范围必须�?-65535之间');
           }
           return Promise.resolve();
         },
@@ -524,7 +518,7 @@ const getRules = () => {
       }
     ];
     baseRules.username = [{required: false, message: '请输入用户名', trigger: ['change']}];
-    baseRules.password = [{required: false, message: '请输入密码', trigger: ['change']}];
+    baseRules.password = [{required: false, message: '请输入密�?, trigger: ['change']}];
   }
 
   return baseRules;
@@ -536,24 +530,19 @@ function handleCLickChange(value) {
   //console.log('handleCLickChange', value)
 }
 
-// 处理摄像头类型变化
-function handleCameraTypeChange(value) {
-  // 确保 cameraType 被正确设置
-  modelRef.cameraType = value;
+// 处理摄像头类型变�?function handleCameraTypeChange(value) {
+  // 确保 cameraType 被正确设�?  modelRef.cameraType = value;
   
   if (value === 'custom') {
-    // 自定义类型，清空自动生成的字段
-    modelRef.source = '';
+    // 自定义类型，清空自动生成的字�?    modelRef.source = '';
     modelRef.ip = '';
     modelRef.port = 554;
     modelRef.username = 'admin';
     modelRef.password = '';
   } else {
-    // 海康、大华或宇视类型，清空source，等待自动生成
-    modelRef.source = '';
+    // 海康、大华或宇视类型，清空source，等待自动生�?    modelRef.source = '';
     modelRef.stream = 0;
-    // 重置为默认值
-    if (!modelRef.ip) {
+    // 重置为默认�?    if (!modelRef.ip) {
       modelRef.ip = '';
     }
     if (!modelRef.port) {
@@ -567,41 +556,32 @@ function handleCameraTypeChange(value) {
     }
     
     // 切换类型后，立即检查是否能自动生成RTSP地址
-    // 如果IP、端口、用户名、密码都已填写，则自动生成
-    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
+    // 如果IP、端口、用户名、密码都已填写，则自动生�?    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
       generateRtspUrl();
     }
   }
   
   // 更新验证规则
   Object.assign(rulesRef, getRules());
-  // 清除验证错误，但不重置字段值
-  clearValidate();
+  // 清除验证错误，但不重置字段�?  clearValidate();
 }
 
-// 生成RTSP地址（海康/大华/宇视）
-function generateRtspUrl() {
+// 生成RTSP地址（海�?大华/宇视�?function generateRtspUrl() {
   if (modelRef.cameraType === 'hikvision') {
     // 海康威视RTSP地址格式：rtsp://username:password@ip:port/Streaming/Channels/10X
-    // X: 1=主码流, 2=子码流
-    // 前端streamList: 0=主码流, 1=子码流
-    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
+    // X: 1=主码�? 2=子码�?    // 前端streamList: 0=主码�? 1=子码�?    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
       const streamType = modelRef.stream === 0 ? 1 : (modelRef.stream === 1 ? 2 : 1);
       modelRef.source = `rtsp://${modelRef.username}:${modelRef.password}@${modelRef.ip}:${modelRef.port}/Streaming/Channels/10${streamType}`;
     }
   } else if (modelRef.cameraType === 'dahua') {
     // 大华RTSP地址格式：rtsp://username:password@ip:port/cam/realmonitor?channel=1&subtype=X
-    // X: 0=主码流, 1=辅码流
-    // 前端streamList: 0=主码流, 1=子码流
-    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
+    // X: 0=主码�? 1=辅码�?    // 前端streamList: 0=主码�? 1=子码�?    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
       const streamType = modelRef.stream === 0 ? 0 : (modelRef.stream === 1 ? 1 : 0);
       modelRef.source = `rtsp://${modelRef.username}:${modelRef.password}@${modelRef.ip}:${modelRef.port}/cam/realmonitor?channel=1&subtype=${streamType}`;
     }
   } else if (modelRef.cameraType === 'uniview') {
-    // 宇视RTSP地址格式：rtsp://username:password@ip:port/unicast/c<通道号>/s<码流类型>/live
-    // 码流类型: 0=主码流, 1=辅码流
-    // 前端streamList: 0=主码流, 1=子码流
-    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
+    // 宇视RTSP地址格式：rtsp://username:password@ip:port/unicast/c<通道�?/s<码流类型>/live
+    // 码流类型: 0=主码�? 1=辅码�?    // 前端streamList: 0=主码�? 1=子码�?    if (modelRef.ip && modelRef.port && modelRef.username && modelRef.password) {
       const streamType = modelRef.stream === 0 ? 0 : (modelRef.stream === 1 ? 1 : 0);
       const channel = 1; // 默认通道1
       modelRef.source = `rtsp://${modelRef.username}:${modelRef.password}@${modelRef.ip}:${modelRef.port}/unicast/c${channel}/s${streamType}/live`;
@@ -619,10 +599,10 @@ function handleStreamChange(value) {
 // 复制RTSP地址
 function handleCopyRtsp() {
   if (!modelRef.source) {
-    createMessage.warning('RTSP地址为空，无法复制');
+    createMessage.warning('RTSP地址为空，无法复�?);
     return;
   }
-  copyText(modelRef.source, 'RTSP地址已复制到剪贴板');
+  copyText(modelRef.source, 'RTSP地址已复制到剪贴�?);
 }
 
 function handleRegisterSuccess(value) {
@@ -670,7 +650,7 @@ function handleRegisterSuccess(value) {
             await assignDeviceToDirectory(deviceId, directoryId);
           } catch (error) {
             console.warn('关联分组失败:', error);
-            createMessage.warning('设备已注册，但关联分组失败');
+            createMessage.warning('设备已注册，但关联分组失�?);
           }
         }
         
@@ -679,8 +659,7 @@ function handleRegisterSuccess(value) {
           try {
             await ensureDeviceStreamForwardTask(deviceId);
           } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
+            // 静默处理，不影响主流�?            console.warn('检查推流转发任务失�?', error);
           }
         }
         
@@ -703,8 +682,7 @@ async function modelEdit(record) {
     console.log(JSON.stringify(record));
     state.editLoading = true;
     Object.keys(modelRef).forEach((item) => {
-      // 如果 record 中有该字段，则使用 record 的值；否则保留 modelRef 的默认值
-      if (record.hasOwnProperty(item) && record[item] !== undefined && record[item] !== null) {
+      // 如果 record 中有该字段，则使�?record 的值；否则保留 modelRef 的默认�?      if (record.hasOwnProperty(item) && record[item] !== undefined && record[item] !== null) {
         modelRef[item] = record[item];
       }
     });
@@ -745,7 +723,7 @@ function handleOk() {
 
     if (!modelRef.cameraType) {
       isValid = false;
-      errorMsg = '请选择摄像头类型';
+      errorMsg = '请选择摄像头类�?;
     } else if (modelRef.cameraType === 'custom') {
       if (!modelRef.source) {
         isValid = false;
@@ -763,13 +741,13 @@ function handleOk() {
         errorMsg = '请输入用户名';
       } else if (!modelRef.password) {
         isValid = false;
-        errorMsg = '请输入密码';
+        errorMsg = '请输入密�?;
       }
     }
 
     if (!modelRef.name) {
       isValid = false;
-      errorMsg = '请输入设备名称';
+      errorMsg = '请输入设备名�?;
     }
 
     if (!isValid) {
@@ -784,8 +762,7 @@ function handleOk() {
     validate().then(async () => {
       state.editLoading = true;
       try {
-        // 如果是海康、大华或宇视类型，确保RTSP地址已生成
-        if ((modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') && !modelRef.source) {
+        // 如果是海康、大华或宇视类型，确保RTSP地址已生�?        if ((modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') && !modelRef.source) {
           generateRtspUrl();
         }
 
@@ -803,8 +780,7 @@ function handleOk() {
           cameraType: modelRef.cameraType, // 传递摄像头类型，用于判断是否需要ONVIF获取
         };
 
-        // 如果是海康、大华或宇视类型，需要传入IP、端口、用户名、密码
-        if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
+        // 如果是海康、大华或宇视类型，需要传入IP、端口、用户名、密�?        if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
           registerData.ip = modelRef.ip;
           registerData.port = parseInt(modelRef.port) || 554;
           registerData.username = modelRef.username;
@@ -821,7 +797,7 @@ function handleOk() {
             await assignDeviceToDirectory(deviceId, modelRef.directory_id);
           } catch (error) {
             console.warn('关联分组失败:', error);
-            createMessage.warning('设备已注册，但关联分组失败');
+            createMessage.warning('设备已注册，但关联分组失�?);
           }
         }
         
@@ -830,8 +806,7 @@ function handleOk() {
           try {
             await ensureDeviceStreamForwardTask(deviceId);
           } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
+            // 静默处理，不影响主流�?            console.warn('检查推流转发任务失�?', error);
           }
         }
         
@@ -859,8 +834,7 @@ function handleOk() {
     try {
       // 编辑操作：如果有ID则更新，否则新增
       if (state.isEdit && modelRef.id) {
-        // 编辑时，过滤掉不必要的字段（如空的 cameraType）
-        const updateData = {...modelRef};
+        // 编辑时，过滤掉不必要的字段（如空�?cameraType�?        const updateData = {...modelRef};
         // 如果 cameraType 是空字符串，则不发送该字段
         // 但对于自定义摄像头（cameraType === 'custom'），需要保留该字段以便后端识别
         if (updateData.cameraType === '') {
@@ -872,10 +846,8 @@ function handleOk() {
         }
         await updateDevice(modelRef.id, updateData);
       } else if (state.type === 'camera') {
-        // 摄像头处理
-        if (modelRef.id) {
-          // 编辑时，过滤掉不必要的字段
-          const updateData = {...modelRef};
+        // 摄像头处�?        if (modelRef.id) {
+          // 编辑时，过滤掉不必要的字�?          const updateData = {...modelRef};
           if (updateData.cameraType === '') {
             delete updateData.cameraType;
           }
@@ -893,14 +865,12 @@ function handleOk() {
             try {
               await ensureDeviceStreamForwardTask(deviceId);
             } catch (error) {
-              // 静默处理，不影响主流程
-              console.warn('检查推流转发任务失败:', error);
+              // 静默处理，不影响主流�?              console.warn('检查推流转发任务失�?', error);
             }
           }
         }
       } else if (state.type === 'source') {
-        // 独立摄像头处理
-        const response = await registerDevice(modelRef);
+        // 独立摄像头处�?        const response = await registerDevice(modelRef);
         const deviceId = response?.data?.id;
         
         // 检查并确保推流转发任务存在
@@ -908,15 +878,13 @@ function handleOk() {
           try {
             await ensureDeviceStreamForwardTask(deviceId);
           } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
+            // 静默处理，不影响主流�?            console.warn('检查推流转发任务失�?', error);
           }
         }
       } else {
         // 默认处理：如果有ID则更新，否则新增
         if (modelRef.id) {
-          // 编辑时，过滤掉不必要的字段
-          const updateData = {...modelRef};
+          // 编辑时，过滤掉不必要的字�?          const updateData = {...modelRef};
           if (updateData.cameraType === '') {
             delete updateData.cameraType;
           }
@@ -930,8 +898,7 @@ function handleOk() {
           try {
             await ensureDeviceStreamForwardTask(modelRef.id);
           } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
+            // 静默处理，不影响主流�?            console.warn('检查推流转发任务失�?', error);
           }
         } else {
           const response = await registerDevice(modelRef);
@@ -942,8 +909,7 @@ function handleOk() {
             try {
               await ensureDeviceStreamForwardTask(deviceId);
             } catch (error) {
-              // 静默处理，不影响主流程
-              console.warn('检查推流转发任务失败:', error);
+              // 静默处理，不影响主流�?              console.warn('检查推流转发任务失�?', error);
             }
           }
         }
@@ -976,8 +942,7 @@ function handleOk() {
     }
   }
   
-  // RTSP地址输入框样式优化
-  :deep(.ant-input-group-wrapper) {
+  // RTSP地址输入框样式优�?  :deep(.ant-input-group-wrapper) {
     width: 100%;
   }
   

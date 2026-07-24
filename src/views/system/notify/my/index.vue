@@ -18,7 +18,7 @@ const [registerModal, { openModal }] = useModal()
 const store = useUserMessageStore()
 
 const [registerTable, { getSelectRowKeys, clearSelectedRowKeys, reload }] = useTable({
-  title: '我的站内信列表',
+  title: '我的站内信列�?,
   api: getMyNotifyMessagePage,
   columns,
   formConfig: { labelWidth: 130, schemas: searchFormSchema },
@@ -26,8 +26,7 @@ const [registerTable, { getSelectRowKeys, clearSelectedRowKeys, reload }] = useT
     type: 'checkbox',
     getCheckboxProps: (record: Recordable) => {
       return {
-        // 已读的消息disabled 不可选
-        disabled: record.readStatus,
+        // 已读的消息disabled 不可�?        disabled: record.readStatus,
       }
     },
   },
@@ -63,20 +62,19 @@ function afterRead(msg: string) {
   createMessage.success(msg)
   // 更新未读消息
   store.updateUnreadCount()
-  // 重加载表格
-  reload()
+  // 重加载表�?  reload()
   // 清除选中的行
   clearSelectedRowKeys()
 }
 
 async function handleUpdate(ids) {
   await updateNotifyMessageRead(ids)
-  afterRead('标记已读成功！')
+  afterRead('标记已读成功�?)
 }
 
 async function handleUpdateAll() {
   await updateAllNotifyMessageRead()
-  afterRead('全部已读成功！')
+  afterRead('全部已读成功�?)
 }
 
 function handleInfo(record: any) {

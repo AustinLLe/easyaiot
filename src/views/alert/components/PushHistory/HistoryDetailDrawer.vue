@@ -1,5 +1,5 @@
 <template>
-  <BasicDrawer @register="register" title="推送详情" width="520px">
+  <BasicDrawer @register="register" title="推送详�? width="520px">
     <Description @register="registerDesc" />
   </BasicDrawer>
 </template>

@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2>首页大屏配置</h2>
-        <p>控制首页大屏右侧告警、底部录像和刷新参数。</p>
+        <p>控制首页大屏右侧告警、底部录像和刷新参数�?/p>
       </div>
       <div class="actions">
         <button class="secondary-btn" @click="handleReset">恢复默认</button>
@@ -15,7 +15,7 @@
       <div class="config-row">
         <div>
           <div class="label">右侧告警事件栏目</div>
-          <div class="hint">关闭后首页大屏右侧告警列表不显示，中间视频区域自动变宽。</div>
+          <div class="hint">关闭后首页大屏右侧告警列表不显示，中间视频区域自动变宽�?/div>
         </div>
         <label class="switch">
           <input v-model="form.showRightAlarmPanel" type="checkbox" />
@@ -26,7 +26,7 @@
       <div class="config-row">
         <div>
           <div class="label">底部告警录像栏目</div>
-          <div class="hint">关闭后首页大屏底部录像列表不显示，视频区域占满中间区域。</div>
+          <div class="hint">关闭后首页大屏底部录像列表不显示，视频区域占满中间区域�?/div>
         </div>
         <label class="switch">
           <input v-model="form.showBottomRecords" type="checkbox" />
@@ -44,7 +44,7 @@
           <input v-model.number="form.bottomRecordPageSize" min="1" max="100" type="number" />
         </label>
         <label class="field">
-          <span>刷新间隔（秒）</span>
+          <span>刷新间隔（秒�?/span>
           <input v-model.number="form.refreshIntervalSeconds" min="3" max="300" type="number" />
         </label>
       </div>
@@ -79,7 +79,7 @@ const handleSave = () => {
 
 const handleReset = () => {
   assignForm(resetMonitorDashboardConfig())
-  createMessage.success('已恢复默认配置')
+  createMessage.success('已恢复默认配�?)
 }
 </script>
 

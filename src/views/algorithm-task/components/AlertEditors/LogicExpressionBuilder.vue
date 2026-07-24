@@ -16,11 +16,11 @@
           <button type="button" class="chip-remove" @click="removeToken(index)">×</button>
         </span>
       </template>
-      <span v-else class="expr-placeholder">点击下方按钮构建条件关系，如 (1 且 2) 或 3</span>
+      <span v-else class="expr-placeholder">点击下方按钮构建条件关系，如 (1 �?2) �?3</span>
     </div>
 
     <div class="expr-toolbar">
-      <span class="toolbar-label">插入：</span>
+      <span class="toolbar-label">插入�?/span>
       <Button
         v-for="seq in availableSeqs"
         :key="`seq_${seq}`"
@@ -29,11 +29,11 @@
       >
         {{ seq }}
       </Button>
-      <Button size="small" @click="appendToken({ type: 'op', value: 'AND' })">且</Button>
-      <Button size="small" @click="appendToken({ type: 'op', value: 'OR' })">或</Button>
+      <Button size="small" @click="appendToken({ type: 'op', value: 'AND' })">�?/Button>
+      <Button size="small" @click="appendToken({ type: 'op', value: 'OR' })">�?/Button>
       <Button size="small" @click="appendToken({ type: 'paren', value: '(' })">(</Button>
       <Button size="small" @click="appendToken({ type: 'paren', value: ')' })">)</Button>
-      <Button size="small" type="primary" ghost class="btn-compact" @click="handleValidate">检测</Button>
+      <Button size="small" type="primary" ghost class="btn-compact" @click="handleValidate">检�?/Button>
       <Button size="small" danger class="btn-compact" @click="clearTokens">清空</Button>
     </div>
 
@@ -82,7 +82,7 @@ function chipLabel(token: LogicExpressionToken) {
   if (token.type === 'cond')
     return String(token.seq);
   if (token.type === 'op')
-    return token.value === 'AND' ? '且' : '或';
+    return token.value === 'AND' ? '�? : '�?;
   return token.value;
 }
 
@@ -128,15 +128,15 @@ function handleValidate() {
   if (error) {
     createWarningModal({
       ...modalBase,
-      title: '检测结果',
+      title: '检测结�?,
       content: error,
     });
     return;
   }
   createSuccessModal({
     ...modalBase,
-    title: '检测结果',
-    content: '条件关系表达式正确',
+    title: '检测结�?,
+    content: '条件关系表达式正�?,
   });
 }
 

@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     v-bind="$attrs"
-    :title="`推理结果查看器 - ${record?.id || ''}`"
+    :title="`推理结果查看�?- ${record?.id || ''}`"
     :width="1200"
     :height="800"
     @register="registerModal"
@@ -11,7 +11,7 @@
       <a-tab-pane key="overview" tab="结果概览">
         <div class="result-container">
           <div class="input-section">
-            <h3>输入源</h3>
+            <h3>输入�?/h3>
             <div v-if="isImage" class="media-preview">
               <img :src="getMediaUrl(record.input_source)" alt="输入图像" />
             </div>
@@ -28,7 +28,7 @@
           <div class="output-section">
             <h3>推理结果</h3>
             <div v-if="resultType === 'keypoints'" class="keypoint-result">
-              <img :src="getMediaUrl(record.output_path)" alt="关键点结果" />
+              <img :src="getMediaUrl(record.output_path)" alt="关键点结�? />
               <div class="metrics">
                 <a-statistic title="处理帧数" :value="`${record.processed_frames}/${record.total_frames}`" />
                 <a-statistic title="处理时间" :value="`${record.processing_time}s`" />
@@ -36,7 +36,7 @@
             </div>
 
             <div v-else-if="resultType === 'detection'" class="detection-result">
-              <img :src="getMediaUrl(record.output_path)" alt="检测结果" />
+              <img :src="getMediaUrl(record.output_path)" alt="检测结�? />
               <a-table
                 :dataSource="detectionData"
                 :columns="detectionColumns"
@@ -98,16 +98,15 @@
             </a-collapse-panel>
             <a-collapse-panel key="metrics" header="性能指标">
               <a-descriptions bordered>
-                <a-descriptions-item label="开始时间">
+                <a-descriptions-item label="开始时�?>
                   {{ formatDateTime(record.start_time) }}
                 </a-descriptions-item>
                 <a-descriptions-item label="结束时间">
                   {{ record.end_time ? formatDateTime(record.end_time) : '-' }}
                 </a-descriptions-item>
                 <a-descriptions-item label="处理时间">
-                  {{ record.processing_time }}秒
-                </a-descriptions-item>
-                <a-descriptions-item label="内存峰值">
+                  {{ record.processing_time }}�?                </a-descriptions-item>
+                <a-descriptions-item label="内存峰�?>
                   {{ record.memory_usage }} MB
                 </a-descriptions-item>
               </a-descriptions>
@@ -134,13 +133,11 @@ const props = defineProps({
 
 const [registerModal] = useModalInner();
 
-// 响应式状态
-const activeTab = ref('overview');
+// 响应式状�?const activeTab = ref('overview');
 const collapseActiveKey = ref(['predictions']);
 const isPlaying = ref(true);
 
-// 计算属性
-const isImage = computed(() => props.record?.inference_type === 'image');
+// 计算属�?const isImage = computed(() => props.record?.inference_type === 'image');
 const isVideo = computed(() => props.record?.inference_type === 'video');
 
 const resultType = computed(() => {
@@ -170,7 +167,7 @@ const detectionData = computed(() => {
 
 const detectionColumns = computed(() => [
   { title: '类别', dataIndex: 'class', key: 'class' },
-  { title: '置信度', dataIndex: 'confidence', key: 'confidence',
+  { title: '置信�?, dataIndex: 'confidence', key: 'confidence',
     customRender: ({ text }) => text ? `${(text * 100).toFixed(2)}%` : '0%'
   },
   { title: '位置', dataIndex: 'bbox', key: 'bbox',

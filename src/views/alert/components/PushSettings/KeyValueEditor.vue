@@ -15,13 +15,13 @@
       <div v-for="(row, index) in rows" :key="index" class="kv-table-row">
         <Input
           v-model:value="row.key"
-          placeholder="请输入 key 值"
+          placeholder="请输�?key �?
           class="col-key"
           :disabled="row.locked"
         />
         <Input
           v-model:value="row.value"
-          placeholder="请输入 value 值"
+          placeholder="请输�?value �?
           class="col-value"
           :disabled="row.locked"
         />
@@ -62,11 +62,11 @@ function removeRow(index: number) {
 function confirmRow(index: number) {
   const row = rows.value[index];
   if (!row?.key?.trim()) {
-    createMessage.warning('请填写 key');
+    createMessage.warning('请填�?key');
     return;
   }
   if (!row.value?.trim()) {
-    createMessage.warning('请填写 value');
+    createMessage.warning('请填�?value');
     return;
   }
   row.locked = true;

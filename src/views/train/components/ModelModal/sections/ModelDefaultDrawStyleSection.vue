@@ -15,19 +15,19 @@
         <div class="style-card-list">
           <DrawStyleConfigCard
             v-model:config="draft.draw_style.detection_area"
-            title="检测区域"
+            title="检测区�?
             :disabled="isView"
             show-border-width
           />
           <DrawStyleConfigCard
             v-model:config="draft.draw_style.object_box"
-            title="对象分析框"
+            title="对象分析�?
             :disabled="isView"
             show-border-width
           />
           <DrawStyleConfigCard
             v-model:config="draft.draw_style.object_box_title"
-            title="对象分析框标题"
+            title="对象分析框标�?
             :disabled="isView"
             show-bg-color
           />
@@ -179,13 +179,13 @@ watch(
 );
 
 function handleSave() {
-  createMessage.success('绘制样式已保存');
+  createMessage.success('绘制样式已保�?);
 }
 
 function handleReset() {
   draft.value.draw_style = createDefaultDrawStyle();
   showPreviewOverlay.value = true;
-  createMessage.success('样式已重置');
+  createMessage.success('样式已重�?);
 }
 
 function handlePreview() {
@@ -198,7 +198,7 @@ function handlePreview() {
   ].some(item => item.enabled);
 
   if (!hasEnabled) {
-    createMessage.warning('请至少启用一种绘制样式');
+    createMessage.warning('请至少启用一种绘制样�?);
     return;
   }
   if ((style.object_box.enabled || style.object_box_title.enabled) && !previewDrawItems.value.length) {

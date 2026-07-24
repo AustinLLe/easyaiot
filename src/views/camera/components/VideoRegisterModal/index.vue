@@ -37,7 +37,7 @@
               allowClear
             />
           </FormItem>
-          <FormItem label="用户名" name="username" v-bind=validateInfos.userName>
+          <FormItem label="用户�? name="username" v-bind=validateInfos.userName>
             <Input v-model:value="modelRef.username"/>
           </FormItem>
           <FormItem label="密码" name="password" v-bind="validateInfos.password">
@@ -61,8 +61,8 @@ const state = reactive({
   record: null,
   editLoading: false,
   streamList: [
-    {label: "主码流", value: 0},
-    {label: "子码流", value: 1},
+    {label: "主码�?, value: 0},
+    {label: "子码�?, value: 1},
   ],
 });
 
