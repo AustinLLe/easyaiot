@@ -252,23 +252,28 @@
               </div>
             </div>
             <div v-if="algorithmRanking.length" class="alarm-stats-body">
-              <div class="alarm-stats-chart-area">
-                <div class="alarm-stats-range">{{ algorithmPeriodRangeText }}</div>
-                <div ref="algorithmChartRef" class="alarm-stats-chart" />
-              </div>
-              <div class="alarm-stats-top5">
-                <div class="alarm-stats-top5-title">算法报警数量 TOP-5</div>
-                <ul class="alarm-stats-top5-list">
-                  <li
-                    v-for="(item, index) in algorithmTopFive"
+              <div class="alarm-stats-range">{{ algorithmPeriodRangeText }}</div>
+              <div class="alarm-stats-main">
+                <div class="alarm-stats-pie-wrap">
+                  <div ref="algorithmChartRef" class="alarm-stats-chart" />
+                </div>
+                <div class="alarm-stats-legend">
+                  <div
+                    v-for="(item, index) in algorithmLegendItems"
                     :key="`${item.name}-${index}`"
-                    class="alarm-stats-top5-item"
+                    class="alarm-stats-legend-row"
                   >
-                    <span class="alarm-stats-top5-rank">{{ index + 1 }}</span>
-                    <span class="alarm-stats-top5-name" :title="item.name">{{ item.name }}</span>
-                    <span class="alarm-stats-top5-count">{{ formatAlarmCount(item.count) }} 次</span>
-                  </li>
-                </ul>
+                    <span
+                      class="alarm-stats-legend-dot"
+                      :style="{ backgroundColor: getAlgorithmLegendColor(index) }"
+                    />
+                    <span class="alarm-stats-legend-name" :title="item.name">{{ item.name }}</span>
+                    <span class="alarm-stats-legend-meta">
+                      {{ formatAlarmCount(item.count) }}
+                      {{ formatAlgorithmPercentage(item.percentage) }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
             <div v-else class="empty-state compact">当前周期暂无算法报警</div>
@@ -461,8 +466,8 @@ const pieGradientPairs = [
   ['#597ef7', '#2f54eb'],
   ['#ff85c0', '#eb2f96'],
 ]
-const PIE_CENTER: [string, string] = ['36%', '64%']
-const PIE_RADIUS: [string, string] = ['40%', '56%']
+const PIE_CENTER: [string, string] = ['50%', '50%']
+const PIE_RADIUS: [string, string] = ['52%', '78%']
 
 const algorithmChartRef = ref<HTMLDivElement>()
 const rankingChartRef = ref<HTMLDivElement>()
@@ -506,9 +511,17 @@ function buildPieSegmentStyle(index: number) {
   }
 }
 
+function formatAlgorithmPercentage(value: number) {
+  return `${value.toFixed(1)}%`
+}
+
+function getAlgorithmLegendColor(index: number) {
+  return chartColors[index % chartColors.length]
+}
+
 function buildAlgorithmPieData(items: RankingItem[]) {
-  const topItems = items.slice(0, 5)
-  const restItems = items.slice(5)
+  const topItems = items.slice(0, 8)
+  const restItems = items.slice(8)
   const data = topItems.map((item, index) => ({
     name: item.name,
     value: item.count,
@@ -528,26 +541,21 @@ function buildAlgorithmPieData(items: RankingItem[]) {
 }
 
 function buildAlgorithmCenterLabel(total: number) {
-  return `{label|总次数}\n{value|${formatAlarmCount(total)}}\n{unit|次}`
+  return `{value|${formatAlarmCount(total)}}\n{label|报警总数}`
 }
 
 function buildAlgorithmCenterRich() {
   return {
+    value: {
+      fontSize: 24,
+      fontWeight: 700,
+      color: '#ffffff',
+      lineHeight: 30,
+    },
     label: {
       fontSize: 11,
       color: '#9aa8d4',
       lineHeight: 18,
-    },
-    value: {
-      fontSize: 22,
-      fontWeight: 700,
-      color: '#ffffff',
-      lineHeight: 28,
-    },
-    unit: {
-      fontSize: 11,
-      color: '#9aa8d4',
-      lineHeight: 16,
     },
   }
 }
@@ -555,7 +563,6 @@ function buildAlgorithmCenterRich() {
 function buildAlgorithmChartOptions(animate = false): EChartsOption {
   const total = algorithmPeriodData.value.alarm_count
   const data = buildAlgorithmPieData(algorithmRanking.value)
-  const showOutsideLabel = data.length > 1
 
   return {
     animation: animate,
@@ -569,43 +576,17 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
       textStyle: { color: '#e8eef8', fontSize: 12 },
       formatter: '{b}<br/>{c} 次 ({d}%)',
     },
-    legend: {
-      type: 'plain',
-      orient: 'horizontal',
-      top: 4,
-      left: '4%',
-      itemWidth: 10,
-      itemHeight: 10,
-      itemGap: 10,
-      textStyle: { color: '#9aa8d4', fontSize: 10 },
-    },
+    legend: { show: false },
     series: [
       {
         type: 'pie',
         radius: PIE_RADIUS,
         center: PIE_CENTER,
-        avoidLabelOverlap: true,
         animation: animate,
         animationDuration: animate ? 900 : 0,
         animationDurationUpdate: 0,
-        label: {
-          show: showOutsideLabel,
-          position: 'outside',
-          formatter: '{b}\n({d}%)',
-          color: '#9aa8d4',
-          fontSize: 10,
-          lineHeight: 14,
-        },
-        labelLine: {
-          show: showOutsideLabel,
-          length: 10,
-          length2: 14,
-          smooth: true,
-          lineStyle: { color: 'rgba(148, 163, 184, 0.35)' },
-        },
-        labelLayout: {
-          hideOverlap: true,
-        },
+        label: { show: false },
+        labelLine: { show: false },
         emphasis: {
           scale: true,
           scaleSize: 4,
@@ -726,7 +707,7 @@ const kpiPeriodData = computed(() => statistics.value.periods[kpiPeriod.value] |
 const algorithmPeriodData = computed(() => statistics.value.periods[algorithmPeriod.value] || emptyPeriod('当前'))
 const rankingPeriodData = computed(() => statistics.value.periods[rankingPeriod.value] || emptyPeriod('当前'))
 const algorithmRanking = computed(() => algorithmPeriodData.value.algorithm_ranking || [])
-const algorithmTopFive = computed(() => algorithmRanking.value.slice(0, 5))
+const algorithmLegendItems = computed(() => algorithmRanking.value.slice(0, 8))
 const algorithmPeriodRangeText = computed(() => {
   const period = algorithmPeriodData.value
   const start = formatPeriodDate(period.start_time)
@@ -1863,95 +1844,75 @@ function handleChartResize() {
   .alarm-stats-body {
     flex: 1;
     min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 0 2px 4px;
     position: relative;
     z-index: 2;
   }
 
-  .alarm-stats-chart-area {
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
   .alarm-stats-range {
     flex-shrink: 0;
-    margin-bottom: 2px;
     font-size: 11px;
     color: @sugar-muted;
-    text-align: left;
     letter-spacing: 0.04em;
   }
 
-  .alarm-stats-chart {
+  .alarm-stats-main {
     flex: 1;
-    min-height: 140px;
-    width: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
   }
 
-  .alarm-stats-top5 {
+  .alarm-stats-pie-wrap {
     min-width: 0;
     min-height: 0;
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    padding: 4px 0;
-    border-left: 1px solid rgba(52, 134, 218, 0.12);
+    align-items: center;
+    justify-content: center;
   }
 
-  .alarm-stats-top5-title {
-    flex-shrink: 0;
-    margin-bottom: 8px;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: @sugar-text;
-    text-align: center;
-    background: linear-gradient(
-      90deg,
-      rgba(52, 134, 218, 0.14) 0%,
-      rgba(5, 14, 35, 0.35) 100%
-    );
-    border: 1px solid rgba(52, 134, 218, 0.18);
-    border-radius: 3px;
+  .alarm-stats-chart {
+    width: 100%;
+    min-height: 168px;
+    height: 100%;
   }
 
-  .alarm-stats-top5-list {
-    flex: 1;
+  .alarm-stats-legend {
+    min-width: 0;
     min-height: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    max-height: 168px;
+    padding-right: 2px;
     overflow-y: auto;
   }
 
-  .alarm-stats-top5-item {
+  .alarm-stats-legend-row {
     display: grid;
-    grid-template-columns: 22px minmax(0, 1fr) auto;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
-    min-height: 34px;
-    padding: 6px 10px;
-    background: rgba(3, 10, 28, 0.42);
-    border: 1px solid rgba(52, 134, 218, 0.08);
-    border-radius: 3px;
+    min-height: 32px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(52, 134, 218, 0.08);
+
+    &:last-child {
+      border-bottom: none;
+    }
   }
 
-  .alarm-stats-top5-rank {
-    font-size: 13px;
-    font-weight: 700;
-    color: @sugar-light;
-    text-align: center;
+  .alarm-stats-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
 
-  .alarm-stats-top5-name {
+  .alarm-stats-legend-name {
     font-size: 11px;
     color: @sugar-text;
     overflow: hidden;
@@ -1959,7 +1920,7 @@ function handleChartResize() {
     white-space: nowrap;
   }
 
-  .alarm-stats-top5-count {
+  .alarm-stats-legend-meta {
     font-size: 11px;
     color: @sugar-muted;
     white-space: nowrap;
