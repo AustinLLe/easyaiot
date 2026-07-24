@@ -8,25 +8,17 @@ import { createEmptyFieldMappingGroup } from './pushUtils';
 
 const VALID_ALGORITHM_KEYS = new Set(ALGORITHM_OUTPUT_FIELDS.map(item => item.key));
 
-const STORAGE_KEY = 'easyaiot_alarm_push_endpoints_v1';
+let endpoints: AlarmPushEndpoint[] = [];
 
-let endpoints: AlarmPushEndpoint[] = loadEndpoints();
-
-function loadEndpoints(): AlarmPushEndpoint[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw)
-      return [];
-    const parsed = JSON.parse(raw) as AlarmPushEndpoint[];
-    return Array.isArray(parsed) ? parsed.map(normalizeEndpoint) : [];
-  }
-  catch {
-    return [];
-  }
-}
-
-function persistEndpoints() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(endpoints));
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+  });
+  const body = await response.json();
+  if (!response.ok || body.code !== 0)
+    throw new Error(body.msg || '推送地址请求失败');
+  return body.data as T;
 }
 
 function normalizeFieldMapping(raw: Partial<PushFieldMappingGroup> & Record<string, unknown>): PushFieldMappingGroup {
@@ -82,7 +74,6 @@ export function getPushProfileById(profileId: string): AlarmPushEndpoint | null 
 
 export function addPushProfile(profile: AlarmPushEndpoint): AlarmPushEndpoint {
   endpoints.push(normalizeEndpoint(JSON.parse(JSON.stringify(profile))));
-  persistEndpoints();
   return getPushProfileById(profile.profile_id)!;
 }
 
@@ -91,7 +82,6 @@ export function updatePushProfile(profile: AlarmPushEndpoint): AlarmPushEndpoint
   if (index < 0)
     return null;
   endpoints[index] = normalizeEndpoint(JSON.parse(JSON.stringify(profile)));
-  persistEndpoints();
   return getPushProfileById(profile.profile_id);
 }
 
@@ -100,7 +90,6 @@ export function deletePushProfile(profileId: string): boolean {
   endpoints = endpoints.filter(item => item.profile_id !== profileId);
   if (endpoints.length === before)
     return false;
-  persistEndpoints();
   return true;
 }
 
@@ -144,11 +133,8 @@ export async function testPushEndpointWithPayload(
     };
   }
 
-  await new Promise(resolve => setTimeout(resolve, 400));
-
-  try {
-    JSON.parse(payloadText);
-  }
+  let payload: Record<string, unknown>;
+  try { payload = JSON.parse(payloadText) as Record<string, unknown>; }
   catch {
     return {
       ok: false,
@@ -157,26 +143,34 @@ export async function testPushEndpointWithPayload(
     };
   }
 
-  const online = isPushUrlValid(item.push_url);
-  item.online = online;
-  item.last_test_at = new Date().toISOString();
-  persistEndpoints();
-
-  if (!online) {
-    return {
-      ok: false,
-      statusText: '失败',
-      responseText: JSON.stringify(
-        { code: 400, msg: '推送地址无效，请检查 http:// 或 https:// 格式', url: item.push_url },
-        null,
-        2,
-      ),
-    };
+  try {
+    const result = await request<{ status_code?: number; response_text?: string }>(`/video/alert/endpoints/${encodeURIComponent(profileId)}/test`, {
+      method: 'POST', body: JSON.stringify({ payload }),
+    });
+    await loadPushProfiles();
+    return { ok: true, statusText: '成功', responseText: result.response_text || `HTTP ${result.status_code ?? 200}` };
   }
+  catch (error) {
+    await loadPushProfiles().catch(() => undefined);
+    return { ok: false, statusText: '失败', responseText: error instanceof Error ? error.message : String(error) };
+  }
+}
 
-  return {
-    ok: true,
-    statusText: '成功',
-    responseText: JSON.stringify({ code: 0, msg: 'ok', data: { received: true } }, null, 2),
-  };
+export async function loadPushProfiles(): Promise<AlarmPushEndpoint[]> {
+  endpoints = (await request<AlarmPushEndpoint[]>('/video/alert/endpoints')).map(normalizeEndpoint);
+  return getPushProfiles();
+}
+
+export async function savePushProfile(profile: AlarmPushEndpoint, isCreate: boolean): Promise<AlarmPushEndpoint> {
+  const saved = await request<AlarmPushEndpoint>(
+    isCreate ? '/video/alert/endpoints' : `/video/alert/endpoints/${encodeURIComponent(profile.profile_id)}`,
+    { method: isCreate ? 'POST' : 'PUT', body: JSON.stringify(profile) },
+  );
+  await loadPushProfiles();
+  return saved;
+}
+
+export async function removePushProfile(profileId: string): Promise<void> {
+  await request<void>(`/video/alert/endpoints/${encodeURIComponent(profileId)}`, { method: 'DELETE' });
+  await loadPushProfiles();
 }

@@ -107,7 +107,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
   CheckboxGroup,
   Form,
@@ -119,7 +119,7 @@ import {
 } from 'ant-design-vue';
 import ApiSelect from '@/components/Form/src/components/ApiSelect.vue';
 import { getListSimpleUsers } from '@/api/system/user';
-import { getPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
+import { getPushProfiles, loadPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
 import type { AlertPushDraft, AlertRuleDraft } from '../../algorithmTaskDraft.types';
 import {
   buildAlertRuleSelectOptions,
@@ -165,7 +165,16 @@ if (!pushModel.value.rule_ids)
 
 const alertRuleOptions = computed(() => buildAlertRuleSelectOptions(props.alertRules));
 
-const addressProfileOptions = computed(() => buildAddressProfileOptions(getPushProfiles()));
+const profilesVersion = ref(0);
+const addressProfileOptions = computed(() => {
+  profilesVersion.value;
+  return buildAddressProfileOptions(getPushProfiles());
+});
+
+onMounted(async () => {
+  await loadPushProfiles();
+  profilesVersion.value++;
+});
 
 watch(
   () => pushModel.value.push_mode,

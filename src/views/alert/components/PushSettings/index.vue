@@ -65,11 +65,10 @@ import type { ColumnsType } from 'ant-design-vue/es/table';
 import { useMessage } from '@/hooks/web/useMessage';
 import type { AlarmPushEndpoint } from '../../pushSettings.types';
 import {
-  addPushProfile,
   createEmptyPushProfile,
-  deletePushProfile,
-  getPushProfiles,
-  updatePushProfile,
+  loadPushProfiles,
+  removePushProfile,
+  savePushProfile,
 } from '../../utils/mockPushSettingsStore';
 import PushEndpointEditModal from './PushEndpointEditModal.vue';
 import PushEndpointTestModal from './PushEndpointTestModal.vue';
@@ -100,8 +99,8 @@ const rowSelection = computed(() => ({
   },
 }));
 
-function reload() {
-  endpointList.value = getPushProfiles();
+async function reload() {
+  endpointList.value = await loadPushProfiles();
 }
 
 function openCreate() {
@@ -116,13 +115,13 @@ function openEdit(index: number) {
   editVisible.value = true;
 }
 
-function handleSave(endpoint: AlarmPushEndpoint) {
+async function handleSave(endpoint: AlarmPushEndpoint) {
   if (editingIndex.value === null) {
-    addPushProfile(endpoint);
+    await savePushProfile(endpoint, true);
     createMessage.success('已创建推送');
   }
   else {
-    updatePushProfile(endpoint);
+    await savePushProfile(endpoint, false);
     createMessage.success('已保存推送');
   }
   reload();
@@ -138,8 +137,9 @@ function handleDelete(index: number) {
     okText: '删除',
     okType: 'danger',
     cancelText: '取消',
-    onOk() {
-      if (deletePushProfile(item.profile_id)) {
+    async onOk() {
+      await removePushProfile(item.profile_id);
+      {
         selectedRowKeys.value = selectedRowKeys.value.filter(id => id !== item.profile_id);
         createMessage.success('已删除');
         reload();
@@ -153,8 +153,8 @@ function openTest(record: AlarmPushEndpoint) {
   testVisible.value = true;
 }
 
-onMounted(() => {
-  reload();
+onMounted(async () => {
+  await reload();
 });
 </script>
 

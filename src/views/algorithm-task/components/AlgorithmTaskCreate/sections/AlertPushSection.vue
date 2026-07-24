@@ -81,7 +81,7 @@ import { Button, Modal, Switch, Table } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getListSimpleUsers } from '@/api/system/user';
-import { getPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
+import { getPushProfiles, loadPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
 import { truncatePushUrl } from '@/views/alert/utils/pushUtils';
 import AlertPushEditModal from '../../AlertEditors/AlertPushEditModal.vue';
 import type { AlertPushDraft, AlgorithmTaskDraft } from '../../../algorithmTaskDraft.types';
@@ -118,6 +118,7 @@ const tableColumns: ColumnsType<AlertPushDraft> = [
 ];
 
 onMounted(async () => {
+  await loadPushProfiles();
   profileLabelMap.value = new Map(
     getPushProfiles().map(item => [
       item.profile_id,

@@ -111,22 +111,11 @@ export { validatePushEndpoint as validatePushProfile };
 
 export function resolveAlertPushForSubmit(push: AlertPushDraft): AlertPushDraft {
   if (push.push_mode === 'address') {
-    const endpoints = getPushProfiles().filter(item =>
-      push.address_profile_ids?.includes(item.profile_id),
-    );
     return {
       ...push,
-      channel_config: {
-        endpoints: endpoints.map(item => ({
-          profile_id: item.profile_id,
-          profile_name: item.profile_name,
-          push_url: item.push_url,
-          output_content: item.output_content,
-          request_headers: item.request_headers,
-          extra_fields: item.extra_fields,
-          field_mappings: item.field_mappings,
-        })),
-      } as AlertPushDraft['channel_config'],
+      // The task stores references only. Profile URL/headers stay in the
+      // server-owned address book and therefore cannot become stale copies.
+      channel_config: {} as AlertPushDraft['channel_config'],
     };
   }
 
