@@ -398,7 +398,7 @@ const rankingChartRef = ref<HTMLDivElement>()
 const { setOptions: setAlgorithmOptions, resize: resizeAlgorithmChart } = useECharts(algorithmChartRef, 'dark')
 const { setOptions: setRankingOptions, resize: resizeRankingChart } = useECharts(rankingChartRef, 'dark')
 
-function buildAlgorithmChartOptions(): EChartsOption {
+function buildAlgorithmChartOptions(animate = false): EChartsOption {
   const total = algorithmPeriodData.value.alarm_count
   const data = algorithmRanking.value.slice(0, 8).map((item, index) => ({
     name: item.name,
@@ -407,6 +407,9 @@ function buildAlgorithmChartOptions(): EChartsOption {
   }))
 
   return {
+    animation: animate,
+    animationDuration: animate ? 900 : 0,
+    animationDurationUpdate: 0,
     color: chartColors,
     tooltip: {
       trigger: 'item',
@@ -432,6 +435,9 @@ function buildAlgorithmChartOptions(): EChartsOption {
       radius: ['46%', '72%'],
       center: ['34%', '50%'],
       avoidLabelOverlap: true,
+      animation: animate,
+      animationDuration: animate ? 900 : 0,
+      animationDurationUpdate: 0,
       label: {
         show: true,
         position: 'center',
@@ -447,10 +453,13 @@ function buildAlgorithmChartOptions(): EChartsOption {
   }
 }
 
-function buildRankingChartOptions(): EChartsOption {
+function buildRankingChartOptions(animate = false): EChartsOption {
   const items = [...displayRanking.value].slice(0, 6).reverse()
 
   return {
+    animation: animate,
+    animationDuration: animate ? 900 : 0,
+    animationDurationUpdate: 0,
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -481,6 +490,9 @@ function buildRankingChartOptions(): EChartsOption {
     series: [{
       type: 'bar',
       barWidth: 10,
+      animation: animate,
+      animationDuration: animate ? 900 : 0,
+      animationDurationUpdate: 0,
       data: items.map(item => item.count),
       itemStyle: {
         borderRadius: [0, 4, 4, 0],
@@ -530,23 +542,34 @@ const displayRanking = computed(() => {
   return period.camera_ranking || []
 })
 
-watch(
-  [algorithmRanking, algorithmPeriod],
-  () => {
-    if (algorithmRanking.value.length)
-      setAlgorithmOptions(buildAlgorithmChartOptions())
-  },
-  { immediate: true, deep: true },
-)
+const algorithmChartKey = computed(() => {
+  const items = algorithmRanking.value.slice(0, 8)
+  return `${algorithmPeriod.value}|${items.map(i => `${i.name}:${i.count}`).join(',')}`
+})
 
-watch(
-  [displayRanking, rankingPeriod, rankMode],
-  () => {
-    if (displayRanking.value.length)
-      setRankingOptions(buildRankingChartOptions())
-  },
-  { immediate: true, deep: true },
-)
+const rankingChartKey = computed(() => {
+  const items = displayRanking.value.slice(0, 6)
+  return `${rankingPeriod.value}|${rankMode.value}|${items.map(i => `${i.name}:${i.count}`).join(',')}`
+})
+
+const algorithmChartAnimated = ref(false)
+const rankingChartAnimated = ref(false)
+
+watch(algorithmChartKey, () => {
+  if (!algorithmRanking.value.length)
+    return
+  const animate = !algorithmChartAnimated.value
+  setAlgorithmOptions(buildAlgorithmChartOptions(animate), animate)
+  algorithmChartAnimated.value = true
+}, { immediate: true })
+
+watch(rankingChartKey, () => {
+  if (!displayRanking.value.length)
+    return
+  const animate = !rankingChartAnimated.value
+  setRankingOptions(buildRankingChartOptions(animate), animate)
+  rankingChartAnimated.value = true
+}, { immediate: true })
 
 const videoPlaceholderTitle = computed(() => streamLoading.value ? '正在准备视频流...' : '请拖入或选择摄像头')
 
@@ -899,6 +922,7 @@ function handleChartResize() {
 <style lang="less" scoped>
 .overview-dashboard {
   display: flex;
+  justify-content: center;
   width: 100%;
   color: #e2e8f0;
   background: #0b1120;
@@ -910,8 +934,10 @@ function handleChartResize() {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 1440px;
   height: 100%;
-  padding: 10px 14px;
+  margin: 0 auto;
+  padding: 10px 20px;
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 165, 233, .12), transparent 60%),
     linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
