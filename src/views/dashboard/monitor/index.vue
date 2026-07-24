@@ -421,7 +421,7 @@ const periodOptions = [
   { label: '本周', value: 'week' as PeriodKey },
   { label: '本月', value: 'month' as PeriodKey },
 ]
-const chartColors = ['#43d0d6', '#5dc2fe', '#f19000', '#34d399', '#a78bfa', '#fb7185', '#2dd4bf', '#f87171']
+const chartColors = ['#3486da', '#4a90e2', '#73aae5', '#ffe556', '#9aa8d4', '#6c5ce7', '#00cec9', '#fd79a8']
 
 const algorithmChartRef = ref<HTMLDivElement>()
 const rankingChartRef = ref<HTMLDivElement>()
@@ -443,9 +443,9 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
     color: chartColors,
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(15, 23, 42, 0.92)',
-      borderColor: 'rgba(67, 208, 214, 0.45)',
-      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      backgroundColor: 'rgba(16, 20, 48, 0.92)',
+      borderColor: 'rgba(52, 134, 218, 0.45)',
+      textStyle: { color: '#e8eef8', fontSize: 12 },
       formatter: '{b}<br/>{c} 次 ({d}%)',
     },
     legend: {
@@ -455,9 +455,9 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
       top: 'middle',
       itemWidth: 8,
       itemHeight: 8,
-      textStyle: { color: '#7a9bb8', fontSize: 11 },
-      pageTextStyle: { color: '#64748b' },
-      pageIconColor: '#43d0d6',
+      textStyle: { color: '#9aa8d4', fontSize: 11 },
+      pageTextStyle: { color: '#6b7a9e' },
+      pageIconColor: '#3486da',
       pageIconInactiveColor: '#334155',
     },
     series: [{
@@ -473,8 +473,8 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
         position: 'center',
         formatter: () => `{value|${total}}\n{label|总数}`,
         rich: {
-          value: { fontSize: 22, fontWeight: 700, color: '#5dc2fe', lineHeight: 28 },
-          label: { fontSize: 11, color: '#7a9bb8', lineHeight: 16 },
+          value: { fontSize: 22, fontWeight: 700, color: '#ffe556', lineHeight: 28 },
+          label: { fontSize: 11, color: '#9aa8d4', lineHeight: 16 },
         },
       },
       emphasis: { scale: true, scaleSize: 6 },
@@ -493,9 +493,9 @@ function buildRankingChartOptions(animate = false): EChartsOption {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(15, 23, 42, 0.92)',
-      borderColor: 'rgba(67, 208, 214, 0.45)',
-      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      backgroundColor: 'rgba(16, 20, 48, 0.92)',
+      borderColor: 'rgba(52, 134, 218, 0.45)',
+      textStyle: { color: '#e8eef8', fontSize: 12 },
     },
     grid: { left: 4, right: 12, top: 8, bottom: 4, containLabel: true },
     xAxis: {
@@ -503,7 +503,7 @@ function buildRankingChartOptions(animate = false): EChartsOption {
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.1)' } },
-      axisLabel: { color: '#64748b', fontSize: 10 },
+      axisLabel: { color: '#6b7a9e', fontSize: 10 },
     },
     yAxis: {
       type: 'category',
@@ -511,7 +511,7 @@ function buildRankingChartOptions(animate = false): EChartsOption {
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: {
-        color: '#7a9bb8',
+        color: '#9aa8d4',
         fontSize: 11,
         width: 72,
         overflow: 'truncate',
@@ -533,15 +533,15 @@ function buildRankingChartOptions(animate = false): EChartsOption {
           x2: 1,
           y2: 0,
           colorStops: [
-            { offset: 0, color: '#069' },
-            { offset: 1, color: '#43d0d6' },
+            { offset: 0, color: '#1e5799' },
+            { offset: 1, color: '#4a90e2' },
           ],
         },
       },
       label: {
         show: true,
         position: 'right',
-        color: '#7a9bb8',
+        color: '#9aa8d4',
         fontSize: 10,
         formatter: '{c} 次',
       },
@@ -1049,18 +1049,18 @@ function handleChartResize() {
 </script>
 
 <style lang="less" scoped>
-// iDataV 切图与色板
+// Sugar 蓝紫风格切图与色板
 @header-bg: url('@/assets/images/bigscreen/header.png');
 @page-bg: url('@/assets/images/bigscreen/head_bg.png');
-@idata-bg: #0f1c30;
-@idata-panel: rgba(16, 31, 50, 0.72);
-@idata-cyan: #43d0d6;
-@idata-blue: #5dc2fe;
-@idata-gold: #f19000;
-@idata-text: #d6e4f0;
-@idata-muted: #7a9bb8;
+@sugar-bg: #0a1628;
+@sugar-panel: rgba(22, 26, 58, 0.78);
+@sugar-primary: #3486da;
+@sugar-light: #73aae5;
+@sugar-gold: #ffe556;
+@sugar-text: #e8eef8;
+@sugar-muted: #9aa8d4;
 
-.idata-corner-frame() {
+.sugar-corner-frame() {
   &::before {
     content: '';
     position: absolute;
@@ -1068,15 +1068,15 @@ function handleChartResize() {
     pointer-events: none;
     z-index: 1;
     background:
-      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 20px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 2px 20px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 20px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 2px 20px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 20px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 2px 20px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 20px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 2px 20px no-repeat;
-    opacity: 0.9;
+      linear-gradient(@sugar-primary, @sugar-primary) 0 0 / 20px 2px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 0 0 / 2px 20px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 100% 0 / 20px 2px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 100% 0 / 2px 20px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 0 100% / 20px 2px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 0 100% / 2px 20px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 100% 100% / 20px 2px no-repeat,
+      linear-gradient(@sugar-primary, @sugar-primary) 100% 100% / 2px 20px no-repeat;
+    opacity: 0.85;
   }
 }
 
@@ -1084,8 +1084,8 @@ function handleChartResize() {
   display: flex;
   justify-content: center;
   width: 100%;
-  color: @idata-text;
-  background: @idata-bg;
+  color: @sugar-text;
+  background: @sugar-bg;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1108,9 +1108,9 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(rgba(67, 208, 214, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(67, 208, 214, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(15, 28, 48, 0.78) 0%, rgba(15, 28, 48, 0.9) 100%);
+      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
     background-size: 24px 24px, 24px 24px, 100% 100%;
     pointer-events: none;
     z-index: 0;
@@ -1139,12 +1139,12 @@ function handleChartResize() {
 }
 
 .header-badge {
-  color: @idata-cyan;
+  color: @sugar-primary;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .22em;
   margin-bottom: 2px;
-  text-shadow: 0 0 10px rgba(67, 208, 214, 0.5);
+  text-shadow: 0 0 10px rgba(52, 134, 218, 0.5);
 }
 
 .screen-title {
@@ -1153,13 +1153,13 @@ function handleChartResize() {
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: .12em;
-  color: @idata-blue;
-  text-shadow: 0 0 16px rgba(93, 194, 254, 0.4);
+  color: #fff;
+  text-shadow: 0 0 16px rgba(52, 134, 218, 0.45);
 }
 
 .screen-subtitle {
   margin: 3px 0 0;
-  color: @idata-muted;
+  color: @sugar-muted;
   font-size: 11px;
   letter-spacing: .1em;
 }
@@ -1176,7 +1176,7 @@ function handleChartResize() {
 }
 
 .panel-kicker {
-  color: @idata-cyan;
+  color: @sugar-primary;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .12em;
@@ -1189,16 +1189,16 @@ function handleChartResize() {
   gap: 6px;
   height: 32px;
   padding: 0 12px;
-  color: @idata-blue;
-  background: rgba(16, 31, 50, 0.75);
-  border: 1px solid rgba(67, 208, 214, 0.45);
+  color: @sugar-light;
+  background: rgba(18, 22, 52, 0.75);
+  border: 1px solid rgba(52, 134, 218, 0.45);
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
   transition: background .15s, border-color .15s, box-shadow .15s;
   &:hover:not(:disabled) {
-    background: rgba(67, 208, 214, 0.12);
-    box-shadow: 0 0 12px rgba(67, 208, 214, 0.2);
+    background: rgba(52, 134, 218, 0.12);
+    box-shadow: 0 0 12px rgba(52, 134, 218, 0.2);
   }
   &:disabled { opacity: .55; }
 }
@@ -1207,8 +1207,8 @@ function handleChartResize() {
   display: inline-flex;
   gap: 4px;
   padding: 3px;
-  background: rgba(8, 18, 32, 0.85);
-  border: 1px solid rgba(67, 208, 214, 0.15);
+  background: rgba(8, 12, 32, 0.85);
+  border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
 
@@ -1217,13 +1217,13 @@ function handleChartResize() {
   cursor: pointer;
   font-size: 12px;
   padding: 6px 12px;
-  color: @idata-muted;
+  color: @sugar-muted;
   background: transparent;
   border-radius: 3px;
   &.active {
-    color: @idata-blue;
-    background: rgba(67, 208, 214, 0.15);
-    box-shadow: inset 0 0 8px rgba(67, 208, 214, 0.12);
+    color: @sugar-light;
+    background: rgba(52, 134, 218, 0.15);
+    box-shadow: inset 0 0 8px rgba(52, 134, 218, 0.12);
   }
 }
 
@@ -1291,7 +1291,7 @@ function handleChartResize() {
 
 .stats-divider {
   width: 1px;
-  background: rgba(67, 208, 214, 0.12);
+  background: rgba(52, 134, 218, 0.12);
   align-self: stretch;
 }
 
@@ -1305,15 +1305,15 @@ function handleChartResize() {
   position: relative;
   z-index: 2;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(67, 208, 214, 0.1);
+  border-bottom: 1px solid rgba(52, 134, 218, 0.1);
 
   h2 {
     margin: 2px 0 0;
     font-size: 15px;
     font-weight: 650;
-    color: @idata-blue;
+    color: @sugar-light;
     padding-left: 10px;
-    border-left: 3px solid @idata-cyan;
+    border-left: 3px solid @sugar-primary;
     line-height: 1.3;
   }
   &.compact-title { margin-bottom: 8px; }
@@ -1332,8 +1332,8 @@ function handleChartResize() {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(8, 18, 32, 0.85);
-  border: 1px solid rgba(67, 208, 214, 0.15);
+  background: rgba(8, 12, 32, 0.85);
+  border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
 
@@ -1342,13 +1342,13 @@ function handleChartResize() {
   cursor: pointer;
   font-size: 11px;
   padding: 4px 8px;
-  color: @idata-muted;
+  color: @sugar-muted;
   background: transparent;
   border-radius: 3px;
   white-space: nowrap;
   &.active {
-    color: @idata-blue;
-    background: rgba(67, 208, 214, 0.15);
+    color: @sugar-light;
+    background: rgba(52, 134, 218, 0.15);
   }
 }
 
@@ -1391,15 +1391,15 @@ function handleChartResize() {
   flex-direction: column;
   gap: 4px;
   padding: 8px 10px;
-  background: rgba(8, 18, 32, 0.65);
-  border: 1px solid rgba(67, 208, 214, 0.22);
+  background: rgba(8, 12, 32, 0.65);
+  border: 1px solid rgba(52, 134, 218, 0.22);
   border-radius: 4px;
   min-width: 0;
 }
 
 .kpi-primary-label {
   font-size: 11px;
-  color: @idata-muted;
+  color: @sugar-muted;
 }
 
 .kpi-primary-value {
@@ -1409,8 +1409,8 @@ function handleChartResize() {
   font-size: 32px;
   font-weight: 700;
   line-height: 1;
-  color: @idata-gold;
-  text-shadow: 0 0 18px rgba(241, 144, 0, 0.35);
+  color: @sugar-gold;
+  text-shadow: 0 0 18px rgba(255, 229, 86, 0.35);
 }
 
 .kpi-secondary {
@@ -1427,22 +1427,22 @@ function handleChartResize() {
   justify-content: center;
   gap: 2px;
   padding: 6px 8px;
-  background: rgba(8, 18, 32, 0.55);
-  border: 1px solid rgba(67, 208, 214, 0.12);
+  background: rgba(8, 12, 32, 0.55);
+  border: 1px solid rgba(52, 134, 218, 0.12);
   border-radius: 4px;
   min-height: 0;
 }
 
 .kpi-secondary-label {
   font-size: 10px;
-  color: @idata-muted;
+  color: @sugar-muted;
   line-height: 1.2;
 }
 
 .kpi-secondary-value {
   font-size: 15px;
   font-weight: 700;
-  color: @idata-blue;
+  color: @sugar-light;
   line-height: 1.1;
 }
 
@@ -1465,7 +1465,7 @@ function handleChartResize() {
 
 .device-section-divider {
   height: 1px;
-  background: rgba(67, 208, 214, 0.1);
+  background: rgba(52, 134, 218, 0.1);
   flex-shrink: 0;
 }
 
@@ -1476,7 +1476,7 @@ function handleChartResize() {
   margin-bottom: 8px;
   font-size: 11px;
   font-weight: 700;
-  color: @idata-muted;
+  color: @sugar-muted;
   letter-spacing: .06em;
   flex-shrink: 0;
   position: relative;
@@ -1498,14 +1498,14 @@ function handleChartResize() {
   flex-direction: column;
   gap: 4px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(67, 208, 214, 0.22) transparent;
+  scrollbar-color: rgba(52, 134, 218, 0.22) transparent;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: rgba(67, 208, 214, 0.22);
+    background: rgba(52, 134, 218, 0.22);
     border-radius: 4px;
-    &:hover { background: rgba(67, 208, 214, 0.38); }
+    &:hover { background: rgba(52, 134, 218, 0.38); }
   }
 }
 
@@ -1518,7 +1518,7 @@ function handleChartResize() {
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: @idata-muted;
+  color: @sugar-muted;
   font-size: 12px;
   text-align: left;
   cursor: pointer;
@@ -1526,10 +1526,10 @@ function handleChartResize() {
   position: relative;
   z-index: 2;
 
-  &:hover { background: rgba(67, 208, 214, 0.08); color: @idata-text; }
+  &:hover { background: rgba(52, 134, 218, 0.08); color: @sugar-text; }
   &.active {
-    background: rgba(67, 208, 214, 0.14);
-    color: @idata-cyan;
+    background: rgba(52, 134, 218, 0.14);
+    color: @sugar-primary;
     font-weight: 600;
   }
 }
@@ -1546,21 +1546,21 @@ function handleChartResize() {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 4px;
-  background: rgba(8, 18, 32, 0.55);
-  border: 1px solid rgba(67, 208, 214, 0.1);
+  background: rgba(8, 12, 32, 0.55);
+  border: 1px solid rgba(52, 134, 218, 0.1);
   font-size: 12px;
-  color: @idata-text;
+  color: @sugar-text;
   cursor: grab;
   user-select: none;
   transition: border-color .15s, background .15s;
   position: relative;
   z-index: 2;
 
-  &:hover { background: rgba(67, 208, 214, 0.08); border-color: rgba(67, 208, 214, 0.25); }
+  &:hover { background: rgba(52, 134, 218, 0.08); border-color: rgba(52, 134, 218, 0.25); }
   &.active {
-    background: rgba(67, 208, 214, 0.14);
-    border-color: rgba(67, 208, 214, 0.4);
-    color: @idata-cyan;
+    background: rgba(52, 134, 218, 0.14);
+    border-color: rgba(52, 134, 218, 0.4);
+    color: @sugar-primary;
   }
   &:active { cursor: grabbing; }
 }
@@ -1581,11 +1581,11 @@ function handleChartResize() {
 .panel {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(16, 31, 50, 0.82) 0%, rgba(11, 22, 40, 0.88) 100%);
-  border: 1px solid rgba(67, 208, 214, 0.22);
+    linear-gradient(180deg, rgba(28, 32, 68, 0.82) 0%, rgba(16, 20, 48, 0.88) 100%);
+  border: 1px solid rgba(52, 134, 218, 0.22);
   border-radius: 2px;
   box-shadow:
-    inset 0 0 30px rgba(67, 208, 214, 0.04),
+    inset 0 0 30px rgba(52, 134, 218, 0.04),
     0 4px 20px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
@@ -1593,7 +1593,7 @@ function handleChartResize() {
   min-height: 0;
   padding: 10px 12px;
   overflow: hidden;
-  .idata-corner-frame();
+  .sugar-corner-frame();
 }
 
 .chart-wrap {
@@ -1613,10 +1613,10 @@ function handleChartResize() {
 
 .panel-total {
   padding: 3px 8px;
-  color: @idata-gold;
+  color: @sugar-gold;
   font-size: 11px;
-  background: rgba(241, 144, 0, 0.1);
-  border: 1px solid rgba(241, 144, 0, 0.28);
+  background: rgba(255, 229, 86, 0.1);
+  border: 1px solid rgba(255, 229, 86, 0.28);
   border-radius: 999px;
   white-space: nowrap;
   position: relative;
@@ -1636,8 +1636,8 @@ function handleChartResize() {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(8, 18, 32, 0.85);
-  border: 1px solid rgba(67, 208, 214, 0.15);
+  background: rgba(8, 12, 32, 0.85);
+  border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
 
@@ -1647,15 +1647,15 @@ function handleChartResize() {
   font-size: 11px;
   min-width: 24px;
   padding: 4px 6px;
-  color: @idata-muted;
+  color: @sugar-muted;
   background: transparent;
   border-radius: 3px;
   line-height: 1;
   &.active {
-    color: @idata-blue;
-    background: rgba(67, 208, 214, 0.15);
+    color: @sugar-light;
+    background: rgba(52, 134, 218, 0.15);
   }
-  &:hover:not(.active) { color: @idata-text; background: rgba(67, 208, 214, 0.08); }
+  &:hover:not(.active) { color: @sugar-text; background: rgba(52, 134, 218, 0.08); }
 }
 
 .camera-select {
@@ -1663,9 +1663,9 @@ function handleChartResize() {
   height: 28px;
   padding: 0 8px;
   font-size: 12px;
-  color: @idata-text;
-  background: rgba(8, 18, 32, 0.65);
-  border: 1px solid rgba(67, 208, 214, 0.2);
+  color: @sugar-text;
+  background: rgba(8, 12, 32, 0.65);
+  border: 1px solid rgba(52, 134, 218, 0.2);
   border-radius: 4px;
   outline: none;
   cursor: pointer;
@@ -1676,10 +1676,10 @@ function handleChartResize() {
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(8, 18, 32, 0.65);
-  color: @idata-muted;
+  background: rgba(8, 12, 32, 0.65);
+  color: @sugar-muted;
   white-space: nowrap;
-  &.online { background: rgba(67, 208, 214, 0.12); color: @idata-cyan; }
+  &.online { background: rgba(52, 134, 218, 0.12); color: @sugar-primary; }
 }
 
 .video-stage-wrap {
@@ -1696,11 +1696,11 @@ function handleChartResize() {
   gap: 3px;
   padding: 3px;
   background:
-    linear-gradient(rgba(67, 208, 214, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(67, 208, 214, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(52, 134, 218, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 134, 218, 0.06) 1px, transparent 1px),
     #080f1c;
   background-size: 16px 16px, 16px 16px, 100% 100%;
-  border: 1px solid rgba(67, 208, 214, 0.2);
+  border: 1px solid rgba(52, 134, 218, 0.2);
   border-radius: 2px;
   overflow: hidden;
   position: relative;
@@ -1718,20 +1718,20 @@ function handleChartResize() {
   position: relative;
   min-height: 0;
   min-width: 0;
-  background: #101f32;
-  border: 1px solid rgba(67, 208, 214, 0.2);
+  background: #141832;
+  border: 1px solid rgba(52, 134, 218, 0.2);
   border-radius: 2px;
   overflow: hidden;
   cursor: pointer;
   transition: border-color .15s, box-shadow .15s;
 
-  &:hover { border-color: rgba(67, 208, 214, 0.45); }
+  &:hover { border-color: rgba(52, 134, 218, 0.45); }
   &.active {
-    border-color: @idata-cyan;
-    box-shadow: 0 0 10px rgba(67, 208, 214, 0.25);
+    border-color: @sugar-primary;
+    box-shadow: 0 0 10px rgba(52, 134, 218, 0.25);
   }
   &.drag-over {
-    border-color: @idata-gold;
+    border-color: @sugar-gold;
     box-shadow: 0 0 0 2px rgba(241, 144, 0, 0.35);
   }
 }
@@ -1746,7 +1746,7 @@ function handleChartResize() {
   gap: 6px;
   color: rgba(122, 155, 184, 0.7);
   font-size: 11px;
-  background: radial-gradient(circle at 50% 40%, rgba(16, 31, 50, 0.95), #080f1c 75%);
+  background: radial-gradient(circle at 50% 40%, rgba(22, 26, 58, 0.95), #0a0e24 75%);
 }
 
 .video-window-label {
@@ -1755,7 +1755,7 @@ function handleChartResize() {
   left: 0;
   right: 0;
   padding: 16px 8px 4px;
-  color: @idata-blue;
+  color: @sugar-light;
   font-size: 10px;
   background: linear-gradient(transparent, rgba(8, 15, 28, 0.92));
   pointer-events: none;
@@ -1790,14 +1790,14 @@ function handleChartResize() {
   position: relative;
   z-index: 2;
   scrollbar-width: thin;
-  scrollbar-color: rgba(67, 208, 214, 0.25) transparent;
+  scrollbar-color: rgba(52, 134, 218, 0.25) transparent;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: rgba(67, 208, 214, 0.22);
+    background: rgba(52, 134, 218, 0.22);
     border-radius: 4px;
-    &:hover { background: rgba(67, 208, 214, 0.38); }
+    &:hover { background: rgba(52, 134, 218, 0.38); }
   }
 }
 
@@ -1805,17 +1805,17 @@ function handleChartResize() {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
-  background: linear-gradient(135deg, rgba(67, 208, 214, 0.06), rgba(16, 31, 50, 0.75));
-  border: 1px solid rgba(67, 208, 214, 0.14);
-  border-left: 3px solid @idata-gold;
+  background: linear-gradient(135deg, rgba(52, 134, 218, 0.07), rgba(22, 26, 58, 0.78));
+  border: 1px solid rgba(52, 134, 218, 0.14);
+  border-left: 3px solid @sugar-gold;
   border-radius: 2px;
   flex-shrink: 0;
   transition: background .2s, border-color .2s, box-shadow .2s;
 
   &:hover {
-    background: linear-gradient(135deg, rgba(67, 208, 214, 0.12), rgba(16, 31, 50, 0.85));
-    border-color: rgba(67, 208, 214, 0.28);
-    box-shadow: 0 0 12px rgba(67, 208, 214, 0.08);
+    background: linear-gradient(135deg, rgba(52, 134, 218, 0.13), rgba(22, 26, 58, 0.88));
+    border-color: rgba(52, 134, 218, 0.28);
+    box-shadow: 0 0 12px rgba(52, 134, 218, 0.1);
   }
 }
 
@@ -1825,8 +1825,8 @@ function handleChartResize() {
   flex-shrink: 0;
   border-radius: 2px;
   overflow: hidden;
-  background: rgba(8, 18, 32, 0.9);
-  border: 1px solid rgba(67, 208, 214, 0.18);
+  background: rgba(8, 12, 32, 0.9);
+  border: 1px solid rgba(52, 134, 218, 0.18);
   display: grid;
   place-items: center;
 
@@ -1834,17 +1834,17 @@ function handleChartResize() {
 }
 
 .alarm-info { min-width: 0; flex: 1; }
-.alarm-title { font-size: 12px; font-weight: 600; color: @idata-text; margin-bottom: 3px; line-height: 1.3; }
+.alarm-title { font-size: 12px; font-weight: 600; color: @sugar-text; margin-bottom: 3px; line-height: 1.3; }
 .alarm-meta { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; flex-wrap: wrap; }
 .alarm-tag {
   font-size: 10px;
   padding: 1px 5px;
   border-radius: 2px;
   font-weight: 500;
-  &.tag-realtime { background: rgba(67, 208, 214, 0.12); color: @idata-cyan; }
-  &.tag-snap { background: rgba(93, 194, 254, 0.12); color: @idata-blue; }
+  &.tag-realtime { background: rgba(52, 134, 218, 0.12); color: @sugar-primary; }
+  &.tag-snap { background: rgba(115, 170, 229, 0.12); color: @sugar-light; }
 }
-.alarm-device { font-size: 10px; color: @idata-muted; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alarm-device { font-size: 10px; color: @sugar-muted; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alarm-time { font-size: 10px; color: rgba(122, 155, 184, 0.75); }
 
 .empty-state {
