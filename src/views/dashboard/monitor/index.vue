@@ -461,8 +461,8 @@ const pieGradientPairs = [
   ['#597ef7', '#2f54eb'],
   ['#ff85c0', '#eb2f96'],
 ]
-const PIE_CENTER: [string, string] = ['50%', '62%']
-const PIE_RADIUS: [string, string] = ['42%', '58%']
+const PIE_CENTER: [string, string] = ['36%', '64%']
+const PIE_RADIUS: [string, string] = ['40%', '56%']
 
 const algorithmChartRef = ref<HTMLDivElement>()
 const rankingChartRef = ref<HTMLDivElement>()
@@ -541,10 +541,8 @@ function buildAlgorithmCenterRich() {
     value: {
       fontSize: 22,
       fontWeight: 700,
-      color: '#ffe556',
+      color: '#ffffff',
       lineHeight: 28,
-      textShadowBlur: 10,
-      textShadowColor: 'rgba(255, 229, 86, 0.35)',
     },
     unit: {
       fontSize: 11,
@@ -575,7 +573,7 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
       type: 'plain',
       orient: 'horizontal',
       top: 4,
-      left: 'center',
+      left: '4%',
       itemWidth: 10,
       itemHeight: 10,
       itemGap: 10,
@@ -1886,7 +1884,7 @@ function handleChartResize() {
     margin-bottom: 2px;
     font-size: 11px;
     color: @sugar-muted;
-    text-align: center;
+    text-align: left;
     letter-spacing: 0.04em;
   }
 
