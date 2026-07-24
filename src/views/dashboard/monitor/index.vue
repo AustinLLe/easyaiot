@@ -19,18 +19,18 @@
       <!-- 左侧：KPI + 告警事件 -->
       <aside class="left-stack">
         <section class="kpi-board panel">
-          <div class="period-tabs compact kpi-period-tabs" role="tablist" aria-label="KPI统计周期">
-            <button
-              v-for="item in periodOptions"
-              :key="item.value"
-              type="button"
-              :class="['period-tab', { active: kpiPeriod === item.value }]"
-              role="tab"
-              :aria-selected="kpiPeriod === item.value"
-              @click="kpiPeriod = item.value"
-            >
-              {{ item.label }}
-            </button>
+          <div class="widget-title-bar widget-title-bar--compact">
+            <div class="widget-title-left">
+              <span class="widget-title-chevron" aria-hidden="true">»</span>
+              <h2 class="widget-title-text">数据统计</h2>
+            </div>
+            <div class="widget-title-actions">
+              <select v-model="kpiPeriod" class="period-select" aria-label="KPI统计周期">
+                <option v-for="item in periodOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </div>
           </div>
           <div class="kpi-board-grid">
             <div class="kpi-primary">
@@ -55,10 +55,10 @@
         </section>
 
         <article class="panel alarm-panel">
-          <div class="panel-title-row compact-title">
-            <div>
-              <span class="panel-kicker">实时报警</span>
-              <h2>告警事件</h2>
+          <div class="widget-title-bar widget-title-bar--compact">
+            <div class="widget-title-left">
+              <span class="widget-title-chevron" aria-hidden="true">»</span>
+              <h2 class="widget-title-text">告警事件</h2>
             </div>
             <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
           </div>
@@ -89,11 +89,12 @@
 
       <!-- 中间上：视频 -->
       <article class="panel video-panel">
-        <div class="panel-title-row compact-title">
-          <div>
-            <span class="panel-kicker">实时监控</span>
+        <div class="widget-title-bar widget-title-bar--compact">
+          <div class="widget-title-left">
+            <span class="widget-title-chevron" aria-hidden="true">»</span>
+            <h2 class="widget-title-text">实时监控</h2>
           </div>
-          <div class="video-actions">
+          <div class="widget-title-actions video-actions">
             <div class="split-toolbar">
               <button
                 v-for="layout in splitLayouts"
@@ -157,7 +158,12 @@
       <!-- 右侧：分组 + 摄像头列表 -->
       <article class="panel device-panel">
         <div class="device-section groups-section">
-          <div class="section-label">摄像头分组</div>
+          <div class="widget-title-bar widget-title-bar--section">
+            <div class="widget-title-left">
+              <span class="widget-title-chevron" aria-hidden="true">»</span>
+              <h2 class="widget-title-text">摄像头分组</h2>
+            </div>
+          </div>
           <div v-if="directoryTree.length" class="group-list">
             <button
               v-for="item in flatDirectoryItems"
@@ -176,8 +182,11 @@
         </div>
         <div class="device-section-divider" />
         <div class="device-section cameras-section">
-          <div class="section-label">
-            摄像头
+          <div class="widget-title-bar widget-title-bar--section">
+            <div class="widget-title-left">
+              <span class="widget-title-chevron" aria-hidden="true">»</span>
+              <h2 class="widget-title-text">摄像头</h2>
+            </div>
             <span v-if="groupCameras.length" class="section-count">{{ groupCameras.length }} 台</span>
           </div>
           <div class="camera-list">
@@ -206,25 +215,17 @@
       <article class="panel stats-panel">
         <div class="stats-split">
           <section class="stats-block">
-            <div class="panel-title-row compact-title">
-              <div>
-                <span class="panel-kicker">报警统计</span>
-                <h2>算法报警占比</h2>
+            <div class="widget-title-bar widget-title-bar--compact">
+              <div class="widget-title-left">
+                <span class="widget-title-chevron" aria-hidden="true">»</span>
+                <h2 class="widget-title-text">算法报警占比</h2>
               </div>
-              <div class="panel-title-actions">
-                <div class="period-tabs compact" role="tablist" aria-label="算法统计周期">
-                  <button
-                    v-for="item in periodOptions"
-                    :key="item.value"
-                    type="button"
-                    :class="['period-tab', { active: algorithmPeriod === item.value }]"
-                    role="tab"
-                    :aria-selected="algorithmPeriod === item.value"
-                    @click="algorithmPeriod = item.value"
-                  >
+              <div class="widget-title-actions">
+                <select v-model="algorithmPeriod" class="period-select" aria-label="算法统计周期">
+                  <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                     {{ item.label }}
-                  </button>
-                </div>
+                  </option>
+                </select>
               </div>
             </div>
             <div v-if="algorithmRanking.length" class="chart-wrap">
@@ -236,41 +237,21 @@
           <div class="stats-divider" />
 
           <section class="stats-block">
-            <div class="panel-title-row compact-title">
-              <div>
-                <span class="panel-kicker">报警统计</span>
-                <h2>{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
+            <div class="widget-title-bar widget-title-bar--compact">
+              <div class="widget-title-left">
+                <span class="widget-title-chevron" aria-hidden="true">»</span>
+                <h2 class="widget-title-text">{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
               </div>
-              <div class="panel-title-actions">
-                <div class="period-tabs compact" role="tablist" aria-label="排行统计周期">
-                  <button
-                    v-for="item in periodOptions"
-                    :key="item.value"
-                    type="button"
-                    :class="['period-tab', { active: rankingPeriod === item.value }]"
-                    role="tab"
-                    :aria-selected="rankingPeriod === item.value"
-                    @click="rankingPeriod = item.value"
-                  >
+              <div class="widget-title-actions">
+                <select v-model="rankingPeriod" class="period-select" aria-label="排行统计周期">
+                  <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                     {{ item.label }}
-                  </button>
-                </div>
-                <div class="rank-mode-tabs">
-                  <button
-                    type="button"
-                    :class="['rank-mode-tab', { active: rankMode === 'camera' }]"
-                    @click="rankMode = 'camera'"
-                  >
-                    摄像头
-                  </button>
-                  <button
-                    type="button"
-                    :class="['rank-mode-tab', { active: rankMode === 'directory' }]"
-                    @click="rankMode = 'directory'"
-                  >
-                    分组
-                  </button>
-                </div>
+                  </option>
+                </select>
+                <select v-model="rankMode" class="period-select period-select--mode" aria-label="排行类型">
+                  <option value="camera">摄像头</option>
+                  <option value="directory">分组</option>
+                </select>
               </div>
             </div>
             <div v-if="displayRanking.length" class="chart-wrap">
@@ -1185,25 +1166,111 @@ function handleChartResize() {
   flex-shrink: 0;
 }
 
-.panel-kicker {
-  display: inline-flex;
+.widget-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 8px;
+  padding: 0 10px 0 6px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(5, 20, 45, 0.88) 0%, rgba(5, 14, 35, 0.28) 100%);
+  border-top: 1px solid rgba(52, 134, 218, 0.5);
+  border-left: 2px solid rgba(52, 134, 218, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(115, 170, 229, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
+
+  &--compact {
+    min-height: 30px;
+    margin-bottom: 8px;
+  }
+
+  &--section {
+    min-height: 28px;
+    margin-bottom: 8px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+
+    .widget-title-text {
+      font-size: 12px;
+    }
+  }
+}
+
+.widget-title-left {
+  display: flex;
   align-items: center;
   gap: 6px;
-  color: @sugar-muted;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: .18em;
-  text-transform: uppercase;
+  min-width: 0;
+  flex: 1;
+}
 
-  &::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 1px;
-    background: @sugar-primary;
-    box-shadow: 0 0 6px rgba(52, 134, 218, 0.6);
-    transform: rotate(45deg);
-    flex-shrink: 0;
+.widget-title-chevron {
+  flex-shrink: 0;
+  color: #ff9900;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -3px;
+  text-shadow: 0 0 8px rgba(255, 153, 0, 0.45);
+}
+
+.widget-title-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 10px rgba(52, 134, 218, 0.2);
+}
+
+.widget-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.period-select {
+  height: 24px;
+  min-width: 68px;
+  max-width: 88px;
+  padding: 0 20px 0 8px;
+  font-size: 11px;
+  color: @sugar-light;
+  background-color: rgba(3, 10, 28, 0.82);
+  border: 1px solid rgba(52, 134, 218, 0.35);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2373aae5' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  box-shadow: inset 0 0 8px rgba(52, 134, 218, 0.06);
+
+  &:hover:not(:disabled) {
+    border-color: rgba(52, 134, 218, 0.55);
+    background-color: rgba(5, 14, 35, 0.92);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--mode {
+    min-width: 64px;
+    max-width: 76px;
   }
 }
 
@@ -1227,28 +1294,16 @@ function handleChartResize() {
   &:disabled { opacity: .55; }
 }
 
-.period-tabs {
-  display: inline-flex;
-  gap: 4px;
-  padding: 3px;
-  background: rgba(3, 10, 28, 0.85);
-  border: 1px solid rgba(52, 134, 218, 0.15);
-  border-radius: 4px;
+.kpi-board {
+  flex-shrink: 0;
+  padding: 8px !important;
 }
 
-.period-tab {
-  border: 0;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 6px 12px;
-  color: @sugar-muted;
-  background: transparent;
-  border-radius: 3px;
-  &.active {
-    color: @sugar-light;
-    background: rgba(52, 134, 218, 0.15);
-    box-shadow: inset 0 0 8px rgba(52, 134, 218, 0.12);
-  }
+.kpi-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  gap: 6px;
+  min-height: 88px;
 }
 
 .dashboard-body {
@@ -1317,114 +1372,6 @@ function handleChartResize() {
   width: 1px;
   background: rgba(52, 134, 218, 0.12);
   align-self: stretch;
-}
-
-.panel-title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  padding-bottom: 8px;
-  border-bottom: none;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      rgba(52, 134, 218, 0.5) 0,
-      rgba(52, 134, 218, 0.12) 40%,
-      transparent 100%
-    );
-  }
-
-  h2 {
-    margin: 4px 0 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #fff;
-    padding-left: 0;
-    border-left: none;
-    letter-spacing: .06em;
-    line-height: 1.3;
-    text-shadow: 0 0 12px rgba(52, 134, 218, 0.25);
-  }
-  &.compact-title { margin-bottom: 8px; }
-}
-
-.panel-title-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.rank-mode-tabs {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  background: rgba(3, 10, 28, 0.85);
-  border: 1px solid rgba(52, 134, 218, 0.15);
-  border-radius: 4px;
-}
-
-.rank-mode-tab {
-  border: 0;
-  cursor: pointer;
-  font-size: 11px;
-  padding: 4px 8px;
-  color: @sugar-muted;
-  background: transparent;
-  border-radius: 3px;
-  white-space: nowrap;
-  &.active {
-    color: @sugar-light;
-    background: rgba(52, 134, 218, 0.15);
-  }
-}
-
-.period-tabs.compact {
-  gap: 2px;
-  padding: 2px;
-  .period-tab {
-    font-size: 11px;
-    padding: 4px 8px;
-  }
-}
-
-.kpi-board {
-  flex-shrink: 0;
-  padding: 8px !important;
-}
-
-.kpi-period-tabs {
-  display: flex;
-  width: 100%;
-  margin-bottom: 6px;
-
-  .period-tab {
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    white-space: nowrap;
-  }
-}
-
-.kpi-board-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 82px;
-  gap: 6px;
-  min-height: 88px;
 }
 
 .kpi-primary {
@@ -1510,24 +1457,12 @@ function handleChartResize() {
   flex-shrink: 0;
 }
 
-.section-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  color: @sugar-muted;
-  letter-spacing: .06em;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-}
-
 .section-count {
+  flex-shrink: 0;
   font-size: 10px;
   font-weight: 500;
-  color: rgba(122, 155, 184, 0.75);
+  color: @sugar-muted;
+  white-space: nowrap;
 }
 
 .group-list,
@@ -1666,7 +1601,7 @@ function handleChartResize() {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
 }
 
