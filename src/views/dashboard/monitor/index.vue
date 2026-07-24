@@ -25,7 +25,7 @@
               <h2 class="widget-title-text">数据统计</h2>
             </div>
             <div class="widget-title-actions">
-              <select v-model="kpiPeriod" class="period-select" aria-label="KPI统计周期">
+              <select v-model="kpiPeriod" class="dashboard-select period-select" aria-label="KPI统计周期">
                 <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                   {{ item.label }}
                 </option>
@@ -60,7 +60,6 @@
               <span class="widget-title-chevron" aria-hidden="true">»</span>
               <h2 class="widget-title-text">告警事件</h2>
             </div>
-            <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
           </div>
           <div class="alarm-list">
             <div v-for="alarm in alarmList" :key="alarm.id" class="alarm-item">
@@ -125,19 +124,40 @@
               @dragleave="handleVideoWindowDragLeave($event, index)"
               @drop="handleVideoWindowDrop($event, index)"
             >
-              <select
-                class="video-window-select"
-                :value="video.deviceId || ''"
-                :disabled="!deviceList.length || (streamLoading && activeVideoIndex === index)"
-                @mousedown.stop
-                @click.stop="activeVideoIndex = index"
-                @change="handleSlotDeviceSelect(index, ($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">选择摄像头</option>
-                <option v-for="device in deviceList" :key="device.id" :value="device.id">
-                  {{ device.name || device.id }}
-                </option>
-              </select>
+              <div class="video-window-toolbar" @mousedown.stop @click.stop="activeVideoIndex = index">
+                <select
+                  class="dashboard-select video-window-select video-window-select--group"
+                  :value="getSlotDirectoryKey(index, video)"
+                  :disabled="streamLoading && activeVideoIndex === index"
+                  aria-label="选择分组"
+                  @change="handleSlotDirectoryChange(index, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">选择分组</option>
+                  <option
+                    v-for="item in flatDirectoryItems"
+                    :key="item.key"
+                    :value="item.key"
+                  >
+                    {{ formatDirectoryOptionLabel(item) }}
+                  </option>
+                </select>
+                <select
+                  class="dashboard-select video-window-select video-window-select--camera"
+                  :value="video.deviceId || ''"
+                  :disabled="!getSlotDirectoryKey(index, video) || (streamLoading && activeVideoIndex === index)"
+                  aria-label="选择摄像头"
+                  @change="handleSlotDeviceSelect(index, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">选择摄像头</option>
+                  <option
+                    v-for="device in getCamerasByDirectoryKey(getSlotDirectoryKey(index, video))"
+                    :key="device.id"
+                    :value="device.id"
+                  >
+                    {{ device.name || device.id }}
+                  </option>
+                </select>
+              </div>
               <Jessibuca
                 v-if="video.url"
                 :key="video.url"
@@ -221,7 +241,7 @@
                 <h2 class="widget-title-text">算法报警占比</h2>
               </div>
               <div class="widget-title-actions">
-                <select v-model="algorithmPeriod" class="period-select" aria-label="算法统计周期">
+                <select v-model="algorithmPeriod" class="dashboard-select period-select" aria-label="算法统计周期">
                   <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                     {{ item.label }}
                   </option>
@@ -243,12 +263,12 @@
                 <h2 class="widget-title-text">{{ rankMode === 'directory' ? '分组报警排行' : '摄像头报警排行' }}</h2>
               </div>
               <div class="widget-title-actions">
-                <select v-model="rankingPeriod" class="period-select" aria-label="排行统计周期">
+                <select v-model="rankingPeriod" class="dashboard-select period-select" aria-label="排行统计周期">
                   <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                     {{ item.label }}
                   </option>
                 </select>
-                <select v-model="rankMode" class="period-select period-select--mode" aria-label="排行类型">
+                <select v-model="rankMode" class="dashboard-select period-select period-select--mode" aria-label="排行类型">
                   <option value="camera">摄像头</option>
                   <option value="directory">分组</option>
                 </select>
@@ -356,6 +376,7 @@ interface VideoSlot {
   url: string
   name: string
   deviceId?: string
+  directoryKey?: string
 }
 
 const emptyPeriod = (label: string): PeriodStatistics => ({
@@ -382,7 +403,6 @@ const selectedDirectoryKey = ref('')
 const videoDragOverIndex = ref(-1)
 const draggingDeviceId = ref('')
 const alarmList = ref<AlarmItem[]>([])
-const todayAlarmCount = ref(0)
 
 const splitLayouts = [
   { value: '1', label: '1分屏', short: '1' },
@@ -589,7 +609,52 @@ function getMaxVideoCount(layout: string) {
 }
 
 function createEmptySlot(index: number): VideoSlot {
-  return { id: `placeholder-${index}`, url: '', name: `窗口${index + 1}` }
+  return { id: `placeholder-${index}`, url: '', name: `窗口${index + 1}`, directoryKey: '' }
+}
+
+function resolveDirectoryKeyForDevice(device: DeviceInfo) {
+  const dirId = getDeviceDirectoryId(device)
+  if (dirId == null || dirId === '')
+    return 'dir_uncategorized'
+  return `dir_${dirId}`
+}
+
+function getCamerasByDirectoryKey(directoryKey: string) {
+  if (!directoryKey)
+    return []
+  if (directoryKey === 'dir_uncategorized')
+    return deviceList.value.filter(d => !getDeviceDirectoryId(d))
+  const dirId = directoryKey.replace(/^dir_/, '')
+  return deviceList.value.filter(d => String(getDeviceDirectoryId(d) ?? '') === dirId)
+}
+
+function getSlotDirectoryKey(index: number, video: VideoSlot) {
+  if (video.directoryKey)
+    return video.directoryKey
+  if (video.deviceId) {
+    const device = deviceList.value.find(d => d.id === video.deviceId)
+    if (device)
+      return resolveDirectoryKeyForDevice(device)
+  }
+  return ''
+}
+
+function formatDirectoryOptionLabel(item: DirectoryTreeItem) {
+  const prefix = item.depth > 0 ? `${'　'.repeat(item.depth)}└ ` : ''
+  return `${prefix}${item.title}`
+}
+
+function handleSlotDirectoryChange(index: number, directoryKey: string) {
+  activeVideoIndex.value = index
+  ensureVideoSlotsInitialized()
+  if (!directoryKey) {
+    videoSlots.value[index] = createEmptySlot(index)
+    return
+  }
+  videoSlots.value[index] = {
+    ...createEmptySlot(index),
+    directoryKey,
+  }
 }
 
 function ensureVideoSlotsInitialized() {
@@ -918,7 +983,6 @@ async function loadStatistics() {
       ...response,
       periods: { ...statistics.value.periods, ...(response.periods || {}) },
     }
-    todayAlarmCount.value = response.today_alarm_count ?? response.periods?.today?.alarm_count ?? 0
   }
 }
 
@@ -969,6 +1033,7 @@ async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
       url: streamUrl,
       name: device.name || device.id,
       deviceId: device.id,
+      directoryKey: resolveDirectoryKeyForDevice(device),
     }
     activeVideoIndex.value = index
   }
@@ -983,8 +1048,14 @@ async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
 
 function handleSlotDeviceSelect(index: number, deviceId: string) {
   activeVideoIndex.value = index
+  const directoryKey = getSlotDirectoryKey(index, videoSlots.value[index] ?? createEmptySlot(index))
+  if (!directoryKey)
+    return
   if (!deviceId) {
-    clearVideoSlot(index)
+    videoSlots.value[index] = {
+      ...createEmptySlot(index),
+      directoryKey,
+    }
     return
   }
   const device = deviceList.value.find(d => d.id === deviceId)
@@ -1240,33 +1311,51 @@ function handleChartResize() {
   flex-wrap: nowrap;
 }
 
+.dashboard-select {
+  height: 26px;
+  min-width: 0;
+  padding: 0 22px 0 8px;
+  font-size: 11px;
+  color: @sugar-text;
+  background-color: rgba(3, 10, 28, 0.88);
+  border: 1px solid rgba(52, 134, 218, 0.32);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  line-height: 1.2;
+  transition: border-color .15s, background-color .15s, box-shadow .15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2373aae5' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  box-shadow:
+    inset 0 1px 0 rgba(115, 170, 229, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.18);
+
+  &:hover:not(:disabled) {
+    border-color: rgba(52, 134, 218, 0.58);
+    background-color: rgba(5, 16, 40, 0.95);
+    box-shadow:
+      inset 0 1px 0 rgba(115, 170, 229, 0.12),
+      0 0 10px rgba(52, 134, 218, 0.12);
+  }
+
+  &:focus-visible {
+    border-color: rgba(115, 170, 229, 0.75);
+    box-shadow: 0 0 0 2px rgba(52, 134, 218, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    color: @sugar-muted;
+  }
+}
+
 .period-select {
   height: 24px;
   min-width: 68px;
   max-width: 88px;
-  padding: 0 20px 0 8px;
-  font-size: 11px;
-  color: @sugar-light;
-  background-color: rgba(3, 10, 28, 0.82);
-  border: 1px solid rgba(52, 134, 218, 0.35);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2373aae5' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  box-shadow: inset 0 0 8px rgba(52, 134, 218, 0.06);
-
-  &:hover:not(:disabled) {
-    border-color: rgba(52, 134, 218, 0.55);
-    background-color: rgba(5, 14, 35, 0.92);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 
   &--mode {
     min-width: 64px;
@@ -1584,18 +1673,6 @@ function handleChartResize() {
   width: 100%;
 }
 
-.panel-total {
-  padding: 3px 8px;
-  color: @sugar-gold;
-  font-size: 11px;
-  background: rgba(255, 229, 86, 0.1);
-  border: 1px solid rgba(255, 229, 86, 0.28);
-  border-radius: 999px;
-  white-space: nowrap;
-  position: relative;
-  z-index: 2;
-}
-
 .video-actions {
   display: flex;
   align-items: center;
@@ -1631,28 +1708,35 @@ function handleChartResize() {
   &:hover:not(.active) { color: @sugar-text; background: rgba(52, 134, 218, 0.08); }
 }
 
-.video-window-select {
+.video-window-toolbar {
   position: absolute;
   top: 4px;
   left: 4px;
+  right: 4px;
   z-index: 4;
-  max-width: calc(100% - 8px);
-  height: 24px;
-  padding: 0 6px;
-  font-size: 10px;
-  color: @sugar-text;
-  background: rgba(3, 10, 28, 0.82);
-  border: 1px solid rgba(52, 134, 218, 0.35);
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  pointer-events: auto;
+}
 
-  &:disabled { opacity: .6; cursor: not-allowed; }
-  &:hover:not(:disabled) {
-    border-color: rgba(52, 134, 218, 0.55);
-    background: rgba(12, 18, 42, 0.9);
+.video-window-select {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  height: 22px;
+  padding-right: 18px;
+  font-size: 10px;
+  backdrop-filter: blur(6px);
+
+  &--group {
+    flex: 0 1 46%;
+    max-width: 48%;
+  }
+
+  &--camera {
+    flex: 1 1 54%;
   }
 }
 
