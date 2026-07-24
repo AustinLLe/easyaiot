@@ -1065,17 +1065,15 @@ function handleChartResize() {
     content: '';
     position: absolute;
     top: 0;
-    left: 12px;
-    right: 12px;
+    left: 16px;
+    right: 16px;
     height: 1px;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(52, 134, 218, 0.45) 20%,
-      rgba(115, 170, 229, 0.35) 50%,
-      rgba(52, 134, 218, 0.45) 80%,
+      rgba(52, 134, 218, 0.15) 50%,
       transparent
     );
   }
@@ -1086,7 +1084,8 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background: @sugar-bg;
+  background:
+    radial-gradient(ellipse 100% 90% at 50% 45%, rgba(16, 24, 52, 0.5) 0%, @sugar-bg 72%);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1109,10 +1108,21 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
-    background-size: 24px 24px, 24px 24px, 100% 100%;
+      radial-gradient(
+        ellipse 68% 58% at 50% 42%,
+        rgba(52, 134, 218, 0.14) 0%,
+        rgba(28, 32, 68, 0.28) 42%,
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 96% 88% at 50% 50%,
+        transparent 38%,
+        rgba(5, 8, 20, 0.52) 76%,
+        rgba(2, 4, 12, 0.78) 100%
+      ),
+      linear-gradient(rgba(52, 134, 218, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
     pointer-events: none;
     z-index: 0;
   }
@@ -1423,8 +1433,8 @@ function handleChartResize() {
   flex-direction: column;
   gap: 4px;
   padding: 8px 10px;
-  background: rgba(8, 12, 32, 0.65);
-  border: 1px solid rgba(52, 134, 218, 0.22);
+  background: rgba(8, 12, 32, 0.32);
+  border: 1px solid rgba(52, 134, 218, 0.06);
   border-radius: 4px;
   min-width: 0;
 }
@@ -1459,8 +1469,8 @@ function handleChartResize() {
   justify-content: center;
   gap: 2px;
   padding: 6px 8px;
-  background: rgba(8, 12, 32, 0.55);
-  border: 1px solid rgba(52, 134, 218, 0.12);
+  background: rgba(8, 12, 32, 0.28);
+  border: 1px solid rgba(52, 134, 218, 0.05);
   border-radius: 4px;
   min-height: 0;
 }
@@ -1578,8 +1588,8 @@ function handleChartResize() {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 4px;
-  background: rgba(8, 12, 32, 0.55);
-  border: 1px solid rgba(52, 134, 218, 0.1);
+  background: rgba(8, 12, 32, 0.28);
+  border: 1px solid rgba(52, 134, 218, 0.05);
   font-size: 12px;
   color: @sugar-text;
   cursor: grab;
@@ -1588,10 +1598,10 @@ function handleChartResize() {
   position: relative;
   z-index: 2;
 
-  &:hover { background: rgba(52, 134, 218, 0.08); border-color: rgba(52, 134, 218, 0.25); }
+  &:hover { background: rgba(52, 134, 218, 0.08); border-color: rgba(52, 134, 218, 0.12); }
   &.active {
-    background: rgba(52, 134, 218, 0.14);
-    border-color: rgba(52, 134, 218, 0.4);
+    background: rgba(52, 134, 218, 0.12);
+    border-color: rgba(52, 134, 218, 0.2);
     color: @sugar-primary;
   }
   &:active { cursor: grabbing; }
@@ -1612,13 +1622,10 @@ function handleChartResize() {
 
 .panel {
   position: relative;
-  background:
-    linear-gradient(180deg, rgba(28, 32, 68, 0.82) 0%, rgba(16, 20, 48, 0.88) 100%);
-  border: 1px solid rgba(52, 134, 218, 0.22);
+  background: rgba(16, 22, 48, 0.42);
+  border: 1px solid rgba(52, 134, 218, 0.06);
   border-radius: 2px;
-  box-shadow:
-    inset 0 0 30px rgba(52, 134, 218, 0.04),
-    0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1739,11 +1746,11 @@ function handleChartResize() {
   gap: 3px;
   padding: 3px;
   background:
-    linear-gradient(rgba(52, 134, 218, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(52, 134, 218, 0.06) 1px, transparent 1px),
-    #080f1c;
+    linear-gradient(rgba(52, 134, 218, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 134, 218, 0.03) 1px, transparent 1px),
+    rgba(4, 8, 18, 0.65);
   background-size: 16px 16px, 16px 16px, 100% 100%;
-  border: 1px solid rgba(52, 134, 218, 0.2);
+  border: 1px solid rgba(52, 134, 218, 0.08);
   border-radius: 2px;
   overflow: hidden;
   position: relative;
@@ -1761,17 +1768,17 @@ function handleChartResize() {
   position: relative;
   min-height: 0;
   min-width: 0;
-  background: #141832;
-  border: 1px solid rgba(52, 134, 218, 0.2);
+  background: #0c1020;
+  border: 1px solid rgba(52, 134, 218, 0.08);
   border-radius: 2px;
   overflow: hidden;
   cursor: pointer;
   transition: border-color .15s, box-shadow .15s;
 
-  &:hover { border-color: rgba(52, 134, 218, 0.45); }
+  &:hover { border-color: rgba(52, 134, 218, 0.22); }
   &.active {
-    border-color: @sugar-primary;
-    box-shadow: 0 0 10px rgba(52, 134, 218, 0.25);
+    border-color: rgba(52, 134, 218, 0.45);
+    box-shadow: 0 0 10px rgba(52, 134, 218, 0.18);
   }
   &.drag-over {
     border-color: @sugar-gold;
@@ -1848,18 +1855,18 @@ function handleChartResize() {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
-  background: linear-gradient(135deg, rgba(52, 134, 218, 0.07), rgba(22, 26, 58, 0.78));
-  border: 1px solid rgba(52, 134, 218, 0.14);
-  border-left: 3px solid #2a4a7a;
+  background: rgba(16, 22, 48, 0.35);
+  border: 1px solid rgba(52, 134, 218, 0.05);
+  border-left: 2px solid rgba(42, 74, 122, 0.6);
   border-radius: 2px;
   flex-shrink: 0;
   transition: background .2s, border-color .2s, box-shadow .2s;
 
   &:hover {
-    background: linear-gradient(135deg, rgba(52, 134, 218, 0.13), rgba(22, 26, 58, 0.88));
-    border-color: rgba(52, 134, 218, 0.28);
-    border-left-color: rgba(52, 134, 218, 0.55);
-    box-shadow: 0 0 12px rgba(52, 134, 218, 0.1);
+    background: rgba(22, 28, 58, 0.48);
+    border-color: rgba(52, 134, 218, 0.1);
+    border-left-color: rgba(52, 134, 218, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -1869,8 +1876,8 @@ function handleChartResize() {
   flex-shrink: 0;
   border-radius: 2px;
   overflow: hidden;
-  background: rgba(8, 12, 32, 0.9);
-  border: 1px solid rgba(52, 134, 218, 0.18);
+  background: rgba(8, 12, 32, 0.6);
+  border: 1px solid rgba(52, 134, 218, 0.08);
   display: grid;
   place-items: center;
 
