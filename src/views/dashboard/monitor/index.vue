@@ -234,25 +234,42 @@
         </div>
       </article>
 
-      <!-- 中间下：算法占比 + 摄像头排行（视频下方） -->
+      <!-- 中间下：报警统计 + 摄像头排行（视频下方） -->
       <article class="panel stats-panel">
         <div class="stats-split">
-          <section class="stats-block">
+          <section class="stats-block stats-block--alarm">
             <div class="widget-title-bar widget-title-bar--compact">
               <div class="widget-title-left">
                 <span class="widget-title-chevron" aria-hidden="true">»</span>
-                <h2 class="widget-title-text">算法报警占比</h2>
+                <h2 class="widget-title-text">报警统计</h2>
               </div>
               <div class="widget-title-actions">
-                <select v-model="algorithmPeriod" class="dashboard-select period-select" aria-label="算法统计周期">
+                <select v-model="algorithmPeriod" class="dashboard-select period-select" aria-label="报警统计周期">
                   <option v-for="item in periodOptions" :key="item.value" :value="item.value">
                     {{ item.label }}
                   </option>
                 </select>
               </div>
             </div>
-            <div v-if="algorithmRanking.length" class="chart-wrap">
-              <div ref="algorithmChartRef" class="chart-box" />
+            <div v-if="algorithmRanking.length" class="alarm-stats-body">
+              <div class="alarm-stats-chart-area">
+                <div class="alarm-stats-range">{{ algorithmPeriodRangeText }}</div>
+                <div ref="algorithmChartRef" class="alarm-stats-chart" />
+              </div>
+              <div class="alarm-stats-top5">
+                <div class="alarm-stats-top5-title">算法报警数量 TOP-5</div>
+                <ul class="alarm-stats-top5-list">
+                  <li
+                    v-for="(item, index) in algorithmTopFive"
+                    :key="`${item.name}-${index}`"
+                    class="alarm-stats-top5-item"
+                  >
+                    <span class="alarm-stats-top5-rank">{{ index + 1 }}</span>
+                    <span class="alarm-stats-top5-name" :title="item.name">{{ item.name }}</span>
+                    <span class="alarm-stats-top5-count">{{ formatAlarmCount(item.count) }} 次</span>
+                  </li>
+                </ul>
+              </div>
             </div>
             <div v-else class="empty-state compact">当前周期暂无算法报警</div>
           </section>
@@ -356,6 +373,8 @@ interface RankingItem {
 interface PeriodStatistics {
   label: string
   alarm_count: number
+  start_time?: string
+  end_time?: string
   algorithm_ranking: RankingItem[]
   camera_ranking: RankingItem[]
   directory_ranking: RankingItem[]
@@ -431,20 +450,53 @@ const periodOptions = [
   { label: '本周', value: 'week' as PeriodKey },
   { label: '本月', value: 'month' as PeriodKey },
 ]
-const chartColors = ['#3486da', '#4a90e2', '#73aae5', '#ffe556', '#9aa8d4', '#6c5ce7', '#00cec9', '#fd79a8']
+const chartColors = ['#1e5799', '#00cec9', '#52c41a', '#ffe556', '#ff9900', '#9aa8d4', '#6c5ce7', '#fd79a8']
 
 const algorithmChartRef = ref<HTMLDivElement>()
 const rankingChartRef = ref<HTMLDivElement>()
 const { setOptions: setAlgorithmOptions, resize: resizeAlgorithmChart } = useECharts(algorithmChartRef, 'dark')
 const { setOptions: setRankingOptions, resize: resizeRankingChart } = useECharts(rankingChartRef, 'dark')
 
-function buildAlgorithmChartOptions(animate = false): EChartsOption {
-  const total = algorithmPeriodData.value.alarm_count
-  const data = algorithmRanking.value.slice(0, 8).map((item, index) => ({
+function formatAlarmCount(value: number) {
+  return value.toLocaleString('zh-CN')
+}
+
+function formatPeriodDate(value?: string) {
+  if (!value)
+    return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime()))
+    return value.slice(0, 10)
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function buildAlgorithmPieData(items: RankingItem[]) {
+  const topItems = items.slice(0, 5)
+  const restItems = items.slice(5)
+  const data = topItems.map((item, index) => ({
     name: item.name,
     value: item.count,
     itemStyle: { color: chartColors[index % chartColors.length] },
   }))
+  if (restItems.length) {
+    const otherCount = restItems.reduce((sum, item) => sum + item.count, 0)
+    if (otherCount > 0) {
+      data.push({
+        name: '其他',
+        value: otherCount,
+        itemStyle: { color: chartColors[5] },
+      })
+    }
+  }
+  return data
+}
+
+function buildAlgorithmChartOptions(animate = false): EChartsOption {
+  const total = algorithmPeriodData.value.alarm_count
+  const data = buildAlgorithmPieData(algorithmRanking.value)
 
   return {
     animation: animate,
@@ -459,35 +511,83 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
       formatter: '{b}<br/>{c} 次 ({d}%)',
     },
     legend: {
-      type: 'scroll',
-      orient: 'vertical',
-      right: 0,
-      top: 'middle',
-      itemWidth: 8,
-      itemHeight: 8,
-      textStyle: { color: '#9aa8d4', fontSize: 11 },
-      pageTextStyle: { color: '#6b7a9e' },
-      pageIconColor: '#3486da',
-      pageIconInactiveColor: '#334155',
+      type: 'plain',
+      orient: 'horizontal',
+      top: 4,
+      left: 'center',
+      itemWidth: 10,
+      itemHeight: 10,
+      itemGap: 10,
+      textStyle: { color: '#9aa8d4', fontSize: 10 },
     },
+    graphic: [{
+      type: 'group',
+      left: 'center',
+      top: '56%',
+      children: [
+        {
+          type: 'text',
+          left: 'center',
+          top: -28,
+          style: {
+            text: '总次数',
+            fill: '#9aa8d4',
+            fontSize: 11,
+            textAlign: 'center',
+          },
+        },
+        {
+          type: 'text',
+          left: 'center',
+          top: -6,
+          style: {
+            text: formatAlarmCount(total),
+            fill: '#ffffff',
+            fontSize: 20,
+            fontWeight: 700,
+            textAlign: 'center',
+          },
+        },
+        {
+          type: 'text',
+          left: 'center',
+          top: 22,
+          style: {
+            text: '次',
+            fill: '#9aa8d4',
+            fontSize: 11,
+            textAlign: 'center',
+          },
+        },
+      ],
+    }],
     series: [{
       type: 'pie',
-      radius: ['46%', '72%'],
-      center: ['34%', '50%'],
+      radius: ['38%', '58%'],
+      center: ['50%', '58%'],
       avoidLabelOverlap: true,
       animation: animate,
       animationDuration: animate ? 900 : 0,
       animationDurationUpdate: 0,
       label: {
         show: true,
-        position: 'center',
-        formatter: () => `{value|${total}}\n{label|总数}`,
-        rich: {
-          value: { fontSize: 22, fontWeight: 700, color: '#ffe556', lineHeight: 28 },
-          label: { fontSize: 11, color: '#9aa8d4', lineHeight: 16 },
-        },
+        position: 'outside',
+        formatter: '{b}\n({d}%)',
+        color: '#9aa8d4',
+        fontSize: 10,
+        lineHeight: 14,
       },
-      emphasis: { scale: true, scaleSize: 6 },
+      labelLine: {
+        show: true,
+        length: 10,
+        length2: 14,
+        smooth: true,
+        lineStyle: { color: 'rgba(148, 163, 184, 0.35)' },
+      },
+      labelLayout: {
+        hideOverlap: true,
+      },
+      emphasis: { scale: true, scaleSize: 4 },
       data,
     }],
   }
@@ -575,6 +675,15 @@ const kpiPeriodData = computed(() => statistics.value.periods[kpiPeriod.value] |
 const algorithmPeriodData = computed(() => statistics.value.periods[algorithmPeriod.value] || emptyPeriod('当前'))
 const rankingPeriodData = computed(() => statistics.value.periods[rankingPeriod.value] || emptyPeriod('当前'))
 const algorithmRanking = computed(() => algorithmPeriodData.value.algorithm_ranking || [])
+const algorithmTopFive = computed(() => algorithmRanking.value.slice(0, 5))
+const algorithmPeriodRangeText = computed(() => {
+  const period = algorithmPeriodData.value
+  const start = formatPeriodDate(period.start_time)
+  const end = formatPeriodDate(period.end_time)
+  if (start && end)
+    return `${start} 至 ${end}`
+  return period.label
+})
 const displayRanking = computed(() => {
   const period = rankingPeriodData.value
   if (rankMode.value === 'directory')
@@ -1697,6 +1806,113 @@ function handleChartResize() {
   padding: 10px 12px;
   overflow: hidden;
   .sugar-panel-accent();
+}
+
+.stats-block--alarm {
+  .alarm-stats-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 10px;
+    padding: 0 2px 4px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .alarm-stats-chart-area {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .alarm-stats-range {
+    flex-shrink: 0;
+    margin-bottom: 2px;
+    font-size: 11px;
+    color: @sugar-muted;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  .alarm-stats-chart {
+    flex: 1;
+    min-height: 140px;
+    width: 100%;
+  }
+
+  .alarm-stats-top5 {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    border-left: 1px solid rgba(52, 134, 218, 0.12);
+  }
+
+  .alarm-stats-top5-title {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: @sugar-text;
+    text-align: center;
+    background: linear-gradient(
+      90deg,
+      rgba(52, 134, 218, 0.14) 0%,
+      rgba(5, 14, 35, 0.35) 100%
+    );
+    border: 1px solid rgba(52, 134, 218, 0.18);
+    border-radius: 3px;
+  }
+
+  .alarm-stats-top5-list {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+  }
+
+  .alarm-stats-top5-item {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 6px 10px;
+    background: rgba(3, 10, 28, 0.42);
+    border: 1px solid rgba(52, 134, 218, 0.08);
+    border-radius: 3px;
+  }
+
+  .alarm-stats-top5-rank {
+    font-size: 13px;
+    font-weight: 700;
+    color: @sugar-light;
+    text-align: center;
+  }
+
+  .alarm-stats-top5-name {
+    font-size: 11px;
+    color: @sugar-text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .alarm-stats-top5-count {
+    font-size: 11px;
+    color: @sugar-muted;
+    white-space: nowrap;
+  }
 }
 
 .chart-wrap {
