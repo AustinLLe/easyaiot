@@ -2,7 +2,6 @@
   <div class="overview-dashboard" :style="dashboardStyle">
     <div class="dashboard-canvas">
     <header class="screen-header">
-      <div class="header-accent header-accent-left" />
       <div class="header-center">
         <div class="header-badge">EASYAIOT EDGE</div>
         <h1 class="screen-title">边缘智能算法应用平台</h1>
@@ -14,7 +13,6 @@
           {{ loading ? '刷新中' : '刷新数据' }}
         </button>
       </div>
-      <div class="header-accent header-accent-right" />
     </header>
 
     <section class="dashboard-body">
@@ -1051,9 +1049,11 @@ function handleChartResize() {
 </script>
 
 <style lang="less" scoped>
-// iDataV 风格色板
+// iDataV 切图与色板
+@header-bg: url('@/assets/images/bigscreen/header.png');
+@page-bg: url('@/assets/images/bigscreen/head_bg.png');
 @idata-bg: #0f1c30;
-@idata-panel: rgba(16, 31, 50, 0.88);
+@idata-panel: rgba(16, 31, 50, 0.72);
 @idata-cyan: #43d0d6;
 @idata-blue: #5dc2fe;
 @idata-gold: #f19000;
@@ -1068,15 +1068,15 @@ function handleChartResize() {
     pointer-events: none;
     z-index: 1;
     background:
-      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 18px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 2px 18px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 18px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 2px 18px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 18px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 2px 18px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 18px 2px no-repeat,
-      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 2px 18px no-repeat;
-    opacity: 0.85;
+      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 20px 2px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 0 0 / 2px 20px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 20px 2px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 100% 0 / 2px 20px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 20px 2px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 0 100% / 2px 20px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 20px 2px no-repeat,
+      linear-gradient(@idata-cyan, @idata-cyan) 100% 100% / 2px 20px no-repeat;
+    opacity: 0.9;
   }
 }
 
@@ -1091,51 +1091,50 @@ function handleChartResize() {
 }
 
 .dashboard-canvas {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 1440px;
   height: 100%;
   margin: 0 auto;
-  padding: 10px 20px;
-  background:
-    linear-gradient(rgba(67, 208, 214, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(67, 208, 214, 0.04) 1px, transparent 1px),
-    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(93, 194, 254, 0.14), transparent 55%),
-    linear-gradient(180deg, #122338 0%, @idata-bg 100%);
-  background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%;
+  padding: 8px 16px 12px;
+  background: @page-bg center / cover no-repeat;
   box-sizing: border-box;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(67, 208, 214, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(67, 208, 214, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(15, 28, 48, 0.78) 0%, rgba(15, 28, 48, 0.9) 100%);
+    background-size: 24px 24px, 24px 24px, 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .screen-header {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  justify-content: center;
   flex-shrink: 0;
-  min-height: 62px;
-  padding: 4px 0 8px;
-  background:
-    linear-gradient(90deg, transparent, rgba(67, 208, 214, 0.18) 20%, rgba(93, 194, 254, 0.28) 50%, rgba(67, 208, 214, 0.18) 80%, transparent) bottom / 100% 2px no-repeat;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    width: 120px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, @idata-cyan);
-  }
-
-  &::before { left: 8%; }
-  &::after { right: 8%; transform: scaleX(-1); }
+  min-height: 68px;
+  margin-bottom: 8px;
+  padding: 6px 120px 10px;
+  background: @header-bg center top / 100% 100% no-repeat;
 }
 
 .header-center {
-  grid-column: 2;
   text-align: center;
 }
 
@@ -1145,38 +1144,30 @@ function handleChartResize() {
   font-weight: 700;
   letter-spacing: .22em;
   margin-bottom: 2px;
-  text-shadow: 0 0 12px rgba(67, 208, 214, 0.45);
+  text-shadow: 0 0 10px rgba(67, 208, 214, 0.5);
 }
 
 .screen-title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 23px;
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: .1em;
+  letter-spacing: .12em;
   color: @idata-blue;
-  text-shadow: 0 0 20px rgba(93, 194, 254, 0.35);
+  text-shadow: 0 0 16px rgba(93, 194, 254, 0.4);
 }
 
 .screen-subtitle {
   margin: 3px 0 0;
   color: @idata-muted;
   font-size: 11px;
-  letter-spacing: .12em;
+  letter-spacing: .1em;
 }
-
-.header-accent {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(67, 208, 214, 0.35), transparent);
-}
-
-.header-accent-left { grid-column: 1; }
-.header-accent-right { grid-column: 3; }
 
 .heading-actions {
   position: absolute;
   top: 50%;
-  right: 0;
+  right: 8px;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
@@ -1589,10 +1580,13 @@ function handleChartResize() {
 
 .panel {
   position: relative;
-  background: @idata-panel;
-  border: 1px solid rgba(67, 208, 214, 0.18);
+  background:
+    linear-gradient(180deg, rgba(16, 31, 50, 0.82) 0%, rgba(11, 22, 40, 0.88) 100%);
+  border: 1px solid rgba(67, 208, 214, 0.22);
   border-radius: 2px;
-  box-shadow: inset 0 0 40px rgba(67, 208, 214, 0.03);
+  box-shadow:
+    inset 0 0 30px rgba(67, 208, 214, 0.04),
+    0 4px 20px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   min-width: 0;
