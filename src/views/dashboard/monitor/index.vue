@@ -106,17 +106,6 @@
                 {{ layout.short }}
               </button>
             </div>
-            <select
-              v-model="selectedDeviceId"
-              class="camera-select"
-              :disabled="!deviceList.length || streamLoading"
-              @change="handleDeviceSelect"
-            >
-              <option value="">选择摄像头</option>
-              <option v-for="device in deviceList" :key="device.id" :value="device.id">
-                {{ device.name || device.id }}
-              </option>
-            </select>
             <span :class="['stream-status', { online: activeStreamCount > 0 }]">
               {{ activeStreamCount > 0 ? `${activeStreamCount} 路播放中` : '等待选择' }}
             </span>
@@ -135,6 +124,19 @@
               @dragleave="handleVideoWindowDragLeave($event, index)"
               @drop="handleVideoWindowDrop($event, index)"
             >
+              <select
+                class="video-window-select"
+                :value="video.deviceId || ''"
+                :disabled="!deviceList.length || (streamLoading && activeVideoIndex === index)"
+                @mousedown.stop
+                @click.stop="activeVideoIndex = index"
+                @change="handleSlotDeviceSelect(index, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">选择摄像头</option>
+                <option v-for="device in deviceList" :key="device.id" :value="device.id">
+                  {{ device.name || device.id }}
+                </option>
+              </select>
               <Jessibuca
                 v-if="video.url"
                 :key="video.url"
@@ -393,7 +395,6 @@ const algorithmPeriod = ref<PeriodKey>('today')
 const rankingPeriod = ref<PeriodKey>('today')
 const rankMode = ref<RankMode>('camera')
 const deviceList = ref<DeviceInfo[]>([])
-const selectedDeviceId = ref('')
 const treeLoading = ref(false)
 const directoryTree = ref<TreeItem[]>([])
 const selectedDirectoryKey = ref('')
@@ -698,10 +699,8 @@ function handleVideoWindowDrop(event: DragEvent, index: number) {
   if (!deviceId)
     return
   const device = deviceList.value.find(d => d.id === deviceId)
-  if (device) {
-    selectedDeviceId.value = device.id
+  if (device)
     handlePlayDevice(device, index)
-  }
   draggingDeviceId.value = ''
 }
 
@@ -733,7 +732,6 @@ function selectDirectory(key: string) {
 }
 
 function selectAndPlayDevice(device: DeviceInfo) {
-  selectedDeviceId.value = device.id
   handlePlayDevice(device)
 }
 
@@ -992,7 +990,6 @@ async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
       deviceId: device.id,
     }
     activeVideoIndex.value = index
-    selectedDeviceId.value = device.id
   }
   catch (error) {
     console.error('播放失败', error)
@@ -1003,12 +1000,15 @@ async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
   }
 }
 
-function handleDeviceSelect() {
-  if (!selectedDeviceId.value)
+function handleSlotDeviceSelect(index: number, deviceId: string) {
+  activeVideoIndex.value = index
+  if (!deviceId) {
+    clearVideoSlot(index)
     return
-  const device = deviceList.value.find(d => d.id === selectedDeviceId.value)
+  }
+  const device = deviceList.value.find(d => d.id === deviceId)
   if (device)
-    handlePlayDevice(device, currentLayout.value === '1' ? 0 : activeVideoIndex.value)
+    handlePlayDevice(device, index)
 }
 
 async function refreshDashboard() {
@@ -1690,18 +1690,29 @@ function handleChartResize() {
   &:hover:not(.active) { color: @sugar-text; background: rgba(52, 134, 218, 0.08); }
 }
 
-.camera-select {
-  max-width: 160px;
-  height: 28px;
-  padding: 0 8px;
-  font-size: 12px;
+.video-window-select {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 4;
+  max-width: calc(100% - 8px);
+  height: 24px;
+  padding: 0 6px;
+  font-size: 10px;
   color: @sugar-text;
-  background: rgba(8, 12, 32, 0.65);
-  border: 1px solid rgba(52, 134, 218, 0.2);
-  border-radius: 4px;
+  background: rgba(8, 12, 32, 0.82);
+  border: 1px solid rgba(52, 134, 218, 0.35);
+  border-radius: 3px;
   outline: none;
   cursor: pointer;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+
   &:disabled { opacity: .6; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    border-color: rgba(52, 134, 218, 0.55);
+    background: rgba(12, 18, 42, 0.9);
+  }
 }
 
 .stream-status {
