@@ -4,9 +4,7 @@
     <header class="screen-header">
       <div class="header-center">
         <div class="header-badge">EASYAIOT EDGE</div>
-        <div class="screen-title-wrap">
-          <h1 class="screen-title">边缘智能算法应用平台</h1>
-        </div>
+        <h1 class="screen-title">边缘智能算法应用平台</h1>
         <p class="screen-subtitle">设备 · 算法 · 告警 实时态势感知</p>
       </div>
       <div class="heading-actions">
@@ -1061,25 +1059,23 @@ function handleChartResize() {
 @sugar-gold: #ffe556;
 @sugar-text: #e8eef8;
 @sugar-muted: #9aa8d4;
-@sugar-glow: rgba(52, 134, 218, 0.45);
-@sugar-glow-soft: rgba(52, 134, 218, 0.12);
 
 .sugar-panel-accent() {
   &::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 16px;
-    right: 16px;
+    left: 12px;
+    right: 12px;
     height: 1px;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(52, 134, 218, 0.28) 25%,
-      rgba(115, 170, 229, 0.2) 50%,
-      rgba(52, 134, 218, 0.28) 75%,
+      rgba(52, 134, 218, 0.45) 20%,
+      rgba(115, 170, 229, 0.35) 50%,
+      rgba(52, 134, 218, 0.45) 80%,
       transparent
     );
   }
@@ -1090,11 +1086,7 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background:
-    radial-gradient(ellipse 100% 80% at 50% -10%, rgba(52, 134, 218, 0.18) 0%, transparent 58%),
-    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(108, 92, 231, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(108, 92, 231, 0.1) 0%, transparent 55%),
-    @sugar-bg;
+  background: @sugar-bg;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1117,34 +1109,10 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 90% 55% at 50% 0%, rgba(52, 134, 218, 0.28) 0%, transparent 62%),
-      radial-gradient(ellipse 70% 50% at 50% 42%, rgba(52, 134, 218, 0.14) 0%, transparent 68%),
-      radial-gradient(ellipse 45% 38% at 8% 88%, rgba(108, 92, 231, 0.2) 0%, transparent 58%),
-      radial-gradient(ellipse 45% 38% at 92% 82%, rgba(108, 92, 231, 0.16) 0%, transparent 58%),
-      linear-gradient(rgba(52, 134, 218, 0.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.028) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(40, 30, 47, 0.38) 0%, rgba(10, 22, 40, 0.78) 100%);
-    background-size:
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      28px 28px,
-      28px 28px,
-      100% 100%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(760px, 92%);
-    height: 220px;
-    background: radial-gradient(ellipse at center top, rgba(52, 134, 218, 0.32) 0%, rgba(52, 134, 218, 0.08) 45%, transparent 72%);
+      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
+    background-size: 24px 24px, 24px 24px, 100% 100%;
     pointer-events: none;
     z-index: 0;
   }
@@ -1165,64 +1133,10 @@ function handleChartResize() {
   margin-bottom: 8px;
   padding: 6px 120px 10px;
   background: @header-bg center top / 100% 100% no-repeat;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 72px;
-    height: 1px;
-    pointer-events: none;
-    opacity: 0.75;
-  }
-
-  &::before {
-    left: calc(50% - 220px);
-    background: linear-gradient(90deg, transparent, @sugar-glow);
-  }
-
-  &::after {
-    right: calc(50% - 220px);
-    background: linear-gradient(270deg, transparent, @sugar-glow);
-  }
 }
 
 .header-center {
   text-align: center;
-  position: relative;
-}
-
-.screen-title-wrap {
-  position: relative;
-  display: inline-block;
-  padding: 0 28px;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 18px;
-    height: 18px;
-    margin-top: -9px;
-    border: 1px solid rgba(52, 134, 218, 0.45);
-    pointer-events: none;
-  }
-
-  &::before {
-    left: 0;
-    border-right: none;
-    border-bottom: none;
-    box-shadow: -2px -2px 8px rgba(52, 134, 218, 0.2);
-  }
-
-  &::after {
-    right: 0;
-    border-left: none;
-    border-top: none;
-    box-shadow: 2px 2px 8px rgba(52, 134, 218, 0.2);
-  }
 }
 
 .header-badge {
@@ -1236,15 +1150,12 @@ function handleChartResize() {
 
 .screen-title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 23px;
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: .14em;
-  background: linear-gradient(180deg, #fff 0%, @sugar-light 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 14px rgba(52, 134, 218, 0.4));
+  letter-spacing: .12em;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(52, 134, 218, 0.45);
 }
 
 .screen-subtitle {
@@ -1702,14 +1613,12 @@ function handleChartResize() {
 .panel {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(28, 32, 68, 0.52) 0%, rgba(16, 20, 48, 0.62) 100%);
-  border: 1px solid rgba(52, 134, 218, 0.28);
+    linear-gradient(180deg, rgba(28, 32, 68, 0.82) 0%, rgba(16, 20, 48, 0.88) 100%);
+  border: 1px solid rgba(52, 134, 218, 0.22);
   border-radius: 2px;
   box-shadow:
-    inset 0 0 40px rgba(52, 134, 218, 0.04),
-    0 0 24px rgba(52, 134, 218, 0.06),
-    0 4px 24px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(8px);
+    inset 0 0 30px rgba(52, 134, 218, 0.04),
+    0 4px 20px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   min-width: 0;
