@@ -444,7 +444,7 @@ function buildAlgorithmChartOptions(animate = false): EChartsOption {
     color: chartColors,
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(16, 20, 48, 0.92)',
+      backgroundColor: 'rgba(5, 14, 35, 0.92)',
       borderColor: 'rgba(52, 134, 218, 0.45)',
       textStyle: { color: '#e8eef8', fontSize: 12 },
       formatter: '{b}<br/>{c} 次 ({d}%)',
@@ -494,7 +494,7 @@ function buildRankingChartOptions(animate = false): EChartsOption {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(16, 20, 48, 0.92)',
+      backgroundColor: 'rgba(5, 14, 35, 0.92)',
       borderColor: 'rgba(52, 134, 218, 0.45)',
       textStyle: { color: '#e8eef8', fontSize: 12 },
     },
@@ -514,7 +514,7 @@ function buildRankingChartOptions(animate = false): EChartsOption {
       axisLabel: {
         color: '#9aa8d4',
         fontSize: 11,
-        width: 72,
+        width: 58,
         overflow: 'truncate',
       },
     },
@@ -1049,16 +1049,16 @@ function handleChartResize() {
 </script>
 
 <style lang="less" scoped>
-// Sugar 蓝紫风格切图与色板
+// 深海军蓝指挥舱背景 + Sugar 主色
 @header-bg: url('@/assets/images/bigscreen/header.png');
-@page-bg: url('@/assets/images/bigscreen/head_bg.png');
-@sugar-bg: #0a1628;
-@sugar-panel: rgba(22, 26, 58, 0.78);
+@sugar-bg: #03091b;
+@sugar-bg-deep: #020612;
+@sugar-panel: rgba(5, 14, 35, 0.32);
 @sugar-primary: #3486da;
 @sugar-light: #73aae5;
 @sugar-gold: #ffe556;
 @sugar-text: #e8eef8;
-@sugar-muted: #9aa8d4;
+@sugar-muted: #8fa3c8;
 
 .sugar-panel-accent() {
   &::before {
@@ -1084,7 +1084,7 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background: @sugar-bg;
+  background: @sugar-bg-deep;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1098,7 +1098,7 @@ function handleChartResize() {
   height: 100%;
   margin: 0 auto;
   padding: 8px 16px 12px;
-  background: @page-bg center / cover no-repeat;
+  background: @sugar-bg;
   box-sizing: border-box;
   isolation: isolate;
 
@@ -1107,10 +1107,21 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
-    background-size: 24px 24px, 24px 24px, 100% 100%;
+      radial-gradient(ellipse 72% 58% at 50% 40%, rgba(52, 134, 218, 0.07) 0%, transparent 68%),
+      radial-gradient(circle at 15% 20%, rgba(52, 134, 218, 0.04) 0, transparent 28%),
+      radial-gradient(circle at 85% 75%, rgba(52, 134, 218, 0.035) 0, transparent 24%),
+      radial-gradient(circle at 70% 15%, rgba(77, 128, 255, 0.03) 0, transparent 20%),
+      linear-gradient(rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(5, 14, 35, 0.42) 0%, rgba(3, 9, 27, 0.82) 100%);
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      32px 32px,
+      32px 32px,
+      100% 100%;
     pointer-events: none;
     z-index: 0;
   }
@@ -1220,7 +1231,7 @@ function handleChartResize() {
   display: inline-flex;
   gap: 4px;
   padding: 3px;
-  background: rgba(8, 12, 32, 0.85);
+  background: rgba(3, 10, 28, 0.85);
   border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
@@ -1290,8 +1301,8 @@ function handleChartResize() {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: 0 16px;
+  grid-template-columns: minmax(0, 7fr) 1px minmax(0, 3fr);
+  gap: 0 14px;
 }
 
 .stats-block {
@@ -1362,7 +1373,7 @@ function handleChartResize() {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(8, 12, 32, 0.85);
+  background: rgba(3, 10, 28, 0.85);
   border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
@@ -1421,8 +1432,8 @@ function handleChartResize() {
   flex-direction: column;
   gap: 4px;
   padding: 8px 10px;
-  background: rgba(8, 12, 32, 0.32);
-  border: 1px solid rgba(52, 134, 218, 0.06);
+  background: rgba(3, 10, 28, 0.35);
+  border: 1px solid rgba(52, 134, 218, 0.05);
   border-radius: 4px;
   min-width: 0;
 }
@@ -1457,8 +1468,8 @@ function handleChartResize() {
   justify-content: center;
   gap: 2px;
   padding: 6px 8px;
-  background: rgba(8, 12, 32, 0.28);
-  border: 1px solid rgba(52, 134, 218, 0.05);
+  background: rgba(3, 10, 28, 0.28);
+  border: 1px solid rgba(52, 134, 218, 0.04);
   border-radius: 4px;
   min-height: 0;
 }
@@ -1576,8 +1587,8 @@ function handleChartResize() {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 4px;
-  background: rgba(8, 12, 32, 0.28);
-  border: 1px solid rgba(52, 134, 218, 0.05);
+  background: rgba(3, 10, 28, 0.28);
+  border: 1px solid rgba(52, 134, 218, 0.04);
   font-size: 12px;
   color: @sugar-text;
   cursor: grab;
@@ -1610,10 +1621,10 @@ function handleChartResize() {
 
 .panel {
   position: relative;
-  background: rgba(16, 22, 48, 0.42);
-  border: 1px solid rgba(52, 134, 218, 0.06);
+  background: @sugar-panel;
+  border: 1px solid rgba(52, 134, 218, 0.05);
   border-radius: 2px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1663,7 +1674,7 @@ function handleChartResize() {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(8, 12, 32, 0.85);
+  background: rgba(3, 10, 28, 0.85);
   border: 1px solid rgba(52, 134, 218, 0.15);
   border-radius: 4px;
 }
@@ -1695,7 +1706,7 @@ function handleChartResize() {
   padding: 0 6px;
   font-size: 10px;
   color: @sugar-text;
-  background: rgba(8, 12, 32, 0.82);
+  background: rgba(3, 10, 28, 0.82);
   border: 1px solid rgba(52, 134, 218, 0.35);
   border-radius: 3px;
   outline: none;
@@ -1714,7 +1725,7 @@ function handleChartResize() {
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(8, 12, 32, 0.65);
+  background: rgba(3, 10, 28, 0.65);
   color: @sugar-muted;
   white-space: nowrap;
   &.online { background: rgba(52, 134, 218, 0.12); color: @sugar-primary; }
@@ -1734,9 +1745,9 @@ function handleChartResize() {
   gap: 3px;
   padding: 3px;
   background:
-    linear-gradient(rgba(52, 134, 218, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(52, 134, 218, 0.03) 1px, transparent 1px),
-    rgba(4, 8, 18, 0.65);
+    linear-gradient(rgba(52, 134, 218, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 134, 218, 0.025) 1px, transparent 1px),
+    rgba(2, 6, 16, 0.72);
   background-size: 16px 16px, 16px 16px, 100% 100%;
   border: 1px solid rgba(52, 134, 218, 0.08);
   border-radius: 2px;
@@ -1756,7 +1767,7 @@ function handleChartResize() {
   position: relative;
   min-height: 0;
   min-width: 0;
-  background: #0c1020;
+  background: #060a14;
   border: 1px solid rgba(52, 134, 218, 0.08);
   border-radius: 2px;
   overflow: hidden;
@@ -1784,7 +1795,7 @@ function handleChartResize() {
   gap: 6px;
   color: rgba(122, 155, 184, 0.7);
   font-size: 11px;
-  background: radial-gradient(circle at 50% 40%, rgba(22, 26, 58, 0.95), #0a0e24 75%);
+  background: radial-gradient(circle at 50% 40%, rgba(5, 14, 35, 0.92), #03091b 75%);
 }
 
 .video-window-label {
@@ -1843,15 +1854,15 @@ function handleChartResize() {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(16, 22, 48, 0.35);
-  border: 1px solid rgba(52, 134, 218, 0.05);
-  border-left: 2px solid rgba(42, 74, 122, 0.6);
+  background: rgba(5, 14, 35, 0.32);
+  border: 1px solid rgba(52, 134, 218, 0.04);
+  border-left: 2px solid rgba(42, 74, 122, 0.55);
   border-radius: 2px;
   flex-shrink: 0;
   transition: background .2s, border-color .2s, box-shadow .2s;
 
   &:hover {
-    background: rgba(22, 28, 58, 0.48);
+    background: rgba(5, 14, 35, 0.45);
     border-color: rgba(52, 134, 218, 0.1);
     border-left-color: rgba(52, 134, 218, 0.4);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -1864,7 +1875,7 @@ function handleChartResize() {
   flex-shrink: 0;
   border-radius: 2px;
   overflow: hidden;
-  background: rgba(8, 12, 32, 0.6);
+  background: rgba(3, 9, 24, 0.55);
   border: 1px solid rgba(52, 134, 218, 0.08);
   display: grid;
   place-items: center;
