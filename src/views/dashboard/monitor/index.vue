@@ -87,7 +87,7 @@
       </aside>
 
       <!-- 中间上：视频 -->
-      <article class="panel video-panel">
+      <article class="panel video-panel" :class="{ 'video-panel--picker-open': pointPickerOpen }">
         <div class="widget-title-bar widget-title-bar--compact">
           <div class="widget-title-left">
             <span class="widget-title-chevron" aria-hidden="true">»</span>
@@ -116,7 +116,14 @@
             <div
               v-for="(video, index) in displayVideos"
               :key="`${currentLayout}-${video.id}-${index}`"
-              :class="['video-window', { active: activeVideoIndex === index, 'drag-over': videoDragOverIndex === index }]"
+              :class="[
+                'video-window',
+                {
+                  active: activeVideoIndex === index,
+                  'drag-over': videoDragOverIndex === index,
+                  'picker-open': pointPickerOpen && pointPickerSlotIndex === index,
+                },
+              ]"
               :style="getVideoStyle(index)"
               @click="activeVideoIndex = index"
               @contextmenu.prevent="clearVideoSlot(index)"
@@ -125,17 +132,33 @@
               @drop="handleVideoWindowDrop($event, index)"
             >
               <div class="video-window-toolbar" @mousedown.stop @click.stop="activeVideoIndex = index">
-                <button
-                  type="button"
-                  class="video-point-trigger"
-                  :disabled="streamLoading && activeVideoIndex === index"
-                  aria-label="选择点位"
-                  @click="openPointPicker(index)"
+                <div
+                  class="video-point-anchor"
+                  :ref="(el) => bindPointPickerAnchor(el, index)"
                 >
-                  <Icon icon="ant-design:video-camera-outlined" :size="12" />
-                  <span class="video-point-trigger-text">{{ getVideoPointLabel(video) }}</span>
-                  <Icon icon="ant-design:down-outlined" :size="10" class="video-point-trigger-arrow" />
-                </button>
+                  <button
+                    type="button"
+                    class="video-point-trigger"
+                    :class="{ open: pointPickerOpen && pointPickerSlotIndex === index }"
+                    :disabled="streamLoading && activeVideoIndex === index"
+                    :title="getVideoPointTooltip(video)"
+                    aria-label="选择点位"
+                    @click="togglePointPicker(index)"
+                  >
+                    <Icon icon="ant-design:video-camera-outlined" :size="12" />
+                    <span class="video-point-trigger-text">点位</span>
+                  </button>
+                  <CameraPickerPanel
+                    v-if="pointPickerOpen && pointPickerSlotIndex === index"
+                    v-model:open="pointPickerOpen"
+                    theme="dark"
+                    single-select
+                    defer-confirm
+                    :initial-selected-ids="pointPickerInitialSelectedIds"
+                    @confirm="handlePointPickerConfirm"
+                    @cancel="closePointPicker"
+                  />
+                </div>
               </div>
               <Jessibuca
                 v-if="video.url"
@@ -263,23 +286,13 @@
         </div>
       </article>
     </section>
-
-    <VideoPointPickerModal
-      v-model:open="pointPickerOpen"
-      :directories="flatDirectoryItems"
-      :devices="deviceList"
-      :initial-directory-key="pointPickerInitialDirectoryKey"
-      :initial-device-id="pointPickerInitialDeviceId"
-      :get-cameras-by-directory-key="getCamerasByDirectoryKey"
-      @confirm="handlePointPickerConfirm"
-      @refresh="loadTreeData"
-    />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from 'vue'
+import { onClickOutside } from '@vueuse/core'
 import type { EChartsOption } from 'echarts'
 import { Icon } from '@/components/Icon'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
@@ -295,7 +308,7 @@ import {
 import { useMessage } from '@/hooks/web/useMessage'
 import { usePageContext } from '@/hooks/component/usePageContext'
 import { useECharts } from '@/hooks/web/useECharts'
-import VideoPointPickerModal from './components/VideoPointPickerModal.vue'
+import CameraPickerPanel from '@/views/algorithm-task/components/TaskFormWidgets/CameraPickerPanel.vue'
 
 defineOptions({ name: 'MonitorDashboard' })
 
@@ -408,6 +421,7 @@ const activeVideoIndex = ref(0)
 const videoSlots = ref<VideoSlot[]>([{ id: 'placeholder-0', url: '', name: '窗口1' }])
 const pointPickerOpen = ref(false)
 const pointPickerSlotIndex = ref(0)
+const pointPickerAnchorRef = ref<HTMLElement | null>(null)
 
 let alarmRefreshTimer: ReturnType<typeof setInterval> | null = null
 
@@ -632,32 +646,48 @@ function getSlotDirectoryKey(index: number, video: VideoSlot) {
   return ''
 }
 
-const pointPickerInitialDirectoryKey = computed(() => {
-  const video = videoSlots.value[pointPickerSlotIndex.value]
-  if (!video)
-    return flatDirectoryItems.value[0]?.key || ''
-  return getSlotDirectoryKey(pointPickerSlotIndex.value, video)
+const pointPickerInitialSelectedIds = computed(() => {
+  const deviceId = videoSlots.value[pointPickerSlotIndex.value]?.deviceId
+  return deviceId ? [deviceId] : []
 })
 
-const pointPickerInitialDeviceId = computed(() =>
-  videoSlots.value[pointPickerSlotIndex.value]?.deviceId || '',
-)
-
-function getVideoPointLabel(video: VideoSlot) {
+function getVideoPointTooltip(video: VideoSlot) {
   if (video.name && video.deviceId)
     return video.name
   return '选择点位'
 }
 
-function openPointPicker(index: number) {
+function bindPointPickerAnchor(el: Element | ComponentPublicInstance | null, index: number) {
+  if (index === pointPickerSlotIndex.value)
+    pointPickerAnchorRef.value = el as HTMLElement | null
+}
+
+function togglePointPicker(index: number) {
   activeVideoIndex.value = index
+  if (pointPickerOpen.value && pointPickerSlotIndex.value === index) {
+    closePointPicker()
+    return
+  }
   pointPickerSlotIndex.value = index
   pointPickerOpen.value = true
 }
 
-function handlePointPickerConfirm(device: DeviceInfo) {
-  handlePlayDevice(device, pointPickerSlotIndex.value)
+function closePointPicker() {
+  pointPickerOpen.value = false
+  pointPickerAnchorRef.value = null
 }
+
+function handlePointPickerConfirm(devices: DeviceInfo[]) {
+  const device = devices[0]
+  if (device)
+    handlePlayDevice(device, pointPickerSlotIndex.value)
+  closePointPicker()
+}
+
+onClickOutside(pointPickerAnchorRef, () => {
+  if (pointPickerOpen.value)
+    closePointPicker()
+})
 
 function ensureVideoSlotsInitialized() {
   const maxCount = getMaxVideoCount(currentLayout.value)
@@ -1290,12 +1320,12 @@ function handleChartResize() {
 
 .widget-title-chevron {
   flex-shrink: 0;
-  color: #ff9900;
+  color: #73aae5;
   font-size: 14px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -3px;
-  text-shadow: 0 0 8px rgba(255, 153, 0, 0.45);
+  text-shadow: 0 0 8px rgba(52, 134, 218, 0.45);
 }
 
 .widget-title-text {
@@ -1726,17 +1756,24 @@ function handleChartResize() {
   z-index: 4;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 4px;
   min-width: 0;
   pointer-events: auto;
 }
 
+.video-point-anchor {
+  position: relative;
+}
+
 .video-point-trigger {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  width: 100%;
-  min-width: 0;
+  justify-content: center;
+  gap: 3px;
+  width: auto;
+  flex: 0 0 auto;
+  max-width: 52px;
   height: 22px;
   padding: 0 6px;
   font-size: 10px;
@@ -1747,11 +1784,17 @@ function handleChartResize() {
   backdrop-filter: blur(6px);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
 
   &:hover:not(:disabled) {
     border-color: rgba(52, 134, 218, 0.5);
     box-shadow: 0 0 0 1px rgba(52, 134, 218, 0.12);
+  }
+
+  &.open {
+    border-color: rgba(52, 134, 218, 0.62);
+    background: rgba(52, 134, 218, 0.18);
+    box-shadow: 0 0 0 1px rgba(52, 134, 218, 0.2);
   }
 
   &:disabled {
@@ -1761,17 +1804,9 @@ function handleChartResize() {
 }
 
 .video-point-trigger-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: none;
+  line-height: 1;
   white-space: nowrap;
-  text-align: left;
-}
-
-.video-point-trigger-arrow {
-  flex-shrink: 0;
-  color: @sugar-muted;
 }
 
 .stream-status {
@@ -1789,6 +1824,13 @@ function handleChartResize() {
   min-height: 0;
   display: flex;
   overflow: hidden;
+}
+
+.video-panel--picker-open {
+  .video-stage-wrap,
+  .video-monitor-grid {
+    overflow: visible;
+  }
 }
 
 .video-monitor-grid {
@@ -1835,6 +1877,11 @@ function handleChartResize() {
   &.drag-over {
     border-color: @sugar-gold;
     box-shadow: 0 0 0 2px rgba(241, 144, 0, 0.35);
+  }
+
+  &.picker-open {
+    overflow: visible;
+    z-index: 20;
   }
 }
 

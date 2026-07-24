@@ -1,5 +1,5 @@
 <template>
-  <div :class="['camera-picker-panel', { embedded }]" @mousedown.stop>
+  <div :class="['camera-picker-panel', { embedded, 'camera-picker-panel--dark': theme === 'dark' }]" @mousedown.stop>
     <div class="camera-toolbar">
       <span class="toolbar-title">摄像头列表</span>
       <a-input-search
@@ -99,13 +99,16 @@ import { normalizeDeviceId, unwrapList } from '../../utils/taskUtils';
 
 defineOptions({ name: 'CameraPickerPanel' });
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   initialSelectedIds?: string[];
   embedded?: boolean;
   singleSelect?: boolean;
   /** 为 true 时单选只更新选中态，不自动 emit confirm（由父级点确定再读取） */
   deferConfirm?: boolean;
-}>();
+  theme?: 'light' | 'dark';
+}>(), {
+  theme: 'light',
+});
 
 const emit = defineEmits<{
   confirm: [devices: DeviceInfo[]];
@@ -674,5 +677,139 @@ watch(selectedGroupKey, (groupKey) => {
   padding: 12px 16px;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
+}
+
+.camera-picker-panel--dark {
+  background: rgba(5, 14, 35, 0.98);
+  border: 1px solid rgba(52, 134, 218, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+
+  .camera-toolbar {
+    background: linear-gradient(
+      90deg,
+      rgba(52, 134, 218, 0.2) 0%,
+      rgba(8, 18, 40, 0.95) 45%,
+      rgba(5, 14, 35, 0.98) 100%
+    );
+    border-bottom: 1px solid rgba(52, 134, 218, 0.28);
+
+    .toolbar-title {
+      color: #e8eef8;
+    }
+  }
+
+  .toolbar-search :deep(.ant-input),
+  .toolbar-search :deep(.ant-input-search-button) {
+    background: rgba(3, 10, 28, 0.88);
+    border-color: rgba(52, 134, 218, 0.32);
+    color: #e8eef8;
+  }
+
+  .toolbar-search :deep(.ant-input::placeholder) {
+    color: rgba(143, 163, 200, 0.65);
+  }
+
+  .group-panel {
+    background: rgba(3, 10, 28, 0.45);
+    border-right-color: rgba(52, 134, 218, 0.2);
+  }
+
+  .group-item {
+    color: #8fa3c8;
+
+    &:hover {
+      background: rgba(52, 134, 218, 0.08);
+      color: #e8eef8;
+    }
+
+    &.active {
+      color: #73aae5;
+      background: linear-gradient(90deg, rgba(52, 134, 218, 0.2), transparent);
+      box-shadow: inset 2px 0 0 #3486da;
+    }
+  }
+
+  .device-panel {
+    background: rgba(5, 14, 35, 0.6);
+  }
+
+  .device-panel-header {
+    border-bottom-color: rgba(52, 134, 218, 0.2);
+  }
+
+  .selected-count {
+    color: #8fa3c8;
+  }
+
+  .select-all {
+    color: #e8eef8;
+  }
+
+  .select-box {
+    border-color: rgba(143, 163, 200, 0.55);
+    background: rgba(3, 10, 28, 0.6);
+
+    &.checked,
+    &.indeterminate {
+      border-color: #3486da;
+      background: #3486da;
+    }
+  }
+
+  .device-row {
+    color: #e8eef8;
+
+    &:hover {
+      background: rgba(52, 134, 218, 0.08);
+    }
+
+    &.selected {
+      background: linear-gradient(90deg, rgba(52, 134, 218, 0.18), transparent);
+    }
+  }
+
+  .device-name {
+    color: #e8eef8;
+  }
+
+  .preview-btn {
+    color: #73aae5;
+
+    &:hover {
+      color: #3486da;
+      background: rgba(52, 134, 218, 0.12);
+    }
+  }
+
+  .picker-footer {
+    background: rgba(3, 10, 28, 0.65);
+    border-top-color: rgba(52, 134, 218, 0.2);
+
+    .ant-btn-default {
+      color: #e8eef8;
+      background: transparent;
+      border-color: rgba(52, 134, 218, 0.35);
+
+      &:hover {
+        color: #fff;
+        border-color: rgba(52, 134, 218, 0.55);
+      }
+    }
+
+    .ant-btn-primary {
+      border: none;
+      background: linear-gradient(180deg, #3d93e8 0%, #3486da 55%, #2a6fb8 100%);
+      box-shadow: 0 2px 8px rgba(52, 134, 218, 0.35);
+
+      &:hover {
+        background: linear-gradient(180deg, #4a9ef0 0%, #3d93e8 55%, #3486da 100%);
+      }
+    }
+  }
+
+  :deep(.ant-empty-description) {
+    color: #8fa3c8;
+  }
 }
 </style>
