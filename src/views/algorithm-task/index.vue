@@ -303,8 +303,7 @@ const searchParams = ref<{
 
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
-  canResize: true,
-  resizeHeightOffset: 24,
+  canResize: false,
   showIndexColumn: false,
   title: '算法任务列表',
   api: fetchAlgorithmTaskListMerged,
@@ -912,7 +911,7 @@ onMounted(() => {
 <style scoped lang="less">
 #algorithm-task {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
 
   .toolbar-buttons {
     display: flex;
@@ -1155,7 +1154,7 @@ onMounted(() => {
 .algorithm-task-wrapper {
   height: calc(100vh - 96px);
   padding: 16px 19px 0 15px;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
 }
 </style>

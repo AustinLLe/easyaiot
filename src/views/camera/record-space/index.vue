@@ -20,7 +20,7 @@ onMounted(() => recordSpaceRef.value?.refresh?.())
   height: calc(100vh - 96px);
   padding: 16px 19px 16px 15px;
   background: #fff;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
 }
 </style>

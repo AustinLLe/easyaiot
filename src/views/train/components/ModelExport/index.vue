@@ -407,8 +407,7 @@ const getExportListApi = async (params: any) => {
 
 // 表格配置
 const [registerTable, { reload, getForm }] = useTable({
-  canResize: true,
-  resizeHeightOffset: 24,
+  canResize: false,
   showIndexColumn: false,
   title: '模型导出记录',
   api: async (params) => {

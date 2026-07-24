@@ -484,7 +484,7 @@ function handleCardDelete(_record: Record<string, any>) {
 <style lang="less" scoped>
 .alert-log-page {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
   padding: 0 4px;
 

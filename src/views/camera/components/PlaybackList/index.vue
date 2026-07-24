@@ -222,8 +222,7 @@ let formGetFieldsValue: (() => Recordable) | null = null;
 
 // 表格配置（先定义，因为表单需要引用reload方法）
 const [registerTable, { reload }] = useTable({
-  canResize: true,
-  resizeHeightOffset: 24,
+  canResize: false,
   showIndexColumn: false,
   title: '录像回放列表',
   api: getPlaybackList,

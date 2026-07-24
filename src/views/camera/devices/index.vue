@@ -180,8 +180,7 @@ const checkDeviceStreamStatus = async (deviceId: string) => {
 }
 
 const [registerTable, { reload }] = useTable({
-  canResize: true,
-  resizeHeightOffset: 24,
+  canResize: false,
   showIndexColumn: false,
   title: '摄像头列表',
   api: fetchDeviceList,
@@ -348,7 +347,7 @@ onUnmounted(() => {
   height: calc(100vh - 96px);
   padding: 16px 19px 16px 15px;
   background: #fff;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
 
   :deep(.ant-form-item) {

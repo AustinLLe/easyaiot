@@ -156,8 +156,7 @@ function handleSuccess() {
 }
 
 const [registerTable, { reload, getForm }] = useTable({
-  canResize: true,
-  resizeHeightOffset: 24,
+  canResize: false,
   showIndexColumn: false,
   title: '算法管理',
   api: async (params) => {
