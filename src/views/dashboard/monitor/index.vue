@@ -125,38 +125,17 @@
               @drop="handleVideoWindowDrop($event, index)"
             >
               <div class="video-window-toolbar" @mousedown.stop @click.stop="activeVideoIndex = index">
-                <select
-                  class="dashboard-select video-window-select video-window-select--group"
-                  :value="getSlotDirectoryKey(index, video)"
+                <button
+                  type="button"
+                  class="video-point-trigger"
                   :disabled="streamLoading && activeVideoIndex === index"
-                  aria-label="选择分组"
-                  @change="handleSlotDirectoryChange(index, ($event.target as HTMLSelectElement).value)"
+                  aria-label="选择点位"
+                  @click="openPointPicker(index)"
                 >
-                  <option value="">选择分组</option>
-                  <option
-                    v-for="item in flatDirectoryItems"
-                    :key="item.key"
-                    :value="item.key"
-                  >
-                    {{ formatDirectoryOptionLabel(item) }}
-                  </option>
-                </select>
-                <select
-                  class="dashboard-select video-window-select video-window-select--camera"
-                  :value="video.deviceId || ''"
-                  :disabled="!getSlotDirectoryKey(index, video) || (streamLoading && activeVideoIndex === index)"
-                  aria-label="选择摄像头"
-                  @change="handleSlotDeviceSelect(index, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="">选择摄像头</option>
-                  <option
-                    v-for="device in getCamerasByDirectoryKey(getSlotDirectoryKey(index, video))"
-                    :key="device.id"
-                    :value="device.id"
-                  >
-                    {{ device.name || device.id }}
-                  </option>
-                </select>
+                  <Icon icon="ant-design:video-camera-outlined" :size="12" />
+                  <span class="video-point-trigger-text">{{ getVideoPointLabel(video) }}</span>
+                  <Icon icon="ant-design:down-outlined" :size="10" class="video-point-trigger-arrow" />
+                </button>
               </div>
               <Jessibuca
                 v-if="video.url"
@@ -284,6 +263,17 @@
         </div>
       </article>
     </section>
+
+    <VideoPointPickerModal
+      v-model:open="pointPickerOpen"
+      :directories="flatDirectoryItems"
+      :devices="deviceList"
+      :initial-directory-key="pointPickerInitialDirectoryKey"
+      :initial-device-id="pointPickerInitialDeviceId"
+      :get-cameras-by-directory-key="getCamerasByDirectoryKey"
+      @confirm="handlePointPickerConfirm"
+      @refresh="loadTreeData"
+    />
     </div>
   </div>
 </template>
@@ -305,6 +295,7 @@ import {
 import { useMessage } from '@/hooks/web/useMessage'
 import { usePageContext } from '@/hooks/component/usePageContext'
 import { useECharts } from '@/hooks/web/useECharts'
+import VideoPointPickerModal from './components/VideoPointPickerModal.vue'
 
 defineOptions({ name: 'MonitorDashboard' })
 
@@ -415,6 +406,8 @@ const splitLayouts = [
 const currentLayout = ref('1')
 const activeVideoIndex = ref(0)
 const videoSlots = ref<VideoSlot[]>([{ id: 'placeholder-0', url: '', name: '窗口1' }])
+const pointPickerOpen = ref(false)
+const pointPickerSlotIndex = ref(0)
 
 let alarmRefreshTimer: ReturnType<typeof setInterval> | null = null
 
@@ -639,22 +632,31 @@ function getSlotDirectoryKey(index: number, video: VideoSlot) {
   return ''
 }
 
-function formatDirectoryOptionLabel(item: DirectoryTreeItem) {
-  const prefix = item.depth > 0 ? `${'　'.repeat(item.depth)}└ ` : ''
-  return `${prefix}${item.title}`
+const pointPickerInitialDirectoryKey = computed(() => {
+  const video = videoSlots.value[pointPickerSlotIndex.value]
+  if (!video)
+    return flatDirectoryItems.value[0]?.key || ''
+  return getSlotDirectoryKey(pointPickerSlotIndex.value, video)
+})
+
+const pointPickerInitialDeviceId = computed(() =>
+  videoSlots.value[pointPickerSlotIndex.value]?.deviceId || '',
+)
+
+function getVideoPointLabel(video: VideoSlot) {
+  if (video.name && video.deviceId)
+    return video.name
+  return '选择点位'
 }
 
-function handleSlotDirectoryChange(index: number, directoryKey: string) {
+function openPointPicker(index: number) {
   activeVideoIndex.value = index
-  ensureVideoSlotsInitialized()
-  if (!directoryKey) {
-    videoSlots.value[index] = createEmptySlot(index)
-    return
-  }
-  videoSlots.value[index] = {
-    ...createEmptySlot(index),
-    directoryKey,
-  }
+  pointPickerSlotIndex.value = index
+  pointPickerOpen.value = true
+}
+
+function handlePointPickerConfirm(device: DeviceInfo) {
+  handlePlayDevice(device, pointPickerSlotIndex.value)
 }
 
 function ensureVideoSlotsInitialized() {
@@ -1046,23 +1048,6 @@ async function handlePlayDevice(device: DeviceInfo, targetIndex?: number) {
   }
 }
 
-function handleSlotDeviceSelect(index: number, deviceId: string) {
-  activeVideoIndex.value = index
-  const directoryKey = getSlotDirectoryKey(index, videoSlots.value[index] ?? createEmptySlot(index))
-  if (!directoryKey)
-    return
-  if (!deviceId) {
-    videoSlots.value[index] = {
-      ...createEmptySlot(index),
-      directoryKey,
-    }
-    return
-  }
-  const device = deviceList.value.find(d => d.id === deviceId)
-  if (device)
-    handlePlayDevice(device, index)
-}
-
 async function refreshDashboard() {
   loading.value = true
   try {
@@ -1194,6 +1179,14 @@ function handleChartResize() {
   margin-bottom: 8px;
   padding: 6px 120px 10px;
   background: @header-bg center top / 100% 100% no-repeat;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(52, 134, 218, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
 }
 
 .header-center {
@@ -1248,13 +1241,26 @@ function handleChartResize() {
   flex-shrink: 0;
   position: relative;
   z-index: 2;
-  background: linear-gradient(90deg, rgba(5, 20, 45, 0.88) 0%, rgba(5, 14, 35, 0.28) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(52, 134, 218, 0.18) 0%,
+    rgba(5, 20, 45, 0.75) 28%,
+    rgba(5, 14, 35, 0.15) 100%
+  );
   border-top: 1px solid rgba(52, 134, 218, 0.5);
   border-left: 2px solid rgba(52, 134, 218, 0.75);
   box-shadow:
     inset 0 1px 0 rgba(115, 170, 229, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.12);
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(115, 170, 229, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
 
   &--compact {
     min-height: 30px;
@@ -1278,6 +1284,8 @@ function handleChartResize() {
   gap: 6px;
   min-width: 0;
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .widget-title-chevron {
@@ -1309,6 +1317,8 @@ function handleChartResize() {
   gap: 6px;
   flex-shrink: 0;
   flex-wrap: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-select {
@@ -1721,23 +1731,47 @@ function handleChartResize() {
   pointer-events: auto;
 }
 
-.video-window-select {
-  flex: 1 1 0;
+.video-point-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
   min-width: 0;
-  max-width: none;
   height: 22px;
-  padding-right: 18px;
+  padding: 0 6px;
   font-size: 10px;
+  color: @sugar-text;
+  background: rgba(3, 10, 28, 0.88);
+  border: 1px solid rgba(52, 134, 218, 0.32);
+  border-radius: 3px;
   backdrop-filter: blur(6px);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
 
-  &--group {
-    flex: 0 1 46%;
-    max-width: 48%;
+  &:hover:not(:disabled) {
+    border-color: rgba(52, 134, 218, 0.5);
+    box-shadow: 0 0 0 1px rgba(52, 134, 218, 0.12);
   }
 
-  &--camera {
-    flex: 1 1 54%;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
+}
+
+.video-point-trigger-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.video-point-trigger-arrow {
+  flex-shrink: 0;
+  color: @sugar-muted;
 }
 
 .stream-status {
