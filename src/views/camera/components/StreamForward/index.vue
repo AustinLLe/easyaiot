@@ -202,7 +202,8 @@ const searchParams = ref<{
 
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
-  canResize: false,
+  canResize: true,
+  resizeHeightOffset: 24,
   showIndexColumn: false,
   title: '推流任务列表',
   api: listStreamForwardTasks,

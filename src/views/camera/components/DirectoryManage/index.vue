@@ -257,7 +257,8 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
   showTableSetting: true,
   pagination: true,
   rowKey: 'id',
-  canResize: false,
+  canResize: true,
+  resizeHeightOffset: 24,
 });
 
 // 获取流状态文本

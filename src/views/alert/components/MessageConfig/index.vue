@@ -57,7 +57,8 @@ const [registerDetailDrawer, { openDrawer: openDetailDrawer }] = useDrawer();
 const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
-  canResize: false,
+  canResize: true,
+  resizeHeightOffset: 24,
   showIndexColumn: false,
   title: '消息配置',
   api: messageConfigQuery,
@@ -88,6 +89,7 @@ async function handleDelete({ id }) {
 
 <style lang="less" scoped>
 .message-config-page {
+  height: 100%;
   padding: 0 4px;
 
   :deep(.iot-basic-table-action.left) {
