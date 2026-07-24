@@ -94,7 +94,6 @@
         <div class="panel-title-row compact-title">
           <div>
             <span class="panel-kicker">实时监控</span>
-            <h2>视频监控</h2>
           </div>
           <div class="video-actions">
             <div class="split-toolbar">
@@ -1092,8 +1091,9 @@ function handleChartResize() {
   width: 100%;
   color: @sugar-text;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(52, 134, 218, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(108, 92, 231, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 80% at 50% -10%, rgba(52, 134, 218, 0.18) 0%, transparent 58%),
+    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(108, 92, 231, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(108, 92, 231, 0.1) 0%, transparent 55%),
     @sugar-bg;
   box-sizing: border-box;
   overflow: hidden;
@@ -1117,12 +1117,21 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(rgba(52, 134, 218, 0.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.022) 1px, transparent 1px),
-      radial-gradient(ellipse 70% 55% at 50% 35%, rgba(52, 134, 218, 0.1) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 40% at 85% 15%, rgba(108, 92, 231, 0.08) 0%, transparent 55%),
-      linear-gradient(180deg, rgba(40, 30, 47, 0.55) 0%, rgba(10, 22, 40, 0.88) 100%);
-    background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+      radial-gradient(ellipse 90% 55% at 50% 0%, rgba(52, 134, 218, 0.28) 0%, transparent 62%),
+      radial-gradient(ellipse 70% 50% at 50% 42%, rgba(52, 134, 218, 0.14) 0%, transparent 68%),
+      radial-gradient(ellipse 45% 38% at 8% 88%, rgba(108, 92, 231, 0.2) 0%, transparent 58%),
+      radial-gradient(ellipse 45% 38% at 92% 82%, rgba(108, 92, 231, 0.16) 0%, transparent 58%),
+      linear-gradient(rgba(52, 134, 218, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.028) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(40, 30, 47, 0.38) 0%, rgba(10, 22, 40, 0.78) 100%);
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      28px 28px,
+      28px 28px,
+      100% 100%;
     pointer-events: none;
     z-index: 0;
   }
@@ -1130,12 +1139,12 @@ function handleChartResize() {
   &::after {
     content: '';
     position: absolute;
-    top: 0;
+    top: -20px;
     left: 50%;
     transform: translateX(-50%);
-    width: min(680px, 80%);
-    height: 180px;
-    background: radial-gradient(ellipse at center top, rgba(52, 134, 218, 0.14) 0%, transparent 70%);
+    width: min(760px, 92%);
+    height: 220px;
+    background: radial-gradient(ellipse at center top, rgba(52, 134, 218, 0.32) 0%, rgba(52, 134, 218, 0.08) 45%, transparent 72%);
     pointer-events: none;
     z-index: 0;
   }
@@ -1259,29 +1268,21 @@ function handleChartResize() {
 .panel-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: @sugar-muted;
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: .16em;
+  letter-spacing: .18em;
   text-transform: uppercase;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 12px;
-    background: linear-gradient(180deg, @sugar-light, @sugar-primary);
-    transform: skewX(-18deg);
-    box-shadow: 0 0 8px rgba(52, 134, 218, 0.55);
-    flex-shrink: 0;
-  }
-
-  &::after {
-    content: '';
-    width: 3px;
-    height: 12px;
-    background: linear-gradient(180deg, fade(@sugar-light, 50%), fade(@sugar-primary, 50%));
-    transform: skewX(-18deg);
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: @sugar-primary;
+    box-shadow: 0 0 6px rgba(52, 134, 218, 0.6);
+    transform: rotate(45deg);
     flex-shrink: 0;
   }
 }
@@ -1426,18 +1427,15 @@ function handleChartResize() {
   }
 
   h2 {
-    margin: 3px 0 0;
-    font-size: 15px;
+    margin: 4px 0 0;
+    font-size: 16px;
     font-weight: 600;
-    font-style: italic;
     color: #fff;
     padding-left: 0;
     border-left: none;
-    letter-spacing: .08em;
+    letter-spacing: .06em;
     line-height: 1.3;
-    text-shadow: 0 0 14px rgba(52, 134, 218, 0.3);
-    transform: skewX(-3deg);
-    transform-origin: left center;
+    text-shadow: 0 0 12px rgba(52, 134, 218, 0.25);
   }
   &.compact-title { margin-bottom: 8px; }
 }
@@ -1596,53 +1594,20 @@ function handleChartResize() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  font-style: italic;
-  color: #fff;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: @sugar-muted;
   letter-spacing: .06em;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
-  transform: skewX(-3deg);
-  transform-origin: left center;
-
-  &::before {
-    content: '';
-    width: 4px;
-    height: 12px;
-    background: linear-gradient(180deg, @sugar-light, @sugar-primary);
-    transform: skewX(-18deg);
-    box-shadow: 0 0 8px rgba(52, 134, 218, 0.55);
-    flex-shrink: 0;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      rgba(52, 134, 218, 0.45) 0,
-      rgba(52, 134, 218, 0.1) 45%,
-      transparent 100%
-    );
-    transform: skewX(3deg);
-  }
 }
 
 .section-count {
   font-size: 10px;
   font-weight: 500;
-  font-style: normal;
-  color: @sugar-muted;
-  transform: skewX(3deg);
+  color: rgba(122, 155, 184, 0.75);
 }
 
 .group-list,
