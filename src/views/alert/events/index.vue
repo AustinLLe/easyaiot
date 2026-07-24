@@ -12,8 +12,10 @@ defineOptions({ name: 'AlertEventsPage' })
 
 <style lang="less" scoped>
 .alert-sub-page {
+  height: calc(100vh - 96px);
   padding: 16px 19px 0 15px;
   background: #fff;
-  min-height: calc(100vh - 120px);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 </style>

@@ -58,6 +58,7 @@ const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
+  resizeHeightOffset: 24,
   showIndexColumn: false,
   title: '消息配置',
   api: messageConfigQuery,

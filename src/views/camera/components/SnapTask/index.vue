@@ -363,7 +363,9 @@ onMounted(() => {
 .snap-task-container {
   padding: 16px;
   background: #f0f2f5;
-  min-height: calc(100vh - 200px);
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 
   .toolbar {
     margin-bottom: 16px;

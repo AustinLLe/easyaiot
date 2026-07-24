@@ -181,6 +181,7 @@ const getColumns = () => [
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
+  resizeHeightOffset: 24,
   showIndexColumn: false,
   title: '排序器列表',
   api: listSorters,

@@ -19,9 +19,16 @@ const modelId = query.modelId
 
 <style lang="less" scoped>
 .train-wrapper {
+  height: calc(100vh - 96px);
+  overflow: hidden;
+  box-sizing: border-box;
+
   .train-tab {
+    height: 100%;
     padding: 16px 19px 0 15px;
     background-color: #FFFFFF;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 }
 </style>

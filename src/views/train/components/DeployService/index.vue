@@ -418,6 +418,7 @@ const scheduleActionRefresh = (attempts = 30) => {
 
 const [registerTable, {reload, getForm}] = useTable({
   canResize: true,
+  resizeHeightOffset: 24,
   showIndexColumn: false,
   title: '',
   api: async (params) => {
