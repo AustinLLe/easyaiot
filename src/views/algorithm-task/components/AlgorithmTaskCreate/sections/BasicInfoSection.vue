@@ -20,6 +20,17 @@
           class="field-control"
         />
       </FormItem>
+      <FormItem v-if="payload.task_type === 'realtime'" label="抽帧间隔" required>
+        <InputNumber
+          v-model:value="payload.detection_config.extract_interval"
+          :min="1"
+          :max="1000"
+          :step="1"
+          :precision="0"
+          placeholder="例如：25"
+          class="field-control"
+        />
+      </FormItem>
       <FormItem v-if="payload.task_type === 'snap'" label="抓拍间隔" required>
         <div class="snap-interval-row">
           <InputNumber
@@ -104,6 +115,8 @@ const defenseConfig = computed({
 watch(
   () => payload.value.task_type,
   (type) => {
+    if (type === 'realtime' && !payload.value.detection_config.extract_interval)
+      payload.value.detection_config.extract_interval = 25;
     if (type === 'snap')
       ensureSnapIntervalDefaults(payload.value);
   },

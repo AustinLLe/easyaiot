@@ -25,28 +25,6 @@
           </div>
         </div>
 
-        <!-- 算法服务选择（仅在图片推理时显示） -->
-        <div class="config-section" v-if="state.activeSource === 'image'">
-          <div class="section-title">
-            <SettingOutlined class="icon" />
-            <span>算法服务</span>
-            <Tooltip title="已选择算法服务时，优先通过服务推理；否则使用下方算法列表">
-              <QuestionCircleOutlined class="icon tip-icon" />
-            </Tooltip>
-            <ReloadOutlined class="icon refresh-icon" @click="loadDeployServices" :class="{ spinning: state.deployServicesLoading }" title="刷新服务列表" />
-          </div>
-          <div class="config-options">
-            <div class="input-group">
-              <select class="select-field" v-model="state.selectedDeployServiceId" @change="handleDeployServiceChange">
-                <option :value="null">请选择算法服务</option>
-                <option v-for="service in state.deployServices" :key="service.id" :value="service.id">
-                  {{ service.model_name }}服务（v{{ service.model_version }}）
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-
         <!-- 历史推理记录 -->
         <div class="config-section">
           <div class="section-title">
@@ -358,9 +336,8 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted, onUnmounted, nextTick } from "vue";
-import { getModelPage, runInference, runClusterInference, uploadInputFile, getInferenceTaskDetail, getInferenceTasks, getDeployServicePage } from "@/api/device/model";
+import { getModelPage, runInference, uploadInputFile, getInferenceTaskDetail, getInferenceTasks } from "@/api/device/model";
 import { useMessage } from '@/hooks/web/useMessage';
-import { Tooltip } from 'ant-design-vue';
 import {
   SettingOutlined,
   UploadOutlined,
@@ -375,8 +352,7 @@ import {
   ExperimentOutlined,
   SearchOutlined,
   ReloadOutlined,
-  HistoryOutlined,
-  QuestionCircleOutlined
+  HistoryOutlined
 } from '@ant-design/icons-vue';
 
 const { createMessage } = useMessage();
@@ -398,15 +374,6 @@ interface InferenceHistoryRecord {
   input_source: string;
   start_time: string;
   processing_time: number | null;
-}
-
-interface DeployService {
-  id: number;
-  service_name: string;
-  model_id: number;
-  model_name: string;
-  model_version: string;
-  status: string;
 }
 
 interface AppState {
@@ -446,9 +413,6 @@ interface AppState {
   historyLoading: boolean;
   selectedHistoryRecordId: string;
   historyInputSource: string | null; // 保存历史记录的 input_source URL
-  deployServices: DeployService[]; // 部署服务列表
-  selectedDeployServiceId: number | null; // 选中的部署服务ID
-  deployServicesLoading: boolean; // 部署服务加载状态
 }
 
 // 状态管理
@@ -485,9 +449,6 @@ const state = reactive<AppState>({
   historyLoading: false,
   selectedHistoryRecordId: '',
   historyInputSource: null,
-  deployServices: [],
-  selectedDeployServiceId: null,
-  deployServicesLoading: false
 });
 
 // 轮询超时时间（5分钟）
@@ -540,9 +501,9 @@ const getStartButtonDisabled = (): boolean => {
     return true;
   }
   
-  // 图片推理：需要有模型服务或模型选择，以及图片文件
+  // 图片推理：需要有模型选择，以及图片文件
   if (state.activeSource === 'image') {
-    const hasModel = state.selectedDeployServiceId || state.selectedModelId;
+    const hasModel = state.selectedModelId;
     const hasImage = state.uploadedImageFile || state.historyInputSource;
     return !hasModel || !hasImage;
   }
@@ -612,10 +573,8 @@ const getVideoProgressTitle = (): string => {
 };
 
 const startDetection = async () => {
-  // 检查是否有可用的模型（模型服务或模型选择）
-  const hasModel = state.selectedDeployServiceId || state.selectedModelId;
-  if (!hasModel) {
-    createMessage.warning('请先选择算法或算法服务');
+  if (!state.selectedModelId) {
+    createMessage.warning('请先选择算法');
     return;
   }
 
@@ -672,43 +631,20 @@ const startDetection = async () => {
       formData.append('input_source', state.historyInputSource);
     }
 
-    // 判断使用哪个接口：优先级 模型服务 > 模型选择
-    let response;
-    let useClusterService = false;
-    
-    // 优先级1：模型服务（仅在图片推理时）
-    if (state.selectedDeployServiceId && state.activeSource === 'image') {
-      const selectedService = state.deployServices.find(s => s.id === state.selectedDeployServiceId);
-      if (selectedService && selectedService.model_id) {
-        useClusterService = true;
-        const clusterModelId = selectedService.model_id;
-        response = await runClusterInference(clusterModelId, formData);
-      } else {
-        createMessage.warning('选中的算法服务无效，将使用算法列表接口');
-        useClusterService = false;
-      }
+    // 调用推理接口：用户上传的模型传实际 model_id，默认模型传 0
+    let modelId: number;
+    if (state.selectedModelId === 'yolov8' || state.selectedModelId === 'yolov11') {
+      modelId = 0;
+    } else if (typeof state.selectedModelId === 'number') {
+      modelId = state.selectedModelId;
+    } else if (typeof state.selectedModelId === 'string' && state.selectedModelId !== '') {
+      const parsedId = parseInt(state.selectedModelId, 10);
+      modelId = isNaN(parsedId) ? 0 : parsedId;
+    } else {
+      modelId = 0;
     }
     
-    // 优先级2：模型选择（如果未选择模型服务）
-    if (!useClusterService) {
-      // 调用推理接口
-      // 重要：用户上传的模型应该传递实际的 model_id（数字），而不是转换为 0
-      // 只有默认模型（yolov8/yolov11）才传递 0
-      let modelId: number;
-      if (state.selectedModelId === 'yolov8' || state.selectedModelId === 'yolov11') {
-        modelId = 0; // 默认模型使用 0
-      } else if (typeof state.selectedModelId === 'number') {
-        modelId = state.selectedModelId; // 用户上传的模型使用实际的 ID
-      } else if (typeof state.selectedModelId === 'string' && state.selectedModelId !== '') {
-        // 如果 selectedModelId 是字符串且不是空字符串，尝试转换为数字
-        const parsedId = parseInt(state.selectedModelId, 10);
-        modelId = isNaN(parsedId) ? 0 : parsedId;
-      } else {
-        modelId = 0; // 默认值
-      }
-      
-      response = await runInference(modelId, formData);
-    }
+    const response = await runInference(modelId, formData);
     
     // 当 isTransformResponse: false 时，返回的是整个 Axios 响应对象，需要访问 response.data 获取实际响应
     const responseData = response.data || response;
@@ -927,41 +863,7 @@ const loadModels = async () => {
   }
 };
 
-// 加载部署服务列表
-const loadDeployServices = async () => {
-  state.deployServicesLoading = true;
-  try {
-    const response = await getDeployServicePage({ pageNo: 1, pageSize: 100 });
-    if (response.code === 0) {
-      // 只显示运行中的服务
-      state.deployServices = (response.data || []).filter((service: DeployService) => 
-        service.status === 'running' && service.model_id
-      );
-    }
-  } catch (error: any) {
-    console.error('加载部署服务列表失败:', error);
-    createMessage.error('加载部署服务列表失败');
-  } finally {
-    state.deployServicesLoading = false;
-  }
-};
-
-// 处理部署服务选择变化
-const handleDeployServiceChange = () => {
-  if (state.selectedDeployServiceId) {
-    state.selectedModelId = null;
-  }
-  state.detectionResult = null;
-  state.detectionCount = 0;
-  state.averageConfidence = 0;
-  resetVideoInferenceProgress();
-  stopPollingInferenceResult();
-};
-
 const handleModelChange = () => {
-  if (state.selectedModelId) {
-    state.selectedDeployServiceId = null;
-  }
   state.detectionResult = null;
   state.detectionCount = 0;
   state.averageConfidence = 0;
@@ -976,12 +878,6 @@ const handleSourceChange = () => {
   state.historyInputSource = null; // 清除历史记录的 input_source
   state.detectionResult = null;
   resetVideoInferenceProgress();
-  
-  if (state.activeSource === 'image') {
-    loadDeployServices();
-  } else {
-    state.selectedDeployServiceId = null;
-  }
 };
 
 // 处理图片加载错误
@@ -1487,10 +1383,6 @@ onMounted(() => {
   loadDetectionParams();
   loadModels();
   loadInferenceHistory();
-  
-  if (state.activeSource === 'image') {
-    loadDeployServices();
-  }
 });
 
 // 组件卸载时清理

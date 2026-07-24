@@ -1,5 +1,6 @@
 // ---- from logicExpressionUtils.ts ----
 import type { AlertRuleConditionDraft, AlertRuleDraft, AlgorithmTaskDraft } from '../algorithmTaskDraft.types';
+import { getAlertClassOptionsForDraftModels } from './paramUtils';
 
 export type LogicExpressionToken =
   | { type: 'cond'; seq: number }
@@ -270,8 +271,8 @@ export function getSeverityColor(severity?: string) {
   return SEVERITY_COLOR_MAP[severity] ?? 'default';
 }
 
-export function getClassOptionsFromDraft(_draft: AlgorithmTaskDraft) {
-  return DEFAULT_CLASS_NAMES.map(cls => ({ label: cls, value: cls }));
+export function getClassOptionsFromDraft(draft: AlgorithmTaskDraft) {
+  return getAlertClassOptionsForDraftModels(draft);
 }
 
 

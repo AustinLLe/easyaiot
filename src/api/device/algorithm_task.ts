@@ -50,6 +50,7 @@ export interface AlgorithmTask {
   // 告警配置
   alert_event_enabled?: boolean; // 是否启用告警事件
   alert_notification_enabled?: boolean; // 是否启用告警通知
+  alert_push_configs?: any[]; // 旧数据兼容：告警推送配置
   alarm_suppress_time?: number; // 告警抑制时间（秒）
   // 抓拍相关字段（仅抓拍算法任务）
   cron_expression?: string;
@@ -545,4 +546,3 @@ export const getTaskStreams = (task_id: number) => {
     `${ALGORITHM_PREFIX}/task/${task_id}/streams`
   );
 };
-

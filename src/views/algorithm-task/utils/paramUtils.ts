@@ -1,4 +1,5 @@
 // ---- from algorithmParamSchema.ts ----
+import { ref } from 'vue';
 import type { AlgorithmParamPreset } from '../algorithmTaskDraft.types';
 
 export type ParamFieldType = 'number' | 'integer';
@@ -464,9 +465,22 @@ export interface ModelDefaultProfile {
   detection_config: Partial<AlgorithmParamConfigDraft['detection_config']>;
   algorithm_params: Record<string, number | string | boolean>;
   algorithm_param_descriptions: Record<string, string>;
+  recognizable_classes: string[];
+  class_options: ClassOption[];
 }
 
 const modelDefaultProfileCache = new Map<number, ModelDefaultProfile>();
+const modelDefaultProfileCacheVersion = ref(0);
+
+export interface ClassOption {
+  label: string;
+  value: string;
+  raw_label?: string;
+}
+
+function markModelDefaultProfileCacheChanged() {
+  modelDefaultProfileCacheVersion.value += 1;
+}
 
 function numberOrUndefined(value: unknown): number | undefined {
   const next = Number(value);
@@ -477,6 +491,90 @@ function normalizeClassWhitelist(value: unknown): string[] | undefined {
   if (!Array.isArray(value))
     return undefined;
   return value.map(item => String(item).trim()).filter(Boolean);
+}
+
+function createClassOption(value: unknown, label?: unknown): ClassOption | null {
+  const normalizedValue = String(value ?? '').trim();
+  const normalizedLabel = String(label ?? value ?? '').trim();
+  if (!normalizedValue && !normalizedLabel)
+    return null;
+  const finalValue = normalizedValue || normalizedLabel;
+  const finalLabel = normalizedLabel || finalValue;
+  const displayLabel = finalLabel !== finalValue && /^\d+$/.test(finalValue)
+    ? finalLabel
+    : finalLabel !== finalValue
+      ? `${finalLabel} (${finalValue})`
+      : finalLabel;
+  return {
+    label: displayLabel,
+    value: finalValue,
+    raw_label: finalLabel,
+  };
+}
+
+function normalizeClassLabels(value: unknown): ClassOption[] {
+  if (!Array.isArray(value))
+    return [];
+  return value
+    .map((item, index) => {
+      if (item && typeof item === 'object') {
+        const row = item as Record<string, unknown>;
+        return createClassOption(
+          row.class_key ?? row.classKey ?? row.class_id ?? row.classId ?? row.value ?? index,
+          row.label ?? row.name ?? row.class_name ?? row.className,
+        );
+      }
+      return createClassOption(item);
+    })
+    .filter((item): item is ClassOption => !!item);
+}
+
+function normalizeDrawObjectClasses(value: unknown): ClassOption[] {
+  if (!value || typeof value !== 'object')
+    return [];
+  const row = value as Record<string, unknown>;
+  const items = Array.isArray(row.items) ? row.items : [];
+  return items
+    .map((item) => {
+      if (!item || typeof item !== 'object')
+        return null;
+      const objectRow = item as Record<string, unknown>;
+      return createClassOption(
+        objectRow.class_key ?? objectRow.classKey ?? objectRow.value,
+        objectRow.label ?? objectRow.name ?? objectRow.class_name ?? objectRow.className,
+      );
+    })
+    .filter((item): item is ClassOption => !!item);
+}
+
+function uniqueClasses(...groups: Array<string[] | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const group of groups) {
+    for (const item of group ?? []) {
+      const value = String(item).trim();
+      if (!value || seen.has(value))
+        continue;
+      seen.add(value);
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+function uniqueClassOptions(...groups: Array<ClassOption[] | undefined>): ClassOption[] {
+  const seen = new Set<string>();
+  const result: ClassOption[] = [];
+  for (const group of groups) {
+    for (const item of group ?? []) {
+      const value = String(item.value).trim();
+      if (!value || seen.has(value))
+        continue;
+      seen.add(value);
+      result.push({ ...item, value });
+    }
+  }
+  return result;
 }
 
 export function parseModelDefaultProfile(record: Record<string, unknown>): ModelDefaultProfile {
@@ -507,10 +605,20 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
   if (!custom_enabled && Object.keys(algorithm_params).length)
     custom_enabled = true;
 
+  const classLabels = normalizeClassLabels(record.class_labels ?? detectionConfig.class_labels);
+  const classWhitelist = normalizeClassWhitelist(detectionConfig.class_whitelist);
+  const classWhitelistOptions = (classWhitelist ?? [])
+    .map(item => createClassOption(item))
+    .filter((item): item is ClassOption => !!item);
+  const drawObjectClasses = normalizeDrawObjectClasses(drawObjects);
+  const classOptions = uniqueClassOptions(classLabels, drawObjectClasses, classWhitelistOptions);
+
   return {
     custom_enabled,
     algorithm_params,
     algorithm_param_descriptions,
+    class_options: classOptions,
+    recognizable_classes: classOptions.map(item => item.value),
     detection_config: {
       conf: numberOrUndefined(detectionConfig.conf),
       iou: numberOrUndefined(detectionConfig.iou),
@@ -518,7 +626,7 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
       extract_interval: numberOrUndefined(detectionConfig.extract_interval),
       min_box_area: numberOrUndefined(detectionConfig.min_box_area),
       max_detections: numberOrUndefined(detectionConfig.max_detections),
-      class_whitelist: normalizeClassWhitelist(detectionConfig.class_whitelist),
+      class_whitelist: classWhitelist,
       draw_objects: drawObjects,
       draw_style: drawStyle,
     },
@@ -526,12 +634,16 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
 }
 
 export function seedModelDefaultProfiles(records: Array<Record<string, unknown>>) {
+  let changed = false;
   for (const record of records) {
     const modelId = Number(record.id);
     if (!Number.isFinite(modelId) || modelId <= 0)
       continue;
     modelDefaultProfileCache.set(modelId, parseModelDefaultProfile(record));
+    changed = true;
   }
+  if (changed)
+    markModelDefaultProfileCacheChanged();
 }
 
 export function clearModelDefaultProfileCache(modelId?: number) {
@@ -539,6 +651,54 @@ export function clearModelDefaultProfileCache(modelId?: number) {
     modelDefaultProfileCache.delete(modelId);
   else
     modelDefaultProfileCache.clear();
+  markModelDefaultProfileCacheChanged();
+}
+
+export function getModelClassOptions(modelId?: number | null): Array<{ label: string; value: string }> {
+  void modelDefaultProfileCacheVersion.value;
+  const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
+  if (profile?.class_options?.length)
+    return profile.class_options.map(({ label, value }) => ({ label, value }));
+  return [];
+}
+
+export function getModelAlertClassOptions(modelId?: number | null): Array<{ label: string; value: string; class_key?: string }> {
+  void modelDefaultProfileCacheVersion.value;
+  const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
+  if (profile?.class_options?.length) {
+    return profile.class_options.map(({ label, value }) => ({
+      label,
+      value,
+      class_key: value,
+    }));
+  }
+  return [];
+}
+
+export function getClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<{ label: string; value: string }> {
+  void modelDefaultProfileCacheVersion.value;
+  const options = uniqueClassOptions(
+    ...((draft.model_ids ?? []).map(modelId => modelDefaultProfileCache.get(Number(modelId))?.class_options)),
+    (draft.detection_config.class_whitelist ?? [])
+      .map(item => createClassOption(item))
+      .filter((item): item is ClassOption => !!item),
+  );
+  return options.map(({ label, value }) => ({ label, value }));
+}
+
+export function getAlertClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<{ label: string; value: string; class_key?: string }> {
+  void modelDefaultProfileCacheVersion.value;
+  const options = uniqueClassOptions(
+    ...((draft.model_ids ?? []).map(modelId => modelDefaultProfileCache.get(Number(modelId))?.class_options)),
+    (draft.detection_config.class_whitelist ?? [])
+      .map(item => createClassOption(item))
+      .filter((item): item is ClassOption => !!item),
+  );
+  return options.map(({ label, value }) => ({
+    label,
+    value,
+    class_key: value,
+  }));
 }
 
 function applyModelDefaultProfile(
@@ -826,6 +986,7 @@ function buildItemDetectionPayload(
 }
 
 export function buildThresholdPayloadFromDraft(draft: AlgorithmTaskDraft) {
+  draft.param_config_mode = 'combo';
   const modelNameMap = buildModelNameMapFromDraft(draft);
   ensureParamConfigs(draft, modelNameMap);
 

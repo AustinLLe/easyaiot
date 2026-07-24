@@ -37,43 +37,13 @@ export function isDefaultDrawObjectBundle(item: ModelDrawObjectItem): boolean {
 }
 
 export function isAutoManagedDrawLabel(label: string, modelName: string): boolean {
+  void modelName;
   const trimmed = label.trim();
   if (!trimmed)
     return true;
   if (LEGACY_PLACEHOLDER_DRAW_LABELS.has(trimmed))
     return true;
-  const expected = buildDrawObjectLabelFromModelName(modelName);
-  return trimmed === expected;
-}
-
-/** 根据算法名称生成默认描述文本，如「吸烟算法」→「吸烟识别」 */
-export function buildDrawObjectLabelFromModelName(modelName: string): string {
-  const name = modelName.trim();
-  if (!name)
-    return '识别';
-  if (name.includes('算法'))
-    return name.replace(/算法/g, '识别');
-  if (name.includes('模型'))
-    return name.replace(/模型/g, '识别');
-  return `${name}识别`;
-}
-
-export function applyDrawObjectLabelsFromModelName(draft: ModelDraft) {
-  const modelName = draft.name.trim();
-  const defaultLabel = buildDrawObjectLabelFromModelName(draft.name);
-  for (const item of draft.draw_objects.items) {
-    if (!isDefaultDrawObjectBundle(item))
-      continue;
-    if (modelName) {
-      item.label = defaultLabel;
-    }
-    else if (isAutoManagedDrawLabel(item.label, draft.name)) {
-      item.label = defaultLabel;
-    }
-    const classKey = item.class_key?.trim() ?? '';
-    if (!classKey || LEGACY_DEFAULT_CLASS_KEYS.has(classKey))
-      item.class_key = DEFAULT_DRAW_CLASS_ID;
-  }
+  return false;
 }
 
 export function createDrawObjectItem(
@@ -90,17 +60,8 @@ export function createDrawObjectItem(
 }
 
 export function createDefaultDrawObjectItems(modelName = ''): ModelDrawObjectItem[] {
-  const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
-  return [
-    createDrawObjectItem({
-      id: '1',
-      class_key: DEFAULT_DRAW_CLASS_ID,
-      label: defaultLabel,
-      color: '#ff0000',
-      enabled: true,
-      preview_regions: buildDefaultPreviewRegions(),
-    }),
-  ];
+  void modelName;
+  return [];
 }
 
 function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: string): ModelDrawObjectItem[] {
@@ -112,7 +73,6 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
   const legacyRows = items.filter(item => item.preview_bbox || item.title_bbox);
   if (legacyRows.length === 1 && legacyRows.every(item => !item.preview_regions?.length)) {
     const row = legacyRows[0];
-    const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
     const rawLabel = row.label?.trim() ?? '';
     return [
       createDrawObjectItem({
@@ -120,7 +80,7 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
         class_key: LEGACY_DEFAULT_CLASS_KEYS.has(row.class_key?.trim() ?? '')
           ? DEFAULT_DRAW_CLASS_ID
           : row.class_key,
-        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : defaultLabel,
+        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
         color: row.color,
         enabled: row.enabled,
         preview_regions: buildDefaultPreviewRegions(),
@@ -131,7 +91,6 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
 
   if (legacyRows.length >= 2 && legacyRows.every(item => !item.preview_regions?.length)) {
     const first = legacyRows[0];
-    const defaultLabel = buildDrawObjectLabelFromModelName(modelName);
     const rawLabel = first.label?.trim() ?? '';
     return [
       createDrawObjectItem({
@@ -139,7 +98,7 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
         class_key: LEGACY_DEFAULT_CLASS_KEYS.has(first.class_key?.trim() ?? '')
           ? DEFAULT_DRAW_CLASS_ID
           : first.class_key,
-        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : defaultLabel,
+        label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
         color: first.color,
         enabled: first.enabled,
         preview_regions: legacyRows.map(item => ({
@@ -161,9 +120,9 @@ export function syncClassWhitelistFromDrawObjects(draft: ModelDraft) {
 
 function normalizeDrawObjectItems(raw: unknown, modelName = ''): ModelDrawObjectItem[] {
   if (!Array.isArray(raw) || raw.length === 0)
-    return createDefaultDrawObjectItems(modelName);
+    return [];
 
-  const fallbackLabel = buildDrawObjectLabelFromModelName(modelName);
+  void modelName;
 
   const items = raw.map((item, index) => {
     const row = item as Record<string, unknown>;
@@ -174,7 +133,7 @@ function normalizeDrawObjectItems(raw: unknown, modelName = ''): ModelDrawObject
     return createDrawObjectItem({
       id: String(row.id ?? index + 1),
       class_key: classKey || DEFAULT_DRAW_CLASS_ID,
-      label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : fallbackLabel,
+      label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
       color: String(row.color ?? '#ff0000'),
       enabled: row.enabled !== false,
       preview_regions: previewRegions,
@@ -259,7 +218,6 @@ function normalizeDrawStyle(raw: unknown): ModelDrawStyleDraft {
 
 export function createDefaultModelDraft(): ModelDraft {
   const applied = applyPresetToConfig(getAlgorithmParamSchema(0, ''), 'balanced', 0);
-  const drawItems = createDefaultDrawObjectItems();
   return {
     id: null,
     name: '',
@@ -281,20 +239,98 @@ export function createDefaultModelDraft(): ModelDraft {
       min_box_area: applied.detection_config.min_box_area,
       max_detections: applied.detection_config.max_detections,
       extract_interval: applied.detection_config.extract_interval,
-      class_whitelist: drawItems.filter(i => i.enabled).map(i => i.class_key),
+      class_whitelist: [],
     },
     draw_objects: {
-      items: drawItems,
+      items: [],
     },
     draw_style: createDefaultDrawStyle(),
   };
 }
 
-function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
+export type ModelClassLabelDraft = {
+  class_key?: string;
+  classKey?: string;
+  label?: string;
+  name?: string;
+};
+
+export function parseClassLabelsText(text: string): ModelClassLabelDraft[] {
+  return text
+    .split(/[\r\n,;]+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const match = line.match(/^(\d+|[A-Za-z_][\w.-]*)\s*[:=\s]\s*(.+)$/);
+      if (match)
+        return { class_key: match[1], label: match[2].trim() };
+      return { class_key: String(index), label: line };
+    });
+}
+
+export function classLabelsToText(labels?: ModelClassLabelDraft[]): string {
+  if (!Array.isArray(labels))
+    return '';
+  return labels
+    .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+export function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
   return items
     .filter(item => item.class_key.trim() && item.label.trim())
     .map(item => `${item.class_key.trim()} ${item.label.trim()}`)
     .join('\n');
+}
+
+export function syncClassLabelsTextFromDrawObjects(draft: ModelDraft) {
+  draft.class_labels_text = buildClassLabelsTextFromDrawObjects(draft.draw_objects.items);
+}
+
+export function applyClassLabelsToDraft(draft: ModelDraft, labels: ModelClassLabelDraft[]) {
+  const normalized = labels
+    .map((item, index) => ({
+      class_key: String(item.class_key ?? item.classKey ?? index).trim(),
+      label: String(item.label ?? item.name ?? '').trim(),
+    }))
+    .filter(item => item.class_key && item.label);
+
+  if (!normalized.length) {
+    draft.draw_objects = { ...draft.draw_objects, items: [] };
+    draft.class_labels_text = '';
+    syncClassWhitelistFromDrawObjects(draft);
+    return;
+  }
+
+  const existingByKey = new Map(
+    draft.draw_objects.items
+      .filter(item => item.class_key.trim())
+      .map(item => [item.class_key.trim(), item]),
+  );
+
+  draft.draw_objects = {
+    ...draft.draw_objects,
+    items: normalized.map((item, index) => {
+      const existing = existingByKey.get(item.class_key);
+      return {
+        id: existing?.id ?? String(index + 1),
+        class_key: item.class_key,
+        label: item.label,
+        color: existing?.color ?? ['#ff4d4f', '#1677ff', '#52c41a', '#faad14', '#722ed1'][index % 5],
+        enabled: existing?.enabled ?? true,
+        preview_regions: existing?.preview_regions,
+        preview_bbox: existing?.preview_bbox,
+        title_bbox: existing?.title_bbox,
+      };
+    }),
+  };
+  syncClassLabelsTextFromDrawObjects(draft);
+  syncClassWhitelistFromDrawObjects(draft);
+}
+
+export function applyClassLabelsTextToDraft(draft: ModelDraft, text: string) {
+  applyClassLabelsToDraft(draft, parseClassLabelsText(text));
 }
 
 function normalizeAlgorithmParams(raw: unknown): Record<string, number | string | boolean> {
@@ -379,20 +415,17 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
       draft.draw_objects.items = normalizeDrawObjectItems(drawObjects.items, name);
     }
     else if (Array.isArray(drawObjects.class_whitelist)) {
-      const defaultLabel = buildDrawObjectLabelFromModelName(name);
-      draft.draw_objects.items = [
-        createDrawObjectItem({
-          id: '1',
-          class_key: DEFAULT_DRAW_CLASS_ID,
-          label: defaultLabel,
+      draft.draw_objects.items = (drawObjects.class_whitelist as unknown[])
+        .map((classKey, index) => createDrawObjectItem({
+          id: String(index + 1),
+          class_key: String(classKey).trim(),
+          label: String(classKey).trim(),
           enabled: true,
-          preview_regions: buildDefaultPreviewRegions(),
-        }),
-      ];
+          preview_regions: index === 0 ? buildDefaultPreviewRegions() : undefined,
+        }))
+        .filter(item => item.class_key);
     }
   }
-
-  applyDrawObjectLabelsFromModelName(draft);
 
   syncClassWhitelistFromDrawObjects(draft);
   draft.class_labels_text = Array.isArray(record.class_labels)

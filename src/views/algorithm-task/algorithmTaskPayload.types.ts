@@ -25,6 +25,7 @@ export interface BackendBindingModel {
   model_name: string;
   detection_config: BackendDetectionConfig;
   algorithm_params: Record<string, number | string | boolean>;
+  regions?: BackendBindingRegion[];
 }
 
 export interface BackendBindingRegion {
@@ -38,6 +39,7 @@ export interface BackendTaskBinding {
   device_id: string;
   device_name: string;
   models: BackendBindingModel[];
+  /** 旧版摄像头级区域；新任务的算法区域保存在 models[].regions */
   regions: BackendBindingRegion[];
 }
 

@@ -4,7 +4,10 @@ import type {
   DetectionConfigDraft,
 } from '../../algorithmTaskDraft.types';
 import type { AlgorithmTask } from '@/api/device/algorithm_task';
-import { migrateAlertRule } from '../../utils/alertUtils';
+import {
+  createEmptyAlertRule,
+  migrateAlertRule,
+} from '../../utils/alertUtils';
 import {
   createFullDefenseSchedule,
   createEmptyDefenseSchedule,
@@ -178,6 +181,62 @@ function parseDefenseSchedule(task: AlgorithmTask): number[][] | undefined {
   }
 }
 
+function normalizeLegacyAlertPushConfigs(task: AlgorithmTask) {
+  return Array.isArray(task.alert_push_configs)
+    ? task.alert_push_configs
+    : [];
+}
+
+function buildFallbackAlertRule(
+  draft: AlgorithmTaskDraft,
+  options?: {
+    ruleId?: string;
+    ruleName?: string;
+    enabled?: boolean;
+    alarmSuppressTime?: number;
+  },
+) {
+  const firstModelId = draft.model_ids[0] ?? null;
+  const rule = createEmptyAlertRule(0);
+  const className = draft.detection_config.class_whitelist[0] ?? 'person';
+
+  rule.rule_id = options?.ruleId ?? `legacy_rule_${Date.now()}_1`;
+  rule.rule_seq = 1;
+  rule.rule_name = options?.ruleName ?? '默认告警规则';
+  rule.enabled = options?.enabled !== false;
+  rule.scope = {
+    type: 'full_frame',
+    region_id: null,
+    line_id: null,
+    device_id: draft.camera_bindings[0]?.device_id ?? null,
+  };
+  rule.conditions = [
+    {
+      seq: 1,
+      model_id: firstModelId,
+      model_name: firstModelId != null ? draft.model_name_map[firstModelId] : undefined,
+      class_name: className,
+      operator: '>=',
+      count: 1,
+    },
+  ];
+  rule.logic_expression = '1';
+  rule.duration_sec = 0;
+  rule.alarm_suppress_time = options?.alarmSuppressTime ?? 300;
+  rule.severity = 'low';
+
+  return migrateAlertRule(rule);
+}
+
+function buildLegacyAlertRule(task: AlgorithmTask, draft: AlgorithmTaskDraft) {
+  return buildFallbackAlertRule(draft, {
+    ruleId: `legacy_task_${task.id}_rule_1`,
+    ruleName: '旧任务默认告警规则',
+    enabled: task.alert_event_enabled !== false,
+    alarmSuppressTime: task.alarm_suppress_time ?? 300,
+  });
+}
+
 /** 将后端任务列表/详情字段还原为向导 draft（无本地缓存时的兜底） */
 export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskDraft {
   const payloadFromApi = extractTaskPayloadFromAlgorithmTask(task);
@@ -235,6 +294,37 @@ export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskD
     ensureSnapIntervalDefaults(draft);
   }
 
+  if (task.alert_event_enabled) {
+    draft.alert_rules = [buildLegacyAlertRule(task, draft)];
+  }
+  draft.alert_push_configs = normalizeLegacyAlertPushConfigs(task).map((push, index) => {
+    const row = push as Record<string, unknown>;
+    return {
+      push_id: String(row.push_id ?? row.pushId ?? `legacy_push_${task.id}_${index + 1}`),
+      push_name: String(row.push_name ?? row.pushName ?? `旧任务告警推送 ${index + 1}`),
+      enabled: row.enabled !== false,
+      push_mode: row.push_mode === 'address' ? 'address' : 'user',
+      rule_ids: Array.isArray(row.rule_ids) && row.rule_ids.length
+        ? [...row.rule_ids as string[]]
+        : draft.alert_rules.map(rule => rule.rule_id),
+      channels: Array.isArray(row.channels) ? [...row.channels as any[]] : [],
+      recipient_user_ids: Array.isArray(row.recipient_user_ids)
+        ? [...row.recipient_user_ids as number[]]
+        : [],
+      address_profile_ids: Array.isArray(row.address_profile_ids)
+        ? [...row.address_profile_ids as string[]]
+        : [],
+      channel_profile_map: {},
+      content: {
+        title_template: String((row.content as Record<string, unknown> | undefined)?.title_template ?? '算法告警通知'),
+        include_fields: Array.isArray((row.content as Record<string, unknown> | undefined)?.include_fields)
+          ? [...(row.content as Record<string, unknown>).include_fields as any[]]
+          : ['task_name', 'camera_name', 'rule_seq', 'rule_name', 'severity', 'alarm_time'],
+        remark: String((row.content as Record<string, unknown> | undefined)?.remark ?? ''),
+      },
+    };
+  });
+
   return draft;
 }
 
@@ -264,17 +354,17 @@ function restoreParamConfigFromModel(model: BackendBindingModel): AlgorithmParam
 }
 
 function restoreRegionsToComboConfigs(draft: AlgorithmTaskDraft, binding: BackendTaskBinding) {
-  if (!binding.regions.length)
-    return;
-
-  const regionDrafts: RegionDraft[] = binding.regions.map(region => ({
-    region_id: region.region_id,
-    region_name: region.region_name,
-    device_id: binding.device_id,
-    points: region.points.map(point => [...point]),
-  }));
-
   for (const model of binding.models) {
+    const sourceRegions = model.regions?.length ? model.regions : binding.regions;
+    if (!sourceRegions?.length)
+      continue;
+
+    const regionDrafts: RegionDraft[] = sourceRegions.map(region => ({
+      region_id: region.region_id,
+      region_name: region.region_name,
+      device_id: binding.device_id,
+      points: region.points.map(point => [...point]),
+    }));
     const key = `${binding.device_id}__${model.model_id}`;
     draft.combo_region_configs[key] = {
       scope_mode: 'custom',
@@ -379,13 +469,25 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
       clip_after_sec: rule.clip_record?.after_sec,
     }),
   );
+  if (!draft.alert_rules.length && payload.alert_config?.enabled) {
+    draft.alert_rules = [
+      buildFallbackAlertRule(draft, {
+        ruleId: 'legacy_payload_rule_1',
+        ruleName: '旧任务默认告警规则',
+        enabled: true,
+        alarmSuppressTime: payload.alarm_suppress_time ?? 300,
+      }),
+    ];
+  }
 
   draft.alert_push_configs = (payload.alert_push_configs ?? []).map(push => ({
     push_id: push.push_id,
     push_name: push.push_name,
     enabled: push.enabled,
     push_mode: push.push_mode,
-    rule_ids: push.rule_ids ?? [],
+    rule_ids: push.rule_ids?.length
+      ? push.rule_ids
+      : draft.alert_rules.map(rule => rule.rule_id),
     channels: push.channels ?? [],
     recipient_user_ids: push.recipient_user_ids ?? [],
     address_profile_ids: push.address_profile_ids ?? [],

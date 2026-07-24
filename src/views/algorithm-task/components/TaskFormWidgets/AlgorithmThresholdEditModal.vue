@@ -21,7 +21,10 @@
           <!-- 参与检测类别 -->
           <div class="class-section">
             <div class="class-section-title">参与检测类别</div>
-            <ClassWhitelistSelect v-model:value="localConfig.detection_config.class_whitelist" />
+            <ClassWhitelistSelect
+              v-model:value="localConfig.detection_config.class_whitelist"
+              :options="classOptions"
+            />
           </div>
 
           <div class="mode-row">
@@ -98,6 +101,7 @@ import { THRESHOLD_MODE_OPTIONS } from '../../algorithmTaskDraft.types';
 import {
   applyPresetToConfig,
   getAlgorithmParamSchema,
+  getModelClassOptions,
 } from '../../utils/paramUtils';
 import {
   fetchModelExtensionProfile,
@@ -125,8 +129,7 @@ type DetectionFieldKey =
   | 'iou'
   | 'imgsz'
   | 'min_box_area'
-  | 'max_detections'
-  | 'extract_interval';
+  | 'max_detections';
 
 interface ParamFieldDef {
   key: DetectionFieldKey;
@@ -191,15 +194,6 @@ const paramFields: ParamFieldDef[] = [
     step: 1,
     range: '范围: ≥1',
   },
-  {
-    key: 'extract_interval',
-    label: '抽帧间隔',
-    desc: '每隔多少帧检测一次',
-    type: 'number',
-    min: 1,
-    step: 1,
-    range: '范围: ≥1',
-  },
 ];
 
 const localConfig = ref<AlgorithmParamConfigDraft>(
@@ -216,6 +210,7 @@ const modeOptions = THRESHOLD_MODE_OPTIONS.map(item => ({
 }));
 
 const modelDisplayName = computed(() => props.row?.model_name || '—');
+const classOptions = computed(() => getModelClassOptions(props.row?.model_id));
 
 function getGlobalDefaults() {
   return {

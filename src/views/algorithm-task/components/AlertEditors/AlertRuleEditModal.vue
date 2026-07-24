@@ -60,7 +60,7 @@
                       placeholder="请选择"
                       allow-clear
                       style="width: 100%"
-                      :options="classOptions"
+                      :options="getClassOptions(record.model_id)"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                     />
@@ -247,7 +247,8 @@ const props = defineProps<{
   rule: AlertRuleDraft | null;
   isCreate: boolean;
   taskType: 'realtime' | 'snap';
-  classOptions: Array<{ label: string; value: string }>;
+  classOptions: Array<{ label: string; value: string; class_key?: string }>;
+  classOptionsByModel?: Record<number, Array<{ label: string; value: string; class_key?: string }>>;
   modelOptions: Array<{ label: string; value: number }>;
 }>();
 
@@ -288,6 +289,7 @@ watch(
       ensureClipRecordDefaults(base);
     syncModelNamesOnConditions(base.conditions, props.modelOptions);
     localRule.value = base;
+    normalizeConditionClassNames();
   },
 );
 
@@ -304,7 +306,38 @@ watch(
 function handleModelChange(record: AlertRuleConditionDraft, value: number) {
   const option = props.modelOptions.find(item => item.value === value);
   record.model_name = option?.label;
+  const options = getClassOptions(value);
+  if (record.class_name && !options.some(item => optionMatchesClass(item, record.class_name)))
+    record.class_name = '';
 }
+
+function getClassOptions(modelId?: number | null) {
+  if (modelId != null && props.classOptionsByModel?.[modelId]?.length)
+    return props.classOptionsByModel[modelId];
+  return props.classOptions;
+}
+
+function optionMatchesClass(option: { value: string; class_key?: string }, className: string) {
+  return option.value === className || option.class_key === className;
+}
+
+function normalizeConditionClassNames() {
+  for (const condition of localRule.value.conditions) {
+    if (!condition.class_name)
+      continue;
+    const option = getClassOptions(condition.model_id).find(item =>
+      optionMatchesClass(item, condition.class_name),
+    );
+    if (option && option.value !== condition.class_name)
+      condition.class_name = option.value;
+  }
+}
+
+watch(
+  () => props.classOptionsByModel,
+  () => normalizeConditionClassNames(),
+  { deep: true },
+);
 
 function handleAddCondition() {
   const nextSeq = localRule.value.conditions.length + 1;

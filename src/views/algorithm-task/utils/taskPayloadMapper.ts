@@ -11,7 +11,6 @@ import type {
   BackendAlertPushConfig,
   BackendAlertRule,
   BackendBindingModel,
-  BackendBindingRegion,
   BackendDetectionConfig,
   BackendTaskBinding,
 } from '../algorithmTaskPayload.types';
@@ -66,6 +65,7 @@ function buildModelEntry(
   global: DetectionConfigDraft,
 ): BackendBindingModel {
   const config = getParamConfigForRow(draft, row);
+  const regionConfig = getRegionConfigForRow(draft, row);
   return {
     model_id: row.model_id,
     model_name: row.model_name,
@@ -73,37 +73,15 @@ function buildModelEntry(
     algorithm_params: config.custom_enabled
       ? { ...config.algorithm_params }
       : {},
+    regions: isCustomRegionConfig(regionConfig)
+      ? regionConfig.regions.map(region => ({
+          region_id: region.region_id,
+          region_name: region.region_name,
+          scope_mode: 'custom',
+          points: region.points.map(point => [...point]),
+        }))
+      : [],
   };
-}
-
-function collectBindingRegions(
-  draft: AlgorithmTaskDraft,
-  deviceId: string,
-  modelRows: ReturnType<typeof expandComboRows>,
-): BackendBindingRegion[] {
-  const result: BackendBindingRegion[] = [];
-  const seen = new Set<string>();
-
-  for (const row of modelRows) {
-    if (row.device_id !== deviceId)
-      continue;
-    const config = getRegionConfigForRow(draft, row);
-    if (!isCustomRegionConfig(config))
-      continue;
-    for (const region of config.regions) {
-      if (seen.has(region.region_id))
-        continue;
-      seen.add(region.region_id);
-      result.push({
-        region_id: region.region_id,
-        region_name: region.region_name,
-        scope_mode: 'custom',
-        points: region.points.map(point => [...point]),
-      });
-    }
-  }
-
-  return result;
 }
 
 function buildBindingsFromDraft(draft: AlgorithmTaskDraft): BackendTaskBinding[] {
@@ -131,7 +109,7 @@ function buildBindingsFromDraft(draft: AlgorithmTaskDraft): BackendTaskBinding[]
           };
         return buildModelEntry(draft, row, global);
       }),
-      regions: collectBindingRegions(draft, binding.device_id, comboRows),
+      regions: [],
     };
   });
 }
@@ -189,11 +167,14 @@ function mapAlertRuleToBackend(
     },
     conditions: normalized.conditions.map(condition => ({
       seq: condition.seq,
+      key: `cond_${condition.seq}`,
+      field: 'model_class_count',
       model_id: Number(condition.model_id),
       model_name: condition.model_name,
       class_name: condition.class_name,
       operator: condition.operator ?? '>=',
       count: condition.count ?? 1,
+      value: condition.count ?? 1,
     })),
     logic_expression: normalized.logic_expression,
     trigger: {
@@ -248,6 +229,7 @@ export function buildBackendTaskPayloadFromDraft(
   draft: AlgorithmTaskDraft,
   options?: { is_enabled?: boolean; forUpdate?: boolean },
 ): AlgorithmTaskPayload {
+  draft.param_config_mode = 'combo';
   syncLegacyIdsFromDraft(draft);
   ensureParamConfigs(draft, buildModelNameMapFromDraft(draft));
   if (draft.task_type === 'snap')

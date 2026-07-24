@@ -25,6 +25,25 @@
           />
         </div>
 
+        <div ref="taskModelPickerAnchorRef" class="picker-anchor">
+          <a-button @click="toggleModelPicker">
+            <template #icon>
+              <PlusOutlined />
+            </template>
+            选择算法
+            <DownOutlined :class="['picker-arrow', { open: modelPickerOpen }]" />
+          </a-button>
+
+          <ModelPickerPanel
+            v-if="modelPickerOpen"
+            v-model:open="modelPickerOpen"
+            :anchor-el="taskModelPickerAnchorRef"
+            :initial-model-ids="editingModelIds"
+            @confirm="handleModelConfirm"
+            @cancel="handleModelPickerCancel"
+          />
+        </div>
+
         <span class="stats-text">
           已选择：摄像头数量 {{ stats.cameraCount }} | 算法数量 {{ stats.algorithmCount }}
         </span>
@@ -45,67 +64,53 @@
         </div>
       </div>
 
-      <div v-if="visibleCameras.length" class="binding-list">
-        <div
-          v-for="binding in visibleCameras"
-          :key="binding.device_id"
-          class="binding-row"
-        >
-          <div class="camera-card">
-            <div class="card-header">
-              <a-tag :color="binding.online === false ? 'default' : 'green'">
-                {{ binding.online === false ? '离线' : '在线' }}
-              </a-tag>
-              <a-tag v-if="binding.model_ids.length === 0" color="orange">未分配算法</a-tag>
-              <a-button type="text" size="small" @click="removeCamera(binding.device_id)">
-                <CloseOutlined />
-              </a-button>
-            </div>
-            <div class="card-body">
-              <VideoCameraOutlined class="camera-icon" />
-              <div class="camera-info">
-                <div class="camera-name">{{ binding.device_name }}</div>
-                <div class="camera-id">ID: {{ binding.device_id }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="algorithm-column">
+      <div v-if="payload.camera_bindings.length" class="binding-overview">
+        <div class="camera-list-column">
+          <div class="column-title">摄像头</div>
+          <div v-if="visibleCameras.length" class="camera-list">
             <div
-              class="algo-picker-anchor"
-              :ref="(el) => setModelPickerAnchor(binding.device_id, el)"
+              v-for="binding in visibleCameras"
+              :key="binding.device_id"
+              class="camera-card"
             >
-              <div class="add-algorithm-btn" @click="toggleModelPicker(binding.device_id)">
-                <PlusOutlined />
-                <span>添加算法</span>
-              </div>
-
-              <ModelPickerPanel
-                v-if="modelPickerOpen && editingDeviceId === binding.device_id"
-                v-model:open="modelPickerOpen"
-                :anchor-el="activeModelPickerAnchor"
-                :initial-model-ids="editingModelIds"
-                @confirm="handleModelConfirm"
-                @cancel="handleModelPickerCancel"
-              />
-            </div>
-
-            <div v-if="binding.model_ids.length" class="algorithm-list">
-              <div
-                v-for="modelId in binding.model_ids"
-                :key="modelId"
-                class="algorithm-card"
-              >
-                <div class="algorithm-card-body">
-                  <div class="algo-name">{{ getModelName(modelId) }}</div>
-                  <div class="algo-meta">{{ getModelMetaText(modelId) }}</div>
-                </div>
-                <a-button type="text" size="small" @click="removeModel(binding.device_id, modelId)">
+              <div class="card-header">
+                <a-tag :color="binding.online === false ? 'default' : 'green'">
+                  {{ binding.online === false ? '离线' : '在线' }}
+                </a-tag>
+                <a-button type="text" size="small" @click="removeCamera(binding.device_id)">
                   <CloseOutlined />
                 </a-button>
               </div>
+              <div class="card-body">
+                <VideoCameraOutlined class="camera-icon" />
+                <div class="camera-info">
+                  <div class="camera-name">{{ binding.device_name }}</div>
+                  <div class="camera-id">ID: {{ binding.device_id }}</div>
+                </div>
+              </div>
             </div>
           </div>
+          <a-empty v-else description="没有符合搜索条件的摄像头" :image="false" />
+        </div>
+
+        <div class="shared-model-column">
+          <div class="column-title">任务算法</div>
+          <div v-if="payload.model_ids.length" class="algorithm-list">
+            <div
+              v-for="modelId in payload.model_ids"
+              :key="modelId"
+              class="algorithm-card"
+            >
+              <div class="algorithm-card-body">
+                <div class="algo-name">{{ getModelName(modelId) }}</div>
+                <div class="algo-meta">{{ getModelMetaText(modelId) }}</div>
+              </div>
+              <a-button type="text" size="small" @click="removeModel(modelId)">
+                <CloseOutlined />
+              </a-button>
+            </div>
+          </div>
+          <div v-else class="shared-algorithm-empty">未选择算法</div>
         </div>
       </div>
 
@@ -145,11 +150,10 @@ function syncLegacyIds() {
 }
 
 const pickerAnchorRef = ref<HTMLElement | null>(null);
-const modelPickerAnchors = ref<Record<string, HTMLElement>>({});
+const taskModelPickerAnchorRef = ref<HTMLElement | null>(null);
 const cameraPickerOpen = ref(false);
 const modelPickerOpen = ref(false);
 const searchText = ref('');
-const editingDeviceId = ref<string | null>(null);
 const editingModelIds = ref<number[]>([]);
 const modelMetaMap = ref<Map<number, ModelMeta>>(new Map());
 
@@ -164,7 +168,7 @@ const selectedCameraIds = computed(() =>
 
 const stats = computed(() => ({
   cameraCount: payload.value.camera_bindings.length,
-  algorithmCount: new Set(payload.value.camera_bindings.flatMap(binding => binding.model_ids)).size,
+  algorithmCount: payload.value.model_ids.length,
 }));
 
 const visibleCameras = computed(() =>
@@ -189,17 +193,6 @@ function getModelMetaText(modelId: number) {
     return `ID: ${modelId}`;
   const versionText = meta.version ? ` | v${meta.version}` : '';
   return `ID: ${modelId}${versionText}`;
-}
-
-const activeModelPickerAnchor = computed(() => {
-  if (!editingDeviceId.value)
-    return null;
-  return modelPickerAnchors.value[editingDeviceId.value] ?? null;
-});
-
-function setModelPickerAnchor(deviceId: string, el: unknown) {
-  if (el)
-    modelPickerAnchors.value[deviceId] = el as HTMLElement;
 }
 
 function toggleCameraPicker() {
@@ -229,11 +222,12 @@ function handleCameraConfirm(devices: DeviceInfo[]) {
     return {
       device_id: deviceId,
       device_name: device.name || deviceId,
-      model_ids: [],
+      model_ids: [...payload.value.model_ids],
       online: (device as DeviceInfo & { online?: boolean }).online,
     } satisfies CameraBindingDraft;
   });
 
+  syncTaskModelsToBindings();
   syncLegacyIds();
   cameraPickerOpen.value = false;
 }
@@ -242,54 +236,45 @@ function removeCamera(deviceId: string) {
   payload.value.camera_bindings = payload.value.camera_bindings.filter(
     binding => binding.device_id !== deviceId,
   );
-  if (editingDeviceId.value === deviceId) {
-    modelPickerOpen.value = false;
-    editingDeviceId.value = null;
-  }
   syncLegacyIds();
 }
 
-function toggleModelPicker(deviceId: string) {
-  cameraPickerOpen.value = false;
-  const binding = payload.value.camera_bindings.find(item => item.device_id === deviceId);
-  if (!binding)
-    return;
+function syncTaskModelsToBindings(modelIds = payload.value.model_ids) {
+  const normalized = [...new Set(modelIds.map(id => Number(id)).filter(Number.isFinite))];
+  payload.value.model_ids = normalized;
+  payload.value.camera_bindings = payload.value.camera_bindings.map(binding => ({
+    ...binding,
+    model_ids: [...normalized],
+  }));
+  payload.value.detection_config.model_id = normalized[0] ?? null;
+}
 
-  if (modelPickerOpen.value && editingDeviceId.value === deviceId) {
+function toggleModelPicker() {
+  cameraPickerOpen.value = false;
+
+  if (modelPickerOpen.value) {
     modelPickerOpen.value = false;
-    editingDeviceId.value = null;
     return;
   }
 
-  editingDeviceId.value = deviceId;
-  editingModelIds.value = [...binding.model_ids];
+  editingModelIds.value = [...payload.value.model_ids];
   modelPickerOpen.value = true;
 }
 
 function handleModelPickerCancel() {
   modelPickerOpen.value = false;
-  editingDeviceId.value = null;
 }
 
 function handleModelConfirm(modelIds: number[]) {
-  if (!editingDeviceId.value)
-    return;
-  const binding = payload.value.camera_bindings.find(item => item.device_id === editingDeviceId.value);
-  if (binding) {
-    binding.model_ids = modelIds.map(id => Number(id));
-    syncModelNamesForIds(binding.model_ids);
-    syncLegacyIds();
-  }
+  syncTaskModelsToBindings(modelIds);
+  syncModelNamesForIds(payload.value.model_ids);
+  syncLegacyIds();
   modelPickerOpen.value = false;
-  editingDeviceId.value = null;
   editingModelIds.value = [];
 }
 
-function removeModel(deviceId: string, modelId: number) {
-  const binding = payload.value.camera_bindings.find(item => item.device_id === deviceId);
-  if (!binding)
-    return;
-  binding.model_ids = binding.model_ids.filter(id => id !== modelId);
+function removeModel(modelId: number) {
+  syncTaskModelsToBindings(payload.value.model_ids.filter(id => id !== modelId));
   syncLegacyIds();
 }
 
@@ -342,6 +327,9 @@ async function loadModelMeta() {
 
 onMounted(() => {
   loadModelMeta();
+  syncTaskModelsToBindings(payload.value.model_ids.length
+    ? payload.value.model_ids
+    : [...new Set(payload.value.camera_bindings.flatMap(binding => binding.model_ids))]);
 });
 </script>
 
@@ -428,16 +416,14 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.binding-list {
+.binding-overview {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 260px;
   gap: 16px;
   margin-top: 8px;
-  padding-right: 4px;
 }
 
 .binding-panel :deep(.ant-empty) {
@@ -448,16 +434,31 @@ onMounted(() => {
   margin: 0;
 }
 
-.binding-row {
+.camera-list-column,
+.shared-model-column {
+  min-width: 0;
+  min-height: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.column-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.camera-list {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  padding-right: 4px;
 }
 
 .camera-card {
-  width: 220px;
-  flex-shrink: 0;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   padding: 12px;
@@ -495,47 +496,11 @@ onMounted(() => {
   margin-top: 4px;
 }
 
-.algorithm-column {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.algo-picker-anchor {
-  position: relative;
-  width: 220px;
-}
-
 .algorithm-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: 220px;
-  max-width: 220px;
-}
-
-.add-algorithm-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 16px;
-  border: 1px dashed #d9d9d9;
-  border-radius: 8px;
-  color: rgba(0, 0, 0, 0.45);
-  cursor: pointer;
-  transition: all 0.2s;
-  background: #fff;
-
-  &:hover {
-    color: #1677ff;
-    border-color: #1677ff;
-  }
 }
 
 .algorithm-card {
@@ -565,5 +530,22 @@ onMounted(() => {
   margin-top: 4px;
   font-size: 12px;
   color: rgba(0, 0, 0, 0.45);
+}
+
+.shared-algorithm-empty {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  color: rgba(0, 0, 0, 0.45);
+  background: #fafafa;
+}
+
+@media (max-width: 900px) {
+  .binding-overview {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

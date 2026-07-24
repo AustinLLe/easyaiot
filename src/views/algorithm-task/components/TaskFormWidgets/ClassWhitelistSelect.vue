@@ -19,14 +19,16 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { Select } from 'ant-design-vue';
-import { MOCK_RECOGNIZABLE_CLASSES } from '../../utils/paramUtils';
 
 defineOptions({ name: 'ClassWhitelistSelect' });
 
 const modelValue = defineModel<string[]>('value', { default: () => [] });
+const props = defineProps<{
+  options?: Array<{ label: string; value: string }>;
+}>();
 
 const classOptions = computed(() =>
-  MOCK_RECOGNIZABLE_CLASSES.map(cls => ({ label: cls, value: cls })),
+  props.options ?? [],
 );
 
 function getPopupContainer() {

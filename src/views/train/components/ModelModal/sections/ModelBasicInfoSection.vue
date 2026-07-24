@@ -80,7 +80,7 @@
         <Select v-model:value="draft.status" :options="statusOptions" />
       </FormItem>
 
-      <FormItem label="模型图片" required>
+      <FormItem label="模型图片">
         <Upload
           name="file"
           :action="imageUploadUrl"
@@ -105,6 +105,11 @@ import { computed } from 'vue';
 import { Form, FormItem, Input, Select, Upload } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import type { ModelDraft } from '../../../modelDraft.types';
+import {
+  applyClassLabelsToDraft,
+  applyClassLabelsTextToDraft,
+  type ModelClassLabelDraft,
+} from '../useDraft';
 
 defineOptions({ name: 'ModelBasicInfoSection' });
 
@@ -139,17 +144,11 @@ type UploadResp = {
     url?: string;
     model_format?: string;
     base_model?: string;
-    class_labels?: ClassLabel[];
+    class_labels?: ModelClassLabelDraft[];
     detection_config?: Record<string, unknown>;
     draw_objects?: Record<string, unknown>;
+    draw_style?: Record<string, unknown>;
   };
-};
-
-type ClassLabel = {
-  class_key?: string;
-  classKey?: string;
-  label?: string;
-  name?: string;
 };
 
 const modelUploadExtraData = computed(() => ({
@@ -161,52 +160,8 @@ const modelUploadExtraData = computed(() => ({
   labels: draft.value.class_labels_text,
 }));
 
-function classLabelsToText(labels?: ClassLabel[]): string {
-  if (!Array.isArray(labels))
-    return '';
-  return labels
-    .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
-    .filter(Boolean)
-    .join('\n');
-}
-
-function parseClassLabelsText(text: string): ClassLabel[] {
-  return text
-    .split(/[\r\n,;]+/)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      const match = line.match(/^(\d+|[A-Za-z_][\w.-]*)\s*[:=\s]\s*(.+)$/);
-      if (match)
-        return { class_key: match[1], label: match[2].trim() };
-      return { class_key: String(index), label: line };
-    });
-}
-
 function applyClassLabelsText() {
-  const labels = parseClassLabelsText(draft.value.class_labels_text);
-  if (!labels.length)
-    return;
-  draft.value.draw_objects = {
-    ...draft.value.draw_objects,
-    items: labels.map((item, index) => {
-      const classKey = String(item.class_key ?? '').trim();
-      const existing = draft.value.draw_objects.items.find(row => row.class_key === classKey);
-      return {
-        id: existing?.id ?? String(index + 1),
-        class_key: classKey,
-        label: String(item.label ?? '').trim(),
-        color: existing?.color ?? ['#ff4d4f', '#1677ff', '#52c41a', '#faad14', '#722ed1'][index % 5],
-        enabled: existing?.enabled ?? true,
-        preview_regions: existing?.preview_regions,
-        preview_bbox: existing?.preview_bbox,
-        title_bbox: existing?.title_bbox,
-      };
-    }),
-  };
-  draft.value.detection_config.class_whitelist = draft.value.draw_objects.items
-    .filter(item => item.enabled && item.class_key.trim())
-    .map(item => item.class_key.trim());
+  applyClassLabelsTextToDraft(draft.value, draft.value.class_labels_text);
 }
 
 function handleFileUpload(info: { file: { status?: string; response?: UploadResp; error?: { message?: string } } }) {
@@ -227,9 +182,16 @@ function handleFileUpload(info: { file: { status?: string; response?: UploadResp
       if (response.data?.draw_objects && typeof response.data.draw_objects === 'object') {
         draft.value.draw_objects = response.data.draw_objects as ModelDraft['draw_objects'];
       }
-      const labelsText = classLabelsToText(response.data?.class_labels);
-      if (labelsText)
-        draft.value.class_labels_text = labelsText;
+      if (response.data?.draw_style && typeof response.data.draw_style === 'object') {
+        draft.value.draw_style = {
+          ...draft.value.draw_style,
+          ...response.data.draw_style,
+        } as ModelDraft['draw_style'];
+      }
+      if (Array.isArray(response.data?.class_labels))
+        applyClassLabelsToDraft(draft.value, response.data.class_labels);
+      else if (!response.data?.draw_objects)
+        applyClassLabelsToDraft(draft.value, []);
       createMessage.success('模型上传成功');
     }
     else {

@@ -24,6 +24,7 @@
             title="对象分析框"
             :disabled="isView"
             show-border-width
+            :show-color="false"
           />
           <DrawStyleConfigCard
             v-model:config="draft.draw_style.object_box_title"
@@ -64,7 +65,7 @@
                     class="preview-title-box"
                     :style="titleBoxStyle(item, region)"
                   >
-                    <span class="preview-title-text">{{ item.label || defaultPreviewLabel }}</span>
+                      <span v-if="item.label" class="preview-title-text">{{ item.label }}</span>
                   </div>
                   <div
                     v-if="draft.draw_style.object_box.enabled && region.preview_bbox"
@@ -98,7 +99,7 @@ import { computed, ref, watch } from 'vue';
 import { ReloadOutlined } from '@ant-design/icons-vue';
 import { Button } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
-import { createDefaultDrawStyle, buildDrawObjectLabelFromModelName } from '../useDraft';
+import { createDefaultDrawStyle } from '../useDraft';
 import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../modelDraft.types';
 import {
   DEFAULT_DETECTION_AREA_POLYGON,
@@ -149,17 +150,13 @@ const previewDrawItems = computed(() =>
   ),
 );
 
-const defaultPreviewLabel = computed(() =>
-  buildDrawObjectLabelFromModelName(draft.value.name),
-);
-
-function objectBoxStyle(_item: ModelDrawObjectItem, region: ModelDrawRegion) {
+function objectBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
   if (!region.preview_bbox)
     return {};
   return {
     ...rectToCssStyle(region.preview_bbox),
     borderWidth: `${draft.value.draw_style.object_box.border_width}px`,
-    borderColor: draft.value.draw_style.object_box.color,
+    borderColor: item.color,
   };
 }
 

@@ -7,9 +7,10 @@ export const DEFAULT_SNAP_INTERVAL_UNIT = 'minute' as const;
 /** 从 camera_bindings 同步 device_ids / model_ids */
 export function syncLegacyIdsFromDraft(draft: AlgorithmTaskDraft) {
   draft.device_ids = draft.camera_bindings.map(binding => binding.device_id);
-  draft.model_ids = [...new Set(draft.camera_bindings.flatMap(binding => binding.model_ids))];
-  if (draft.model_ids.length && draft.detection_config.model_id == null)
-    draft.detection_config.model_id = draft.model_ids[0];
+  const bindingModelIds = [...new Set(draft.camera_bindings.flatMap(binding => binding.model_ids))];
+  if (bindingModelIds.length || draft.camera_bindings.length)
+    draft.model_ids = bindingModelIds;
+  draft.detection_config.model_id = draft.model_ids[0] ?? null;
 }
 
 export function ensureSnapIntervalDefaults(draft: AlgorithmTaskDraft) {

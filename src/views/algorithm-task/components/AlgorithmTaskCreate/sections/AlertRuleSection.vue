@@ -67,6 +67,7 @@
       :task-type="payload.task_type"
       v-model:detection-config="payload.detection_config"
       :class-options="classOptions"
+      :class-options-by-model="classOptionsByModel"
       :model-options="modelOptions"
       @save="handleEditSave"
       @cancel="handleEditClose"
@@ -92,6 +93,10 @@ import {
   getSeverityLabel,
   renumberAlertRules,
 } from '../../../utils/alertUtils';
+import {
+  fetchModelExtensionProfile,
+  getModelAlertClassOptions,
+} from '../../../utils/paramUtils';
 import { clearTrackingParams } from '../../../utils/taskUtils';
 
 defineOptions({ name: 'AlertRuleSection' });
@@ -113,6 +118,21 @@ const tableColumns: ColumnsType<AlertRuleDraft> = [
 
 const classOptions = computed(() => getClassOptionsFromDraft(payload.value));
 const modelOptions = computed(() => getModelOptionsFromDraft(payload.value));
+const classOptionsByModel = computed(() => {
+  const map: Record<number, Array<{ label: string; value: string; class_key?: string }>> = {};
+  for (const modelId of payload.value.model_ids ?? [])
+    map[modelId] = getModelAlertClassOptions(modelId);
+  return map;
+});
+
+watch(
+  () => [...(payload.value.model_ids ?? [])],
+  (modelIds) => {
+    for (const modelId of modelIds)
+      fetchModelExtensionProfile(modelId);
+  },
+  { immediate: true },
+);
 
 watch(
   () => payload.value.task_type,

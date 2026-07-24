@@ -511,30 +511,58 @@ const setActiveTool = (toolId: string): void => {
   isDrawing.value = false;
 };
 
-// 构建完整的图片URL
+function normalizeUrlBase(base: string) {
+  return base.replace(/\/+$/, '');
+}
+
+function joinUrlPath(base: string, path: string) {
+  const cleanBase = normalizeUrlBase(base);
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (!cleanBase)
+    return cleanPath;
+  return `${cleanBase}${cleanPath}`;
+}
+
+function resolveApiImagePath(path: string) {
+  const apiBase = normalizeUrlBase(import.meta.env.VITE_GLOB_API_URL || '');
+  const origin = window.location.origin;
+
+  if (!apiBase)
+    return path.startsWith('/') ? `${origin}${path}` : path;
+
+  if (apiBase.startsWith('http://') || apiBase.startsWith('https://'))
+    return joinUrlPath(apiBase, path);
+
+  return `${origin}${joinUrlPath(apiBase, path)}`;
+}
+
+// 构建完整的图片URL，兼容 /dev-api 代理和后端返回的 MinIO/API 相对路径
 const buildImageUrl = (src: string): string => {
-  if (!src) return '';
-  
-  // 如果已经是完整的URL（以 http:// 或 https:// 开头），直接返回
-  if (src.startsWith('http://') || src.startsWith('https://')) {
-    return src;
-  }
-  
-  // 如果是MinIO路径（以/api/v1/buckets开头），使用前端启动地址前缀
-  if (src.startsWith('/api/v1/buckets')) {
-    return `${window.location.origin}${src}`;
-  }
-  
-  // 如果是相对路径（以/api开头），使用前端启动地址前缀
-  if (src.startsWith('/api/')) {
-    return `${window.location.origin}${src}`;
-  }
-  
-  // 其他相对路径，添加API基础URL
-  const apiUrl = import.meta.env.VITE_GLOB_API_URL || '';
-  // 确保路径以 / 开头
-  const path = src.startsWith('/') ? src : `/${src}`;
-  return `${apiUrl}${path}`;
+  const raw = (src || '').trim();
+  if (!raw)
+    return '';
+
+  if (raw.startsWith('blob:') || raw.startsWith('data:'))
+    return raw;
+
+  if (raw.startsWith('http://') || raw.startsWith('https://'))
+    return raw;
+
+  if (raw.startsWith('//'))
+    return `${window.location.protocol}${raw}`;
+
+  const apiBase = normalizeUrlBase(import.meta.env.VITE_GLOB_API_URL || '');
+  const relativeApiBase = apiBase && !apiBase.startsWith('http://') && !apiBase.startsWith('https://')
+    ? apiBase
+    : '';
+
+  if (relativeApiBase && (raw === relativeApiBase || raw.startsWith(`${relativeApiBase}/`)))
+    return `${window.location.origin}${raw}`;
+
+  if (raw.startsWith('/api/v1/buckets/') || raw.startsWith('/api/'))
+    return `${window.location.origin}${raw}`;
+
+  return resolveApiImagePath(raw);
 };
 
 // 加载图片
@@ -1066,9 +1094,13 @@ const deleteRegion = async (id: number | string) => {
   const index = regions.value.findIndex(r => (r.id || regions.value.indexOf(r)) === id);
   if (index !== -1) {
     const region = regions.value[index];
-    // 如果是有效的数据库ID（大于0的数字），调用API删除服务器上的区域
-    const isValidDbId = region.id && typeof region.id === 'number' && region.id > 0;
-    if (isValidDbId) {
+    const isPersistedRegion = Boolean(!props.draftOnly
+      && region.id
+      && typeof region.id === 'number'
+      && region.id > 0
+      && (region.created_at || region.updated_at));
+    // 只有后端已持久化的区域才调用删除接口；草稿/新画区域只删除本地状态。
+    if (isPersistedRegion) {
       try {
         await deleteDeviceRegion(region.id);
         console.log('已删除服务器上的区域:', region.id);
@@ -1416,6 +1448,8 @@ const handleKeyDown = (e: KeyboardEvent): void => {
     case 'Delete':
     case 'Backspace':
       if (selectedRegionId.value !== null) {
+        e.preventDefault();
+        e.stopPropagation();
         deleteRegion(selectedRegionId.value);
       }
       break;
@@ -1432,7 +1466,9 @@ const handleKeyDown = (e: KeyboardEvent): void => {
       setActiveTool(ToolType.POLYGON);
       break;
     case 'Escape':
-      if (isDrawing.value && activeTool.value === ToolType.POLYGON) {
+      if (activeTool.value === ToolType.POLYGON && (isDrawing.value || currentPoints.value.length > 0)) {
+        e.preventDefault();
+        e.stopPropagation();
         isDrawing.value = false;
         currentPoints.value = [];
         draw();
@@ -2108,4 +2144,3 @@ defineExpose({
   }
 }
 </style>
-

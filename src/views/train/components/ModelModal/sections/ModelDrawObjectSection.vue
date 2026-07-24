@@ -70,7 +70,12 @@
               </Popover>
             </template>
             <template v-else-if="column.key === 'enabled'">
-              <Switch v-model:checked="record.enabled" size="small" :disabled="isView" />
+              <Switch
+                v-model:checked="record.enabled"
+                size="small"
+                :disabled="isView"
+                @change="handleEnabledChange"
+              />
             </template>
             <template v-else-if="column.key === 'action'">
               <div class="row-actions">
@@ -145,7 +150,7 @@
                     class="preview-title-box"
                     :style="titleBoxStyle(item, region)"
                   >
-                    <span class="preview-title-text">{{ item.label || defaultPreviewLabel }}</span>
+                    <span v-if="item.label" class="preview-title-text">{{ item.label }}</span>
                   </div>
                   <div
                     v-if="region.preview_bbox"
@@ -177,7 +182,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { ImportOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import {
   Button,
@@ -191,9 +196,8 @@ import ColorPicker from '@/components/ColorPicker/ColorPicker.vue';
 import DrawObjectImportModal from '../../DrawObjectImportModal/index.vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
-  applyDrawObjectLabelsFromModelName,
-  buildDrawObjectLabelFromModelName,
   createDrawObjectItem,
+  syncClassLabelsTextFromDrawObjects,
   syncClassWhitelistFromDrawObjects,
 } from '../useDraft';
 import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../modelDraft.types';
@@ -251,10 +255,6 @@ const segmentationEdges = computed(() =>
   ),
 );
 
-const defaultPreviewLabel = computed(() =>
-  buildDrawObjectLabelFromModelName(draft.value.name),
-);
-
 const previewItems = computed(() =>
   tableItems.value.filter(item => item.enabled && itemHasDrawRegions(item)),
 );
@@ -267,17 +267,14 @@ const columns: ColumnsType<ModelDrawObjectItem> = [
   { title: '操作', key: 'action', width: 72, align: 'center' },
 ];
 
-watch(
-  () => draft.value.name,
-  () => {
-    applyDrawObjectLabelsFromModelName(draft.value);
-  },
-  { immediate: true },
-);
-
 function handleSave() {
-  syncClassWhitelistFromDrawObjects(draft.value);
+  syncDrawObjectDerivedState();
   createMessage.success('绘制对象已保存');
+}
+
+function syncDrawObjectDerivedState() {
+  syncClassLabelsTextFromDrawObjects(draft.value);
+  syncClassWhitelistFromDrawObjects(draft.value);
 }
 
 function handleAdd() {
@@ -321,7 +318,7 @@ function handleCancelEdit() {
       return;
     }
     tableItems.value = tableItems.value.filter(item => item.id !== id);
-    syncClassWhitelistFromDrawObjects(draft.value);
+    syncDrawObjectDerivedState();
     clearEditingState();
     return;
   }
@@ -343,7 +340,7 @@ function handleFinishEdit(id: string) {
     return;
   }
   clearEditingState();
-  syncClassWhitelistFromDrawObjects(draft.value);
+  syncDrawObjectDerivedState();
 }
 
 function handleImport() {
@@ -352,7 +349,7 @@ function handleImport() {
 
 function handleImportSuccess(items: ModelDrawObjectItem[]) {
   tableItems.value = [...tableItems.value, ...items];
-  syncClassWhitelistFromDrawObjects(draft.value);
+  syncDrawObjectDerivedState();
   createMessage.success(`成功导入 ${items.length} 条绘制对象`);
 }
 
@@ -364,6 +361,10 @@ function handleDelete(id: string) {
   tableItems.value = tableItems.value.filter(item => item.id !== id);
   if (editingRowId.value === id)
     clearEditingState();
+  syncDrawObjectDerivedState();
+}
+
+function handleEnabledChange() {
   syncClassWhitelistFromDrawObjects(draft.value);
 }
 

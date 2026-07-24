@@ -18,7 +18,7 @@
       />
     </div>
 
-    <div class="card-row">
+    <div v-if="showColor" class="card-row">
       <span class="row-label">颜色</span>
       <Popover
         v-model:open="colorOpen"
@@ -92,13 +92,16 @@ import { LIMB_TYPE_OPTIONS } from '../../../modelDraft.types';
 
 defineOptions({ name: 'DrawStyleConfigCard' });
 
-const props = defineProps<{
+withDefaults(defineProps<{
   title: string;
   disabled?: boolean;
   showBorderWidth?: boolean;
+  showColor?: boolean;
   showBgColor?: boolean;
   showLimbTypes?: boolean;
-}>();
+}>(), {
+  showColor: true,
+});
 
 const config = defineModel<DrawStyleCardConfig>('config', { required: true });
 

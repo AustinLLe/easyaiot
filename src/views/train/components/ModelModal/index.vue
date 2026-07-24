@@ -189,8 +189,6 @@ function validateBasicInfo(): string | null {
     return '请输入模型名称';
   if (!draft.value.version?.trim())
     return '请输入模型版本';
-  if (!draft.value.imageUrl?.trim())
-    return '请上传模型图片';
   if (!draft.value.filePath?.trim())
     return '请上传模型文件';
   return null;

@@ -6,6 +6,7 @@
     :z-index="props.zIndex"
     :canFullscreen="true"
     :defaultFullscreen="false"
+    :keyboard="false"
     :useWrapper="false"
     :showOkBtn="false"
     :showCancelBtn="true"
@@ -789,4 +790,3 @@ const loadDevices = async () => {
   }
 }
 </style>
-

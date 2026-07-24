@@ -3,18 +3,12 @@
     <div class="section-header">
       <div class="header-row">
         <h3>算法阈值</h3>
-        <Segmented
-          v-model:value="payload.param_config_mode"
-          :options="paramModeOptions"
-          @change="handleParamModeChange"
-        />
       </div>
     </div>
 
     <div class="threshold-panel">
       <div class="table-toolbar">
         <Input.Search
-          v-if="payload.param_config_mode === 'combo'"
           v-model:value="cameraSearchText"
           placeholder="搜索摄像头名称"
           allow-clear
@@ -60,14 +54,13 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
-import { Button, Input, Segmented, Table } from 'ant-design-vue';
+import { Button, Input, Table } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import { getModelPage } from '@/api/device/model';
 import AlgorithmThresholdEditModal from '../../TaskFormWidgets/AlgorithmThresholdEditModal.vue';
 import type {
   AlgorithmParamConfigDraft,
   AlgorithmTaskDraft,
-  ParamConfigMode,
   ThresholdTableRow,
 } from '../../../algorithmTaskDraft.types';
 import {
@@ -75,11 +68,9 @@ import {
   ensureParamConfigs,
   getParamConfigForRow,
   getThresholdTableRows,
-  handleParamConfigModeChange,
   seedModelDefaultProfiles,
   saveParamConfigForRow,
 } from '../../../utils/paramUtils';
-import { handleRegionConfigModeChange } from '../../../utils/paramUtils';
 
 defineOptions({ name: 'ModelDetectionSection' });
 
@@ -90,11 +81,6 @@ const cameraSearchText = ref('');
 const editVisible = ref(false);
 const editingRow = ref<ThresholdTableRow | null>(null);
 const editingConfig = ref<AlgorithmParamConfigDraft | null>(null);
-
-const paramModeOptions = [
-  { label: '组合', value: 'combo' },
-  { label: '算法', value: 'algorithm' },
-];
 
 const modelNameMap = computed(() => buildModelNameMapFromDraft(payload.value));
 
@@ -118,25 +104,20 @@ const filteredRows = computed(() => {
   return tableRows.value.filter((row) => {
     const modelMatch = !modelKeyword
       || row.model_name.toLowerCase().includes(modelKeyword);
-    const cameraMatch = payload.value.param_config_mode !== 'combo'
-      || !cameraKeyword
+    const cameraMatch = !cameraKeyword
       || (row.device_name ?? '').toLowerCase().includes(cameraKeyword);
     return modelMatch && cameraMatch;
   });
 });
 
 const tableColumns = computed<ColumnsType<ThresholdTableRow>>(() => {
-  const columns: ColumnsType<ThresholdTableRow> = [];
-
-  if (payload.value.param_config_mode === 'combo') {
-    columns.push({
-      title: '摄像头名称',
-      dataIndex: 'device_name',
-      key: 'device_name',
-      width: 160,
-      ellipsis: true,
-    });
-  }
+  const columns: ColumnsType<ThresholdTableRow> = [{
+    title: '摄像头名称',
+    dataIndex: 'device_name',
+    key: 'device_name',
+    width: 160,
+    ellipsis: true,
+  }];
 
   columns.push({
     title: '算法名称',
@@ -159,21 +140,22 @@ const tableColumns = computed<ColumnsType<ThresholdTableRow>>(() => {
 const emptyDescription = computed(() => {
   const { cameraCount, pairCount } = bindingStats.value;
   if (!cameraCount)
-    return '请先在「摄像头与算法」步骤添加摄像头并绑定算法';
+    return '请先在「摄像头与算法」步骤添加摄像头并选择任务算法';
   if (!pairCount)
-    return '已选择摄像头，但尚未绑定算法，请返回上一步为每个摄像头添加算法';
+    return '已选择摄像头，但尚未选择任务算法，请返回上一步添加算法';
   if (tableRows.value.length && !filteredRows.value.length)
     return '没有符合搜索条件的记录，请调整搜索关键词';
   return '暂无可配置的算法阈值项';
 });
 
-function syncParamConfigs() {
-  ensureParamConfigs(payload.value, modelNameMap.value);
+function forceComboMode() {
+  if (payload.value.param_config_mode !== 'combo')
+    payload.value.param_config_mode = 'combo';
 }
 
-function handleParamModeChange(mode: ParamConfigMode) {
-  handleParamConfigModeChange(payload.value, mode, modelNameMap.value);
-  handleRegionConfigModeChange(payload.value, mode, modelNameMap.value);
+function syncParamConfigs() {
+  forceComboMode();
+  ensureParamConfigs(payload.value, modelNameMap.value);
 }
 
 function openEdit(row: ThresholdTableRow) {
@@ -235,7 +217,7 @@ watch(
 
 watch(
   () => payload.value.param_config_mode,
-  () => syncParamConfigs(),
+  () => forceComboMode(),
 );
 
 enrichModelNamesFromApi();
