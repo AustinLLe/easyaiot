@@ -1084,8 +1084,7 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background:
-    radial-gradient(ellipse 100% 90% at 50% 45%, rgba(16, 24, 52, 0.5) 0%, @sugar-bg 72%);
+  background: @sugar-bg;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1108,21 +1107,10 @@ function handleChartResize() {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(
-        ellipse 68% 58% at 50% 42%,
-        rgba(52, 134, 218, 0.14) 0%,
-        rgba(28, 32, 68, 0.28) 42%,
-        transparent 72%
-      ),
-      radial-gradient(
-        ellipse 96% 88% at 50% 50%,
-        transparent 38%,
-        rgba(5, 8, 20, 0.52) 76%,
-        rgba(2, 4, 12, 0.78) 100%
-      ),
-      linear-gradient(rgba(52, 134, 218, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 134, 218, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+      linear-gradient(rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(40, 30, 47, 0.72) 0%, rgba(10, 22, 40, 0.92) 100%);
+    background-size: 24px 24px, 24px 24px, 100% 100%;
     pointer-events: none;
     z-index: 0;
   }
