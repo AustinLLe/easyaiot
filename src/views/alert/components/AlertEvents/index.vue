@@ -42,7 +42,7 @@
 
         <template v-else-if="column.key === 'record_clip'">
           <a-button
-            v-if="hasRecordClip(record) || (record.device_id && record.time && !isSnapTask(record))"
+            v-if="hasRecordClip(record)"
             type="link"
             size="small"
             @click="handleViewVideo(record)"
@@ -127,7 +127,7 @@ import { Badge, Dropdown, Menu, MenuItem, Tag } from 'ant-design-vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { extractAlertClientFilters, getBasicColumns, getFormConfig } from '../../Data';
-import { queryAlarmList, queryAlertRecord } from '@/api/device/calculate';
+import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus } from '@/api/device/calculate';
 import AlertCards from './AlertCards/index.vue';
 import AlertEventPushModal from './AlertEventPushModal.vue';
 import ImageModal from '../ImageModal/index.vue';
@@ -151,7 +151,6 @@ import {
   loadAlertUiState,
   resolveAlertImageUrl,
   resolveSeverityLevel,
-  saveAlertUiState,
   type AlertUiState,
   type UiArchiveStatus,
   type UiProcessStatus,
@@ -188,10 +187,6 @@ let cardListReload = () => {};
 
 function getMethod(m: any) {
   cardListReload = m;
-}
-
-function persistUiState() {
-  saveAlertUiState(uiState);
 }
 
 const [
@@ -240,29 +235,29 @@ function isSnapTask(record: Record<string, any>) {
   return t === 'snap' || t === 'snapshot';
 }
 
-function markProcessed(ids: number[], asFalseAlarm = false) {
-  ids.forEach((id) => {
-    uiState.process[id] = asFalseAlarm ? 'false_alarm' : 'processed';
+async function markProcessed(ids: number[], asFalseAlarm = false) {
+  await updateAlertProcessStatus({
+    ids,
+    process_status: asFalseAlarm ? 'false_alarm' : 'processed',
   });
-  persistUiState();
   reload();
   cardListReload();
-  createMessage.success(asFalseAlarm ? '已标记为误报（仅前端）' : '已标记为已处理（仅前端）');
+  createMessage.success(asFalseAlarm ? '已标记为误报' : '已标记为已处理');
 }
 
-function markArchived(ids: number[], archiveType: UiArchiveStatus) {
+async function markArchived(ids: number[], archiveType: UiArchiveStatus) {
   if (archiveType === 'none')
     return;
-  ids.forEach((id) => {
-    uiState.archive[id] = archiveType;
+  await updateAlertArchiveStatus({
+    ids,
+    archive_status: archiveType,
   });
-  persistUiState();
   reload();
   cardListReload();
   createMessage.success(
     archiveType === 'correct'
-      ? '已标记为正确报警（仅前端）'
-      : '已标记为错误报警（仅前端）',
+      ? '已标记为正确报警'
+      : '已标记为错误报警',
   );
 }
 
@@ -292,12 +287,12 @@ function getSelectedIds(): number[] {
   return rows.map((r: any) => r.id).filter(Boolean);
 }
 
-function handleArchiveMenuClick({ key }: { key: string }) {
+async function handleArchiveMenuClick({ key }: { key: string }) {
   const ids = getSelectedIds();
   if (!ids.length)
     return;
   if (key === 'correct' || key === 'incorrect') {
-    markArchived(ids, key);
+    await markArchived(ids, key);
     clearSelectedRowKeys?.();
     clearGridSelection();
   }
@@ -333,14 +328,14 @@ function handlePushConfirm(payload: AlertPushDraft) {
   clearGridSelection();
 }
 
-function handleBatchAction(action: string) {
+async function handleBatchAction(action: string) {
   const ids = getSelectedIds();
   if (!ids.length)
     return;
 
   switch (action) {
     case 'process':
-      markProcessed(ids);
+      await markProcessed(ids);
       clearSelectedRowKeys?.();
       clearGridSelection();
       break;
@@ -383,50 +378,43 @@ let lastVideoErrorMsg = '';
 const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl)
     return '';
-  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))
-    return videoUrl;
-  if (videoUrl.startsWith('/api/v1/buckets'))
-    return `${window.location.origin}${videoUrl}`;
-  if (videoUrl.startsWith('/'))
-    return `${import.meta.env.VITE_GLOB_API_URL || ''}${videoUrl}`;
-  return videoUrl;
+  const normalized = String(videoUrl).replace(/\\/g, '/').trim();
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '').replace(/\/$/, '');
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    try {
+      const url = new URL(normalized);
+      if (url.pathname.startsWith('/api/v1/buckets'))
+        return `${apiBase}/video/alert/record?path=${encodeURIComponent(`${url.pathname}${url.search}`)}`;
+    }
+    catch {
+      return normalized;
+    }
+    return normalized;
+  }
+  if (normalized.startsWith('/api/v1/buckets'))
+    return `${apiBase}/video/alert/record?path=${encodeURIComponent(normalized)}`;
+  if (normalized.startsWith('/video/alert/record'))
+    return `${apiBase}${normalized}`;
+  if (normalized.startsWith('/'))
+    return `${apiBase}/video/alert/record?path=${encodeURIComponent(normalized)}`;
+  return normalized;
 };
 
 const handleViewVideo = async (record: Record<string, any>) => {
-  if (!record.device_id || !record.time) {
-    createMessage.warn('缺少必要信息：设备ID或告警时间');
+  const recordPath = String(record.record_path || '').trim();
+  if (!recordPath) {
+    showVideoErrorOnce('?????????');
     return;
   }
 
-  try {
-    const result = await queryAlertRecord({
-      device_id: record.device_id,
-      alert_time: record.time,
-      time_range: 60,
-    });
-
-    if (result?.video_url) {
-      openVideoModal(true, {
-        id: record.device_id,
-        http_stream: getVideoUrl(result.video_url),
-      });
-      lastVideoErrorTime = 0;
-      lastVideoErrorMsg = '';
-    }
-    else {
-      showVideoErrorOnce(result?.message || '暂未找到该时间段的录像文件');
-    }
-  }
-  catch (error: any) {
-    const errorData = error?.response?.data || error?.data;
-    if (errorData?.code === 400) {
-      showVideoErrorOnce(errorData.message || '暂未找到该时间段的录像文件');
-    }
-    else {
-      showVideoErrorOnce(error?.response?.data?.message || error?.message || '查询录像失败，请稍后重试');
-    }
-  }
+  openVideoModal(true, {
+    id: record.device_id || record.id,
+    http_stream: getVideoUrl(recordPath),
+  });
+  lastVideoErrorTime = 0;
+  lastVideoErrorMsg = '';
 };
+
 
 function showVideoErrorOnce(message: string) {
   const now = Date.now();
@@ -452,26 +440,24 @@ function handleCardPush(record: Record<string, any>) {
   pushModalVisible.value = true;
 }
 
-function handleCardUpdateProcess(record: Record<string, any>, status: UiProcessStatus) {
+async function handleCardUpdateProcess(record: Record<string, any>, status: UiProcessStatus) {
   if (!record.id)
     return;
-  if (status === 'pending')
-    delete uiState.process[record.id];
-  else
-    uiState.process[record.id] = status === 'false_alarm' ? 'false_alarm' : 'processed';
-  persistUiState();
+  await updateAlertProcessStatus({
+    ids: [record.id],
+    process_status: status,
+  });
   reload();
   cardListReload();
 }
 
-function handleCardUpdateArchive(record: Record<string, any>, status: UiArchiveStatus) {
+async function handleCardUpdateArchive(record: Record<string, any>, status: UiArchiveStatus) {
   if (!record.id)
     return;
-  if (status === 'none')
-    delete uiState.archive[record.id];
-  else
-    uiState.archive[record.id] = status;
-  persistUiState();
+  await updateAlertArchiveStatus({
+    ids: [record.id],
+    archive_status: status,
+  });
   reload();
   cardListReload();
 }

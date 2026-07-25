@@ -4,6 +4,7 @@ import type {
   AlertPushMode,
   AlertRuleOperator,
   AlertRuleScopeType,
+  AnalysisMode,
   SnapIntervalUnit,
 } from './algorithmTaskDraft.types';
 
@@ -127,6 +128,7 @@ export interface BackendAlertPushConfig {
 export interface AlgorithmTaskPayload {
   task_name: string;
   task_type: 'realtime' | 'snap';
+  analysis_mode?: AnalysisMode;
   task_mode: 'wizard' | 'workflow';
   is_enabled: boolean;
   schedule: BackendTaskSchedule;

@@ -4,6 +4,9 @@ export type AlgorithmTaskMode = 'wizard';
 
 export type ConfigMode = 'camera' | 'algorithm';
 
+/** 分析模式：静态检测按帧判断；动态追踪基于目标轨迹判断 */
+export type AnalysisMode = 'static' | 'dynamic';
+
 /** 算法阈值配置模式：组合=每摄像头×每算法；算法=同名算法共用 */
 export type ParamConfigMode = 'combo' | 'algorithm';
 
@@ -196,6 +199,7 @@ export interface DefenseWeekScheduleEntry {
 export interface AlgorithmTaskDraft {
   task_name: string;
   task_type: 'realtime' | 'snap';
+  analysis_mode: AnalysisMode;
   /** 抓拍间隔数值（仅抓拍任务） */
   snap_interval_value?: number;
   /** 抓拍间隔单位（仅抓拍任务） */

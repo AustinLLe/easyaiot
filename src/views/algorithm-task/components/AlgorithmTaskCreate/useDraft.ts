@@ -36,6 +36,7 @@ import {
   DEFAULT_SNAP_INTERVAL_UNIT,
   DEFAULT_SNAP_INTERVAL_VALUE,
   ensureSnapIntervalDefaults,
+  normalizeRealModelIds,
   parseSnapCronFromExpression,
   syncLegacyIdsFromDraft,
   validateSnapInterval,
@@ -47,6 +48,7 @@ export {
   DEFAULT_SNAP_INTERVAL_VALUE,
   buildSnapCronFromInterval,
   ensureSnapIntervalDefaults,
+  normalizeRealModelIds,
   parseSnapCronFromExpression,
   syncLegacyIdsFromDraft,
   validateSnapInterval,
@@ -74,6 +76,7 @@ export function createDefaultDraft(): AlgorithmTaskDraft {
   return {
     task_name: '',
     task_type: 'realtime',
+    analysis_mode: 'static',
     snap_interval_value: DEFAULT_SNAP_INTERVAL_VALUE,
     snap_interval_unit: DEFAULT_SNAP_INTERVAL_UNIT,
     task_mode: 'wizard',
@@ -137,12 +140,12 @@ export function validateSectionDraft(
 
 function parseModelIds(task: AlgorithmTask): number[] {
   if (Array.isArray(task.model_ids))
-    return [...task.model_ids];
+    return normalizeRealModelIds(task.model_ids);
   if (typeof task.model_ids === 'string') {
     try {
       const parsed = JSON.parse(task.model_ids);
       if (Array.isArray(parsed))
-        return parsed.map(Number).filter(Number.isFinite);
+        return normalizeRealModelIds(parsed);
     }
     catch {
       return [];
@@ -254,6 +257,9 @@ export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskD
 
   draft.task_name = task.task_name ?? '';
   draft.task_type = task.task_type ?? 'realtime';
+  draft.analysis_mode = draft.task_type === 'realtime' && !!task.tracking_enabled
+    ? 'dynamic'
+    : 'static';
   draft.task_mode = resolveTaskMode(task);
   draft.device_ids = deviceIds;
   draft.model_ids = modelIds;
@@ -330,23 +336,27 @@ export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskD
 
 function restoreParamConfigFromModel(model: BackendBindingModel): AlgorithmParamConfigDraft {
   const hasAlgorithmParams = Object.keys(model.algorithm_params || {}).length > 0;
+  const defaultDetection = createDefaultDetectionConfig();
+  const detectionConfig = (model as BackendBindingModel & {
+    detection_config?: Partial<BackendBindingModel['detection_config']>;
+  }).detection_config ?? {};
   return {
     preset: 'balanced',
     custom_enabled: hasAlgorithmParams,
     detection_config: {
       model_id: model.model_id,
-      conf: model.detection_config.conf,
-      iou: model.detection_config.iou,
-      imgsz: model.detection_config.imgsz,
-      extract_interval: model.detection_config.extract_interval,
-      class_whitelist: [...model.detection_config.class_whitelist],
-      min_box_area: model.detection_config.min_box_area,
-      max_detections: model.detection_config.max_detections,
-      draw_objects: model.detection_config.draw_objects
-        ? { ...model.detection_config.draw_objects }
+      conf: detectionConfig.conf ?? defaultDetection.conf,
+      iou: detectionConfig.iou ?? defaultDetection.iou,
+      imgsz: detectionConfig.imgsz ?? defaultDetection.imgsz,
+      extract_interval: detectionConfig.extract_interval ?? defaultDetection.extract_interval,
+      class_whitelist: [...(detectionConfig.class_whitelist ?? defaultDetection.class_whitelist)],
+      min_box_area: detectionConfig.min_box_area ?? defaultDetection.min_box_area,
+      max_detections: detectionConfig.max_detections ?? defaultDetection.max_detections,
+      draw_objects: detectionConfig.draw_objects
+        ? { ...detectionConfig.draw_objects }
         : undefined,
-      draw_style: model.detection_config.draw_style
-        ? { ...model.detection_config.draw_style }
+      draw_style: detectionConfig.draw_style
+        ? { ...detectionConfig.draw_style }
         : undefined,
     },
     algorithm_params: hasAlgorithmParams ? { ...model.algorithm_params } : {},
@@ -381,6 +391,9 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
   const draft = createDefaultDraft();
   draft.task_name = payload.task_name ?? '';
   draft.task_type = payload.task_type ?? 'realtime';
+  draft.analysis_mode = draft.task_type === 'realtime'
+    ? (payload.analysis_mode ?? (payload.tracking_config?.enabled ? 'dynamic' : 'static'))
+    : 'static';
   draft.task_mode = payload.task_mode === 'workflow' ? 'wizard' : (payload.task_mode ?? 'wizard');
   draft.config_mode = 'camera';
   draft.param_config_mode = 'combo';
@@ -419,7 +432,7 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
   draft.camera_bindings = (payload.bindings ?? []).map(binding => ({
     device_id: binding.device_id,
     device_name: binding.device_name,
-    model_ids: binding.models.map(model => model.model_id),
+    model_ids: normalizeRealModelIds(binding.models.map(model => model.model_id)),
   }));
 
   draft.model_name_map = {};
@@ -430,6 +443,8 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
 
   for (const binding of payload.bindings ?? []) {
     for (const model of binding.models) {
+      if (!Number.isFinite(Number(model.model_id)) || Number(model.model_id) <= 0)
+        continue;
       draft.model_name_map[model.model_id] = model.model_name;
       draft.combo_param_configs[`${binding.device_id}__${model.model_id}`] =
         restoreParamConfigFromModel(model);

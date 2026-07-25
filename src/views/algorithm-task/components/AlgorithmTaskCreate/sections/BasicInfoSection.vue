@@ -13,13 +13,23 @@
           class="field-control"
         />
       </FormItem>
-      <FormItem label="任务类型" required>
-        <Select
-          v-model:value="payload.task_type"
-          :options="taskTypeOptions"
-          class="field-control"
-        />
-      </FormItem>
+      <div class="task-mode-row">
+        <FormItem label="任务类型" required class="task-mode-item">
+          <Select
+            v-model:value="payload.task_type"
+            :options="taskTypeOptions"
+            class="field-control"
+          />
+        </FormItem>
+        <FormItem label="分析模式" required class="task-mode-item">
+          <Select
+            v-model:value="payload.analysis_mode"
+            :options="analysisModeOptions"
+            :disabled="payload.task_type === 'snap'"
+            class="field-control"
+          />
+        </FormItem>
+      </div>
       <FormItem v-if="payload.task_type === 'realtime'" label="抽帧间隔" required>
         <InputNumber
           v-model:value="payload.detection_config.extract_interval"
@@ -55,7 +65,7 @@
 <script lang="ts" setup>
 import { computed, watch } from 'vue';
 import { Form, FormItem, Input, InputNumber, Select } from 'ant-design-vue';
-import type { AlgorithmTaskDraft, SnapIntervalUnit } from '../../../algorithmTaskDraft.types';
+import type { AlgorithmTaskDraft, AnalysisMode, SnapIntervalUnit } from '../../../algorithmTaskDraft.types';
 import DefenseSchedulePicker from '../../TaskFormWidgets/DefenseSchedulePicker.vue';
 import {
   DEFAULT_SNAP_INTERVAL_UNIT,
@@ -77,6 +87,11 @@ const taskTypeOptions = [
   { label: '实时算法任务', value: 'realtime' },
   { label: '抓拍算法任务', value: 'snap' },
 ];
+
+const analysisModeOptions = computed<Array<{ label: string; value: AnalysisMode; disabled?: boolean }>>(() => [
+  { label: '静态检测', value: 'static' },
+  { label: '动态追踪', value: 'dynamic', disabled: payload.value.task_type === 'snap' },
+]);
 
 const snapUnitOptions: Array<{ label: string; value: SnapIntervalUnit }> = [
   { label: '秒', value: 'second' },
@@ -114,11 +129,28 @@ const defenseConfig = computed({
 
 watch(
   () => payload.value.task_type,
-  (type) => {
-    if (type === 'realtime' && !payload.value.detection_config.extract_interval)
-      payload.value.detection_config.extract_interval = 25;
-    if (type === 'snap')
-      ensureSnapIntervalDefaults(payload.value);
+	  (type) => {
+	    if (type === 'realtime' && !payload.value.detection_config.extract_interval)
+	      payload.value.detection_config.extract_interval = 25;
+	    if (type === 'realtime' && !payload.value.analysis_mode)
+	      payload.value.analysis_mode = 'static';
+	    if (type === 'snap') {
+	      payload.value.analysis_mode = 'static';
+	      payload.value.detection_config.enable_tracking = false;
+	      ensureSnapIntervalDefaults(payload.value);
+	    }
+	  },
+	  { immediate: true },
+	);
+
+watch(
+  () => payload.value.analysis_mode,
+  (mode) => {
+    if (payload.value.task_type === 'snap' && mode !== 'static') {
+      payload.value.analysis_mode = 'static';
+      return;
+    }
+    payload.value.detection_config.enable_tracking = payload.value.task_type === 'realtime' && mode === 'dynamic';
   },
   { immediate: true },
 );
@@ -159,6 +191,17 @@ watch(
 .field-control {
   width: 100%;
   max-width: 360px;
+}
+
+.task-mode-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 360px));
+  gap: 16px;
+  align-items: start;
+}
+
+.task-mode-item {
+  margin-bottom: 24px;
 }
 
 .snap-interval-row {

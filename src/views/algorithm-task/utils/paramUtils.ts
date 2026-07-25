@@ -1144,7 +1144,7 @@ export function getExtensionParamKeys(profile: ModelExtensionProfile): string[] 
 }
 
 export async function fetchModelExtensionProfile(modelId: number): Promise<ModelExtensionProfile> {
-  if (!modelId)
+  if (!Number.isFinite(Number(modelId)) || Number(modelId) <= 0)
     return { custom_enabled: false, algorithm_params: {}, algorithm_param_descriptions: {} };
 
   const cached = profileCache.get(modelId);

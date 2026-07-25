@@ -38,6 +38,7 @@ import {
 import {
   buildSnapCronFromInterval,
   ensureSnapIntervalDefaults,
+  normalizeRealModelIds,
   syncLegacyIdsFromDraft,
 } from './draftCommon';
 
@@ -97,7 +98,7 @@ function buildBindingsFromDraft(draft: AlgorithmTaskDraft): BackendTaskBinding[]
     return {
       device_id: binding.device_id,
       device_name: binding.device_name,
-      models: binding.model_ids.map((rawModelId) => {
+      models: normalizeRealModelIds(binding.model_ids).map((rawModelId) => {
         const modelId = Number(rawModelId);
         const row = modelRows.find(item => item.model_id === modelId)
           ?? {
@@ -241,11 +242,14 @@ export function buildBackendTaskPayloadFromDraft(
     mapAlertRuleToBackend(rule, draft, pushConfigs),
   );
 
-  const trackingEnabled = draft.task_type === 'realtime' && !!draft.detection_config.enable_tracking;
+  const analysisMode = draft.task_type === 'realtime' ? (draft.analysis_mode ?? 'static') : 'static';
+  const trackingEnabled = draft.task_type === 'realtime'
+    && (analysisMode === 'dynamic' || !!draft.detection_config.enable_tracking);
 
   const payload: AlgorithmTaskPayload = {
     task_name: draft.task_name.trim(),
     task_type: draft.task_type,
+    analysis_mode: analysisMode,
     task_mode: draft.task_mode ?? 'wizard',
     is_enabled: options?.is_enabled ?? false,
     schedule: {
@@ -278,7 +282,7 @@ export function buildBackendTaskPayloadFromDraft(
     },
     alert_push_configs: pushConfigs.map(mapAlertPushToBackend),
     device_ids: [...draft.device_ids],
-    model_ids: [...draft.model_ids],
+    model_ids: normalizeRealModelIds(draft.model_ids),
     extract_interval: draft.detection_config.extract_interval ?? 25,
     tracking_enabled: trackingEnabled,
     tracking_similarity_threshold:

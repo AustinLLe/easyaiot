@@ -6,6 +6,10 @@
     </div>
 
     <div class="alert-rule-panel">
+      <div v-if="payload.analysis_mode === 'dynamic'" class="dynamic-mode-notice">
+        动态追踪模式下，区域入侵、停留和越线的绘制将合并到单条告警规则中配置。
+      </div>
+
       <div class="table-toolbar">
         <Button type="primary" @click="openCreate">
           <PlusOutlined />
@@ -223,6 +227,13 @@ function handleEditClose() {
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.dynamic-mode-notice {
+  padding: 10px 16px;
+  color: #0958d9;
+  background: #e6f4ff;
+  border-bottom: 1px solid #bae0ff;
 }
 
 .table-toolbar {

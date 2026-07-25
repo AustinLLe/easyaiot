@@ -76,6 +76,7 @@ import {
   buildApiPayloadFromDraft,
   buildSubmitPayloadFromDraft,
   createDefaultDraft,
+  syncLegacyIdsFromDraft,
   validateSectionDraft,
 } from './useDraft';
 import {
@@ -117,7 +118,7 @@ const submitting = ref(false);
 const taskPayload = ref<AlgorithmTaskDraft>(createDefaultDraft());
 const activeSection = ref<AlgorithmTaskSectionKey>('basic');
 
-const sectionList: Array<{
+const baseSectionList: Array<{
   key: AlgorithmTaskSectionKey;
   label: string;
   icon: Component;
@@ -131,14 +132,20 @@ const sectionList: Array<{
   { key: 'alert_push', label: '告警推送', icon: NotificationOutlined, component: AlertPushSection },
 ];
 
+const sectionList = computed(() =>
+  baseSectionList.filter(item =>
+    !(item.key === 'region' && taskPayload.value.analysis_mode === 'dynamic'),
+  ),
+);
+
 const sectionIndex = computed(() =>
-  sectionList.findIndex(item => item.key === activeSection.value),
+  sectionList.value.findIndex(item => item.key === activeSection.value),
 );
 
 const isFirstSection = computed(() => sectionIndex.value <= 0);
-const isLastSection = computed(() => sectionIndex.value >= sectionList.length - 1);
+const isLastSection = computed(() => sectionIndex.value >= sectionList.value.length - 1);
 
-const currentSectionComponent = computed(() => sectionList[sectionIndex.value]?.component);
+const currentSectionComponent = computed(() => sectionList.value[sectionIndex.value]?.component);
 
 const isEditingMock = computed(() =>
   props.mockTaskId != null && isMockAlgorithmTask(props.mockTaskId),
@@ -157,7 +164,37 @@ function resetPayload() {
   activeSection.value = 'basic';
 }
 
+function normalizeInitialDraft(draft: AlgorithmTaskDraft): AlgorithmTaskDraft {
+  const defaults = createDefaultDraft();
+  const next = {
+    ...defaults,
+    ...draft,
+    detection_config: {
+      ...defaults.detection_config,
+      ...(draft.detection_config ?? {}),
+    },
+    camera_bindings: Array.isArray(draft.camera_bindings) ? draft.camera_bindings : [],
+    device_ids: Array.isArray(draft.device_ids) ? draft.device_ids : [],
+    model_ids: Array.isArray(draft.model_ids) ? draft.model_ids : [],
+    combo_param_configs: draft.combo_param_configs ?? {},
+    model_param_configs: draft.model_param_configs ?? {},
+    model_name_map: draft.model_name_map ?? {},
+    combo_region_configs: draft.combo_region_configs ?? {},
+    model_region_configs: draft.model_region_configs ?? {},
+    regions: Array.isArray(draft.regions) ? draft.regions : [],
+    alert_rules: Array.isArray(draft.alert_rules) ? draft.alert_rules : [],
+    alert_push_configs: Array.isArray(draft.alert_push_configs) ? draft.alert_push_configs : [],
+  } as AlgorithmTaskDraft;
+  next.analysis_mode = next.task_type === 'realtime' && next.analysis_mode === 'dynamic'
+    ? 'dynamic'
+    : 'static';
+  syncLegacyIdsFromDraft(next);
+  return next;
+}
+
 function validateSection(section: AlgorithmTaskSectionKey) {
+  if (section === 'region' && taskPayload.value.analysis_mode === 'dynamic')
+    return null;
   return validateSectionDraft(section, taskPayload.value);
 }
 
@@ -179,10 +216,7 @@ watch(open, (visible) => {
   if (visible) {
     if (props.initialDraft) {
       const draft = JSON.parse(JSON.stringify(props.initialDraft)) as AlgorithmTaskDraft;
-      if (!draft.alert_push_configs) {
-        draft.alert_push_configs = [];
-      }
-      taskPayload.value = draft;
+      taskPayload.value = normalizeInitialDraft(draft);
     }
     else {
       resetPayload();
@@ -192,18 +226,28 @@ watch(open, (visible) => {
   }
 });
 
+watch(
+  () => taskPayload.value.analysis_mode,
+  (mode) => {
+    if (mode === 'dynamic' && activeSection.value === 'region')
+      activeSection.value = 'alert';
+  },
+);
+
 function showValidationError(error: string) {
   createWarningModal({ title: '提示', content: error });
 }
 
 function handleNavClick({ key }: { key: string | number }) {
   const targetKey = String(key) as AlgorithmTaskSectionKey;
-  const targetIndex = sectionList.findIndex(item => item.key === targetKey);
+  const targetIndex = sectionList.value.findIndex(item => item.key === targetKey);
+  if (targetIndex < 0)
+    return;
   const currentIndex = sectionIndex.value;
 
   if (targetIndex > currentIndex) {
     for (let i = currentIndex; i < targetIndex; i++) {
-      const error = validateSection(sectionList[i].key);
+      const error = validateSection(sectionList.value[i].key);
       if (error) {
         showValidationError(error);
         return;
@@ -224,7 +268,7 @@ function handleNavClick({ key }: { key: string | number }) {
 function handlePrev() {
   if (isFirstSection.value)
     return;
-  activeSection.value = sectionList[sectionIndex.value - 1].key;
+  activeSection.value = sectionList.value[sectionIndex.value - 1].key;
 }
 
 function handleNext() {
@@ -234,7 +278,7 @@ function handleNext() {
     return;
   }
   if (!isLastSection.value)
-    activeSection.value = sectionList[sectionIndex.value + 1].key;
+    activeSection.value = sectionList.value[sectionIndex.value + 1].key;
 }
 
 function validateRequiredSections() {

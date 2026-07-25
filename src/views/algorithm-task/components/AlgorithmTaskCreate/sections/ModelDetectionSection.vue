@@ -193,8 +193,6 @@ async function enrichModelNamesFromApi() {
       if (item?.id != null && item?.name)
         map[item.id] = item.name;
     }
-    map[-1] = map[-1] || 'yolo11n.pt';
-    map[-2] = map[-2] || 'yolov8n.pt';
     payload.value.model_name_map = map;
   }
   catch {

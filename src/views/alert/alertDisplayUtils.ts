@@ -1,4 +1,4 @@
-/** 告警列表展示辅助（仅前端，不依赖后端新字段） */
+/** 告警列表展示辅助 */
 
 export type UiProcessStatus = 'pending' | 'processed' | 'false_alarm';
 export type UiArchiveStatus = 'none' | 'correct' | 'incorrect';
@@ -97,9 +97,12 @@ export function buildExtraInfoSummary(record: Record<string, any>): string {
 
 export function resolveRuleName(record: Record<string, any>): string {
   const info = parseInformation(record.information);
+  const rule = info?.rule && typeof info.rule === 'object' ? info.rule : null;
   const name = record.rule_name
     ?? info?.rule_name
-    ?? info?.alert_rule_name;
+    ?? info?.alert_rule_name
+    ?? rule?.rule_name
+    ?? rule?.name;
   return name ? String(name) : '--';
 }
 
@@ -151,7 +154,8 @@ export function getProcessStatus(
   record: Record<string, any>,
   uiState: AlertUiState,
 ): { label: string; color: string; value: UiProcessStatus } {
-  const value = uiState.process[record.id] ?? 'pending';
+  const raw = record.process_status ?? uiState.process[record.id] ?? 'pending';
+  const value: UiProcessStatus = raw === 'processed' || raw === 'false_alarm' ? raw : 'pending';
   const map: Record<UiProcessStatus, { label: string; color: string }> = {
     pending: { label: '未处理', color: 'error' },
     processed: { label: '已处理', color: 'success' },
@@ -164,7 +168,7 @@ export function getArchiveStatus(
   record: Record<string, any>,
   uiState: AlertUiState,
 ): { label: string; color: string; badgeStatus: 'default' | 'success' | 'error'; value: UiArchiveStatus } {
-  const raw = uiState.archive[record.id];
+  const raw = record.archive_status ?? uiState.archive[record.id];
   const value = normalizeArchiveStatus(raw);
   const map: Record<UiArchiveStatus, { label: string; color: string; badgeStatus: 'default' | 'success' | 'error' }> = {
     none: { label: '暂未归档', color: 'default', badgeStatus: 'default' },
@@ -174,7 +178,7 @@ export function getArchiveStatus(
   return { ...map[value], value };
 }
 
-/** 前端本地筛选（后端暂无对应字段） */
+/** 前端本地筛选：处理/归档已由后端筛选，这里只保留报警等级兜底筛选。 */
 export function filterAlertsClientSide(
   list: Record<string, any>[],
   filters: {
@@ -188,16 +192,6 @@ export function filterAlertsClientSide(
     if (filters.severity) {
       const level = resolveSeverityLevel(record).label;
       if (level !== filters.severity)
-        return false;
-    }
-    if (filters.process_status) {
-      const status = getProcessStatus(record, uiState).value;
-      if (status !== filters.process_status)
-        return false;
-    }
-    if (filters.archive_status) {
-      const status = getArchiveStatus(record, uiState).value;
-      if (status !== filters.archive_status)
         return false;
     }
     return true;

@@ -113,7 +113,7 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
 }
 
 export function syncClassWhitelistFromDrawObjects(draft: ModelDraft) {
-  draft.detection_config.class_whitelist = draft.draw_objects.items
+  draft.detection_config.class_whitelist = dedupeDrawObjectItems(draft.draw_objects.items)
     .filter(item => item.enabled && item.class_key.trim())
     .map(item => item.class_key.trim());
 }
@@ -142,7 +142,21 @@ function normalizeDrawObjectItems(raw: unknown, modelName = ''): ModelDrawObject
     });
   });
 
-  return mergeLegacyDrawObjectRows(items, modelName);
+  return dedupeDrawObjectItems(mergeLegacyDrawObjectRows(items, modelName));
+}
+
+function dedupeDrawObjectItems(items: ModelDrawObjectItem[]): ModelDrawObjectItem[] {
+  const result: ModelDrawObjectItem[] = [];
+  const seenKeys = new Set<string>();
+  for (const item of items) {
+    const classKey = item.class_key.trim();
+    const key = classKey || `__empty__${item.id}`;
+    if (seenKeys.has(key))
+      continue;
+    seenKeys.add(key);
+    result.push(item);
+  }
+  return result;
 }
 
 function createDefaultStyleCard(partial?: Partial<DrawStyleCardConfig>): DrawStyleCardConfig {
@@ -255,8 +269,22 @@ export type ModelClassLabelDraft = {
   name?: string;
 };
 
+function normalizeClassLabelDrafts(labels?: ModelClassLabelDraft[]): Array<{ class_key: string; label: string }> {
+  const normalized: Array<{ class_key: string; label: string }> = [];
+  const seen = new Set<string>();
+  for (const [index, item] of (labels ?? []).entries()) {
+    const classKey = String(item.class_key ?? item.classKey ?? index).trim();
+    const label = String(item.label ?? item.name ?? '').trim();
+    if (!classKey || !label || seen.has(classKey))
+      continue;
+    seen.add(classKey);
+    normalized.push({ class_key: classKey, label });
+  }
+  return normalized;
+}
+
 export function parseClassLabelsText(text: string): ModelClassLabelDraft[] {
-  return text
+  const parsed = text
     .split(/[\r\n,;]+/)
     .map(line => line.trim())
     .filter(Boolean)
@@ -266,19 +294,18 @@ export function parseClassLabelsText(text: string): ModelClassLabelDraft[] {
         return { class_key: match[1], label: match[2].trim() };
       return { class_key: String(index), label: line };
     });
+  return normalizeClassLabelDrafts(parsed);
 }
 
 export function classLabelsToText(labels?: ModelClassLabelDraft[]): string {
-  if (!Array.isArray(labels))
-    return '';
-  return labels
-    .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
+  return normalizeClassLabelDrafts(labels)
+    .map(item => `${item.class_key} ${item.label}`.trim())
     .filter(Boolean)
     .join('\n');
 }
 
 export function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
-  return items
+  return dedupeDrawObjectItems(items)
     .filter(item => item.class_key.trim() && item.label.trim())
     .map(item => `${item.class_key.trim()} ${item.label.trim()}`)
     .join('\n');
@@ -289,12 +316,7 @@ export function syncClassLabelsTextFromDrawObjects(draft: ModelDraft) {
 }
 
 export function applyClassLabelsToDraft(draft: ModelDraft, labels: ModelClassLabelDraft[]) {
-  const normalized = labels
-    .map((item, index) => ({
-      class_key: String(item.class_key ?? item.classKey ?? index).trim(),
-      label: String(item.label ?? item.name ?? '').trim(),
-    }))
-    .filter(item => item.class_key && item.label);
+  const normalized = normalizeClassLabelDrafts(labels);
 
   if (!normalized.length) {
     draft.draw_objects = { ...draft.draw_objects, items: [] };
@@ -304,7 +326,7 @@ export function applyClassLabelsToDraft(draft: ModelDraft, labels: ModelClassLab
   }
 
   const existingByKey = new Map(
-    draft.draw_objects.items
+    dedupeDrawObjectItems(draft.draw_objects.items)
       .filter(item => item.class_key.trim())
       .map(item => [item.class_key.trim(), item]),
   );
@@ -415,7 +437,7 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
       draft.draw_objects.items = normalizeDrawObjectItems(drawObjects.items, name);
     }
     else if (Array.isArray(drawObjects.class_whitelist)) {
-      draft.draw_objects.items = (drawObjects.class_whitelist as unknown[])
+      draft.draw_objects.items = dedupeDrawObjectItems((drawObjects.class_whitelist as unknown[])
         .map((classKey, index) => createDrawObjectItem({
           id: String(index + 1),
           class_key: String(classKey).trim(),
@@ -423,16 +445,13 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
           enabled: true,
           preview_regions: index === 0 ? buildDefaultPreviewRegions() : undefined,
         }))
-        .filter(item => item.class_key);
+        .filter(item => item.class_key));
     }
   }
 
   syncClassWhitelistFromDrawObjects(draft);
   draft.class_labels_text = Array.isArray(record.class_labels)
-    ? (record.class_labels as Array<Record<string, unknown>>)
-        .map(item => `${String(item.class_key ?? item.classKey ?? '').trim()} ${String(item.label ?? item.name ?? '').trim()}`.trim())
-        .filter(Boolean)
-        .join('\n')
+    ? classLabelsToText(record.class_labels as ModelClassLabelDraft[])
     : buildClassLabelsTextFromDrawObjects(draft.draw_objects.items);
 
   if (record.draw_style && typeof record.draw_style === 'object') {

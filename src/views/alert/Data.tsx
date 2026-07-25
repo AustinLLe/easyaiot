@@ -48,13 +48,17 @@ export type AlertClientFilters = {
   archive_status: string | null;
 };
 
-/** 拆分 API 参数与仅前端筛选字段（表格/宫格共用） */
+/** 拆分 API 参数与本地展示筛选字段（表格/宫格共用） */
 export function extractAlertClientFilters(params: Record<string, any>): AlertClientFilters {
   normalizeAlertTimeRangeParams(params);
+  if (params._process_status)
+    params.process_status = params._process_status;
+  if (params._archive_status)
+    params.archive_status = params._archive_status;
   const clientFilters: AlertClientFilters = {
     severity: params._severity ?? null,
-    process_status: params._process_status ?? null,
-    archive_status: params._archive_status ?? null,
+    process_status: null,
+    archive_status: null,
   };
   delete params._severity;
   delete params._process_status;

@@ -9,7 +9,7 @@
           @mouseenter="keepShowTool"
           @mousemove="
             (e) => {
-              e.stopPropagation()
+              e.stopPropagation();
             }
           "
           @mouseleave="mouseenter"
@@ -29,12 +29,7 @@
               icon="ic:baseline-pause"
               @click="pause"
             />
-            <Icon
-              :size="iconSize"
-              icon="ic:baseline-stop"
-              class="jessibuca-btn"
-              @click="destroy"
-            />
+            <Icon :size="iconSize" icon="ic:baseline-stop" class="jessibuca-btn" @click="destroy" />
             <Icon
               :size="iconSize"
               v-if="!quieting"
@@ -87,13 +82,12 @@
 </template>
 
 <script>
-
-import {Icon} from "@/components/Icon";
-import {ref} from "vue";
+import { Icon } from "@/components/Icon";
+import { ref } from "vue";
 
 export default {
   name: "Player",
-  components: {Icon},
+  components: { Icon },
   props: {
     playUrl: {
       type: String,
@@ -102,12 +96,12 @@ export default {
     hasAudio: {
       type: Boolean,
       required: true,
-    }
+    },
   },
   data() {
     return {
       jessibuca: null,
-      version: '',
+      version: "",
       wasm: false,
       vc: "ff",
       playing: false,
@@ -121,10 +115,12 @@ export default {
       volume: 1,
       rotate: 0,
       useWCS: false,
-      useMSE: true,
+      // Chromium 新版本的 MSE 路径会在部分 HTTP-FLV 流上启动后立即断开。
+      // 默认使用 Jessibuca 的 WASM 解码路径，兼容性更稳定。
+      useMSE: false,
       useOffscreen: false,
       recording: false,
-      recordType: 'mp4',
+      recordType: "mp4",
       scale: 0,
       iconSize: 16,
       showToolBtnTimer: 0,
@@ -135,6 +131,8 @@ export default {
   },
   mounted() {
     this.create();
+    // 首次挂载时 playUrl 已经存在不会触发 watch，等播放器容器完成渲染后主动启动播放。
+    this.$nextTick(() => this.play());
     window.onerror = (msg) => (this.err = msg);
   },
   watch: {
@@ -142,10 +140,10 @@ export default {
       if (this.playUrl) {
         this.play();
       }
-    }
+    },
   },
   async unmounted() {
-    if(this.jessibuca){
+    if (this.jessibuca) {
       await this.jessibuca.destroy();
       this.jessibuca = null;
     }
@@ -157,16 +155,19 @@ export default {
         Object.assign(
           {
             container: this.$refs.container,
-            decoder: '/static/js/jessibuca/decoder.js',
+            decoder: "/static/js/jessibuca/decoder.js",
             videoBuffer: 0.2, // 缓存时长
+            // 拉伸画面以完整填满播放器窗口；不同摄像头分辨率不再产生黑边或缩在左上角。
             isResize: false,
+            isFullResize: false,
             useWCS: this.useWCS,
             useMSE: this.useMSE,
             text: "",
             // background: "bg.jpg",
             loadingText: "疯狂加载中...",
-            // hasAudio:false,
-            debug: true,
+            // 首页需要自动播放。浏览器只允许静音自动播放，是否输出声音必须由调用方决定。
+            hasAudio: this.hasAudio,
+            debug: false,
             supportDblclickFullscreen: true,
             showBandwidth: this.showBandwidth, // 显示网速
             operateBtns: {
@@ -177,11 +178,11 @@ export default {
             },
             vod: this.vod,
             forceNoOffscreen: !this.useOffscreen,
-            isNotMute: true,
-            timeout: 10
+            isNotMute: this.hasAudio,
+            timeout: 10,
           },
-          options
-        )
+          options,
+        ),
       );
       var _this = this;
       this.jessibuca.on("load", function () {
@@ -224,6 +225,8 @@ export default {
       // });
       this.jessibuca.on("videoInfo", function (info) {
         console.log("videoInfo", info);
+        // 视频尺寸可用后再次应用填充模式，确保切换不同分辨率的流时立即重新计算。
+        _this.jessibuca.setScaleMode(0);
       });
       this.jessibuca.on("error", function (error) {
         console.log("error", error);
@@ -231,9 +234,9 @@ export default {
       this.jessibuca.on("timeout", function () {
         console.log("timeout");
       });
-      this.jessibuca.on('start', function () {
-        console.log('frame start');
-      })
+      this.jessibuca.on("start", function () {
+        console.log("frame start");
+      });
       this.jessibuca.on("performance", function (performance) {
         var show = "卡顿";
         if (performance === 2) {
@@ -243,23 +246,23 @@ export default {
         }
         _this.performance = show;
       });
-      this.jessibuca.on('buffer', function (buffer) {
-        console.log('buffer', buffer);
-      })
-      this.jessibuca.on('stats', function (stats) {
-        console.log('stats', stats);
-      })
-      this.jessibuca.on('kBps', function (kBps) {
-        _this.kbs = Math.round(kBps)
+      this.jessibuca.on("buffer", function (buffer) {
+        console.log("buffer", buffer);
+      });
+      this.jessibuca.on("stats", function (stats) {
+        console.log("stats", stats);
+      });
+      this.jessibuca.on("kBps", function (kBps) {
+        _this.kbs = Math.round(kBps);
       });
       this.jessibuca.on("play", () => {
         this.playing = true;
         this.loaded = true;
         this.quieting = this.jessibuca.isMute();
       });
-      this.jessibuca.on('recordingTimestamp', (ts) => {
-        console.log('recordingTimestamp', ts);
-      })
+      this.jessibuca.on("recordingTimestamp", (ts) => {
+        console.log("recordingTimestamp", ts);
+      });
       // console.log(this.jessibuca);
     },
     play() {
@@ -315,35 +318,35 @@ export default {
       this.jessibuca.screenshot();
     },
     mouseenter() {
-      this.showToolBtn = true
+      this.showToolBtn = true;
       if (this.showToolBtnTimer) {
-        window.clearTimeout(this.showToolBtnTimer)
+        window.clearTimeout(this.showToolBtnTimer);
       }
       this.showToolBtnTimer = window.setTimeout(() => {
-        this.showToolBtn = false
-      }, 4000)
+        this.showToolBtn = false;
+      }, 4000);
     },
     keepShowTool() {
-      console.log('keepShowToolkeepShowToolkeepShowTool')
-      this.showToolBtn = true
-      window.clearTimeout(this.showToolBtnTimer)
+      console.log("keepShowToolkeepShowToolkeepShowTool");
+      this.showToolBtn = true;
+      window.clearTimeout(this.showToolBtnTimer);
     },
     isFullscreen() {
-      return document.fullscreenElement || false
+      return document.fullscreenElement || false;
     },
     async restartPlay(type) {
-      if (type === 'mse') {
+      if (type === "mse") {
         this.useWCS = false;
         this.useOffscreen = false;
-      } else if (type === 'wcs') {
-        this.useMSE = false
-      } else if (type === 'offscreen') {
-        this.useMSE = false
+      } else if (type === "wcs") {
+        this.useMSE = false;
+      } else if (type === "offscreen") {
+        this.useMSE = false;
       }
       await this.destroy();
       setTimeout(() => {
         this.play();
-      }, 100)
+      }, 100);
     },
     changeBuffer() {
       this.jessibuca.setBufferTime(Number(0.2));
@@ -403,7 +406,17 @@ export default {
   opacity: 0;
 }
 
+#container {
+  width: 100%;
+  height: 100%;
+}
+
+#container canvas,
 #container video {
-  max-height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform: none !important;
 }
 </style>

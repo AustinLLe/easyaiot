@@ -6,6 +6,7 @@ import LayoutHeader from './header/index.vue'
 import LayoutContent from './content/index.vue'
 import LayoutSideBar from './sider/index.vue'
 import LayoutMultipleHeader from './header/MultipleHeader.vue'
+import ResourceProtectionNotice from './ResourceProtectionNotice.vue'
 import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
 
 import { useHeaderSetting } from '@/hooks/setting/useHeaderSetting'
@@ -45,6 +46,7 @@ const layoutClass = computed(() => {
 
 <template>
   <Layout :class="prefixCls" v-bind="lockEvents">
+    <ResourceProtectionNotice />
 <!--    <LayoutFeatures />-->
     <LayoutHeader v-if="getShowFullHeaderRef" fixed />
     <Layout :class="[layoutClass, `${prefixCls}-out`]">

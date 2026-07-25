@@ -144,6 +144,22 @@ export const restartAlgorithmTask = (task_id: number) => {
   );
 };
 
+export interface ResourceProtectionStatus {
+  active: boolean;
+  message: string;
+  triggered_at?: string | null;
+  available_memory_mib?: number | null;
+  stopped_task_ids: number[];
+}
+
+export const getResourceProtectionStatus = () => {
+  return commonApi<{ code: number; msg: string; data: ResourceProtectionStatus }>(
+    'get',
+    `${ALGORITHM_PREFIX}/resource-protection/status`,
+    { errorMessageMode: 'none' },
+  );
+};
+
 // ====================== 抽帧器管理接口 ======================
 export interface FrameExtractor {
   id: number;

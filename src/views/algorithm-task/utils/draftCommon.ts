@@ -5,11 +5,27 @@ export const DEFAULT_SNAP_INTERVAL_VALUE = 5;
 export const DEFAULT_SNAP_INTERVAL_UNIT = 'minute' as const;
 
 /** 从 camera_bindings 同步 device_ids / model_ids */
+export function normalizeRealModelIds(ids?: Array<number | string | null | undefined>): number[] {
+  return [...new Set(
+    (ids ?? [])
+      .map(id => Number(id))
+      .filter(id => Number.isFinite(id) && id > 0),
+  )];
+}
+
 export function syncLegacyIdsFromDraft(draft: AlgorithmTaskDraft) {
+  draft.camera_bindings = draft.camera_bindings.map(binding => ({
+    ...binding,
+    model_ids: normalizeRealModelIds(binding.model_ids),
+  }));
   draft.device_ids = draft.camera_bindings.map(binding => binding.device_id);
-  const bindingModelIds = [...new Set(draft.camera_bindings.flatMap(binding => binding.model_ids))];
+  const bindingModelIds = normalizeRealModelIds(
+    draft.camera_bindings.flatMap(binding => binding.model_ids),
+  );
   if (bindingModelIds.length || draft.camera_bindings.length)
     draft.model_ids = bindingModelIds;
+  else
+    draft.model_ids = normalizeRealModelIds(draft.model_ids);
   draft.detection_config.model_id = draft.model_ids[0] ?? null;
 }
 

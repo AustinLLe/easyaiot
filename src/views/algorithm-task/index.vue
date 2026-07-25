@@ -217,7 +217,7 @@ import {
   SwapOutlined,
   CopyOutlined,
 } from '@ant-design/icons-vue';
-import { List, Popconfirm, Spin, Empty, RadioGroup, Radio } from 'ant-design-vue';
+import { List, Popconfirm, Spin, Empty, RadioGroup, Radio, Modal } from 'ant-design-vue';
 import { BasicModal, useModal } from '@/components/Modal';
 import { BasicForm, useForm } from '@/components/Form';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
@@ -229,6 +229,7 @@ import {
   startAlgorithmTask,
   stopAlgorithmTask,
   updateAlgorithmTask,
+  listAlgorithmTasks,
   getTaskStreams,
   type AlgorithmTask,
   type CameraStreamInfo,
@@ -652,6 +653,7 @@ const handleStart = async (record: AlgorithmTask) => {
     return;
   }
   try {
+    if (!(await confirmMultipleAlgorithmWarning(record.id))) return;
     const response = await startAlgorithmTask(record.id);
     // 由于 isTransformResponse: true，成功时返回的是任务对象（data.data），而不是包含 code 的响应对象
     if (response && (response as any).id) {
@@ -719,6 +721,7 @@ const handleToggleEnabled = async (record: AlgorithmTask) => {
   try {
     // 将布尔值转换为整数：true -> 1, false -> 0
     const newValue = record.is_enabled ? 0 : 1;
+    if (newValue && !(await confirmMultipleAlgorithmWarning(record.id))) return;
     const response = await updateAlgorithmTask(record.id, {
       is_enabled: newValue,
     });
@@ -732,6 +735,28 @@ const handleToggleEnabled = async (record: AlgorithmTask) => {
     console.error('更新算法任务状态失败', error);
     createMessage.error('更新失败');
   }
+};
+
+const confirmMultipleAlgorithmWarning = async (startingTaskId: number): Promise<boolean> => {
+  try {
+    const response = await listAlgorithmTasks({ pageNo: 1, pageSize: 1000, is_enabled: true });
+    const enabledTasks = (response as any)?.data ?? [];
+    if (!enabledTasks.some((task: AlgorithmTask) => task.id !== startingTaskId)) return true;
+  } catch {
+    // The backend remains authoritative; do not block an operator because the
+    // advisory count request is temporarily unavailable.
+    return true;
+  }
+  return await new Promise<boolean>((resolve) => {
+    Modal.confirm({
+      title: '多算法任务风险提示',
+      content: '本测试服务器难以稳定承载两个及以上算法任务同时运行，继续操作可能造成内存耗尽并影响主服务。',
+      okText: '仍要继续',
+      cancelText: '取消',
+      onOk: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
 };
 
 const handleSuccess = () => {

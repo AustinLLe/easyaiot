@@ -132,7 +132,7 @@ import type { DeviceInfo } from '@/api/device/camera';
 import { getModelPage } from '@/api/device/model';
 import CameraPickerPanel from '../../TaskFormWidgets/CameraPickerPanel.vue';
 import ModelPickerPanel from '../../TaskFormWidgets/ModelPickerPanel.vue';
-import { syncLegacyIdsFromDraft } from '../useDraft';
+import { normalizeRealModelIds, syncLegacyIdsFromDraft } from '../useDraft';
 import { seedModelDefaultProfiles } from '../../../utils/paramUtils';
 import type { AlgorithmTaskDraft, CameraBindingDraft } from '../../../algorithmTaskDraft.types';
 
@@ -240,7 +240,7 @@ function removeCamera(deviceId: string) {
 }
 
 function syncTaskModelsToBindings(modelIds = payload.value.model_ids) {
-  const normalized = [...new Set(modelIds.map(id => Number(id)).filter(Number.isFinite))];
+  const normalized = normalizeRealModelIds(modelIds);
   payload.value.model_ids = normalized;
   payload.value.camera_bindings = payload.value.camera_bindings.map(binding => ({
     ...binding,
@@ -296,10 +296,7 @@ function syncAllModelNamesToDraft() {
 }
 
 async function loadModelMeta() {
-  const metaMap = new Map<number, ModelMeta>([
-    [-1, { name: 'yolo11n.pt', version: '默认' }],
-    [-2, { name: 'yolov8n.pt', version: '默认' }],
-  ]);
+  const metaMap = new Map<number, ModelMeta>();
 
   try {
     const response = await getModelPage({ pageNo: 1, pageSize: 1000 });

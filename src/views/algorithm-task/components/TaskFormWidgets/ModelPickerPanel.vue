@@ -64,6 +64,7 @@ import { onClickOutside, useElementBounding, useEventListener } from '@vueuse/co
 import { CheckOutlined } from '@ant-design/icons-vue';
 import { getModelPage } from '@/api/device/model';
 import { seedModelDefaultProfiles } from '../../utils/paramUtils';
+import { normalizeRealModelIds } from '../../utils/draftCommon';
 
 defineOptions({ name: 'ModelPickerPanel' });
 
@@ -113,11 +114,6 @@ const searchText = ref('');
 const selectedModelIds = ref<number[]>([]);
 const modelOptions = ref<ModelOption[]>([]);
 const dataLoaded = ref(false);
-
-const defaultModels: ModelOption[] = [
-  { id: -1, name: 'yolo11n.pt', version: '默认' },
-  { id: -2, name: 'yolov8n.pt', version: '默认' },
-];
 
 const filteredModels = computed(() => {
   const keyword = searchText.value.trim().toLowerCase();
@@ -192,10 +188,10 @@ async function loadModels() {
       version: item.version,
     }));
     seedModelDefaultProfiles(allModels);
-    modelOptions.value = [...defaultModels, ...dbModels];
+    modelOptions.value = dbModels.filter(model => Number(model.id) > 0);
   }
   catch {
-    modelOptions.value = [...defaultModels];
+    modelOptions.value = [];
   }
   finally {
     loading.value = false;
@@ -203,7 +199,7 @@ async function loadModels() {
 }
 
 async function initPanelData() {
-  selectedModelIds.value = [...(props.initialModelIds || [])];
+  selectedModelIds.value = normalizeRealModelIds(props.initialModelIds);
   searchText.value = '';
   if (!dataLoaded.value) {
     await loadModels();
@@ -212,7 +208,7 @@ async function initPanelData() {
 }
 
 function handleConfirm() {
-  emit('confirm', [...selectedModelIds.value]);
+  emit('confirm', normalizeRealModelIds(selectedModelIds.value));
   open.value = false;
 }
 

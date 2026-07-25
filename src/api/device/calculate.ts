@@ -80,6 +80,22 @@ export const deleteAlarm = (id) => {
   return commonApi('delete', `${Api.Alarm}/delete/${id}`);
 };
 
+export const updateAlertProcessStatus = async (params: {
+  ids: number[];
+  process_status: 'pending' | 'processed' | 'false_alarm';
+}) => {
+  const res = await commonApi('post', Api.Alarm + '/process', { data: params }, {}, false);
+  return parseVideoAlertResponse(res);
+};
+
+export const updateAlertArchiveStatus = async (params: {
+  ids: number[];
+  archive_status: 'none' | 'correct' | 'incorrect';
+}) => {
+  const res = await commonApi('post', Api.Alarm + '/archive', { data: params }, {}, false);
+  return parseVideoAlertResponse(res);
+};
+
 export const getAlertCount = async (params: {
   group?: 'date' | 'device' | 'object';
   begin_datetime?: string;

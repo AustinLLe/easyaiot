@@ -2,6 +2,16 @@
 import { BasicColumn, FormProps } from "@/components/Table";
 import { Tag } from "ant-design-vue";
 
+function isTaskRunning(value: unknown) {
+  if (value === true || value === 1)
+    return true;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === 'true' || normalized === '1' || normalized === 'running';
+  }
+  return false;
+}
+
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
@@ -37,9 +47,10 @@ export function getBasicColumns(): BasicColumn[] {
       dataIndex: 'is_enabled',
       width: 100,
       customRender: ({ text }) => {
+        const running = isTaskRunning(text);
         return (
-          <Tag color={text ? 'green' : 'default'}>
-            {text ? '运行中' : '已停止'}
+          <Tag color={running ? 'green' : 'default'}>
+            {running ? '运行中' : '已停止'}
           </Tag>
         );
       },

@@ -13,7 +13,22 @@
         <div style="min-height: 200px; max-height: 680px;">
           <!-- 播放器 -->
           <div style="height: 420px">
-            <Jessibuca ref="jessibuca" :playUrl="state.currentUrl" :hasAudio="false"/>
+            <video
+              v-if="state.isFileVideo"
+              ref="htmlVideo"
+              :src="state.currentUrl"
+              controls
+              autoplay
+              muted
+              playsinline
+              style="width: 100%; height: 100%; background: #000; object-fit: contain;"
+            />
+            <Jessibuca
+              v-else
+              ref="jessibuca"
+              :playUrl="state.currentUrl"
+              :hasAudio="false"
+            />
           </div>
           <!-- 控制台 -->
           <div class="tabs">
@@ -92,7 +107,7 @@
 import {useModalInner} from "@/components/Modal";
 import BasicModal from "@/components/Modal/src/BasicModal.vue";
 
-import {reactive, ref} from "vue";
+import {nextTick, reactive, ref} from "vue";
 import {Select, TabPane, Tabs} from 'ant-design-vue';
 import Jessibuca from "@/components/Player/module/jessibuca.vue";
 import Ptz from "@/components/Player/module/ptz.vue";
@@ -103,6 +118,7 @@ import {controlPTZ} from "@/api/device/camera";
 const {createMessage} = useMessage()
 
 let jessibuca = ref()
+const htmlVideo = ref<HTMLVideoElement | null>(null)
 //state.videoUrl
 const state = reactive({
   video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
@@ -118,6 +134,7 @@ const state = reactive({
   hasAudio: false,
   currentUrl: '',
   iframeUrl: '',
+  isFileVideo: false,
   mediaType: 'flv',
   videoUrlList: [{label: 'flv', value: "1"}],
   deviceId: '',
@@ -134,6 +151,7 @@ const state = reactive({
 const [register, {closeModal}] = useModalInner(async (record) => {
   state.currentUrl = '';
   state.iframeUrl = '';
+  state.isFileVideo = false;
 
   if (!record?.['http_stream']) {
     createMessage.warn('缺少播放地址，无法播放');
@@ -143,10 +161,18 @@ const [register, {closeModal}] = useModalInner(async (record) => {
 
   state.deviceId = record['id'];
   state.currentUrl = record['http_stream'] ?? '';
+  state.isFileVideo = /\.mp4($|\?)/i.test(state.currentUrl) || /\/alert\/record/i.test(state.currentUrl);
   state.iframeUrl = record['http_stream'] ? '<iframe src="' + record['http_stream'] + '"></iframe>' : '';
   state.videoUrlList = record['http_stream']
     ? [{ label: 'http_stream', value: record['http_stream'] }]
     : [{ label: 'flv', value: '1' }];
+  if (state.isFileVideo) {
+    await nextTick();
+    if (htmlVideo.value) {
+      htmlVideo.value.load();
+      htmlVideo.value.play().catch(() => undefined);
+    }
+  }
 });
 
 const handleChange = (value: string) => {
@@ -177,6 +203,7 @@ const handlePtzCamera = (command: string, speed: number) => {
 
 function handleCancel() {
   state.currentUrl = '';
+  state.isFileVideo = false;
   closeModal();
 }
 </script>
