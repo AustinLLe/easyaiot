@@ -1230,7 +1230,6 @@ function handleChartResize() {
 <style lang="less" scoped>
 // 深海军蓝指挥舱背景 + Sugar 主色
 @header-bg: url('@/assets/images/bigscreen/header.png');
-@page-bg: url('@/assets/images/bigscreen/background1.png');
 @sugar-bg: #03091b;
 @sugar-bg-deep: #020612;
 @sugar-panel: rgba(5, 14, 35, 0.32);
@@ -1273,12 +1272,10 @@ function handleChartResize() {
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: min(100%, 1440px);
-    transform: translateX(-50%);
-    background: @page-bg center center / cover no-repeat;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 92% 68% at 50% 100%, rgba(52, 134, 218, 0.26) 0%, rgba(52, 134, 218, 0.08) 38%, transparent 72%),
+      radial-gradient(ellipse 48% 42% at 50% 54%, rgba(52, 134, 218, 0.12) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -1298,9 +1295,46 @@ function handleChartResize() {
   height: 100%;
   margin: 0 auto;
   padding: 8px 16px 12px;
-  background: transparent;
+  background: @sugar-bg;
   box-sizing: border-box;
   isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 52% at 50% 62%, rgba(52, 134, 218, 0.1) 0%, transparent 68%),
+      radial-gradient(circle at 15% 20%, rgba(52, 134, 218, 0.04) 0, transparent 28%),
+      radial-gradient(circle at 85% 75%, rgba(52, 134, 218, 0.035) 0, transparent 24%),
+      radial-gradient(circle at 70% 15%, rgba(77, 128, 255, 0.03) 0, transparent 20%),
+      linear-gradient(rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 134, 218, 0.022) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(5, 14, 35, 0.42) 0%, rgba(3, 9, 27, 0.82) 100%);
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      32px 32px,
+      32px 32px,
+      100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: min(100%, 960px);
+    height: 42%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(115, 170, 229, 0.14) 0%, transparent 72%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
   > * {
     position: relative;
