@@ -408,6 +408,7 @@ const getExportListApi = async (params: any) => {
 // 表格配置
 const [registerTable, { reload, getForm }] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '模型导出记录',
   api: async (params) => {
@@ -654,7 +655,9 @@ onUnmounted(() => {
 .model-export-container {
   padding: 16px;
   background: #f0f2f5;
-  min-height: calc(100vh - 200px);
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 
   .format-tag {
     font-weight: 500;

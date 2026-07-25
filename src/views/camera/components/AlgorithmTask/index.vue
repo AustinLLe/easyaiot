@@ -300,6 +300,7 @@ const searchParams = ref<{
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '算法任务列表',
   api: listAlgorithmTasks,

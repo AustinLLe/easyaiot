@@ -164,6 +164,7 @@ const getColumns = () => [
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '抽帧器列表',
   api: listFrameExtractors,

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="model-list-page">
     <BasicTable @register="registerTable" v-if="state.isTableMode">
       <template #toolbar>
         <div class="model-list-toolbar">
@@ -157,6 +157,7 @@ function handleSuccess() {
 
 const [registerTable, { reload, getForm }] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '算法管理',
   api: async (params) => {
@@ -209,6 +210,10 @@ const handleDelete = async (record) => {
 </script>
 
 <style scoped>
+.model-list-page {
+  height: 100%;
+}
+
 .model-list-toolbar {
   display: flex;
   align-items: center;

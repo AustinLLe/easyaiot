@@ -197,7 +197,8 @@ const [
     clearSelectedRowKeys,
   },
 ] = useTable({
-  canResize: false,
+  canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '',
   api: queryAlarmList,
@@ -469,6 +470,9 @@ function handleCardDelete(_record: Record<string, any>) {
 
 <style lang="less" scoped>
 .alert-log-page {
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
   padding: 0 4px;
 
   :deep(.ant-table) {

@@ -18,6 +18,15 @@ import projectSetting from '@/settings/projectSetting'
 import {PageEnum} from '@/enums/pageEnum'
 import {PermissionModeEnum} from '@/enums/appEnum'
 
+const STATIC_ROUTE_ROOTS = new Set(['/dashboard', '/storage'])
+
+function filterBackendRouteDuplicates(routes: AppRouteRecordRaw[]) {
+  return routes.filter((route) => {
+    const path = route.path?.startsWith('/') ? route.path : `/${route.path || ''}`
+    return !STATIC_ROUTE_ROOTS.has(path)
+  })
+}
+
 interface PermissionState {
   // Permission code list
   // 权限代码列表
@@ -212,7 +221,7 @@ export const usePermissionStore = defineStore('app-permission', {
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = []
           try {
-            routeList = userInfo.menus as AppRouteRecordRaw[]
+            routeList = filterBackendRouteDuplicates(userInfo.menus as AppRouteRecordRaw[])
           } catch (error) {
             console.error(error)
             console.error(error)

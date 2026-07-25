@@ -58,6 +58,7 @@ const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '消息配置',
   api: messageConfigQuery,
@@ -88,6 +89,7 @@ async function handleDelete({ id }) {
 
 <style lang="less" scoped>
 .message-config-page {
+  height: 100%;
   padding: 0 4px;
 
   :deep(.iot-basic-table-action.left) {

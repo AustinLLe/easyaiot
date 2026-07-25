@@ -328,6 +328,10 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 #space {
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+
   .resource-card {
     border-radius: 2px;
 

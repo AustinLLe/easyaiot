@@ -258,6 +258,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
   pagination: true,
   rowKey: 'id',
   canResize: true,
+  resizeHeightOffset: 36,
 });
 
 // 获取流状态文本
@@ -428,8 +429,9 @@ defineExpose({
 .directory-manage-wrapper {
   padding: 16px;
   background: #f0f2f5;
-  min-height: calc(100vh - 200px);
   height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .directory-layout {

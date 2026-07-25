@@ -105,6 +105,7 @@ const statusLabels = {
 const {createMessage} = useMessage();
 const [registerTable, {reload}] = useTable({
   canResize: true,
+  resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '推理任务列表',
   api: getInferenceTasks,
