@@ -1230,7 +1230,7 @@ function handleChartResize() {
 <style lang="less" scoped>
 // 深海军蓝指挥舱背景 + Sugar 主色
 @header-bg: url('@/assets/images/bigscreen/header.png');
-@page-bg: url('@/assets/images/bigscreen/background2.png');
+@page-bg: url('@/assets/images/bigscreen/background1.png');
 @sugar-bg: #03091b;
 @sugar-bg-deep: #020612;
 @sugar-panel: rgba(5, 14, 35, 0.32);
@@ -1265,10 +1265,23 @@ function handleChartResize() {
   justify-content: center;
   width: 100%;
   color: @sugar-text;
-  background: @sugar-bg-deep @page-bg center center / cover no-repeat;
+  background: @sugar-bg-deep;
   box-sizing: border-box;
   overflow: hidden;
   isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, 1440px);
+    transform: translateX(-50%);
+    background: @page-bg center center / cover no-repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
 
   > * {
     position: relative;
