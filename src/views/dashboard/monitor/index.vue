@@ -307,9 +307,7 @@
                   :key="`${rankingListKey}-${index}`"
                   class="ranking-row"
                 >
-                  <span :class="['rank-badge', getRankBadgeClass(index + 1)]">
-                    <i>{{ index + 1 }}</i>
-                  </span>
+                  <span class="rank-index">{{ formatRankIndex(index + 1) }}</span>
                   <span class="ranking-name" :title="item.name">{{ item.name }}</span>
                   <div class="ranking-bar">
                     <div
@@ -577,12 +575,8 @@ function buildAlgorithmCenterRich() {
   }
 }
 
-function getRankBadgeClass(rank: number) {
-  if (rank === 1)
-    return 'rank-badge--gold'
-  if (rank <= 3)
-    return 'rank-badge--silver'
-  return 'rank-badge--blue'
+function formatRankIndex(rank: number) {
+  return String(rank).padStart(2, '0')
 }
 
 function getRankingBarWidth(count: number) {
@@ -1946,50 +1940,21 @@ function handleChartResize() {
 
   .ranking-row {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
     column-gap: 8px;
     row-gap: 4px;
     align-items: center;
   }
 
-  .rank-badge {
+  .rank-index {
     grid-row: 1 / span 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 18px;
-    transform: skewX(-14deg);
-    border-radius: 2px;
-    font-style: normal;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: @sugar-muted;
+    text-align: center;
     line-height: 1;
-
-    i {
-      display: block;
-      transform: skewX(14deg);
-      font-style: normal;
-    }
-
-    &--gold {
-      color: #1a1208;
-      background: linear-gradient(180deg, #ffd166 0%, #f59e0b 100%);
-      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
-    }
-
-    &--silver {
-      color: #1a1208;
-      background: linear-gradient(180deg, #fde68a 0%, #eab308 85%);
-      box-shadow: 0 0 6px rgba(234, 179, 8, 0.22);
-    }
-
-    &--blue {
-      color: #e8f4ff;
-      background: linear-gradient(180deg, #4a90e2 0%, #2563a8 100%);
-      box-shadow: 0 0 6px rgba(52, 134, 218, 0.25);
-    }
   }
 
   .ranking-name {
