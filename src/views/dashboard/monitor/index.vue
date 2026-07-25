@@ -1230,7 +1230,7 @@ function handleChartResize() {
 <style lang="less" scoped>
 // 深海军蓝指挥舱背景 + Sugar 主色
 @header-bg: url('@/assets/images/bigscreen/header.png');
-@page-bg: url('@/assets/images/bigscreen/background1.png');
+@page-bg: url('@/assets/images/bigscreen/background2.png');
 @sugar-bg: #03091b;
 @sugar-bg-deep: #020612;
 @sugar-panel: rgba(5, 14, 35, 0.32);
