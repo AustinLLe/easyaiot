@@ -98,7 +98,7 @@
           <Select
             v-model:value="selectedAlgorithm"
             class="filter-select"
-            placeholder="选择任务算法（留空为原始流）"
+            placeholder="选择任务算法"
             allow-clear
             :disabled="!selectedTaskId"
             :options="algorithmOptions"
@@ -109,7 +109,7 @@
           <Jessibuca
             v-if="currentStreamUrl"
             :key="currentStreamUrl"
-            :play-url="currentStreamUrl"
+            :playUrl="currentStreamUrl"
             :has-audio="false"
             class="video-player"
           />
@@ -286,24 +286,25 @@ const algorithmOptions = computed(() => {
 })
 const selectedCamera = computed(() => taskStreams.value.find(stream => stream.device_id === selectedCameraId.value))
 
-/** RTMP → 同源 HTTP-FLV（Jessibuca 需要绝对地址，相对路径会被误判为 WebSocket）。 */
+/** RTMP → 同源 HTTP-FLV（Sylphira VideoMonitor 7970c1f）。 */
 function convertRtmpToHttp(rtmpUrl?: string) {
   if (!rtmpUrl?.startsWith('rtmp://'))
     return ''
   try {
     const url = new URL(rtmpUrl)
-    let path = url.pathname.replace(/^\//, '') || 'live'
+    let path = url.pathname.substring(1) || 'live'
     if (!path.endsWith('.flv'))
-      path += '.flv'
+      path = `${path}.flv`
     return `${window.location.origin}/${path}`
   }
-  catch {
+  catch (error) {
+    console.error('RTMP地址转换失败:', error)
     return ''
   }
 }
 
-/** AI 流走同源 /ai/ 网关（Sylphira VideoMonitor 7970c1f）。 */
-function normalizeAiStream(streamUrl?: string) {
+/** AI 流走同源 /ai/ 网关（Sylphira 0ff0e3a + VideoMonitor 7970c1f）。 */
+function normalizeAiStreamUrl(streamUrl?: string) {
   if (!streamUrl)
     return ''
   try {
@@ -311,30 +312,28 @@ function normalizeAiStream(streamUrl?: string) {
     if (url.pathname.startsWith('/ai/'))
       return `${window.location.origin}${url.pathname}${url.search}`
   }
-  catch {
-    return streamUrl
+  catch (error) {
+    console.warn('AI流地址解析失败，使用原地址:', streamUrl, error)
   }
   return streamUrl
 }
 
-/** 原始 http_stream 若为 127.0.0.1:8080，改走当前域名 nginx /live/ 代理。 */
-function normalizeLiveStream(streamUrl?: string) {
-  if (!streamUrl)
-    return ''
-  try {
-    const url = new URL(streamUrl, window.location.origin)
-    if (url.pathname.startsWith('/live/'))
-      return `${window.location.origin}${url.pathname}${url.search}`
-    if ((url.hostname === '127.0.0.1' || url.hostname === 'localhost') && url.port === '8080') {
-      const livePath = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`
-      if (livePath.startsWith('/live/'))
-        return `${window.location.origin}${livePath}${url.search}`
-    }
-  }
-  catch {
-    return streamUrl
-  }
-  return streamUrl
+/** 解析 AI 流地址（与 VideoMonitor playDeviceStream AI 模式一致）。 */
+function resolveAiStreamUrl(camera: CameraStreamInfo) {
+  if (camera.ai_http_stream)
+    return normalizeAiStreamUrl(camera.ai_http_stream)
+  if (camera.ai_rtmp_stream)
+    return convertRtmpToHttp(camera.ai_rtmp_stream)
+  return ''
+}
+
+/** 解析原始视频流（http_stream 原样，与 Sylphira / VideoMonitor 视频模式一致）。 */
+function resolveVideoStreamUrl(camera: CameraStreamInfo) {
+  if (camera.http_stream)
+    return camera.http_stream
+  if (camera.rtmp_stream)
+    return convertRtmpToHttp(camera.rtmp_stream)
+  return ''
 }
 
 const currentStreamUrl = computed(() => {
@@ -342,8 +341,8 @@ const currentStreamUrl = computed(() => {
   if (!camera)
     return ''
   if (selectedAlgorithm.value)
-    return normalizeAiStream(camera.ai_http_stream) || convertRtmpToHttp(camera.ai_rtmp_stream)
-  return normalizeLiveStream(camera.http_stream) || convertRtmpToHttp(camera.rtmp_stream)
+    return resolveAiStreamUrl(camera)
+  return resolveVideoStreamUrl(camera)
 })
 
 const videoPlaceholderTitle = computed(() => {
