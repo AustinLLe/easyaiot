@@ -13,43 +13,6 @@ const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url: string, param
   }, { isTransformResponse: isTransformResponse });
 };
 
-// ====================== 流媒体转发接口 ======================
-/**
- * 启动FFmpeg转发RTSP流到RTMP服务器
- * @param device_id 设备ID
- * @returns 包含RTMP URL和进程ID的响应
- */
-export const startStreamForwarding = (device_id: string) => {
-  return commonApi('post', `${CAMERA_PREFIX}/device/${device_id}/stream/start`, {}, {}, false);
-};
-
-/**
- * 停止FFmpeg转发进程
- * @param device_id 设备ID
- * @returns 操作结果
- */
-export const stopStreamForwarding = (device_id: string) => {
-  return commonApi('post', `${CAMERA_PREFIX}/device/${device_id}/stream/stop`, {}, {}, false);
-};
-
-/**
- * 获取FFmpeg转发状态
- * @param device_id 设备ID
- * @returns 包含状态、RTMP URL和进程信息的响应
- */
-export const getStreamStatus = (device_id: string) => {
-  return commonApi('get', `${CAMERA_PREFIX}/device/${device_id}/stream/status`);
-};
-
-/**
- * 批量获取设备流媒体转发状态
- * @param device_ids 设备ID数组
- * @returns 包含所有设备流媒体状态的响应
- */
-export const getBatchStreamStatus = (device_ids: string[]) => {
-  return Promise.all(device_ids.map(id => getStreamStatus(id)));
-};
-
 // ====================== 设备管理接口 ======================
 export const registerDevice = (data: {
   id?: string;
@@ -352,56 +315,6 @@ export const moveDeviceToDirectory = (device_id: string, directory_id: number | 
   });
 };
 
-// ====================== 流媒体管理工具函数 ======================
-/**
- * 切换设备流媒体转发状态
- * @param device_id 设备ID
- * @param currentStatus 当前状态
- * @returns 操作结果
- */
-export const toggleStreamForwarding = async (device_id: string, currentStatus: boolean) => {
-  try {
-    if (currentStatus) {
-      return await stopStreamForwarding(device_id);
-    } else {
-      return await startStreamForwarding(device_id);
-    }
-  } catch (error) {
-    throw new Error(`切换流媒体转发状态失败: ${error}`);
-  }
-};
-
-/**
- * 检查所有设备的流媒体状态
- * @param deviceIds 设备ID数组
- * @returns 包含所有设备状态的Promise
- */
-export const checkAllStreamStatus = async (deviceIds: string[]) => {
-  const statusPromises = deviceIds.map(id => getStreamStatus(id));
-  return Promise.all(statusPromises);
-};
-
-/**
- * 启动所有启用转发的设备
- * @param devices 设备列表
- * @returns 启动结果数组
- */
-export const startAllEnabledDevices = async (devices: DeviceInfo[]) => {
-  const enabledDevices = devices.filter(device => device.enable_forward);
-  const startPromises = enabledDevices.map(device => startStreamForwarding(device.id));
-  return Promise.all(startPromises);
-};
-
-/**
- * 停止所有设备的流媒体转发
- * @param deviceIds 设备ID数组
- * @returns 停止结果数组
- */
-export const stopAllStreams = async (deviceIds: string[]) => {
-  const stopPromises = deviceIds.map(id => stopStreamForwarding(id));
-  return Promise.all(stopPromises);
-};
-
 // ====================== RTSP抓拍接口 ======================
 /**
  * 从RTSP流抓取一帧图片
@@ -414,11 +327,11 @@ export const captureSnapshot = (device_id: string) => {
 
 // ====================== 摄像头冲突检查接口 ======================
 /**
- * 获取正在使用的摄像头ID列表（用于推流转发或算法任务）
- * @param task_type 任务类型：'stream_forward'（推流转发）或 'algorithm'（算法任务），不传则返回所有冲突的摄像头
+ * 获取正在运行的算法任务所使用的摄像头 ID。
+ * @param task_type 保留的算法任务筛选参数
  * @returns 包含冲突摄像头ID列表的响应
  */
-export const getDeviceConflicts = (task_type?: 'stream_forward' | 'algorithm') => {
+export const getDeviceConflicts = (task_type?: 'algorithm') => {
   return commonApi<{ code: number; msg: string; data: string[] }>(
     'get',
     `${CAMERA_PREFIX}/device/conflicts`,

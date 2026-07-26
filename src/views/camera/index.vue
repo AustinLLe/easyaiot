@@ -11,7 +11,6 @@ const tabRouteMap: Record<string, string> = {
   1: '/camera/devices',
   3: '/camera/snap-space',
   4: '/camera/record-space',
-  6: '/camera/stream-forward',
   5: '/algorithm-task/index',
 }
 

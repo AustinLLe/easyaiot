@@ -66,13 +66,6 @@
                   <div class="btn" @click="handleEdit(item)">
                     <Icon icon="ant-design:edit-filled" :size="15" color="#3B82F6" />
                   </div>
-                  <div class="btn" @click="handleToggleStream(item)">
-                    <Icon 
-                      :icon="getDeviceStreamStatus(item.id) === 'running' ? 'ant-design:pause-circle-outlined' : 'ant-design:swap-outline'" 
-                      :size="15" 
-                      color="#3B82F6" 
-                    />
-                  </div>
                   <Popconfirm
                     title="是否确认删除？"
                     ok-text="是"
@@ -101,19 +94,18 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {onMounted, reactive, ref, watch} from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
 import {Icon} from '@/components/Icon';
 import {useMessage} from "@/hooks/web/useMessage";
-import {getStreamStatus} from '@/api/device/camera';
 import HAIKANG_IMAGE from "@/assets/images/video/haikang.png";
 import DAHUA_IMAGE from "@/assets/images/video/dahua.png";
 import HUAWEI_IMAGE from "@/assets/images/video/huawei.png";
 import OTHER_IMAGE from "@/assets/images/video/other.png";
-import type { DeviceInfo, StreamStatusResponse } from '@/api/device/camera';
+import type { DeviceInfo } from '@/api/device/camera';
 
 const ListItem = List.Item;
 
@@ -128,7 +120,7 @@ const props = defineProps({
 const { createMessage } = useMessage();
 
 //暴露内部方法
-const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'play', 'toggleStream']);
+const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'play']);
 
 //数据
 const data = ref<DeviceInfo[]>([]);
@@ -173,39 +165,6 @@ async function handleSubmit() {
   await fetch(data);
 }
 
-// 设备流状态映射（从父组件传入或本地维护）
-const deviceStreamStatuses = ref<Record<string, string>>({});
-
-// 获取流状态文本
-const getStreamStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    'running': '运行中',
-    'stopped': '已停止',
-    'error': '错误',
-    'unknown': '未知'
-  };
-  return statusMap[status] || status || '未知';
-};
-
-// 获取流状态颜色
-const getStreamStatusColor = (status: string) => {
-  const colorMap: Record<string, string> = {
-    'running': 'green',
-    'stopped': 'red',
-    'error': 'orange',
-    'unknown': 'default'
-  };
-  return colorMap[status] || 'default';
-};
-
-// 安全获取设备流状态
-const getDeviceStreamStatus = (deviceId: string) => {
-  if (!deviceStreamStatuses.value || !deviceStreamStatuses.value[deviceId]) {
-    return 'unknown';
-  }
-  return deviceStreamStatuses.value[deviceId];
-};
-
 // 根据制造商获取图片
 const getCameraImage = (manufacturer: string) => {
   if (!manufacturer) return OTHER_IMAGE;
@@ -220,54 +179,11 @@ const getCameraImage = (manufacturer: string) => {
   return OTHER_IMAGE;
 };
 
-// 检查设备流状态
-const checkDeviceStreamStatus = async (deviceId: string) => {
-  try {
-    // 确保 deviceStreamStatuses.value 始终是一个对象
-    if (!deviceStreamStatuses.value) {
-      deviceStreamStatuses.value = {};
-    }
-    const response: StreamStatusResponse = await getStreamStatus(deviceId);
-    if (response.code === 0) {
-      deviceStreamStatuses.value[deviceId] = response.data.status;
-    } else {
-      deviceStreamStatuses.value[deviceId] = 'error';
-    }
-  } catch (error) {
-    console.error(`检查设备 ${deviceId} 流状态失败`, error);
-    // 确保 deviceStreamStatuses.value 始终是一个对象
-    if (!deviceStreamStatuses.value) {
-      deviceStreamStatuses.value = {};
-    }
-    deviceStreamStatuses.value[deviceId] = 'error';
-  }
-};
-
-// 检查所有设备的流状态
-const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
-  try {
-    const deviceIds = devices.map(device => device.id);
-    for (const deviceId of deviceIds) {
-      await checkDeviceStreamStatus(deviceId);
-    }
-  } catch (error) {
-    console.error('检查设备流状态失败', error);
-  }
-};
-
 // 自动请求并暴露内部方法
 onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
-
-// 监听数据变化，自动检查流状态
-// 已禁用自动检查流状态
-// watch(() => data.value, (newData) => {
-//   if (newData && newData.length > 0) {
-//     checkAllDevicesStreamStatus(newData);
-//   }
-// }, { immediate: true });
 
 async function fetch(p = {}) {
   const {api, params} = props;
@@ -298,29 +214,13 @@ async function fetch(p = {}) {
       });
       
       const res = await api(apiParams);
-      // 确保 deviceStreamStatuses.value 始终是一个对象
-      if (!deviceStreamStatuses.value) {
-        deviceStreamStatuses.value = {};
-      }
       // 根据API返回格式，处理数据
       if (res && res.data) {
         data.value = res.data || [];
         total.value = res.total || 0;
-        // 初始化设备流状态
-        data.value.forEach((device: DeviceInfo) => {
-          if (!deviceStreamStatuses.value[device.id]) {
-            deviceStreamStatuses.value[device.id] = 'unknown';
-          }
-        });
       } else if (Array.isArray(res)) {
         data.value = res;
         total.value = res.length;
-        // 初始化设备流状态
-        data.value.forEach((device: DeviceInfo) => {
-          if (!deviceStreamStatuses.value[device.id]) {
-            deviceStreamStatuses.value[device.id] = 'unknown';
-          }
-        });
       } else {
         data.value = [];
         total.value = 0;
@@ -381,10 +281,6 @@ async function handlePlay(record: DeviceInfo) {
   emit('play', record);
 }
 
-async function handleToggleStream(record: DeviceInfo) {
-  emit('toggleStream', record);
-}
-
 // 复制功能
 async function handleCopy(text: string) {
   if (!text || text === '-') {
@@ -408,11 +304,9 @@ async function handleCopy(text: string) {
   }
 }
 
-// 暴露刷新方法（必须在所有函数定义之后）
+// 仅暴露仍然存在的刷新方法；推流转发状态检查已随功能删除。
 defineExpose({
   fetch,
-  checkDeviceStreamStatus,
-  deviceStreamStatuses
 });
 </script>
 <style lang="less" scoped>
