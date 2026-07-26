@@ -80,7 +80,7 @@
         </div>
 
         <div class="video-filters">
-          <a-select
+          <Select
             v-model:value="selectedTaskId"
             class="filter-select"
             placeholder="选择算法任务"
@@ -88,17 +88,18 @@
             :options="taskOptions"
             @change="handleTaskChange"
           />
-          <a-select
+          <Select
             v-model:value="selectedCameraId"
             class="filter-select"
             placeholder="选择任务摄像头"
             :disabled="!selectedTaskId"
             :options="cameraOptions"
           />
-          <a-select
+          <Select
             v-model:value="selectedAlgorithm"
             class="filter-select"
-            placeholder="选择任务算法"
+            placeholder="选择任务算法（留空为原始流）"
+            allow-clear
             :disabled="!selectedTaskId"
             :options="algorithmOptions"
           />
@@ -161,6 +162,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
+import { Select } from 'ant-design-vue'
 import { Icon } from '@/components/Icon'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
 import { getDashboardStatistics } from '@/api/device/calculate'
@@ -284,6 +286,7 @@ const algorithmOptions = computed(() => {
 })
 const selectedCamera = computed(() => taskStreams.value.find(stream => stream.device_id === selectedCameraId.value))
 
+/** RTMP → 同源 HTTP-FLV（Jessibuca 需要绝对地址，相对路径会被误判为 WebSocket）。 */
 function convertRtmpToHttp(rtmpUrl?: string) {
   if (!rtmpUrl?.startsWith('rtmp://'))
     return ''
@@ -292,20 +295,41 @@ function convertRtmpToHttp(rtmpUrl?: string) {
     let path = url.pathname.replace(/^\//, '') || 'live'
     if (!path.endsWith('.flv'))
       path += '.flv'
-    return `/${path}`
+    return `${window.location.origin}/${path}`
   }
   catch {
     return ''
   }
 }
 
+/** AI 流走同源 /ai/ 网关（Sylphira VideoMonitor 7970c1f）。 */
 function normalizeAiStream(streamUrl?: string) {
   if (!streamUrl)
     return ''
   try {
     const url = new URL(streamUrl, window.location.origin)
     if (url.pathname.startsWith('/ai/'))
-      return `${url.pathname}${url.search}`
+      return `${window.location.origin}${url.pathname}${url.search}`
+  }
+  catch {
+    return streamUrl
+  }
+  return streamUrl
+}
+
+/** 原始 http_stream 若为 127.0.0.1:8080，改走当前域名 nginx /live/ 代理。 */
+function normalizeLiveStream(streamUrl?: string) {
+  if (!streamUrl)
+    return ''
+  try {
+    const url = new URL(streamUrl, window.location.origin)
+    if (url.pathname.startsWith('/live/'))
+      return `${window.location.origin}${url.pathname}${url.search}`
+    if ((url.hostname === '127.0.0.1' || url.hostname === 'localhost') && url.port === '8080') {
+      const livePath = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`
+      if (livePath.startsWith('/live/'))
+        return `${window.location.origin}${livePath}${url.search}`
+    }
   }
   catch {
     return streamUrl
@@ -319,7 +343,7 @@ const currentStreamUrl = computed(() => {
     return ''
   if (selectedAlgorithm.value)
     return normalizeAiStream(camera.ai_http_stream) || convertRtmpToHttp(camera.ai_rtmp_stream)
-  return camera.http_stream || convertRtmpToHttp(camera.rtmp_stream)
+  return normalizeLiveStream(camera.http_stream) || convertRtmpToHttp(camera.rtmp_stream)
 })
 
 const videoPlaceholderTitle = computed(() => {
