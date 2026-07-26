@@ -25,6 +25,35 @@ export type AlertRuleScopeType = 'full_frame' | 'region' | 'line';
 
 export type AlertRuleOperator = '>=' | '<=' | '==' | '>' | '<';
 
+export type AlertRuleBehaviorType = 'static_count' | 'intrusion' | 'dwell' | 'line_crossing';
+
+export type DynamicGeometryType = 'polygon' | 'line';
+
+export type DynamicLineDirection = 'both' | 'a_to_b' | 'b_to_a';
+
+export interface DynamicGeometryDraft {
+  type: DynamicGeometryType;
+  points: number[][];
+  direction?: DynamicLineDirection;
+}
+
+export interface DynamicTriggerDraft {
+  /** 区域入侵：进入即触发 / 区域停留：停留多少秒 / 越线：穿越即触发 */
+  mode: 'enter' | 'stay' | 'cross';
+  dwell_sec?: number;
+  extract_interval?: number;
+  lost_track_buffer?: number;
+  matching_threshold?: number;
+  same_track_suppress_sec?: number;
+  enter_confirm_frames?: number;
+  boundary_tolerance_px?: number;
+  allow_leave_sec?: number;
+  crowd_count?: number;
+  max_speed_jump?: number;
+  smooth_alpha?: number;
+  lock_class?: boolean;
+}
+
 /** 任务级默认推理配置（文档 detection_config 中的全局项） */
 export interface DetectionConfigDraft {
   model_id: number | null;
@@ -113,10 +142,20 @@ export interface AlertRuleDraft {
   rule_id: string;
   /** 系统自动分配的序号，从 1 开始 */
   rule_seq?: number;
+  /** 告警规则类型：静态数量判断 / 动态追踪行为判断 */
+  behavior_type?: AlertRuleBehaviorType;
   rule_name: string;
   enabled: boolean;
   scope: AlertRuleScopeDraft;
   conditions: AlertRuleConditionDraft[];
+  /** 动态追踪规则的目标算法 */
+  target_model_id?: number | null;
+  /** 动态追踪规则的目标类别 */
+  target_classes?: string[];
+  /** 动态追踪规则的区域/线段配置 */
+  dynamic_geometry?: DynamicGeometryDraft;
+  /** 动态追踪规则的触发参数 */
+  dynamic_trigger?: DynamicTriggerDraft;
   duration_sec?: number;
   alarm_suppress_time?: number;
   /** 条件关系表达式，如 "(1 AND 2) OR 3" */

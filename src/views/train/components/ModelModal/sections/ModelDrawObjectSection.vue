@@ -160,14 +160,6 @@
                 </template>
               </template>
 
-              <template v-if="draft.draw_style.segmentation.enabled">
-                <div
-                  v-for="(edge, edgeIndex) in segmentationEdges"
-                  :key="`seg-${edgeIndex}`"
-                  class="preview-poly-edge"
-                  :style="edge"
-                />
-              </template>
             </template>
           </div>
         </div>
@@ -202,9 +194,9 @@ import {
 } from '../useDraft';
 import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../modelDraft.types';
 import {
+  DEFAULT_DRAW_OBJECT_PRESETS,
   DEFAULT_MODEL_PREVIEW,
   DEFAULT_DETECTION_AREA_POLYGON,
-  DEFAULT_SEGMENTATION_POLYGONS,
   buildPolygonEdgeStyles,
   buildPreviewTitleBoxStyle,
   expandDrawRegions,
@@ -245,18 +237,24 @@ const detectionAreaEdges = computed(() =>
   ),
 );
 
-const segmentationEdges = computed(() =>
-  DEFAULT_SEGMENTATION_POLYGONS.flatMap(poly =>
-    buildPolygonEdgeStyles(
-      poly,
-      draft.value.draw_style.segmentation.border_width,
-      draft.value.draw_style.segmentation.color,
-    ),
-  ),
-);
-
 const previewItems = computed(() =>
-  tableItems.value.filter(item => item.enabled && itemHasDrawRegions(item)),
+  tableItems.value
+    .filter(item => item.enabled)
+    .slice(0, DEFAULT_DRAW_OBJECT_PRESETS.length)
+    .map((item, index) => {
+      if (itemHasDrawRegions(item))
+        return item;
+      const preset = DEFAULT_DRAW_OBJECT_PRESETS[index % DEFAULT_DRAW_OBJECT_PRESETS.length];
+      return {
+        ...item,
+        preview_regions: [
+          {
+            preview_bbox: { ...preset.preview_bbox },
+            title_bbox: { ...preset.title_bbox },
+          },
+        ],
+      };
+    }),
 );
 
 const columns: ColumnsType<ModelDrawObjectItem> = [
@@ -377,7 +375,7 @@ function handleColorConfirm(id: string, color: string) {
 
 function handlePreview() {
   if (!previewItems.value.length) {
-    createMessage.warning('请至少启用一个带标注位置的绘制对象');
+    createMessage.warning('请至少启用一个绘制对象');
     return;
   }
   showPreviewOverlay.value = true;

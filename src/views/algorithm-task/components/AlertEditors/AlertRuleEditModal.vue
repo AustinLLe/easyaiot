@@ -116,7 +116,7 @@
             </FormItem>
 
             <Row :gutter="16">
-              <Col :span="12">
+              <Col v-if="taskType === 'realtime'" :span="12">
                 <FormItem label="持续时间（秒）" required>
                   <InputNumber
                     v-model:value="localRule.duration_sec"
@@ -126,7 +126,7 @@
                   />
                 </FormItem>
               </Col>
-              <Col :span="12">
+              <Col :span="taskType === 'realtime' ? 12 : 24">
                 <FormItem label="告警抑制时间（秒）" required>
                   <InputNumber
                     v-model:value="localRule.alarm_suppress_time"
@@ -361,6 +361,8 @@ function handleCancel() {
 
 function handleSave() {
   syncModelNamesOnConditions(localRule.value.conditions, props.modelOptions);
+  if (props.taskType === 'snap')
+    localRule.value.duration_sec = 0;
   const error = validateAlertRule(localRule.value);
   if (error) {
     createWarningModal({

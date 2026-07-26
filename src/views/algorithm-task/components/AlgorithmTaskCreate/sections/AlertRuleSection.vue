@@ -35,6 +35,12 @@
               {{ getSeverityLabel(record.severity) }}
             </span>
           </template>
+          <template v-else-if="column.key === 'behavior_type'">
+            {{ getAlertBehaviorLabel(record.behavior_type) }}
+          </template>
+          <template v-else-if="column.key === 'trigger_summary'">
+            {{ formatDynamicTrigger(record) }}
+          </template>
           <template v-else-if="column.key === 'clip_record_enabled'">
             <Switch
               :checked="!!record.clip_record_enabled"
@@ -76,6 +82,17 @@
       @save="handleEditSave"
       @cancel="handleEditClose"
     />
+
+    <DynamicAlertRuleEditModal
+      v-model:open="dynamicEditVisible"
+      :rule="editingRule"
+      :is-create="editingIndex === null"
+      :class-options="classOptions"
+      :class-options-by-model="classOptionsByModel"
+      :model-options="modelOptions"
+      @save="handleEditSave"
+      @cancel="handleEditClose"
+    />
   </div>
 </template>
 
@@ -85,12 +102,16 @@ import { PlusOutlined } from '@ant-design/icons-vue';
 import { Button, Modal, Switch, Table } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import AlertRuleEditModal from '../../AlertEditors/AlertRuleEditModal.vue';
+import DynamicAlertRuleEditModal from '../../AlertEditors/DynamicAlertRuleEditModal.vue';
 import type { AlertRuleDraft, AlgorithmTaskDraft } from '../../../algorithmTaskDraft.types';
 import {
   assignNextRuleSeq,
   clearClipRecordSeconds,
+  createEmptyDynamicAlertRule,
   createEmptyAlertRule,
   ensureClipRecordDefaults,
+  formatDynamicTrigger,
+  getAlertBehaviorLabel,
   getClassOptionsFromDraft,
   getModelOptionsFromDraft,
   getRuleSeqDisplay,
@@ -108,17 +129,32 @@ defineOptions({ name: 'AlertRuleSection' });
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
 
 const editVisible = ref(false);
+const dynamicEditVisible = ref(false);
 const editingIndex = ref<number | null>(null);
 const editingRule = ref<AlertRuleDraft | null>(null);
 
-const tableColumns: ColumnsType<AlertRuleDraft> = [
-  { title: '规则序号', key: 'rule_seq', width: 88, align: 'center' },
-  { title: '规则名称', dataIndex: 'rule_name', key: 'rule_name', ellipsis: true },
-  { title: '告警等级', key: 'severity', width: 88, align: 'center' },
-  { title: '录像启用', key: 'clip_record_enabled', width: 100, align: 'center' },
-  { title: '是否启用', key: 'enabled', width: 100, align: 'center' },
-  { title: '操作', key: 'action', width: 140, align: 'center' },
-];
+const tableColumns = computed<ColumnsType<AlertRuleDraft>>(() => {
+  const columns: ColumnsType<AlertRuleDraft> = [
+    { title: '规则序号', key: 'rule_seq', width: 88, align: 'center' },
+    { title: '规则名称', dataIndex: 'rule_name', key: 'rule_name', ellipsis: true },
+  ];
+
+  if (payload.value.analysis_mode === 'dynamic') {
+    columns.push(
+      { title: '规则类型', key: 'behavior_type', width: 110, align: 'center' },
+      { title: '触发条件', key: 'trigger_summary', ellipsis: true },
+    );
+  }
+
+  columns.push(
+    { title: '告警等级', key: 'severity', width: 88, align: 'center' },
+    { title: '录像启用', key: 'clip_record_enabled', width: 100, align: 'center' },
+    { title: '是否启用', key: 'enabled', width: 100, align: 'center' },
+    { title: '操作', key: 'action', width: 140, align: 'center' },
+  );
+
+  return columns;
+});
 
 const classOptions = computed(() => getClassOptionsFromDraft(payload.value));
 const modelOptions = computed(() => getModelOptionsFromDraft(payload.value));
@@ -159,14 +195,22 @@ function handleClipRecordChange(rule: AlertRuleDraft, checked: boolean) {
 
 function openCreate() {
   editingIndex.value = null;
-  editingRule.value = createEmptyAlertRule(payload.value.alert_rules.length);
-  editVisible.value = true;
+  editingRule.value = payload.value.analysis_mode === 'dynamic'
+    ? createEmptyDynamicAlertRule(payload.value.alert_rules.length)
+    : createEmptyAlertRule(payload.value.alert_rules.length);
+  if (payload.value.analysis_mode === 'dynamic')
+    dynamicEditVisible.value = true;
+  else
+    editVisible.value = true;
 }
 
 function openEdit(index: number) {
   editingIndex.value = index;
   editingRule.value = payload.value.alert_rules[index] ?? null;
-  editVisible.value = true;
+  if (payload.value.analysis_mode === 'dynamic')
+    dynamicEditVisible.value = true;
+  else
+    editVisible.value = true;
 }
 
 function handleEditSave(rule: AlertRuleDraft) {
@@ -198,6 +242,7 @@ function handleDelete(index: number) {
 
 function handleEditClose() {
   editVisible.value = false;
+  dynamicEditVisible.value = false;
   editingIndex.value = null;
   editingRule.value = null;
 }

@@ -2,9 +2,12 @@ import type {
   AlertPushChannel,
   AlertPushContentField,
   AlertPushMode,
+  AlertRuleBehaviorType,
   AlertRuleOperator,
   AlertRuleScopeType,
   AnalysisMode,
+  DynamicGeometryDraft,
+  DynamicTriggerDraft,
   SnapIntervalUnit,
 } from './algorithmTaskDraft.types';
 
@@ -59,9 +62,15 @@ export interface BackendSnapConfig {
 
 export interface BackendTrackingConfig {
   enabled: boolean;
+  backend?: 'simple' | 'supervision' | string;
+  tracker?: 'simple' | 'bytetrack' | 'byte_track' | string;
   similarity_threshold: number;
+  minimum_matching_threshold?: number;
   max_age: number;
+  max_lost_frames?: number;
   smooth_alpha: number;
+  min_confidence?: number;
+  frame_rate?: number;
 }
 
 export interface BackendAlertRuleCondition {
@@ -86,6 +95,11 @@ export interface BackendAlertRule {
   rule_name: string;
   enabled: boolean;
   severity: 'low' | 'medium' | 'high';
+  behavior_type?: AlertRuleBehaviorType;
+  target_model_id?: number | null;
+  target_classes?: string[];
+  dynamic_geometry?: DynamicGeometryDraft;
+  dynamic_trigger?: DynamicTriggerDraft;
   scope: BackendAlertRuleScope;
   conditions: BackendAlertRuleCondition[];
   logic_expression: string;

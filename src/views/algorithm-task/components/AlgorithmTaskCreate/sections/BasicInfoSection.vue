@@ -30,7 +30,7 @@
           />
         </FormItem>
       </div>
-      <FormItem v-if="payload.task_type === 'realtime'" label="抽帧间隔" required>
+      <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required>
         <InputNumber
           v-model:value="payload.detection_config.extract_interval"
           :min="1"

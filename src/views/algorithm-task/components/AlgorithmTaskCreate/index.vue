@@ -132,11 +132,7 @@ const baseSectionList: Array<{
   { key: 'alert_push', label: '告警推送', icon: NotificationOutlined, component: AlertPushSection },
 ];
 
-const sectionList = computed(() =>
-  baseSectionList.filter(item =>
-    !(item.key === 'region' && taskPayload.value.analysis_mode === 'dynamic'),
-  ),
-);
+const sectionList = computed(() => baseSectionList);
 
 const sectionIndex = computed(() =>
   sectionList.value.findIndex(item => item.key === activeSection.value),
@@ -193,8 +189,6 @@ function normalizeInitialDraft(draft: AlgorithmTaskDraft): AlgorithmTaskDraft {
 }
 
 function validateSection(section: AlgorithmTaskSectionKey) {
-  if (section === 'region' && taskPayload.value.analysis_mode === 'dynamic')
-    return null;
   return validateSectionDraft(section, taskPayload.value);
 }
 
@@ -225,14 +219,6 @@ watch(open, (visible) => {
     submitting.value = false;
   }
 });
-
-watch(
-  () => taskPayload.value.analysis_mode,
-  (mode) => {
-    if (mode === 'dynamic' && activeSection.value === 'region')
-      activeSection.value = 'alert';
-  },
-);
 
 function showValidationError(error: string) {
   createWarningModal({ title: '提示', content: error });

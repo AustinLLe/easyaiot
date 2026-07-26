@@ -32,12 +32,6 @@
             :disabled="isView"
             show-bg-color
           />
-          <DrawStyleConfigCard
-            v-model:config="draft.draw_style.segmentation"
-            title="分割绘制"
-            :disabled="isView"
-            show-border-width
-          />
         </div>
       </div>
 
@@ -75,14 +69,6 @@
                 </template>
               </template>
 
-              <template v-if="draft.draw_style.segmentation.enabled">
-                <div
-                  v-for="(edge, edgeIndex) in segmentationEdges"
-                  :key="`seg-${edgeIndex}`"
-                  class="preview-poly-edge"
-                  :style="edge"
-                />
-              </template>
             </template>
           </div>
         </div>
@@ -104,7 +90,6 @@ import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../
 import {
   DEFAULT_DETECTION_AREA_POLYGON,
   DEFAULT_MODEL_PREVIEW,
-  DEFAULT_SEGMENTATION_POLYGONS,
   buildPolygonEdgeStyles,
   buildPreviewTitleBoxStyle,
   expandDrawRegions,
@@ -131,16 +116,6 @@ const detectionAreaEdges = computed(() =>
     DEFAULT_DETECTION_AREA_POLYGON,
     draft.value.draw_style.detection_area.border_width,
     draft.value.draw_style.detection_area.color,
-  ),
-);
-
-const segmentationEdges = computed(() =>
-  DEFAULT_SEGMENTATION_POLYGONS.flatMap(poly =>
-    buildPolygonEdgeStyles(
-      poly,
-      draft.value.draw_style.segmentation.border_width,
-      draft.value.draw_style.segmentation.color,
-    ),
   ),
 );
 
@@ -191,7 +166,6 @@ function handlePreview() {
     style.detection_area,
     style.object_box,
     style.object_box_title,
-    style.segmentation,
   ].some(item => item.enabled);
 
   if (!hasEnabled) {

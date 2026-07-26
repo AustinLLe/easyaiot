@@ -29,7 +29,7 @@ export function pixelRectToPercent(
   };
 }
 
-/** 左/右两人默认标注（1024×564 原始像素） */
+/** 默认演示标注（1024×564 原始像素） */
 export const DEFAULT_DRAW_OBJECT_PRESETS = [
   {
     preview_bbox: pixelRectToPercent({ x: 338, y: 116 }, { x: 442, y: 326 }),
@@ -38,6 +38,18 @@ export const DEFAULT_DRAW_OBJECT_PRESETS = [
   {
     preview_bbox: pixelRectToPercent({ x: 529, y: 66 }, { x: 632, y: 344 }),
     title_bbox: pixelRectToPercent({ x: 529, y: 43 }, { x: 632, y: 66 }),
+  },
+  {
+    preview_bbox: pixelRectToPercent({ x: 658, y: 164 }, { x: 751, y: 352 }),
+    title_bbox: pixelRectToPercent({ x: 658, y: 141 }, { x: 752, y: 164 }),
+  },
+  {
+    preview_bbox: pixelRectToPercent({ x: 239, y: 188 }, { x: 326, y: 371 }),
+    title_bbox: pixelRectToPercent({ x: 239, y: 165 }, { x: 327, y: 188 }),
+  },
+  {
+    preview_bbox: pixelRectToPercent({ x: 447, y: 205 }, { x: 516, y: 338 }),
+    title_bbox: pixelRectToPercent({ x: 447, y: 182 }, { x: 517, y: 205 }),
   },
 ] as const;
 

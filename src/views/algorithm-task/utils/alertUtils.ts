@@ -220,10 +220,12 @@ export function getModelOptionsFromDraft(draft: AlgorithmTaskDraft) {
 
 // ---- from alertRuleUtils.ts ----
 import type {
+  AlertRuleBehaviorType,
   AlertRuleConditionDraft,
   AlertRuleDraft,
   AlertRuleOperator,
   AlgorithmTaskDraft,
+  DynamicLineDirection,
 } from '../algorithmTaskDraft.types';
 
 export const DEFAULT_CLASS_NAMES = ['person', 'helmet', 'no_helmet', 'head'];
@@ -237,6 +239,25 @@ export const SEVERITY_OPTIONS = [
 export const LOGIC_OPTIONS = [
   { label: '满足全部 AND', value: 'AND' as const },
   { label: '满足任一 OR', value: 'OR' as const },
+];
+
+
+export const ALERT_BEHAVIOR_LABEL_MAP: Record<AlertRuleBehaviorType, string> = {
+  static_count: '\u9759\u6001\u68c0\u6d4b',
+  intrusion: '\u533a\u57df\u5165\u4fb5',
+  dwell: '\u533a\u57df\u505c\u7559',
+  line_crossing: '\u8d8a\u7ebf\u68c0\u6d4b',
+};
+
+export const DYNAMIC_BEHAVIOR_OPTIONS: Array<{ label: string; value: Exclude<AlertRuleBehaviorType, 'static_count' | 'line_crossing'> }> = [
+  { label: '\u533a\u57df\u5165\u4fb5', value: 'intrusion' },
+  { label: '\u533a\u57df\u505c\u7559', value: 'dwell' },
+];
+
+export const LINE_DIRECTION_OPTIONS: Array<{ label: string; value: DynamicLineDirection }> = [
+  { label: '\u53cc\u5411', value: 'both' },
+  { label: 'A -> B', value: 'a_to_b' },
+  { label: 'B -> A', value: 'b_to_a' },
 ];
 
 export const OPERATOR_OPTIONS: Array<{ label: string; value: AlertRuleOperator }> = [
@@ -271,6 +292,26 @@ export function getSeverityColor(severity?: string) {
   return SEVERITY_COLOR_MAP[severity] ?? 'default';
 }
 
+export function getAlertBehaviorLabel(type?: AlertRuleBehaviorType) {
+  return ALERT_BEHAVIOR_LABEL_MAP[type ?? 'static_count'] ?? '\u9759\u6001\u68c0\u6d4b';
+}
+
+export function formatDynamicTrigger(rule: AlertRuleDraft): string {
+  if ((rule.behavior_type ?? 'static_count') === 'static_count')
+    return rule.logic_expression?.trim() || '\u6309\u68c0\u6d4b\u6761\u4ef6\u5224\u65ad';
+  if (rule.behavior_type === 'intrusion')
+    return rule.dynamic_trigger?.mode === 'stay'
+      ? `\u8fdb\u5165\u533a\u57df\u5e76\u505c\u7559 ${rule.dynamic_trigger?.dwell_sec ?? 3} \u79d2`
+      : '\u76ee\u6807\u8fdb\u5165\u533a\u57df';
+  if (rule.behavior_type === 'dwell')
+    return `\u533a\u57df\u5185\u505c\u7559 ${rule.dynamic_trigger?.dwell_sec ?? rule.duration_sec ?? 3} \u79d2\uff0c\u89e6\u53d1\u6570\u91cf ${rule.dynamic_trigger?.crowd_count ?? 1}`;
+  if (rule.behavior_type === 'line_crossing') {
+    const direction = LINE_DIRECTION_OPTIONS.find(item => item.value === rule.dynamic_geometry?.direction)?.label ?? '\u53cc\u5411';
+    return `\u7a7f\u8d8a\u7ebf\u6bb5\uff08${direction}\uff09`;
+  }
+  return '\u52a8\u6001\u8ffd\u8e2a\u5224\u65ad';
+}
+
 export function getClassOptionsFromDraft(draft: AlgorithmTaskDraft) {
   return getAlertClassOptionsForDraftModels(draft);
 }
@@ -278,6 +319,22 @@ export function getClassOptionsFromDraft(draft: AlgorithmTaskDraft) {
 
 export const DEFAULT_CLIP_BEFORE_SEC = 10;
 export const DEFAULT_CLIP_AFTER_SEC = 10;
+
+const DEFAULT_DYNAMIC_TRIGGER = {
+  mode: 'enter' as const,
+  dwell_sec: 3,
+  extract_interval: 25,
+  lost_track_buffer: 25,
+  matching_threshold: 0.8,
+  same_track_suppress_sec: 300,
+  enter_confirm_frames: 2,
+  boundary_tolerance_px: 5,
+  allow_leave_sec: 1,
+  crowd_count: 1,
+  max_speed_jump: 0,
+  smooth_alpha: 0.25,
+  lock_class: true,
+};
 
 export function ensureClipRecordDefaults(rule: AlertRuleDraft) {
   if (!rule.clip_record_enabled)
@@ -327,6 +384,7 @@ export function createEmptyAlertRule(existingRuleCount: number): AlertRuleDraft 
   const conditions = [createBlankCondition(1)];
   return {
     rule_id: `rule_${Date.now()}_${existingRuleCount}`,
+    behavior_type: 'static_count',
     rule_name: '',
     enabled: true,
     scope: {
@@ -346,15 +404,157 @@ export function createEmptyAlertRule(existingRuleCount: number): AlertRuleDraft 
   };
 }
 
+export function createEmptyDynamicAlertRule(existingRuleCount: number): AlertRuleDraft {
+  const rule = createEmptyAlertRule(existingRuleCount);
+  return {
+    ...rule,
+    behavior_type: 'intrusion',
+    rule_name: '',
+    target_model_id: null,
+    target_classes: [],
+    scope: {
+      type: 'region',
+      region_id: null,
+      line_id: null,
+    },
+    dynamic_geometry: {
+      type: 'polygon',
+      points: [],
+    },
+    dynamic_trigger: {
+      ...DEFAULT_DYNAMIC_TRIGGER,
+    },
+    duration_sec: 0,
+  };
+}
+
 export function cloneAlertRule(rule: AlertRuleDraft): AlertRuleDraft {
   const cloned = migrateAlertRule({
     ...rule,
     scope: { ...rule.scope },
     conditions: rule.conditions.map(condition => ({ ...condition })),
+    target_classes: [...(rule.target_classes ?? [])],
+    dynamic_geometry: rule.dynamic_geometry
+      ? {
+          ...rule.dynamic_geometry,
+          points: rule.dynamic_geometry.points.map(point => [...point]),
+        }
+      : undefined,
+    dynamic_trigger: rule.dynamic_trigger ? { ...rule.dynamic_trigger } : undefined,
   });
   if (cloned.clip_record_enabled)
     ensureClipRecordDefaults(cloned);
   return cloned;
+}
+
+export function normalizeDynamicAlertRuleBeforeSave(rule: AlertRuleDraft): AlertRuleDraft {
+  const modelId = rule.target_model_id ?? rule.conditions[0]?.model_id ?? null;
+  const firstClass = rule.target_classes?.[0] ?? rule.conditions[0]?.class_name ?? '';
+  const normalized = cloneAlertRule({
+    ...rule,
+    target_model_id: modelId,
+    target_classes: [...(rule.target_classes ?? [])],
+    conditions: [
+      {
+        seq: 1,
+        model_id: modelId,
+        model_name: rule.conditions[0]?.model_name,
+        class_name: firstClass,
+        operator: '>=',
+        count: 1,
+      },
+    ],
+    logic_expression: '1',
+  });
+
+  if (normalized.behavior_type === 'line_crossing') {
+    normalized.scope.type = 'line';
+    normalized.dynamic_geometry = {
+      type: 'line',
+      points: normalized.dynamic_geometry?.points ?? [],
+      direction: normalized.dynamic_geometry?.direction ?? 'both',
+    };
+    normalized.dynamic_trigger = {
+      mode: 'cross',
+      ...DEFAULT_DYNAMIC_TRIGGER,
+      ...normalized.dynamic_trigger,
+      mode: 'cross',
+    };
+  }
+  else {
+    normalized.scope.type = 'region';
+    normalized.dynamic_geometry = {
+      type: 'polygon',
+      points: normalized.dynamic_geometry?.points ?? [],
+    };
+    normalized.dynamic_trigger = {
+      ...DEFAULT_DYNAMIC_TRIGGER,
+      ...normalized.dynamic_trigger,
+      mode: normalized.behavior_type === 'dwell' ? 'stay' : (normalized.dynamic_trigger?.mode ?? 'enter'),
+      dwell_sec: normalized.behavior_type === 'intrusion' && normalized.dynamic_trigger?.mode === 'enter'
+        ? 0
+        : (normalized.dynamic_trigger?.dwell_sec ?? normalized.duration_sec ?? 3),
+      allow_leave_sec: normalized.behavior_type === 'intrusion' && normalized.dynamic_trigger?.mode === 'enter'
+        ? 0
+        : (normalized.dynamic_trigger?.allow_leave_sec ?? 1),
+      crowd_count: normalized.behavior_type === 'dwell'
+        ? (normalized.dynamic_trigger?.crowd_count ?? 1)
+        : 1,
+    };
+  }
+
+  if (normalized.dynamic_trigger) {
+    delete (normalized.dynamic_trigger as Record<string, unknown>).min_confidence;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).min_track_confidence;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).min_box_area;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).min_track_hits;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).leave_reset_sec;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).target_point;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).dwell_mode;
+    delete (normalized.dynamic_trigger as Record<string, unknown>).crowd_mode;
+  }
+
+  return normalizeAlertRuleBeforeSave(normalized);
+}
+
+export function validateDynamicAlertRule(rule: AlertRuleDraft): string | null {
+  if (!rule.rule_name?.trim())
+    return '\u8bf7\u586b\u5199\u89c4\u5219\u540d\u79f0';
+  if (!rule.severity)
+    return '\u8bf7\u9009\u62e9\u544a\u8b66\u7b49\u7ea7';
+  if (!rule.behavior_type || rule.behavior_type === 'static_count')
+    return '\u8bf7\u9009\u62e9\u52a8\u6001\u89c4\u5219\u7c7b\u578b';
+  if (rule.target_model_id == null)
+    return '\u8bf7\u9009\u62e9\u76ee\u6807\u7b97\u6cd5';
+  if (!rule.target_classes?.length)
+    return '\u8bf7\u9009\u62e9\u76ee\u6807\u7c7b\u522b';
+  if ((rule.behavior_type === 'dwell' || rule.dynamic_trigger?.mode === 'stay')
+    && (!rule.dynamic_trigger?.dwell_sec || rule.dynamic_trigger.dwell_sec < 1))
+    return '\u8bf7\u586b\u5199\u505c\u7559\u89e6\u53d1\u79d2\u6570';
+  if (!rule.dynamic_trigger?.extract_interval || rule.dynamic_trigger.extract_interval < 1)
+    return '\u8bf7\u586b\u5199\u62bd\u5e27\u95f4\u9694';
+  if (!rule.dynamic_trigger?.lost_track_buffer || rule.dynamic_trigger.lost_track_buffer < 1)
+    return '\u8bf7\u586b\u5199\u76ee\u6807\u4e22\u5931\u4fdd\u7559\u5e27\u6570';
+  if (rule.dynamic_trigger.matching_threshold == null || rule.dynamic_trigger.matching_threshold <= 0 || rule.dynamic_trigger.matching_threshold > 1)
+    return '\u8bf7\u586b\u51990-1\u4e4b\u95f4\u7684\u8f68\u8ff9\u5339\u914d\u9608\u503c';
+  if (rule.dynamic_trigger.same_track_suppress_sec == null || rule.dynamic_trigger.same_track_suppress_sec < 0)
+    return '\u8bf7\u586b\u5199\u76f8\u540c\u76ee\u6807\u91cd\u590d\u544a\u8b66\u6291\u5236';
+  if (rule.behavior_type === 'intrusion' && (!rule.dynamic_trigger.enter_confirm_frames || rule.dynamic_trigger.enter_confirm_frames < 1))
+    return '\u8bf7\u586b\u5199\u8fdb\u5165\u786e\u8ba4\u5e27\u6570';
+  if ((rule.behavior_type === 'dwell' || rule.dynamic_trigger.mode === 'stay')
+    && (rule.dynamic_trigger.allow_leave_sec == null || rule.dynamic_trigger.allow_leave_sec < 0))
+    return '\u8bf7\u586b\u5199\u77ed\u6682\u79bb\u5f00\u5bb9\u5fcd\u65f6\u95f4';
+  if (rule.behavior_type === 'dwell' && (!rule.dynamic_trigger.crowd_count || rule.dynamic_trigger.crowd_count < 1))
+    return '\u8bf7\u586b\u5199\u89e6\u53d1\u6570\u91cf';
+  if (rule.alarm_suppress_time == null || rule.alarm_suppress_time < 0)
+    return '\u8bf7\u586b\u5199\u544a\u8b66\u6291\u5236\u65f6\u95f4\uff08\u79d2\uff09';
+  if (rule.clip_record_enabled) {
+    if (rule.clip_before_sec == null || rule.clip_before_sec < 0)
+      return '\u8bf7\u586b\u5199\u5f55\u50cf\u7247\u6bb5\u300c\u524d\u591a\u5c11\u79d2\u300d';
+    if (rule.clip_after_sec == null || rule.clip_after_sec < 0)
+      return '\u8bf7\u586b\u5199\u5f55\u50cf\u7247\u6bb5\u300c\u540e\u591a\u5c11\u79d2\u300d';
+  }
+  return null;
 }
 
 export function validateAlertRule(rule: AlertRuleDraft): string | null {

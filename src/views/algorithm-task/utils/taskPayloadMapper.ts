@@ -160,6 +160,16 @@ function mapAlertRuleToBackend(
     rule_name: normalized.rule_name,
     enabled: normalized.enabled,
     severity: normalized.severity ?? 'medium',
+    behavior_type: normalized.behavior_type ?? 'static_count',
+    target_model_id: normalized.target_model_id ?? null,
+    target_classes: [...(normalized.target_classes ?? [])],
+    dynamic_geometry: normalized.dynamic_geometry
+      ? {
+          ...normalized.dynamic_geometry,
+          points: normalized.dynamic_geometry.points.map(point => [...point]),
+        }
+      : undefined,
+    dynamic_trigger: normalized.dynamic_trigger ? { ...normalized.dynamic_trigger } : undefined,
     scope: {
       type: normalized.scope.type,
       device_id: resolveDeviceIdForRule(normalized, draft),
@@ -245,6 +255,21 @@ export function buildBackendTaskPayloadFromDraft(
   const analysisMode = draft.task_type === 'realtime' ? (draft.analysis_mode ?? 'static') : 'static';
   const trackingEnabled = draft.task_type === 'realtime'
     && (analysisMode === 'dynamic' || !!draft.detection_config.enable_tracking);
+  const dynamicTrackingConfig = rules.find(rule =>
+    rule.enabled && rule.behavior_type !== 'static_count' && rule.dynamic_trigger,
+  )?.dynamic_trigger;
+  const trackingSimilarityThreshold =
+    dynamicTrackingConfig?.matching_threshold
+    ?? draft.detection_config.tracking_similarity_threshold
+    ?? DEFAULT_TRACKING_SIMILARITY_THRESHOLD;
+  const trackingMaxAge =
+    dynamicTrackingConfig?.lost_track_buffer
+    ?? draft.detection_config.tracking_max_age
+    ?? DEFAULT_TRACKING_MAX_AGE;
+  const trackingSmoothAlpha =
+    dynamicTrackingConfig?.smooth_alpha
+    ?? draft.detection_config.tracking_smooth_alpha
+    ?? DEFAULT_TRACKING_SMOOTH_ALPHA;
 
   const payload: AlgorithmTaskPayload = {
     task_name: draft.task_name.trim(),
@@ -270,10 +295,14 @@ export function buildBackendTaskPayloadFromDraft(
       : null,
     tracking_config: {
       enabled: trackingEnabled,
-      similarity_threshold:
-        draft.detection_config.tracking_similarity_threshold ?? DEFAULT_TRACKING_SIMILARITY_THRESHOLD,
-      max_age: draft.detection_config.tracking_max_age ?? DEFAULT_TRACKING_MAX_AGE,
-      smooth_alpha: draft.detection_config.tracking_smooth_alpha ?? DEFAULT_TRACKING_SMOOTH_ALPHA,
+      backend: trackingEnabled ? 'supervision' : 'simple',
+      tracker: trackingEnabled ? 'bytetrack' : 'simple',
+      similarity_threshold: trackingSimilarityThreshold,
+      minimum_matching_threshold: trackingSimilarityThreshold,
+      max_age: trackingMaxAge,
+      max_lost_frames: trackingMaxAge,
+      smooth_alpha: trackingSmoothAlpha,
+      frame_rate: 30,
     },
     bindings: buildBindingsFromDraft(draft),
     alert_config: {
@@ -283,13 +312,11 @@ export function buildBackendTaskPayloadFromDraft(
     alert_push_configs: pushConfigs.map(mapAlertPushToBackend),
     device_ids: [...draft.device_ids],
     model_ids: normalizeRealModelIds(draft.model_ids),
-    extract_interval: draft.detection_config.extract_interval ?? 25,
+    extract_interval: dynamicTrackingConfig?.extract_interval ?? draft.detection_config.extract_interval ?? 25,
     tracking_enabled: trackingEnabled,
-    tracking_similarity_threshold:
-      draft.detection_config.tracking_similarity_threshold ?? DEFAULT_TRACKING_SIMILARITY_THRESHOLD,
-    tracking_max_age: draft.detection_config.tracking_max_age ?? DEFAULT_TRACKING_MAX_AGE,
-    tracking_smooth_alpha:
-      draft.detection_config.tracking_smooth_alpha ?? DEFAULT_TRACKING_SMOOTH_ALPHA,
+    tracking_similarity_threshold: trackingSimilarityThreshold,
+    tracking_max_age: trackingMaxAge,
+    tracking_smooth_alpha: trackingSmoothAlpha,
     defense_mode: defenseFields.defense_mode,
     defense_schedule: defenseFields.defense_schedule,
     alert_event_enabled: rules.some(rule => rule.enabled),
@@ -300,6 +327,14 @@ export function buildBackendTaskPayloadFromDraft(
   if (payload.snap_config) {
     payload.cron_expression = payload.snap_config.cron_expression;
     payload.frame_skip = payload.snap_config.frame_skip;
+  }
+
+  if (trackingEnabled && dynamicTrackingConfig?.extract_interval) {
+    payload.bindings.forEach((binding) => {
+      binding.models.forEach((model) => {
+        model.detection_config.extract_interval = dynamicTrackingConfig.extract_interval!;
+      });
+    });
   }
 
   if (options?.forUpdate) {
