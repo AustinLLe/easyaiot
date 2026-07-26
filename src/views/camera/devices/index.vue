@@ -30,11 +30,6 @@
                 <Icon icon="tdesign:copy-filled" color="#4287FCFF" /> {{ record[column.key] }}
               </span>
             </template>
-            <template v-else-if="column.dataIndex === 'stream_status'">
-              <a-tag :color="getStreamStatusColor(record.stream_status)">
-                {{ getStreamStatusText(record.stream_status) }}
-              </a-tag>
-            </template>
             <template v-else-if="column.dataIndex === 'action'">
               <div class="camera-table-action">
                 <TableAction :actions="getTableActions(record)" />
@@ -52,7 +47,6 @@
             @edit="handleCardEdit"
             @delete="handleCardDelete"
             @play="handleCardPlay"
-            @toggleStream="handleCardToggleStream"
           >
             <template #header>
               <a-button type="primary" @click="handleScanOnvif">
@@ -83,7 +77,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -94,13 +88,8 @@ import {
   deleteDevice,
   getDeviceList,
   getDirectoryDevices,
-  getStreamStatus,
   refreshDevices,
-  startStreamForwarding,
-  stopStreamForwarding,
   type DeviceDirectory,
-  type DeviceInfo,
-  type StreamStatusResponse,
 } from '@/api/device/camera'
 import { ScanOutlined, SyncOutlined, SwapOutlined, VideoCameraAddOutlined } from '@ant-design/icons-vue'
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
@@ -117,8 +106,6 @@ const viewMode = ref<'table' | 'card'>('card')
 const directorySidebarRef = ref()
 const selectedDirectoryId = ref<number | null>(null)
 const videoCardListRef = ref()
-const deviceStreamStatuses = ref<Record<string, string>>({})
-const statusCheckTimer = ref<NodeJS.Timeout | null>(null)
 
 const fetchDeviceList = async (params: Record<string, any> = {}) => {
   const pageNo = params.pageNo || params.page || 1
@@ -139,7 +126,7 @@ const fetchDeviceList = async (params: Record<string, any> = {}) => {
     return { data: Array.isArray(data) ? data : [], total: total ?? 0 }
   }
 
-  return getDeviceList({ pageNo, pageSize, search, enable_forward: params.enable_forward })
+  return getDeviceList({ pageNo, pageSize, search })
 }
 
 const handleDirectorySelect = (directory: DeviceDirectory | null) => {
@@ -151,32 +138,6 @@ const handleToggleViewMode = () => {
   viewMode.value = viewMode.value === 'table' ? 'card' : 'table'
   if (viewMode.value === 'card' && videoCardListRef.value)
     videoCardListRef.value.fetch()
-}
-
-const getStreamStatusText = (status: string) => ({
-  running: '运行中',
-  stopped: '已停止',
-  error: '错误',
-  unknown: '未知',
-}[status] || status)
-
-const getStreamStatusColor = (status: string) => ({
-  running: 'green',
-  stopped: 'red',
-  error: 'orange',
-  unknown: 'default',
-}[status] || 'default')
-
-const checkDeviceStreamStatus = async (deviceId: string) => {
-  if (!deviceStreamStatuses.value)
-    deviceStreamStatuses.value = {}
-  try {
-    const response: StreamStatusResponse = await getStreamStatus(deviceId)
-    deviceStreamStatuses.value[deviceId] = response.code === 0 ? response.data.status : 'error'
-  }
-  catch {
-    deviceStreamStatuses.value[deviceId] = 'error'
-  }
 }
 
 const [registerTable, { reload }] = useTable({
@@ -192,78 +153,16 @@ const [registerTable, { reload }] = useTable({
   formConfig: getFormConfig(),
   fetchSetting: { listField: 'data', totalField: 'total' },
   rowKey: 'id',
-  onSuccess: (data) => {
-    if (!data?.data)
-      return
-    if (!deviceStreamStatuses.value)
-      deviceStreamStatuses.value = {}
-    data.data.forEach((device: DeviceInfo) => {
-      if (!deviceStreamStatuses.value[device.id])
-        deviceStreamStatuses.value[device.id] = 'unknown'
-    })
-  },
 })
 
 const getTableActions = (record) => {
   const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP流', onClick: () => handlePlay(record) }]
-  const currentStatus = deviceStreamStatuses.value?.[record.id] || 'unknown'
-  actions.splice(1, 0, currentStatus === 'running'
-    ? { icon: 'ant-design:pause-circle-outlined', tooltip: '停止RTSP转发', onClick: () => handleDisableRtsp(record) }
-    : { icon: 'ant-design:swap-outline', tooltip: '启用RTSP转发', onClick: () => handleEnableRtsp(record) })
   actions.push(
     { icon: 'ant-design:eye-filled', tooltip: '详情', onClick: () => openAddModal('view', record) },
     { icon: 'ant-design:edit-filled', tooltip: '编辑', onClick: () => openAddModal('edit', record) },
     { icon: 'material-symbols:delete-outline-rounded', tooltip: '删除', popConfirm: { title: '确定删除此设备？', confirm: () => handleDelete(record) } },
   )
   return actions
-}
-
-const handleEnableRtsp = async (record) => {
-  if (!deviceStreamStatuses.value)
-    deviceStreamStatuses.value = {}
-  createMessage.loading({ content: '正在启动RTSP转发...', key: 'rtsp' })
-  try {
-    const response = await startStreamForwarding(record.id)
-    if (response.code === 0) {
-      createMessage.success({ content: 'RTSP转发已启动', key: 'rtsp' })
-      deviceStreamStatuses.value[record.id] = 'running'
-      if (videoCardListRef.value?.deviceStreamStatuses)
-        videoCardListRef.value.deviceStreamStatuses[record.id] = 'running'
-      handleSuccess()
-    }
-    else {
-      createMessage.error({ content: `启动失败: ${response.data.msg}`, key: 'rtsp' })
-      deviceStreamStatuses.value[record.id] = 'error'
-    }
-  }
-  catch {
-    createMessage.error({ content: '启动RTSP转发失败', key: 'rtsp' })
-    deviceStreamStatuses.value[record.id] = 'error'
-  }
-}
-
-const handleDisableRtsp = async (record) => {
-  if (!deviceStreamStatuses.value)
-    deviceStreamStatuses.value = {}
-  createMessage.loading({ content: '正在停止RTSP转发...', key: 'rtsp' })
-  try {
-    const response = await stopStreamForwarding(record.id)
-    if (response.code === 0) {
-      createMessage.success({ content: 'RTSP转发已停止', key: 'rtsp' })
-      deviceStreamStatuses.value[record.id] = 'stopped'
-      if (videoCardListRef.value?.deviceStreamStatuses)
-        videoCardListRef.value.deviceStreamStatuses[record.id] = 'stopped'
-      handleSuccess()
-    }
-    else {
-      createMessage.error({ content: `停止失败: ${response.data.msg}`, key: 'rtsp' })
-      deviceStreamStatuses.value[record.id] = 'error'
-    }
-  }
-  catch {
-    createMessage.error({ content: '停止RTSP转发失败', key: 'rtsp' })
-    deviceStreamStatuses.value[record.id] = 'error'
-  }
 }
 
 function handlePlayerSuccess() {}
@@ -324,23 +223,7 @@ const handleCardEdit = (record) => openAddModal('edit', record)
 const handleCardDelete = async (record) => handleDelete(record)
 const handleCardPlay = (record) => handlePlay(record)
 
-const handleCardToggleStream = async (record) => {
-  const currentStatus = deviceStreamStatuses.value?.[record.id] || 'unknown'
-  if (currentStatus === 'running')
-    await handleDisableRtsp(record)
-  else
-    await handleEnableRtsp(record)
-  videoCardListRef.value?.fetch()
-}
-
 onMounted(() => handleSuccess())
-
-onUnmounted(() => {
-  if (statusCheckTimer.value) {
-    clearInterval(statusCheckTimer.value)
-    statusCheckTimer.value = null
-  }
-})
 </script>
 
 <style lang="less" scoped>

@@ -341,7 +341,6 @@ import { getMonitorDashboardConfig } from './config'
 import {
   getDeviceList,
   getDirectoryList,
-  startStreamForwarding,
   type DeviceDirectory,
   type DeviceInfo,
 } from '@/api/device/camera'
@@ -1105,9 +1104,7 @@ async function ensureOriginalStreamUrl(device: DeviceInfo) {
     if (converted)
       return converted
   }
-  const response = await startStreamForwarding(device.id)
-  const payload = response?.code !== undefined ? response.data ?? response : response
-  return payload?.http_stream || convertRtmpToHttp(payload?.rtmp_stream || device.rtmp_stream) || ''
+  return ''
 }
 
 function normalizeDeviceList(response: any): DeviceInfo[] {

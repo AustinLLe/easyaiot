@@ -43,15 +43,6 @@ const camera: AppRouteModule = {
       },
     },
     {
-      path: 'stream-forward',
-      name: 'CameraStreamForward',
-      component: () => import('@/views/camera/stream-forward/index.vue'),
-      meta: {
-        title: '推流转发',
-        icon: 'ant-design:swap-outlined',
-      },
-    },
-    {
       path: 'index',
       name: 'CameraLegacyIndex',
       component: () => import('@/views/camera/index.vue'),

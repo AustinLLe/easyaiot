@@ -55,11 +55,9 @@ import { Icon } from '@/components/Icon';
 import { Tag as ATag } from 'ant-design-vue';
 import {
   getDirectoryDevices,
-  getStreamStatus,
   moveDeviceToDirectory,
   type DeviceDirectory,
   type DeviceInfo,
-  type StreamStatusResponse,
 } from '@/api/device/camera';
 import AddDirectoryOrDeviceModal from './AddDirectoryOrDeviceModal.vue';
 import DirectorySidebar from '../DirectorySidebar/index.vue';
@@ -74,9 +72,6 @@ const directorySidebarRef = ref<InstanceType<typeof DirectorySidebar>>();
 // 目录相关
 const selectedDirectoryId = ref<number | null>(null);
 const selectedDirectoryName = ref<string>('');
-
-// 设备流状态映射
-const deviceStreamStatuses = ref<Record<string, string>>({});
 
 // 选择目录
 const handleSelectDirectory = (directory: DeviceDirectory | null) => {
@@ -183,24 +178,9 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
           );
         }
         
-        // 初始化设备流状态
-        const devicesWithStatus = filteredData.map((device: DeviceInfo) => {
-          if (!deviceStreamStatuses.value[device.id]) {
-            deviceStreamStatuses.value[device.id] = 'unknown';
-          }
-          return {
-            ...device,
-            stream_status: deviceStreamStatuses.value[device.id] || 'unknown',
-          };
-        });
-        
-        // 检查设备流状态
-        // 已禁用自动检查设备流状态
-        // checkAllDevicesStreamStatus(filteredData);
-        
         return {
-          data: devicesWithStatus,
-          total: devicesWithStatus.length,
+          data: filteredData,
+          total: filteredData.length,
         };
       }
       return { data: [], total: 0 };
@@ -260,69 +240,6 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
   canResize: true,
   resizeHeightOffset: 36,
 });
-
-// 获取流状态文本
-const getStreamStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    'running': '运行中',
-    'stopped': '已停止',
-    'error': '错误',
-    'unknown': '未知'
-  };
-  return statusMap[status] || status || '未知';
-};
-
-// 获取流状态颜色
-const getStreamStatusColor = (status: string) => {
-  const colorMap: Record<string, string> = {
-    'running': 'green',
-    'stopped': 'red',
-    'error': 'orange',
-    'unknown': 'default'
-  };
-  return colorMap[status] || 'default';
-};
-
-// 安全获取设备流状态
-const getDeviceStreamStatus = (deviceId: string) => {
-  if (!deviceStreamStatuses.value || !deviceStreamStatuses.value[deviceId]) {
-    return 'unknown';
-  }
-  return deviceStreamStatuses.value[deviceId];
-};
-
-// 检查单个设备的流状态
-const checkDeviceStreamStatus = async (deviceId: string) => {
-  try {
-    if (!deviceStreamStatuses.value) {
-      deviceStreamStatuses.value = {};
-    }
-    const response: StreamStatusResponse = await getStreamStatus(deviceId);
-    if (response.code === 0) {
-      deviceStreamStatuses.value[deviceId] = response.data.status;
-    } else {
-      deviceStreamStatuses.value[deviceId] = 'error';
-    }
-  } catch (error) {
-    console.error(`检查设备 ${deviceId} 流状态失败`, error);
-    if (!deviceStreamStatuses.value) {
-      deviceStreamStatuses.value = {};
-    }
-    deviceStreamStatuses.value[deviceId] = 'error';
-  }
-};
-
-// 检查所有设备的流状态
-const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
-  try {
-    const deviceIds = devices.map(device => device.id);
-    for (const deviceId of deviceIds) {
-      await checkDeviceStreamStatus(deviceId);
-    }
-  } catch (error) {
-    console.error('检查设备流状态失败', error);
-  }
-};
 
 // 获取表格操作按钮
 const getTableActions = (record: DeviceInfo) => {
@@ -412,7 +329,7 @@ const handleSuccess = () => {
 };
 
 // 暴露事件
-const emit = defineEmits(['view', 'edit', 'delete', 'play', 'toggleStream']);
+const emit = defineEmits(['view', 'edit', 'delete', 'play']);
 
 // 暴露刷新方法
 defineExpose({

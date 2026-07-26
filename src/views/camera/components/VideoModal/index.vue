@@ -247,7 +247,6 @@ import {copyText} from '@/utils/copyTextToClipboard';
 // 导入新的API函数
 import {discoverDevices, getDeviceList, getDirectoryList, moveDeviceToDirectory, registerDevice, updateDevice} from "@/api/device/camera";
 import {convertDirectoryTreeForSelect} from "../../utils/directoryUtils";
-import {ensureDeviceStreamForwardTask} from "@/api/device/stream_forward";
 import {BasicTable, TableAction, useTable} from "@/components/Table";
 import {getOnvifBasicColumns, getOnvifFormConfig} from "./Data";
 import VideoRegisterModal from "../VideoRegisterModal/index.vue";
@@ -674,16 +673,6 @@ function handleRegisterSuccess(value) {
           }
         }
         
-        // 检查并确保推流转发任务存在
-        if (deviceId) {
-          try {
-            await ensureDeviceStreamForwardTask(deviceId);
-          } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
-          }
-        }
-        
         closeModal();
         resetFields();
         emits('success');
@@ -825,16 +814,6 @@ function handleOk() {
           }
         }
         
-        // 检查并确保推流转发任务存在
-        if (deviceId) {
-          try {
-            await ensureDeviceStreamForwardTask(deviceId);
-          } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
-          }
-        }
-        
         closeModal();
         resetFields();
         emits('success');
@@ -888,30 +867,12 @@ function handleOk() {
           const response = await registerDevice(modelRef);
           const deviceId = response?.data?.id;
           
-          // 检查并确保推流转发任务存在
-          if (deviceId) {
-            try {
-              await ensureDeviceStreamForwardTask(deviceId);
-            } catch (error) {
-              // 静默处理，不影响主流程
-              console.warn('检查推流转发任务失败:', error);
-            }
-          }
         }
       } else if (state.type === 'source') {
         // 独立摄像头处理
         const response = await registerDevice(modelRef);
         const deviceId = response?.data?.id;
         
-        // 检查并确保推流转发任务存在
-        if (deviceId) {
-          try {
-            await ensureDeviceStreamForwardTask(deviceId);
-          } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
-          }
-        }
       } else {
         // 默认处理：如果有ID则更新，否则新增
         if (modelRef.id) {
@@ -925,27 +886,10 @@ function handleOk() {
             updateData.cameraType = 'custom';
           }
           await updateDevice(modelRef.id, updateData);
-          
-          // 检查并确保推流转发任务存在
-          try {
-            await ensureDeviceStreamForwardTask(modelRef.id);
-          } catch (error) {
-            // 静默处理，不影响主流程
-            console.warn('检查推流转发任务失败:', error);
-          }
         } else {
           const response = await registerDevice(modelRef);
           const deviceId = response?.data?.id;
           
-          // 检查并确保推流转发任务存在
-          if (deviceId) {
-            try {
-              await ensureDeviceStreamForwardTask(deviceId);
-            } catch (error) {
-              // 静默处理，不影响主流程
-              console.warn('检查推流转发任务失败:', error);
-            }
-          }
         }
       }
 
