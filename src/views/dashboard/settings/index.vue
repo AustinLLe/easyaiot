@@ -3,12 +3,12 @@
     <div class="page-header">
       <div>
         <h2>页面配置</h2>
-        <p>配置平台名称、默认语言与 Logo；上传图片保存在浏览器本地。</p>
+        <p>配置平台界面标识与首页看板参数；保存后写入浏览器本地。</p>
       </div>
       <div class="actions">
-        <button class="secondary-btn" :disabled="saving" @click="handleResetInterface">恢复默认</button>
-        <button class="primary-btn" :disabled="saving" @click="handleSaveInterface">
-          {{ saving ? '保存中...' : '保存' }}
+        <button class="secondary-btn" :disabled="saving" @click="handleResetAll">恢复全部默认</button>
+        <button class="primary-btn" :disabled="saving" @click="handleSaveAll">
+          {{ saving ? '保存中...' : '保存全部' }}
         </button>
       </div>
     </div>
@@ -17,6 +17,10 @@
       <div class="section-head">
         <div>
           <h3>界面配置</h3>
+        </div>
+        <div class="section-actions">
+          <button class="secondary-btn" :disabled="saving" @click="handleResetInterface">恢复默认</button>
+          <button class="primary-btn" :disabled="saving" @click="handleSaveInterface">保存</button>
         </div>
       </div>
 
@@ -78,6 +82,56 @@
         </div>
       </div>
     </div>
+
+    <div class="config-panel section-panel">
+      <div class="section-head">
+        <div>
+          <h3>首页大屏配置</h3>
+          <p>控制首页看板布局、告警展示与刷新参数。</p>
+        </div>
+        <div class="section-actions">
+          <button class="secondary-btn" :disabled="saving" @click="handleResetDashboard">恢复默认</button>
+          <button class="primary-btn" :disabled="saving" @click="handleSaveDashboard">保存</button>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div>
+          <div class="label">告警事件栏目</div>
+          <div class="hint">关闭后首页告警列表不显示。</div>
+        </div>
+        <label class="switch">
+          <input v-model="dashboardForm.showRightAlarmPanel" type="checkbox" />
+          <span></span>
+        </label>
+      </div>
+
+      <div class="config-row">
+        <div>
+          <div class="label">底部统计栏目</div>
+          <div class="hint">关闭后首页底部报警统计与排行区域不显示。</div>
+        </div>
+        <label class="switch">
+          <input v-model="dashboardForm.showBottomRecords" type="checkbox" />
+          <span></span>
+        </label>
+      </div>
+
+      <div class="config-grid">
+        <label class="field">
+          <span>告警显示条数</span>
+          <input v-model.number="dashboardForm.rightAlarmPageSize" min="1" max="50" type="number" />
+        </label>
+        <label class="field">
+          <span>底部录像显示条数</span>
+          <input v-model.number="dashboardForm.bottomRecordPageSize" min="1" max="100" type="number" />
+        </label>
+        <label class="field">
+          <span>刷新间隔（秒）</span>
+          <input v-model.number="dashboardForm.refreshIntervalSeconds" min="3" max="300" type="number" />
+        </label>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,6 +140,12 @@ import { onMounted, reactive, ref } from 'vue'
 import type { UploadRequestOption } from 'ant-design-vue/es/vc-upload/interface'
 import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
+import {
+  defaultMonitorDashboardConfig,
+  fetchMonitorDashboardConfig,
+  resetMonitorDashboardConfigRemote,
+  saveMonitorDashboardConfig,
+} from '@/views/dashboard/monitor/config'
 import {
   defaultInterfaceConfig,
   loadInterfaceConfig,
@@ -107,6 +167,7 @@ const platformConfigStore = usePlatformConfigStore()
 const saving = ref(false)
 
 const interfaceForm = reactive<InterfaceConfig>(defaultInterfaceConfig())
+const dashboardForm = reactive({ ...defaultMonitorDashboardConfig })
 
 const localeOptions: Array<{ label: string, value: PlatformDisplayLocale }> = [
   { label: '简体中文', value: 'zh_CN' },
@@ -142,8 +203,9 @@ const uploadItems: Array<{
   },
 ]
 
-onMounted(() => {
+onMounted(async () => {
   Object.assign(interfaceForm, loadInterfaceConfig())
+  Object.assign(dashboardForm, await fetchMonitorDashboardConfig())
 })
 
 async function handleAssetUpload(option: UploadRequestOption, field: AssetField) {
@@ -178,6 +240,63 @@ async function handleResetInterface() {
     platformConfigStore.resetInterfaceConfig()
     Object.assign(interfaceForm, platformConfigStore.interfaceConfig)
     createMessage.success('界面配置已恢复默认，正在刷新…')
+    window.location.reload()
+  }
+  catch {
+    createMessage.error('恢复默认失败')
+    saving.value = false
+  }
+}
+
+async function handleSaveDashboard() {
+  saving.value = true
+  try {
+    Object.assign(dashboardForm, saveMonitorDashboardConfig({ ...dashboardForm }))
+    createMessage.success('首页大屏配置已保存，重新进入首页后生效')
+  }
+  catch {
+    createMessage.error('首页大屏配置保存失败')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+async function handleResetDashboard() {
+  saving.value = true
+  try {
+    Object.assign(dashboardForm, await resetMonitorDashboardConfigRemote())
+    createMessage.success('首页大屏配置已恢复默认')
+  }
+  catch {
+    createMessage.error('恢复默认失败')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+async function handleSaveAll() {
+  saving.value = true
+  try {
+    platformConfigStore.saveInterfaceConfig({ ...interfaceForm })
+    saveMonitorDashboardConfig({ ...dashboardForm })
+    createMessage.success('全部配置已保存，正在刷新…')
+    window.location.reload()
+  }
+  catch {
+    createMessage.error('保存失败')
+    saving.value = false
+  }
+}
+
+async function handleResetAll() {
+  saving.value = true
+  try {
+    platformConfigStore.resetInterfaceConfig()
+    Object.assign(interfaceForm, platformConfigStore.interfaceConfig)
+    Object.assign(dashboardForm, await resetMonitorDashboardConfigRemote())
+    createMessage.success('全部配置已恢复默认，正在刷新…')
     window.location.reload()
   }
   catch {
@@ -229,9 +348,16 @@ async function handleResetInterface() {
     font-weight: 600;
     color: #111827;
   }
+
+  p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 13px;
+  }
 }
 
-.actions {
+.actions,
+.section-actions {
   display: flex;
   gap: 10px;
   flex-shrink: 0;
@@ -263,6 +389,10 @@ async function handleResetInterface() {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 20px;
+}
+
+.section-panel + .section-panel {
+  margin-top: 16px;
 }
 
 .interface-form {
@@ -410,5 +540,92 @@ async function handleResetInterface() {
   color: #1677ff;
   cursor: pointer;
   font-size: 13px;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.hint {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+  flex-shrink: 0;
+
+  input {
+    display: none;
+  }
+
+  span {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #cbd5e1;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  span::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 2px;
+    top: 2px;
+    border-radius: 50%;
+    background: #fff;
+    transition: .2s;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .25);
+  }
+
+  input:checked + span {
+    background: #1677ff;
+  }
+
+  input:checked + span::before {
+    transform: translateX(22px);
+  }
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 16px;
+  padding-top: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #334155;
+  font-weight: 500;
+
+  input {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    outline: none;
+    background: #fff;
+  }
 }
 </style>

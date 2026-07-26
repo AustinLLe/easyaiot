@@ -6,24 +6,25 @@
         <h1>首页看板</h1>
         <p>设备、算法与告警态势实时汇总</p>
       </div>
-      <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
-        <Icon icon="ant-design:reload-outlined" :size="16" />
-        {{ loading ? '刷新中' : '刷新数据' }}
-      </button>
+      <div class="heading-actions">
+        <div class="period-tabs" role="tablist" aria-label="统计周期">
+          <button
+            v-for="item in periodOptions"
+            :key="item.value"
+            :class="['period-tab', { active: selectedPeriod === item.value }]"
+            role="tab"
+            :aria-selected="selectedPeriod === item.value"
+            @click="selectedPeriod = item.value"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+        <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
+          <Icon icon="ant-design:reload-outlined" :size="16" />
+          {{ loading ? '刷新中' : '刷新数据' }}
+        </button>
+      </div>
     </header>
-
-    <div class="period-tabs" role="tablist" aria-label="统计周期">
-      <button
-        v-for="item in periodOptions"
-        :key="item.value"
-        :class="['period-tab', { active: selectedPeriod === item.value }]"
-        role="tab"
-        :aria-selected="selectedPeriod === item.value"
-        @click="selectedPeriod = item.value"
-      >
-        {{ item.label }}
-      </button>
-    </div>
 
     <section class="metric-grid" aria-label="数据统计">
       <article v-for="metric in metrics" :key="metric.label" class="metric-card">
@@ -431,16 +432,24 @@ onMounted(refreshDashboard)
   border: 0;
   border-radius: 10px;
   cursor: pointer;
+  flex-shrink: 0;
   &:disabled { opacity: .55; cursor: wait; }
+}
+
+.heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .period-tabs {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  margin-bottom: 18px;
   background: #e9edf5;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .period-tab, .mode-toggle button {
@@ -556,6 +565,7 @@ onMounted(refreshDashboard)
 
 @media (max-width: 600px) {
   .dashboard-heading { align-items: flex-start; gap: 12px; flex-direction: column; }
+  .heading-actions { flex-wrap: wrap; width: 100%; }
   .metric-grid { grid-template-columns: 1fr; }
   .video-filters, .ranking-list { grid-template-columns: 1fr; }
 }
