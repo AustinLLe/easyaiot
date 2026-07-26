@@ -10,7 +10,7 @@ const storage: AppRouteModule = {
     orderNo: 15,
     icon: 'ant-design:database-outlined',
     title: '录像存储',
-    hideMenu: false,
+    hideMenu: true,
     hideChildrenInMenu: true,
   },
   children: [

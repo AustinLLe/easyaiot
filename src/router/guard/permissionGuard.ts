@@ -93,6 +93,11 @@ export function createPermissionGuard(router: Router) {
       }
     }
 
+    const { usePlatformConfigStoreWithOut } = await import('@/store/modules/platformConfig')
+    const platformConfigStore = usePlatformConfigStoreWithOut()
+    if (!platformConfigStore.loaded)
+      platformConfigStore.loadInterfaceConfig()
+
     if (permissionStore.getIsDynamicAddedRoute) {
       next()
       return

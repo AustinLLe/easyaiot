@@ -15,6 +15,7 @@ import { changeTheme } from '@/logics/theme'
 
 import { useAppStore } from '@/store/modules/app'
 import { useLocaleStore } from '@/store/modules/locale'
+import { usePlatformConfigStoreWithOut } from '@/store/modules/platformConfig'
 
 import { getCommonStoragePrefix, getStorageShortName } from '@/utils/env'
 
@@ -63,6 +64,10 @@ export function initAppConfigStore() {
   }
   // init store
   localeStore.initLocale()
+
+  const platformConfigStore = usePlatformConfigStoreWithOut()
+  if (!platformConfigStore.loaded)
+    platformConfigStore.loadInterfaceConfig()
 
   setTimeout(() => {
     clearObsoleteStorage()

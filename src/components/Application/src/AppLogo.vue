@@ -1,26 +1,26 @@
 <script lang="ts" setup>
-import {computed, unref} from 'vue'
-import {useGlobSetting} from '@/hooks/setting'
-import {useGo} from '@/hooks/web/usePage'
-import {useMenuSetting} from '@/hooks/setting/useMenuSetting'
-import {useDesign} from '@/hooks/web/useDesign'
-import {PageEnum} from '@/enums/pageEnum'
+import { computed, unref } from 'vue'
+import { useMenuSetting } from '@/hooks/setting/useMenuSetting'
+import { useDesign } from '@/hooks/web/useDesign'
+import { useGo } from '@/hooks/web/usePage'
+import { PageEnum } from '@/enums/pageEnum'
+import { usePlatformConfigStore } from '@/store/modules/platformConfig'
 
 const props = defineProps({
   // 当前父组件的主题
-  theme: {type: String, validator: (v: string) => ['light', 'dark'].includes(v)},
+  theme: { type: String, validator: (v: string) => ['light', 'dark'].includes(v) },
   // 是否显示标题
-  showTitle: {type: Boolean, default: true},
+  showTitle: { type: Boolean, default: true },
   // 折叠菜单时也会显示标题
-  alwaysShowTitle: {type: Boolean},
+  alwaysShowTitle: { type: Boolean },
 })
 
-const {prefixCls} = useDesign('app-logo')
-const {getCollapsedShowTitle} = useMenuSetting()
-const {title} = useGlobSetting()
+const { prefixCls } = useDesign('app-logo')
+const { getCollapsedShowTitle } = useMenuSetting()
+const platformConfigStore = usePlatformConfigStore()
 const go = useGo()
 
-const getAppLogoClass = computed(() => [prefixCls, props.theme, {'collapsed-show-title': unref(getCollapsedShowTitle)}])
+const getAppLogoClass = computed(() => [prefixCls, props.theme, { 'collapsed-show-title': unref(getCollapsedShowTitle) }])
 
 const getTitleClass = computed(() => [
   `${prefixCls}__title`,
@@ -28,6 +28,14 @@ const getTitleClass = computed(() => [
     'xs:opacity-0': !props.alwaysShowTitle,
   },
 ])
+
+const logoSrc = computed(() => {
+  return props.theme === 'dark'
+    ? platformConfigStore.logoForDarkTheme
+    : platformConfigStore.logoForLightTheme
+})
+
+const displayTitle = computed(() => platformConfigStore.platformName)
 
 function goHome() {
   go(PageEnum.BASE_HOME)
@@ -37,10 +45,10 @@ function goHome() {
 <template>
   <div class="ant-icon" :class="getAppLogoClass" @click="goHome">
     <div class="logo-icon">
-      <img class="uc-logo" src="@/assets/images/logo.png"/>
+      <img class="uc-logo" :src="logoSrc" alt="" />
     </div>
     <div v-show="showTitle" class="truncate md:opacity-100 logo-title" :class="getTitleClass">
-      {{ title }}
+      {{ displayTitle }}
     </div>
   </div>
 </template>
@@ -56,6 +64,7 @@ function goHome() {
     .uc-logo {
       width: 100% !important;
       height: 100%;
+      object-fit: contain;
     }
   }
   .logo-title{
