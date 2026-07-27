@@ -150,6 +150,21 @@ export function hasRecordClip(record: Record<string, any>): boolean {
   return !!(record.record_path && String(record.record_path).trim());
 }
 
+export function getRecordClipStatus(record: Record<string, any>): 'ready' | 'generating' | 'failed' | 'none' {
+  if (hasRecordClip(record))
+    return 'ready';
+  const info = parseInformation(record.information);
+  const clipRecord = info?.clip_record;
+  if (clipRecord && typeof clipRecord === 'object' && clipRecord.enabled) {
+    const status = String(clipRecord.status || '').toLowerCase();
+    if (status === 'generating' || status === 'pending')
+      return 'generating';
+    if (status === 'failed' || status === 'error')
+      return 'failed';
+  }
+  return 'none';
+}
+
 export function getProcessStatus(
   record: Record<string, any>,
   uiState: AlertUiState,

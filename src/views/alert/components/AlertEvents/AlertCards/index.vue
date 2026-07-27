@@ -100,7 +100,7 @@
                     <div
                       class="btn"
                       :class="{ disabled: !canViewVideo(item) }"
-                      title="查看录像"
+                      :title="getVideoButtonTitle(item)"
                       @click="handleViewVideo(item)"
                     >
                       <Icon icon="ant-design:play-circle-outlined" :size="15" color="#3B82F6" />
@@ -144,6 +144,7 @@ import {
   filterAlertsClientSide,
   getArchiveStatus,
   getProcessStatus,
+  getRecordClipStatus,
   resolveAlertDescription,
   resolveAlertImageUrl,
   resolveRuleName,
@@ -333,7 +334,18 @@ function isSnapTask(item: Record<string, any>): boolean {
 }
 
 function canViewVideo(item: Record<string, any>) {
-  return !!(item.device_id && item.time && !isSnapTask(item));
+  return getRecordClipStatus(item) === 'ready' && !!(item.device_id && item.time && !isSnapTask(item));
+}
+
+function getVideoButtonTitle(item: Record<string, any>) {
+  const status = getRecordClipStatus(item);
+  if (status === 'generating')
+    return '录像生成中';
+  if (status === 'failed')
+    return '录像生成失败';
+  if (status === 'ready')
+    return '查看录像';
+  return '暂无视频';
 }
 
 function handleViewImage(record: Record<string, any>) {
@@ -346,7 +358,7 @@ function handleViewImage(record: Record<string, any>) {
 
 function handleViewVideo(record: Record<string, any>) {
   if (!canViewVideo(record)) {
-    createMessage.warn('缺少必要信息：设备ID或告警时间');
+    createMessage.warn(getVideoButtonTitle(record));
     return;
   }
   emit('viewVideo', record);

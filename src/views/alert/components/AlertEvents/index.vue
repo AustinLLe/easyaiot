@@ -49,6 +49,8 @@
           >
             播放
           </a-button>
+          <span v-else-if="getRecordClipStatus(record) === 'generating'" class="muted-text">生成中</span>
+          <span v-else-if="getRecordClipStatus(record) === 'failed'" class="muted-text">生成失败</span>
           <span v-else class="muted-text">暂无视频</span>
         </template>
 
@@ -122,7 +124,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue';
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import { Badge, Dropdown, Menu, MenuItem, Tag } from 'ant-design-vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
@@ -147,6 +149,7 @@ import {
   filterAlertsClientSide,
   getArchiveStatus,
   getProcessStatus,
+  getRecordClipStatus,
   hasRecordClip,
   loadAlertUiState,
   resolveAlertImageUrl,
@@ -229,6 +232,20 @@ const [
     return filtered;
   },
   rowKey: 'id',
+});
+
+let refreshTimer: number | undefined;
+
+onMounted(() => {
+  refreshTimer = window.setInterval(() => {
+    reload();
+    cardListReload();
+  }, 5000);
+});
+
+onUnmounted(() => {
+  if (refreshTimer)
+    window.clearInterval(refreshTimer);
 });
 
 function isSnapTask(record: Record<string, any>) {
