@@ -46,7 +46,6 @@ export interface DynamicTriggerDraft {
   matching_threshold?: number;
   same_track_suppress_sec?: number;
   enter_confirm_frames?: number;
-  boundary_tolerance_px?: number;
   allow_leave_sec?: number;
   crowd_count?: number;
   max_speed_jump?: number;

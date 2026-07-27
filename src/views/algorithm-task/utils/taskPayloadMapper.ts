@@ -137,6 +137,65 @@ function resolveDeviceIdForRule(rule: AlertRuleDraft, draft: AlgorithmTaskDraft)
   return draft.camera_bindings[0]?.device_id ?? null;
 }
 
+function resolveTargetModelIdForRule(rule: AlertRuleDraft): number | null {
+  if (rule.target_model_id != null)
+    return Number(rule.target_model_id);
+
+  const conditionModelId = rule.conditions.find(condition => condition.model_id != null)?.model_id;
+  return conditionModelId != null ? Number(conditionModelId) : null;
+}
+
+function resolveInheritedDynamicRegion(
+  rule: AlertRuleDraft,
+  draft: AlgorithmTaskDraft,
+): RegionDraft | null {
+  const deviceId = resolveDeviceIdForRule(rule, draft);
+  const modelId = resolveTargetModelIdForRule(rule);
+  if (!deviceId || modelId == null)
+    return null;
+
+  const modelNameMap = buildModelNameMapFromDraft(draft);
+  const row = expandComboRows(draft, modelNameMap).find(item =>
+    item.device_id === deviceId && Number(item.model_id) === Number(modelId),
+  );
+  if (!row)
+    return null;
+
+  const config = getRegionConfigForRow(draft, row);
+  return config.regions.find(region =>
+    region.device_id === deviceId && (region.points?.length ?? 0) >= 3,
+  ) ?? null;
+}
+
+function buildDynamicGeometryForRule(
+  rule: AlertRuleDraft,
+  inheritedRegion: RegionDraft | null,
+): BackendAlertRule['dynamic_geometry'] {
+  if (!rule.dynamic_geometry)
+    return undefined;
+
+  const ownPoints = rule.dynamic_geometry.points ?? [];
+  if (ownPoints.length > 0) {
+    return {
+      ...rule.dynamic_geometry,
+      points: ownPoints.map(point => [...point]),
+    };
+  }
+
+  return {
+    ...rule.dynamic_geometry,
+    points: inheritedRegion?.points.map(point => [...point]) ?? [],
+  };
+}
+
+function resolveRegionIdForRule(rule: AlertRuleDraft, inheritedRegion: RegionDraft | null): string | null {
+  if (rule.scope.region_id)
+    return rule.scope.region_id;
+  if ((rule.dynamic_geometry?.points?.length ?? 0) > 0)
+    return null;
+  return inheritedRegion?.region_id ?? null;
+}
+
 function collectPushIdsForRule(ruleId: string, pushConfigs: AlertPushDraft[]): string[] {
   return pushConfigs
     .filter(push => push.enabled && push.rule_ids?.includes(ruleId))
@@ -154,6 +213,12 @@ function mapAlertRuleToBackend(
     scope: { ...rule.scope },
   });
 
+  const deviceId = resolveDeviceIdForRule(normalized, draft);
+  const inheritedRegion = normalized.behavior_type && normalized.behavior_type !== 'static_count'
+    ? resolveInheritedDynamicRegion(normalized, draft)
+    : null;
+  const regionId = resolveRegionIdForRule(normalized, inheritedRegion);
+
   return {
     rule_id: normalized.rule_id,
     rule_seq: normalized.rule_seq ?? 1,
@@ -163,17 +228,12 @@ function mapAlertRuleToBackend(
     behavior_type: normalized.behavior_type ?? 'static_count',
     target_model_id: normalized.target_model_id ?? null,
     target_classes: [...(normalized.target_classes ?? [])],
-    dynamic_geometry: normalized.dynamic_geometry
-      ? {
-          ...normalized.dynamic_geometry,
-          points: normalized.dynamic_geometry.points.map(point => [...point]),
-        }
-      : undefined,
+    dynamic_geometry: buildDynamicGeometryForRule(normalized, inheritedRegion),
     dynamic_trigger: normalized.dynamic_trigger ? { ...normalized.dynamic_trigger } : undefined,
     scope: {
       type: normalized.scope.type,
-      device_id: resolveDeviceIdForRule(normalized, draft),
-      region_id: normalized.scope.region_id,
+      device_id: deviceId,
+      region_id: regionId,
       line_id: normalized.scope.line_id,
     },
     conditions: normalized.conditions.map(condition => ({

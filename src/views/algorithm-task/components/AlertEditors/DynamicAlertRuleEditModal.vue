@@ -137,11 +137,6 @@
                     <InputNumber v-model:value="localRule.dynamic_trigger!.enter_confirm_frames" :min="1" :max="120" :precision="0" style="width: 100%" />
                   </FormItem>
                 </Col>
-                <Col v-if="localRule.behavior_type === 'intrusion'" :span="12">
-                  <FormItem :label="TXT.boundaryTolerance">
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.boundary_tolerance_px" :min="0" :max="200" :precision="0" style="width: 100%" />
-                  </FormItem>
-                </Col>
               </Row>
               <Row v-if="localRule.behavior_type === 'dwell'" :gutter="16">
                 <Col :span="12">
@@ -290,7 +285,6 @@ const TXT = {
   shortLeaveToleranceSeconds: '\u77ed\u6682\u79bb\u5f00\u5bb9\u5fcd\u65f6\u95f4\uff08\u79d2\uff09',
   sameTrackSuppressSeconds: '\u76f8\u540c\u76ee\u6807\u91cd\u590d\u544a\u8b66\u6291\u5236\uff08\u79d2\uff09',
   suppressSeconds: '\u544a\u8b66\u6291\u5236\u65f6\u95f4\uff08\u79d2\uff09',
-  boundaryTolerance: '\u533a\u57df\u8fb9\u754c\u5bb9\u5fcd\u50cf\u7d20',
   crowdCount: '\u89e6\u53d1\u6570\u91cf',
   trackingQuality: '\u8ffd\u8e2a\u8d28\u91cf',
   lostTrackBuffer: '\u76ee\u6807\u4e22\u5931\u4fdd\u7559\u5e27\u6570',
@@ -368,7 +362,6 @@ function ensureDynamicDefaults(rule: AlertRuleDraft) {
     matching_threshold: rule.dynamic_trigger.matching_threshold ?? 0.8,
     same_track_suppress_sec: rule.dynamic_trigger.same_track_suppress_sec ?? rule.alarm_suppress_time ?? 300,
     enter_confirm_frames: rule.dynamic_trigger.enter_confirm_frames ?? 2,
-    boundary_tolerance_px: rule.dynamic_trigger.boundary_tolerance_px ?? 5,
     allow_leave_sec: rule.dynamic_trigger.allow_leave_sec ?? 1,
     crowd_count: rule.dynamic_trigger.crowd_count ?? 1,
     max_speed_jump: rule.dynamic_trigger.max_speed_jump ?? 0,

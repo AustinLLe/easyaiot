@@ -328,7 +328,6 @@ const DEFAULT_DYNAMIC_TRIGGER = {
   matching_threshold: 0.8,
   same_track_suppress_sec: 300,
   enter_confirm_frames: 2,
-  boundary_tolerance_px: 5,
   allow_leave_sec: 1,
   crowd_count: 1,
   max_speed_jump: 0,
