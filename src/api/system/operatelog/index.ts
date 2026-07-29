@@ -2,33 +2,28 @@ import { defHttp } from '@/utils/http/axios'
 
 export interface OperateLogVO {
   id: number
-  userNickname: string
+  userName: string
   traceId: string
   userId: number
-  module: string
-  name: string
-  type: number
-  content: string
-  exts: Map<string, object>
-  defHttpMethod: string
-  defHttpUrl: string
+  type: string
+  subType: string
+  bizId: number
+  action: string
+  extra: string
+  requestMethod: string
+  requestUrl: string
   userIp: string
   userAgent: string
-  javaMethod: string
-  javaMethodArgs: string
-  startTime: Date
-  duration: number
-  resultCode: number
-  resultMsg: string
-  resultData: string
+  createTime: Date
 }
 
 export interface OperateLogPageReqVO extends PageParam {
-  module?: string
-  userNickname?: string
-  type?: number
-  success?: boolean
-  startTime?: Date[]
+  userId?: number
+  bizId?: number
+  type?: string
+  subType?: string
+  action?: string
+  createTime?: Date[]
 }
 
 // 查询操作日志列表

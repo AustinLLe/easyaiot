@@ -47,6 +47,9 @@ const getShowLayoutFooter = computed(() => {
       <a class="text-[var(--normal-text)] hover:text-[var(--hover-text)]" @click="openWindow(DOC_URL)">{{
         t('layout.footer.onlineDocument') }}</a>
     </div>
-    <div>Copyright &copy;2023 {{ SITE_TITLE }}</div>
+    <div>
+      Copyright &copy;2023 {{ SITE_TITLE }}
+      <span class="ml-2 text-xs opacity-70">TCR 部署验证版</span>
+    </div>
   </Footer>
 </template>

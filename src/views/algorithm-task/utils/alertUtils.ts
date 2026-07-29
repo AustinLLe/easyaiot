@@ -738,6 +738,7 @@ export function createEmptyAlertPush(index: number): AlertPushDraft {
     channels: ['email'],
     channel_profile_map: {},
     content: {
+      platform_name: '',
       title_template: '',
       include_fields: ['task_name', 'camera_name', 'rule_seq', 'rule_name', 'severity', 'alarm_time'],
       remark: '',
@@ -808,6 +809,7 @@ export function normalizeAlertPushBeforeSave(push: AlertPushDraft): AlertPushDra
   }
 
   cloned.address_profile_ids = [];
+  cloned.content.platform_name = cloned.content.platform_name?.trim();
   cloned.content.title_template = cloned.content.title_template.trim();
   return cloned;
 }

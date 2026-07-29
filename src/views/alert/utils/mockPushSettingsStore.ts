@@ -1,4 +1,4 @@
-import type { AlarmPushEndpoint, PushFieldMappingGroup } from '../pushSettings.types';
+import type { AlarmPushEndpoint, PushFieldMappingGroup, UserPushBinding } from '../pushSettings.types';
 import { defHttp } from '@/utils/http/axios';
 import {
   ALGORITHM_OUTPUT_FIELDS,
@@ -56,6 +56,7 @@ function normalizeFieldMapping(raw: Partial<PushFieldMappingGroup> & Record<stri
 function normalizeEndpoint(item: AlarmPushEndpoint): AlarmPushEndpoint {
   return {
     ...item,
+    platform: item.platform || 'webhook',
     output_content: {
       algorithm_fields: [...(item.output_content?.algorithm_fields ?? [])]
         .filter(key => VALID_ALGORITHM_KEYS.has(key)),
@@ -103,6 +104,7 @@ export function createEmptyPushProfile(): AlarmPushEndpoint {
   return {
     profile_id: `push_endpoint_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     profile_name: '',
+    platform: 'webhook',
     push_url: '',
     enabled: true,
     online: undefined,
@@ -179,4 +181,55 @@ export async function savePushProfile(profile: AlarmPushEndpoint, isCreate: bool
 export async function removePushProfile(profileId: string): Promise<void> {
   await request<void>(`/video/alert/endpoints/${encodeURIComponent(profileId)}`, { method: 'DELETE' });
   await loadPushProfiles();
+}
+
+export function loadUserPushBindings(): Promise<UserPushBinding[]> {
+  return request<UserPushBinding[]>('/video/alert/user-bindings');
+}
+
+export function saveUserPushBinding(binding: UserPushBinding): Promise<UserPushBinding> {
+  const isCreate = binding.id == null;
+  return request<UserPushBinding>(
+    isCreate ? '/video/alert/user-bindings' : `/video/alert/user-bindings/${binding.id}`,
+    { method: isCreate ? 'POST' : 'PUT', body: JSON.stringify(binding) },
+  );
+}
+
+export function removeUserPushBinding(bindingId: number): Promise<void> {
+  return request<void>(`/video/alert/user-bindings/${bindingId}`, { method: 'DELETE' });
+}
+
+export async function testUserPushBindingWithPayload(
+  bindingId: number,
+  payloadText: string,
+): Promise<PushEndpointTestResult> {
+  let payload: Record<string, unknown>;
+  try {
+    payload = JSON.parse(payloadText) as Record<string, unknown>;
+  }
+  catch {
+    return {
+      ok: false,
+      statusText: '失败',
+      responseText: JSON.stringify({ code: 400, msg: '测试内容不是有效 JSON' }, null, 2),
+    };
+  }
+  try {
+    const result = await request<{ status_code?: number; response_text?: string }>(
+      `/video/alert/user-bindings/${bindingId}/test`,
+      { method: 'POST', body: JSON.stringify({ payload }) },
+    );
+    return {
+      ok: true,
+      statusText: '成功',
+      responseText: result.response_text || `HTTP ${result.status_code ?? 200}`,
+    };
+  }
+  catch (error) {
+    return {
+      ok: false,
+      statusText: '失败',
+      responseText: error instanceof Error ? error.message : String(error),
+    };
+  }
 }

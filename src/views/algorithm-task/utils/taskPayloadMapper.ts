@@ -273,6 +273,7 @@ function mapAlertPushToBackend(push: AlertPushDraft): BackendAlertPushConfig {
     recipient_user_ids: resolved.recipient_user_ids ?? [],
     address_profile_ids: resolved.address_profile_ids ?? [],
     content: {
+      platform_name: resolved.content.platform_name,
       title_template: resolved.content.title_template,
       include_fields: resolved.content.include_fields,
       remark: resolved.content.remark,

@@ -25,8 +25,7 @@ logs
 *.swo
 *~
 
-# 锁定文件（不使用锁定文件，让容器内重新生成）
-pnpm-lock.yaml
+# pnpm-lock.yaml 必须进入构建上下文；Dockerfile 使用 frozen-lockfile 保证可复现构建。
 
 # Git相关
 .git
@@ -54,4 +53,3 @@ TROUBLESHOOTING.md
 Thumbs.db
 *.zip
 *.tar.gz
-

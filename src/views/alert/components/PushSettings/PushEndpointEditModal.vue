@@ -20,10 +20,17 @@
                 allow-clear
               />
             </FormItem>
+            <FormItem label="渠道类型" required>
+              <Select
+                v-model:value="localEndpoint.platform"
+                :options="platformOptions"
+                :get-popup-container="getPopupContainer"
+              />
+            </FormItem>
             <FormItem label="推送地址" required>
               <Input
                 v-model:value="localEndpoint.push_url"
-                placeholder="https://example.com/api/alarm/push"
+                :placeholder="pushUrlPlaceholder"
                 allow-clear
               />
             </FormItem>
@@ -61,8 +68,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
-import { Button, Form, FormItem, Input, TabPane, Tabs } from 'ant-design-vue';
+import { computed, ref, watch } from 'vue';
+import { Button, Form, FormItem, Input, Select, TabPane, Tabs } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import type { AlarmPushEndpoint } from '../../pushSettings.types';
 import { createEmptyPushProfile } from '../../utils/mockPushSettingsStore';
@@ -93,6 +100,22 @@ const PUSH_URL_VALIDATION_ERRORS = new Set([
 
 const localEndpoint = ref<AlarmPushEndpoint>(createEmptyPushProfile());
 const activeTab = ref('output');
+const platformOptions = [
+  { label: '通用 Webhook', value: 'webhook' },
+  { label: '钉钉机器人', value: 'dingtalk' },
+  { label: '飞书机器人', value: 'feishu' },
+  { label: '企业微信机器人', value: 'wechat' },
+];
+const pushUrlPlaceholder = computed(() => ({
+  dingtalk: 'https://oapi.dingtalk.com/robot/send?access_token=...',
+  feishu: 'https://open.feishu.cn/open-apis/bot/v2/hook/...',
+  wechat: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...',
+  webhook: 'https://example.com/api/alarm/push',
+}[localEndpoint.value.platform || 'webhook']));
+
+function getPopupContainer(trigger: HTMLElement) {
+  return trigger.parentElement ?? document.body;
+}
 
 watch(
   () => [visible.value, props.endpoint] as const,

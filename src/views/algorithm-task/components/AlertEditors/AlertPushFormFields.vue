@@ -37,6 +37,14 @@
       />
     </FormItem>
 
+    <FormItem label="发送平台" required>
+      <Input
+        v-model:value="pushModel.content.platform_name"
+        placeholder="默认使用当前平台名称"
+        :maxlength="64"
+      />
+    </FormItem>
+
     <template v-if="isUserPushMode(pushModel)">
       <FormItem label="推送渠道" required>
         <CheckboxGroup
@@ -119,6 +127,7 @@ import {
 } from 'ant-design-vue';
 import ApiSelect from '@/components/Form/src/components/ApiSelect.vue';
 import { getListSimpleUsers } from '@/api/system/user';
+import { usePlatformConfigStore } from '@/store/modules/platformConfig';
 import { getPushProfiles, loadPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
 import type { AlertPushDraft, AlertRuleDraft } from '../../algorithmTaskDraft.types';
 import {
@@ -153,6 +162,7 @@ const props = withDefaults(defineProps<{
 });
 
 const pushModel = defineModel<AlertPushDraft>('push', { required: true });
+const platformConfigStore = usePlatformConfigStore();
 
 if (!pushModel.value.push_mode)
   pushModel.value.push_mode = 'user';
@@ -172,7 +182,12 @@ const addressProfileOptions = computed(() => {
 });
 
 onMounted(async () => {
-  await loadPushProfiles();
+  await Promise.all([
+    loadPushProfiles(),
+    platformConfigStore.loadInterfaceConfig(),
+  ]);
+  if (!pushModel.value.content.platform_name?.trim())
+    pushModel.value.content.platform_name = platformConfigStore.platformName;
   profilesVersion.value++;
 });
 

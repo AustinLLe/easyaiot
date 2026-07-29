@@ -22,6 +22,7 @@ export interface PushFieldMappingGroup {
 export interface AlarmPushEndpoint {
   profile_id: string;
   profile_name: string;
+  platform: 'webhook' | 'dingtalk' | 'feishu' | 'wechat';
   push_url: string;
   enabled: boolean;
   online?: boolean;
@@ -37,6 +38,20 @@ export interface AlarmPushEndpoint {
 
 /** @deprecated 兼容旧引用，等同 AlarmPushEndpoint */
 export type PushChannelProfile = AlarmPushEndpoint;
+
+export interface UserPushBinding {
+  id?: number;
+  user_id: number;
+  channel: 'dingtalk' | 'feishu' | 'wechat';
+  push_url: string;
+  online?: boolean;
+  last_test_at?: string;
+  /** @deprecated 仅用于兼容首版绑定数据 */
+  endpoint_profile_id?: string;
+  endpoint_profile_name?: string;
+  endpoint_platform?: AlarmPushEndpoint['platform'];
+  endpoint_enabled?: boolean;
+}
 
 /** @deprecated 旧单行结构，加载时迁移为 PushFieldMappingGroup */
 export type PushFieldMappingEntry = PushFieldMappingGroup;

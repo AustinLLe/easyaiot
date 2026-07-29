@@ -53,14 +53,18 @@
 import { ref, watch } from 'vue';
 import { ReloadOutlined, SendOutlined } from '@ant-design/icons-vue';
 import { Button, Textarea } from 'ant-design-vue';
-import type { AlarmPushEndpoint } from '../../pushSettings.types';
-import { testPushEndpointWithPayload } from '../../utils/mockPushSettingsStore';
+import type { AlarmPushEndpoint, UserPushBinding } from '../../pushSettings.types';
+import {
+  testPushEndpointWithPayload,
+  testUserPushBindingWithPayload,
+} from '../../utils/mockPushSettingsStore';
 import { buildPushTestPayloadText } from '../../utils/pushUtils';
 
 defineOptions({ name: 'PushEndpointTestModal' });
 
 const props = defineProps<{
-  endpoint: AlarmPushEndpoint | null;
+  endpoint?: AlarmPushEndpoint | null;
+  binding?: UserPushBinding | null;
 }>();
 
 const visible = defineModel<boolean>('open', { default: false });
@@ -80,11 +84,23 @@ function resetForm(endpoint: AlarmPushEndpoint | null) {
 }
 
 watch(
-  () => [visible.value, props.endpoint?.profile_id] as const,
+  () => [visible.value, props.endpoint?.profile_id, props.binding?.id] as const,
   ([open]) => {
     if (!open)
       return;
-    resetForm(props.endpoint);
+    resetForm(props.endpoint ?? (props.binding
+      ? {
+          profile_id: `user-binding-${props.binding.id}`,
+          profile_name: '用户默认地址',
+          platform: props.binding.channel,
+          push_url: props.binding.push_url,
+          enabled: true,
+          output_content: { algorithm_fields: [], analysis_fields: [] },
+          request_headers: [],
+          extra_fields: [],
+          field_mappings: [],
+        }
+      : null));
   },
 );
 
@@ -98,12 +114,15 @@ function handleReset() {
 
 async function handlePush() {
   const profileId = props.endpoint?.profile_id;
-  if (!profileId)
+  const bindingId = props.binding?.id;
+  if (!profileId && bindingId == null)
     return;
 
   pushing.value = true;
   try {
-    const result = await testPushEndpointWithPayload(profileId, payloadText.value);
+    const result = bindingId != null
+      ? await testUserPushBindingWithPayload(bindingId, payloadText.value)
+      : await testPushEndpointWithPayload(profileId!, payloadText.value);
     statusText.value = result.statusText;
     responseText.value = result.responseText;
     emit('tested');

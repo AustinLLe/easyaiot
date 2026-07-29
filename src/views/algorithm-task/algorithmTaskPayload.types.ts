@@ -121,6 +121,7 @@ export interface BackendAlertConfig {
 }
 
 export interface BackendAlertPushContent {
+  platform_name?: string;
   title_template: string;
   include_fields: AlertPushContentField[];
   remark?: string;

@@ -3,7 +3,7 @@ import { defHttp } from '@/utils/http/axios'
 export interface LoginLogVO {
   id: number
   logType: number
-  traceId: number
+  traceId: string
   userId: number
   userType: number
   username: string
@@ -16,7 +16,7 @@ export interface LoginLogVO {
 export interface LoginLogReqVO extends PageParam {
   userIp?: string
   username?: string
-  status?: boolean
+  status?: boolean | string
   createTime?: Date[]
 }
 

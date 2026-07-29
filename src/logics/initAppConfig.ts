@@ -66,8 +66,8 @@ export function initAppConfigStore() {
   localeStore.initLocale()
 
   const platformConfigStore = usePlatformConfigStoreWithOut()
-  if (!platformConfigStore.loaded)
-    platformConfigStore.loadInterfaceConfig()
+  if (!platformConfigStore.remoteLoaded)
+    void platformConfigStore.loadInterfaceConfig(true)
 
   setTimeout(() => {
     clearObsoleteStorage()

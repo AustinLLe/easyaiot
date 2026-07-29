@@ -6,6 +6,8 @@ import { Dropdown } from '@/components/Dropdown'
 import { Icon } from '@/components/Icon'
 import { useLocale } from '@/locales/useLocale'
 import { localeList } from '@/settings/localeSetting'
+import { usePlatformConfigStore } from '@/store/modules/platformConfig'
+import { getAccessToken } from '@/utils/auth'
 
 const props = defineProps({
   /**
@@ -21,6 +23,7 @@ const props = defineProps({
 const selectedKeys = ref<string[]>([])
 
 const { changeLocale, getLocale } = useLocale()
+const platformConfigStore = usePlatformConfigStore()
 
 const getLocaleText = computed(() => {
   const key = selectedKeys.value[0]
@@ -35,6 +38,12 @@ watchEffect(() => {
 })
 
 async function toggleLocale(lang: LocaleType | string) {
+  if (getAccessToken()) {
+    await platformConfigStore.saveInterfaceConfig({
+      ...platformConfigStore.interfaceConfig,
+      defaultLocale: lang === 'en' ? 'en' : 'zh_CN',
+    })
+  }
   await changeLocale(lang as LocaleType)
   selectedKeys.value = [lang as string]
   props.reload && location.reload()

@@ -198,6 +198,8 @@ export interface AlertPushChannelConfig {
 }
 
 export interface AlertPushContentDraft {
+  /** Alert source label displayed as the first line of robot messages. */
+  platform_name?: string;
   title_template: string;
   include_fields: AlertPushContentField[];
   remark?: string;

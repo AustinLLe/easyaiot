@@ -95,8 +95,14 @@ export function createPermissionGuard(router: Router) {
 
     const { usePlatformConfigStoreWithOut } = await import('@/store/modules/platformConfig')
     const platformConfigStore = usePlatformConfigStoreWithOut()
-    if (!platformConfigStore.loaded)
-      platformConfigStore.loadInterfaceConfig()
+    if (!platformConfigStore.remoteLoaded) {
+      await platformConfigStore.loadInterfaceConfig(true)
+      const { useLocale } = await import('@/locales/useLocale')
+      const { changeLocale, getLocale } = useLocale()
+      const configuredLocale = platformConfigStore.interfaceConfig.defaultLocale
+      if (getLocale.value !== configuredLocale)
+        await changeLocale(configuredLocale)
+    }
 
     if (permissionStore.getIsDynamicAddedRoute) {
       next()

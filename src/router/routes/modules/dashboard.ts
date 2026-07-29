@@ -33,7 +33,7 @@ const dashboard: AppRouteModule = {
       name: 'DashboardConfig',
       component: () => import('@/views/dashboard/settings/index.vue'),
       meta: {
-        title: '页面配置',
+        title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',
         hideMenu: true,
       },
@@ -43,7 +43,7 @@ const dashboard: AppRouteModule = {
       name: 'DashboardConfigStandalone',
       component: () => import('@/views/dashboard/settings/index.vue'),
       meta: {
-        title: '页面配置',
+        title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',
         hideMenu: true,
       },
@@ -53,7 +53,7 @@ const dashboard: AppRouteModule = {
       name: 'DashboardSettingsRedirect',
       redirect: '/dashboard/config',
       meta: {
-        title: '首页看板配置',
+        title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',
         hideMenu: true,
       },

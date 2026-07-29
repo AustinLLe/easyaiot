@@ -322,6 +322,7 @@ export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskD
         : [],
       channel_profile_map: {},
       content: {
+        platform_name: String((row.content as Record<string, unknown> | undefined)?.platform_name ?? ''),
         title_template: String((row.content as Record<string, unknown> | undefined)?.title_template ?? '算法告警通知'),
         include_fields: Array.isArray((row.content as Record<string, unknown> | undefined)?.include_fields)
           ? [...(row.content as Record<string, unknown>).include_fields as any[]]
@@ -508,6 +509,7 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
     address_profile_ids: push.address_profile_ids ?? [],
     channel_profile_map: {},
     content: {
+      platform_name: push.content.platform_name ?? '',
       title_template: push.content.title_template,
       include_fields: push.content.include_fields,
       remark: push.content.remark,

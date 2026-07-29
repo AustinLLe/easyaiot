@@ -98,6 +98,17 @@
     }
   }
 
+  &-platform-name {
+    max-width: 280px;
+    padding: 0 12px;
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   &-menu {
     flex: 1;
     align-items: center;
@@ -159,6 +170,9 @@
     background-color: @header-dark-bg-color !important;
     border-bottom: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
+    .@{header-prefix-cls}-platform-name {
+      color: @white;
+    }
     .@{header-prefix-cls}-logo {
       &:hover {
         background-color: @header-dark-bg-hover-color;

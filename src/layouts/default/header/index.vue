@@ -21,6 +21,7 @@ import { useDesign } from '@/hooks/web/useDesign'
 
 import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
 import { useLocale } from '@/locales/useLocale'
+import { usePlatformConfigStore } from '@/store/modules/platformConfig'
 
 defineOptions({ name: 'LayoutHeader' })
 const props = defineProps({
@@ -38,6 +39,7 @@ const { getHeaderTheme, getShowFullScreen, getShowNotice, getShowContent, getSho
   = useHeaderSetting()
 
 const { getShowLocalePicker } = useLocale()
+const platformConfigStore = usePlatformConfigStore()
 
 const { getIsMobile } = useAppInject()
 
@@ -95,6 +97,13 @@ const getMenuMode = computed(() => {
         v-if="(getShowContent && getShowHeaderTrigger && !getSplit && !getIsMixSidebar) || getIsMobile"
         :theme="getHeaderTheme" :sider="false"
       />
+      <div
+        v-if="!getShowHeaderLogo && !getIsMobile"
+        :class="`${prefixCls}-platform-name`"
+        :title="platformConfigStore.platformName"
+      >
+        {{ platformConfigStore.platformName }}
+      </div>
       <LayoutBreadcrumb v-if="getShowContent && getShowBread" :theme="getHeaderTheme" />
     </div>
     <!-- left end -->

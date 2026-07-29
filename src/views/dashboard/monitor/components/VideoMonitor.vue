@@ -62,7 +62,7 @@
     </div>
     
     <!-- 告警录像列表 -->
-    <div v-if="dashboardConfig.showBottomRecords" class="alert-record-list">
+    <div class="alert-record-list">
       <div class="alert-record-header">
         <span class="header-title">告警录像</span>
         <span class="header-count">共 {{ alertRecordList.length }} 条</span>
@@ -127,11 +127,6 @@ import { useMessage } from '@/hooks/web/useMessage'
 import Jessibuca from '@/components/Player/module/jessibuca.vue'
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
 import { useModal } from '@/components/Modal'
-import {
-  defaultMonitorDashboardConfig,
-  type MonitorDashboardConfig,
-} from '@/views/dashboard/monitor/config'
-
 defineOptions({
   name: 'VideoMonitor'
 })
@@ -139,14 +134,11 @@ defineOptions({
 const props = defineProps<{
   device?: any
   videoList?: any[]
-  dashboardConfig?: MonitorDashboardConfig
 }>()
 
 const emit = defineEmits<{
   'video-list-change': [videos: any[]]
 }>()
-const dashboardConfig = computed(() => props.dashboardConfig || defaultMonitorDashboardConfig)
-
 const { createMessage } = useMessage()
 
 // 播放器弹窗
@@ -753,15 +745,11 @@ const handleScroll = () => {
 
 // 加载告警录像列表
 const loadAlertRecords = async () => {
-  if (!dashboardConfig.value.showBottomRecords) {
-    alertRecordList.value = []
-    return
-  }
   try {
     loadingRecords.value = true
     const response = await queryAlarmList({
       pageNo: 1,
-      pageSize: dashboardConfig.value.bottomRecordPageSize,
+      pageSize: 20,
     })
     if (response && response.alert_list) {
       alertRecordList.value = response.alert_list.map((item: any) => {
@@ -888,7 +876,7 @@ onMounted(() => {
       }
       
       loadAlertRecords()
-    }, dashboardConfig.value.refreshIntervalSeconds * 1000)
+    }, 5000)
   }, 2000)
   
   // 等待DOM渲染后检查滚动状态
@@ -944,9 +932,6 @@ watch(() => alertRecordList.value, () => {
   }, 100)
 }, { deep: true })
 
-watch(() => props.dashboardConfig, () => {
-  loadAlertRecords()
-}, { deep: true })
 </script>
 
 <style lang="less" scoped>
