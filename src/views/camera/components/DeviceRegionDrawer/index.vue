@@ -189,7 +189,6 @@ import { Icon } from '@/components/Icon';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
   captureDeviceSnapshot,
-  updateDeviceCoverImage,
   getDeviceRegions,
   createDeviceRegion,
   updateDeviceRegion,
@@ -1144,24 +1143,12 @@ const handleCapture = async () => {
     const result = (response as any).data || response;
     if (result.code === 0 && result.data) {
       currentImageId.value = result.data.image_id;
-      currentImagePath.value = result.data.image_url;
-      loadImage(result.data.image_url);
+      const imageUrl = result.data.image_url;
+      currentImagePath.value = imageUrl;
+      loadImage(imageUrl);
       createMessage.success('抓拍成功');
-      emit('image-captured', result.data.image_id, result.data.image_url);
-      
-      // 抓拍成功后，自动更新设备封面图
-      try {
-        const coverResponse = await updateDeviceCoverImage(props.deviceId);
-        const coverResult = (coverResponse as any).data || coverResponse;
-        if (coverResult.code === 0 && coverResult.data) {
-          emit('cover-updated', coverResult.data.image_url);
-        } else {
-          console.warn('自动更新封面图失败:', coverResult.msg);
-        }
-      } catch (coverError) {
-        console.error('自动更新封面图失败', coverError);
-        // 不显示错误提示，因为抓拍已经成功了
-      }
+      emit('image-captured', result.data.image_id, imageUrl);
+      emit('cover-updated', imageUrl);
     } else {
       createMessage.error(result.msg || '抓拍失败');
     }

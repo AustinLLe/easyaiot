@@ -219,6 +219,10 @@ const handleImageCaptured = (imageId: number, imagePath: string) => {
   if (selectedDeviceId.value) {
     deviceImageIds.value[selectedDeviceId.value] = imageId;
     deviceImagePaths.value[selectedDeviceId.value] = imagePath;
+    const device = devices.value.find(d => d.id === selectedDeviceId.value);
+    if (device) {
+      (device as any).cover_image_path = imagePath;
+    }
   }
 };
 
@@ -594,4 +598,3 @@ const loadDevices = async () => {
   }
 }
 </style>
-
