@@ -75,7 +75,7 @@
             <h2>任务实时画面</h2>
           </div>
           <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-            {{ currentStreamUrl ? '流已就绪' : '等待选择' }}
+            {{ currentStreamUrl ? '流已就绪' : hasRunningTasks ? '等待选择' : '暂无运行中任务' }}
           </span>
         </div>
 
@@ -114,11 +114,11 @@
             class="video-player"
           />
           <div v-else class="video-placeholder">
-            <div class="camera-orbit">
+            <div v-if="hasRunningTasks" class="camera-orbit">
               <Icon icon="ant-design:video-camera-outlined" :size="42" />
             </div>
             <strong>{{ videoPlaceholderTitle }}</strong>
-            <span>从任务中选择摄像头和算法后显示 AI 视频流</span>
+            <span>{{ hasRunningTasks ? '从任务中选择摄像头和算法后显示 AI 视频流' : '启动算法任务后将在此显示 AI 视频流' }}</span>
           </div>
           <div v-if="selectedCamera" class="video-caption">
             <span>{{ selectedCamera.device_name || selectedCamera.device_id }}</span>
@@ -268,6 +268,7 @@ const taskOptions = computed(() => tasks.value.map(task => ({
   label: `${task.task_name} · ${task.task_type === 'snap' ? '抓拍' : '实时'}`,
   value: task.id,
 })))
+const hasRunningTasks = computed(() => tasks.value.length > 0)
 const cameraOptions = computed(() => taskStreams.value.map(stream => ({
   label: stream.device_name || stream.device_id,
   value: stream.device_id,
@@ -346,6 +347,8 @@ const currentStreamUrl = computed(() => {
 })
 
 const videoPlaceholderTitle = computed(() => {
+  if (!hasRunningTasks.value)
+    return '当前没有运行中的算法任务'
   if (!selectedTaskId.value)
     return '请选择算法任务'
   if (!selectedCameraId.value)
@@ -369,8 +372,14 @@ async function loadStatistics() {
 async function loadTasks() {
   tasksLoading.value = true
   try {
-    const response = await listAlgorithmTasks({ pageNo: 1, pageSize: 1000 })
-    tasks.value = Array.isArray(response) ? response : (response?.data || [])
+    const response = await listAlgorithmTasks({ pageNo: 1, pageSize: 1000, is_enabled: 1 })
+    const allTasks = Array.isArray(response) ? response : (response?.data || [])
+    // 首页视频只允许已启动的任务创建播放器，避免停止任务触发无意义的加载状态。
+    tasks.value = allTasks.filter(task => task.is_enabled === true)
+    if (selectedTaskId.value && !tasks.value.some(task => task.id === selectedTaskId.value)) {
+      selectedTaskId.value = undefined
+      await handleTaskChange(undefined)
+    }
     if (!selectedTaskId.value && tasks.value.length) {
       selectedTaskId.value = tasks.value[0].id
       await handleTaskChange(selectedTaskId.value)

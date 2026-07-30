@@ -91,7 +91,7 @@ export const listAlgorithmTasks = (params?: {
   search?: string;
   device_id?: string;
   task_type?: 'realtime' | 'snap';
-  is_enabled?: boolean;
+  is_enabled?: boolean | 0 | 1;
 }) => {
   return commonApi<AlgorithmTaskListResponse>('get', `${ALGORITHM_PREFIX}/task/list`, { params });
 };
