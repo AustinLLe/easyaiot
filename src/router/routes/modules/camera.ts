@@ -34,6 +34,15 @@ const camera: AppRouteModule = {
       },
     },
     {
+      path: 'input-processing',
+      name: 'CameraInputProcessing',
+      component: () => import('@/views/camera/input-processing/index.vue'),
+      meta: {
+        title: '视频输入处理',
+        icon: 'ant-design:filter-outlined',
+      },
+    },
+    {
       path: 'record-space',
       name: 'CameraRecordSpace',
       component: () => import('@/views/camera/record-space/index.vue'),
