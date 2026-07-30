@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import type { UploadRequestOption } from 'ant-design-vue/es/vc-upload/interface'
+import { Modal, UploadDragger } from 'ant-design-vue'
 import { Icon } from '@/components/Icon'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -25,11 +26,14 @@ const { createMessage, createConfirm } = useMessage()
 const { changeLocale } = useLocale()
 const platformConfigStore = usePlatformConfigStore()
 const saving = ref(false)
-const uploading = ref(false)
+const uploadModalOpen = ref(false)
+const uploadingCount = ref(0)
 const deletingId = ref('')
+const assigningRole = ref<AssetField | ''>('')
 
 const interfaceForm = reactive<InterfaceConfig>(defaultInterfaceConfig())
 const customAssets = computed(() => platformConfigStore.customAssets)
+const uploading = computed(() => uploadingCount.value > 0)
 
 const localeOptions: Array<{ label: string, value: PlatformDisplayLocale }> = [
   { label: '简体中文', value: 'zh_CN' },
@@ -75,14 +79,30 @@ function assignedRoleLabels(asset: PlatformAsset) {
     .join(' / ')
 }
 
-function assignAsset(asset: PlatformAsset, field: AssetField) {
+async function assignAsset(asset: PlatformAsset, field: AssetField) {
+  if (assigningRole.value)
+    return
+
+  assigningRole.value = field
+  const previousUrl = interfaceForm[field]
   interfaceForm[field] = asset.url
-  createMessage.success(t('assetSelected'))
+  try {
+    const saved = await platformConfigStore.saveInterfaceConfig({ ...interfaceForm })
+    Object.assign(interfaceForm, saved)
+    createMessage.success(t('assetApplied', { role: t(roleItems.find(item => item.field === field)?.labelKey || '') }))
+  }
+  catch {
+    interfaceForm[field] = previousUrl
+    createMessage.error(t('assetApplyFailed'))
+  }
+  finally {
+    assigningRole.value = ''
+  }
 }
 
 async function handleAssetUpload(option: UploadRequestOption) {
   const file = option.file as File
-  uploading.value = true
+  uploadingCount.value += 1
   try {
     if (file.size > 2 * 1024 * 1024)
       throw new Error(t('fileTooLarge'))
@@ -95,7 +115,7 @@ async function handleAssetUpload(option: UploadRequestOption) {
     createMessage.error(error instanceof Error ? error.message : t('uploadFailed'))
   }
   finally {
-    uploading.value = false
+    uploadingCount.value = Math.max(0, uploadingCount.value - 1)
   }
 }
 
@@ -233,18 +253,16 @@ async function handleReset() {
                 </div>
               </div>
 
-              <a-upload
-                accept=".png,.jpg,.jpeg,.ico"
-                :multiple="true"
-                :show-upload-list="false"
-                :custom-request="handleAssetUpload"
+              <button
+                class="upload-library-card"
+                data-testid="open-platform-asset-upload"
+                type="button"
+                @click="uploadModalOpen = true"
               >
-                <div class="upload-library-card">
-                  <Icon icon="ant-design:cloud-upload-outlined" :size="28" />
-                  <strong>{{ uploading ? t('uploading') : t('uploadCustomImages') }}</strong>
-                  <span>{{ t('unlimitedImagesHint') }}</span>
-                </div>
-              </a-upload>
+                <Icon icon="ant-design:cloud-upload-outlined" :size="28" />
+                <strong>{{ uploading ? t('uploading') : t('uploadCustomImages') }}</strong>
+                <span>{{ t('unlimitedImagesHint') }}</span>
+              </button>
             </div>
 
             <div class="asset-library">
@@ -267,9 +285,15 @@ async function handleReset() {
                       :key="item.field"
                       type="button"
                       :class="{ active: interfaceForm[item.field] === asset.url }"
+                      :data-testid="`assign-${item.field}-${asset.id}`"
+                      :disabled="Boolean(assigningRole)"
                       @click="assignAsset(asset, item.field)"
                     >
-                      {{ t('useAs', { role: t(item.labelKey) }) }}
+                      {{
+                        assigningRole === item.field
+                          ? t('applying')
+                          : t('useAs', { role: t(item.labelKey) })
+                      }}
                     </button>
                     <button
                       class="danger"
@@ -290,6 +314,32 @@ async function handleReset() {
         </div>
       </div>
     </div>
+
+    <Modal
+      v-model:open="uploadModalOpen"
+      :footer="null"
+      :title="t('uploadDialogTitle')"
+      :width="620"
+      centered
+      destroy-on-close
+    >
+      <p class="upload-dialog-description">{{ t('uploadDialogDescription') }}</p>
+      <UploadDragger
+        accept=".png,.jpg,.jpeg,.ico"
+        data-testid="platform-asset-dropzone"
+        :multiple="true"
+        :show-upload-list="false"
+        :custom-request="handleAssetUpload"
+        :disabled="uploading"
+      >
+        <div class="upload-dropzone-content">
+          <Icon icon="ant-design:inbox-outlined" :size="44" />
+          <strong>{{ uploading ? t('uploading') : t('dragImagesHere') }}</strong>
+          <span>{{ t('clickOrDragHint') }}</span>
+          <small>{{ t('unlimitedImagesHint') }}</small>
+        </div>
+      </UploadDragger>
+    </Modal>
   </div>
 </template>
 
@@ -519,6 +569,7 @@ async function handleReset() {
 }
 
 .upload-library-card {
+  width: 100%;
   height: 181px;
   margin-top: 0;
   flex-direction: column;
@@ -527,6 +578,7 @@ async function handleReset() {
   background: #eff6ff;
   color: #1677ff;
   cursor: pointer;
+  font: inherit;
   transition: 0.2s;
 
   &:hover {
@@ -539,6 +591,30 @@ async function handleReset() {
     color: #64748b;
     font-size: 12px;
     text-align: center;
+  }
+}
+
+.upload-dialog-description {
+  margin: 0 0 14px;
+  color: #64748b;
+}
+
+.upload-dropzone-content {
+  display: flex;
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: #1677ff;
+
+  strong {
+    font-size: 18px;
+  }
+
+  span,
+  small {
+    color: #64748b;
   }
 }
 
