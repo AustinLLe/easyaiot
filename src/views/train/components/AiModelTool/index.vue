@@ -418,7 +418,7 @@ interface AppState {
 // 状态管理
 const state = reactive<AppState>({
   activeSource: 'image',
-  confidenceThreshold: 70,
+  confidenceThreshold: 35,
   cooldownTime: 5,
   showOriginal: true,
   detectionStatus: 'idle',
@@ -479,7 +479,7 @@ const loadDetectionParams = async () => {
   try {
     // 模拟API调用
     const params = await new Promise<any>(resolve => setTimeout(() => resolve({
-      confidenceThreshold: 70,
+      confidenceThreshold: 35,
       cooldownTime: 5,
       showOriginal: true
     }), 300));
@@ -605,8 +605,8 @@ const startDetection = async () => {
     
     // 设置推理参数
     const parameters = {
-      conf_thres: state.confidenceThreshold / 100,
-      iou_thres: 0.45
+      use_model_defaults: true,
+      frame_skip: state.activeSource === 'video' ? 1 : undefined
     };
     formData.append('parameters', JSON.stringify(parameters));
 

@@ -397,7 +397,7 @@ const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl)
     return '';
   const normalized = String(videoUrl).replace(/\\/g, '/').trim();
-  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '').replace(/\/$/, '');
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {
       const url = new URL(normalized);

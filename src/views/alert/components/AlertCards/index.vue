@@ -92,6 +92,7 @@ import { Icon } from '@/components/Icon';
 import moment from 'moment';
 import ALERT from "@/assets/images/alert/alert.png";
 import { alertCameraSelectProps } from '@/views/alert/Data';
+import { resolveAlertImageUrl } from '../../alertDisplayUtils';
 
 const ListItem = List.Item;
 
@@ -433,40 +434,8 @@ async function handleCopy(record: object) {
   createMessage.success('复制成功');
 }
 
-// 图片处理 - 直接使用后台返回的 minio URL
 function getImageUrl(imageUrl: string | null | undefined, imagePath: string | null | undefined): string {
-  // 优先使用 image_url（后台返回的 minio URL）
-  if (imageUrl) {
-    // 如果是完整URL，直接返回
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    // 如果是MinIO路径（以/api/v1/buckets开头），添加前端启动地址前缀
-    if (imageUrl.startsWith('/api/v1/buckets')) {
-      return `${window.location.origin}${imageUrl}`;
-    }
-    // 其他相对路径，添加前端启动地址前缀
-    if (imageUrl.startsWith('/')) {
-      return `${window.location.origin}${imageUrl}`;
-    }
-    return imageUrl;
-  }
-  
-  // 如果没有 image_url，使用 image_path 作为后备
-  if (imagePath) {
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
-    if (imagePath.startsWith('/api/v1/buckets')) {
-      return `${window.location.origin}${imagePath}`;
-    }
-    if (imagePath.startsWith('/')) {
-      return `${window.location.origin}${imagePath}`;
-    }
-    return imagePath;
-  }
-  
-  return '';
+  return resolveAlertImageUrl({ image_url: imageUrl, image_path: imagePath });
 }
 </script>
 

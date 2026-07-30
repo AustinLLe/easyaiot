@@ -2,8 +2,7 @@
 node_modules
 .pnpm-store
 
-# 构建产物（构建阶段不需要，生产阶段会从构建阶段复制）
-dist
+# 构建产物（构建阶段不需要，生产阶段会从构建阶段复制�?dist
 
 # 压缩文件
 dist.zip
@@ -13,8 +12,7 @@ logs
 *.log
 
 # 环境文件
-# 注意：.env、.env.development、.env.production 等文件需要在构建时使用，所以不能排除
-# 只排除本地开发用的覆盖文件（这些文件不应该进入容器）
+# 注意�?env�?env.development�?env.production 等文件需要在构建时使用，所以不能排�?# 只排除本地开发用的覆盖文件（这些文件不应该进入容器）
 .env.local
 .env.*.local
 
@@ -25,8 +23,7 @@ logs
 *.swo
 *~
 
-# pnpm-lock.yaml 必须进入构建上下文；Dockerfile 使用 frozen-lockfile 保证可复现构建。
-
+# pnpm-lock.yaml 必须进入构建上下文；Dockerfile 使用 frozen-lockfile 保证可复现构建�?
 # Git相关
 .git
 .gitignore

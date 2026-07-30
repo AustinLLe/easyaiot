@@ -118,11 +118,7 @@ export function resolveAlertDescription(record: Record<string, any>): string {
   return buildExtraInfoSummary(record);
 }
 
-export function resolveAlertImageUrl(record: Record<string, any>): string {
-  if (record.image_url)
-    return String(record.image_url);
-
-  const path = record.image_path;
+function resolveAlertStorageUrl(path: unknown): string {
   if (!path)
     return '';
 
@@ -136,7 +132,7 @@ export function resolveAlertImageUrl(record: Record<string, any>): string {
   const idx = normalized.indexOf(marker);
   if (idx >= 0) {
     const rel = normalized.slice(idx + marker.length);
-    const apiBase = (import.meta.env.VITE_GLOB_API_URL || '').replace(/\/$/, '');
+    const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
     return `${apiBase}/video/alert/static/${rel}`;
   }
 
@@ -144,6 +140,10 @@ export function resolveAlertImageUrl(record: Record<string, any>): string {
     return `${window.location.origin}${normalized}`;
 
   return normalized;
+}
+
+export function resolveAlertImageUrl(record: Record<string, any>): string {
+  return resolveAlertStorageUrl(record.image_url) || resolveAlertStorageUrl(record.image_path);
 }
 
 export function hasRecordClip(record: Record<string, any>): boolean {

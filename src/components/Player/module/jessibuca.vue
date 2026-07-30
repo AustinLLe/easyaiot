@@ -1,6 +1,12 @@
 <template>
   <div style="width: 100%; height: 100%; background-color: #000c17">
-    <div ref="container" id="container" @dblclick="fullscreen" @mousemove="mouseenter">
+    <div
+      ref="container"
+      :id="playerId"
+      class="player-container"
+      @dblclick="fullscreen"
+      @mousemove="mouseenter"
+    >
       <transition name="toolBtn">
         <div
           v-if="showToolBtn"
@@ -127,6 +133,8 @@ export default {
       showToolBtn: false,
       kbs: 0,
       isFull: false,
+      easyPlayer: null,
+      playerId: `easyaiot-player-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
     };
   },
   mounted() {
@@ -143,13 +151,36 @@ export default {
     },
   },
   async unmounted() {
-    if (this.jessibuca) {
-      await this.jessibuca.destroy();
-      this.jessibuca = null;
-    }
+    await this.destroyPlayer();
   },
   methods: {
+    isHttpFlvUrl(url) {
+      return /\/(live|ai)\/.+\.flv($|\?)/i.test(url || "");
+    },
+    useEasyWasmPlayer() {
+      return this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+    },
+    destroyEasyPlayer() {
+      if (this.easyPlayer) {
+        this.easyPlayer.destroy();
+        this.easyPlayer = null;
+      }
+    },
+    async destroyJessibuca() {
+      if (this.jessibuca) {
+        await this.jessibuca.destroy();
+        this.jessibuca = null;
+      }
+    },
+    async destroyPlayer() {
+      this.destroyEasyPlayer();
+      await this.destroyJessibuca();
+      this.playing = false;
+    },
     create(options) {
+      if (this.useEasyWasmPlayer()) {
+        return;
+      }
       options = options || {};
       this.jessibuca = new window.Jessibuca(
         Object.assign(
@@ -265,20 +296,72 @@ export default {
       });
       // console.log(this.jessibuca);
     },
+    normalizedPlayUrl() {
+      if (!this.playUrl) {
+        return "";
+      }
+
+      if (this.playUrl.startsWith("/live/") || this.playUrl.startsWith("/ai/")) {
+        return `${window.location.origin}${this.playUrl}`;
+      }
+
+      return this.playUrl;
+    },
     play() {
       // this.jessibuca.onPlay = () => (this.playing = true);
 
-      if (this.playUrl) {
-        this.jessibuca.play(this.playUrl);
+      const playUrl = this.normalizedPlayUrl();
+      if (playUrl) {
+        if (this.useEasyWasmPlayer()) {
+          this.playEasyPlayer(playUrl);
+          return;
+        }
+
+        if (!this.jessibuca) {
+          this.create();
+        }
+        this.jessibuca.play(playUrl);
+      }
+    },
+    playEasyPlayer(playUrl) {
+      this.destroyEasyPlayer();
+      if (this.jessibuca) {
+        this.destroyJessibuca();
+      }
+      this.easyPlayer = new window.WasmPlayer(null, this.playerId, this.easyPlayerEvent, {
+        Height: false,
+      });
+      this.easyPlayer.play(playUrl, this.hasAudio ? 0 : 1);
+      this.playing = true;
+      this.loaded = true;
+      this.quieting = !this.hasAudio;
+    },
+    easyPlayerEvent(type, message) {
+      if (type === "error") {
+        console.log("easyPlayer error", message);
+        this.playing = false;
       }
     },
     mute() {
+      if (this.easyPlayer) {
+        this.quieting = true;
+        return;
+      }
       this.jessibuca.mute();
     },
     cancelMute() {
+      if (this.easyPlayer) {
+        this.quieting = false;
+        return;
+      }
       this.jessibuca.cancelMute();
     },
     pause() {
+      if (this.easyPlayer) {
+        this.destroyEasyPlayer();
+        this.playing = false;
+        return;
+      }
       this.jessibuca.pause();
       this.playing = false;
       this.err = "";
@@ -291,30 +374,44 @@ export default {
       this.jessibuca.setRotate(this.rotate);
     },
     async destroy() {
-      if (this.jessibuca) {
-        await this.jessibuca.destroy();
-      }
+      await this.destroyPlayer();
       this.create();
       this.playing = false;
       this.loaded = false;
       this.performance = "";
     },
     fullscreen() {
+      if (this.easyPlayer) {
+        this.$refs.container?.requestFullscreen?.();
+        return;
+      }
       this.jessibuca.setFullscreen(true);
     },
     clearView() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.jessibuca.clearView();
     },
     startRecord() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.recording = !this.recording;
       const time = new Date().getTime();
       this.jessibuca.startRecord(time, this.recordType);
     },
     stopAndSaveRecord() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.recording = !this.recording;
       this.jessibuca.stopRecordAndSave();
     },
     screenShot() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.jessibuca.screenshot();
     },
     mouseenter() {
@@ -349,9 +446,15 @@ export default {
       }, 100);
     },
     changeBuffer() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.jessibuca.setBufferTime(Number(0.2));
     },
     scaleChange() {
+      if (!this.jessibuca) {
+        return;
+      }
       this.jessibuca.setScaleMode(this.scale);
     },
   },
@@ -406,13 +509,14 @@ export default {
   opacity: 0;
 }
 
-#container {
+.player-container {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
-#container canvas,
-#container video {
+.player-container canvas,
+.player-container video {
   width: 100% !important;
   height: 100% !important;
   left: 0 !important;
