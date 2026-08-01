@@ -7,7 +7,6 @@ services:
     # 端口映射
     ports:
       - "${WEB_PORT:-8888}:80"
-      - "${WEB_TEST_PORT:-22334}:81"
 
     # 数据卷挂载
     volumes:
