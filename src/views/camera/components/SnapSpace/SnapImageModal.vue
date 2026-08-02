@@ -19,6 +19,7 @@
             刷新
           </a-button>
           <a-button 
+            v-auth="['camera:snap-image:delete']"
             type="primary" 
             danger 
             :disabled="selectedRowKeys.length === 0"
@@ -77,10 +78,10 @@
                     
                     <!-- 操作按钮 -->
                     <div class="card-actions" @click.stop>
-                      <a-button type="link" size="small" @click="handleDownload(item)">
+                      <a-button v-auth="['camera:snap-image:download']" type="link" size="small" @click="handleDownload(item)">
                         下载
                       </a-button>
-                      <a-button type="link" size="small" danger @click="handleDelete(item)">
+                      <a-button v-auth="['camera:snap-image:delete']" type="link" size="small" danger @click="handleDelete(item)">
                         删除
                       </a-button>
                     </div>

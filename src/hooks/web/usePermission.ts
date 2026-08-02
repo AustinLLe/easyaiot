@@ -16,6 +16,7 @@ import type { RoleEnum } from '@/enums/roleEnum'
 
 import { isArray } from '@/utils/is'
 import { useMultipleTabStore } from '@/store/modules/multipleTab'
+import { showNoPermissionModal } from '@/utils/permissionGuard'
 
 // User permissions related operations
 export function usePermission() {
@@ -109,5 +110,44 @@ export function usePermission() {
     resume()
   }
 
-  return { changeRole, hasPermission, togglePermissionMode, refreshMenu }
+  /**
+   * Check permission; show modal and return false when denied.
+   */
+  function checkPermission(value?: RoleEnum | RoleEnum[] | string | string[], def = true): boolean {
+    if (hasPermission(value, def))
+      return true
+    showNoPermissionModal()
+    return false
+  }
+
+  function runWithPermission(
+    value: RoleEnum | RoleEnum[] | string | string[],
+    fn: () => void,
+  ) {
+    if (checkPermission(value))
+      fn()
+  }
+
+  function wrapWithPermission<T extends (...args: any[]) => any>(
+    value: RoleEnum | RoleEnum[] | string | string[] | undefined,
+    fn?: T,
+  ): T | undefined {
+    if (!fn)
+      return fn
+    return ((...args: any[]) => {
+      if (!checkPermission(value))
+        return
+      return fn(...args)
+    }) as T
+  }
+
+  return {
+    changeRole,
+    hasPermission,
+    checkPermission,
+    runWithPermission,
+    wrapWithPermission,
+    togglePermissionMode,
+    refreshMenu,
+  }
 }

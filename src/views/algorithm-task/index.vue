@@ -5,7 +5,7 @@
     <BasicTable v-if="viewMode === 'table'" @register="registerTable">
       <template #toolbar>
         <div class="toolbar-buttons">
-          <a-button type="primary" @click="handleCreateTask">
+          <a-button v-auth="['algorithm:task:create']" type="primary" @click="handleCreateTask">
             <PlusOutlined />
             新建算法任务
           </a-button>
@@ -42,7 +42,7 @@
                 style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
                 <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">算法任务列表</span>
                 <div style="display: flex; gap: 8px;">
-                  <a-button type="primary" @click="handleCreateTask">
+                  <a-button v-auth="['algorithm:task:create']" type="primary" @click="handleCreateTask">
                     <PlusOutlined />
                     新建算法任务
                   </a-button>
@@ -93,21 +93,18 @@
                   </div>
                   <div class="card-actions-wrap">
                   <div class="btns">
-                    <div class="btn" v-if="item.is_enabled" @click="handleStop(item)" title="停止">
-                      <Icon icon="ant-design:pause-circle-outlined" :size="15" color="#3B82F6" />
-                    </div>
-                    <div class="btn" v-else @click="handleStart(item)" title="启动">
-                      <Icon icon="ant-design:play-circle-outlined" :size="15" color="#3B82F6" />
+                    <div class="btn" @click="onCardToggleTask(item)" :title="item.is_enabled ? '停止' : '启动'">
+                      <Icon :icon="item.is_enabled ? 'ant-design:pause-circle-outlined' : 'ant-design:play-circle-outlined'" :size="15" color="#3B82F6" />
                     </div>
                     <div
                       class="btn"
                       :class="{ disabled: item.is_enabled }"
-                      @click="!item.is_enabled && handleEdit(item)"
+                      @click="onCardEdit(item)"
                       :title="item.is_enabled ? '任务运行中，无法编辑' : '编辑'"
                     >
                       <Icon icon="ant-design:edit-filled" :size="15" color="#3B82F6" />
                     </div>
-                    <div class="btn" @click="handleManageServices(item)" title="心跳信息">
+                    <div class="btn" @click="onCardHeartbeat(item)" title="心跳信息">
                       <Icon icon="ant-design:heart-outlined" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
@@ -115,7 +112,7 @@
                       ok-text="是"
                       cancel-text="否"
                       :disabled="item.is_enabled"
-                      @confirm="handleDelete(item)"
+                      @confirm="onCardDelete(item)"
                     >
                       <div
                         class="btn"
@@ -133,7 +130,7 @@
                     :src="getTaskImage(item.task_type)"
                     alt="" 
                     class="img" 
-                    @click="handleView(item)">
+                    @click="onCardView(item)">
                 </div>
               </ListItem>
             </template>
@@ -222,6 +219,7 @@ import { BasicModal, useModal } from '@/components/Modal';
 import { BasicForm, useForm } from '@/components/Form';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
+import { usePermission } from '@/hooks/web/usePermission';
 import { Icon } from '@/components/Icon';
 import { copyText } from '@/utils/copyTextToClipboard';
 import {
@@ -267,6 +265,24 @@ const ListItem = List.Item;
 defineOptions({ name: 'ALGORITHM_TASK' });
 
 const { createMessage } = useMessage();
+const { runWithPermission } = usePermission();
+
+const onCardToggleTask = (item: AlgorithmTask) => {
+  if (item.is_enabled)
+    runWithPermission('algorithm:task:stop', () => handleStop(item));
+  else
+    runWithPermission('algorithm:task:start', () => handleStart(item));
+};
+const onCardEdit = (item: AlgorithmTask) => {
+  if (item.is_enabled) {
+    createMessage.warning('任务运行中，无法编辑，请先停止任务');
+    return;
+  }
+  runWithPermission('algorithm:task:update', () => handleEdit(item));
+};
+const onCardHeartbeat = (item: AlgorithmTask) => runWithPermission('algorithm:task:heartbeat', () => handleManageServices(item));
+const onCardDelete = (item: AlgorithmTask) => runWithPermission('algorithm:task:delete', () => handleDelete(item));
+const onCardView = (item: AlgorithmTask) => runWithPermission('algorithm:task:view', () => handleView(item));
 
 // 视图模式（默认表格）
 const viewMode = ref<'table' | 'card'>('table');
@@ -373,18 +389,21 @@ const getTableActions = (record: AlgorithmTask): ActionItem[] => {
   if (record.is_enabled) {
     actions.push({
       label: '停止',
+      auth: 'algorithm:task:stop',
       onClick: () => handleStop(record),
     });
   }
   else {
     actions.push({
       label: '启动',
+      auth: 'algorithm:task:start',
       onClick: () => handleStart(record),
     });
   }
 
   actions.push({
     label: '编辑',
+    auth: 'algorithm:task:update',
     disabled: record.is_enabled,
     onClick: () => {
       if (record.is_enabled) {
@@ -397,11 +416,13 @@ const getTableActions = (record: AlgorithmTask): ActionItem[] => {
 
   actions.push({
     label: '心跳',
+    auth: 'algorithm:task:heartbeat',
     onClick: () => handleManageServices(record),
   });
 
   actions.push({
     label: '删除',
+    auth: 'algorithm:task:delete',
     disabled: record.is_enabled,
     popConfirm: {
       title: '确定删除此算法任务？',
@@ -532,8 +553,11 @@ const [registerForm, { validate }] = useForm({
     },
   ],
   labelWidth: 80,
-  baseColProps: { span: 5 },
-  actionColOptions: { span: 4, offset: 0, style: { textAlign: 'right' } },
+  baseColProps: { span: 4 },
+  actionColOptions: {
+    span: 12,
+    style: { textAlign: 'right' },
+  },
   autoSubmitOnEnter: true,
   submitFunc: handleSubmit,
 });

@@ -3,7 +3,7 @@
     <div class="page-header">
       <span class="page-title">报警推送</span>
       <div class="header-actions">
-        <Button type="primary" @click="openCreate">
+        <Button v-auth="['alert:push-settings:create']" type="primary" @click="openCreate">
           <PlusOutlined />
           创建推送
         </Button>
@@ -33,14 +33,14 @@
               :status="record.online ? 'success' : 'error'"
               :text="record.online ? '在线' : '离线'"
             />
-            <Button type="link" size="small" @click="openTest(record)">
+            <Button v-auth="['alert:push-settings:test']" type="link" size="small" @click="openTest(record)">
               测试
             </Button>
           </div>
         </template>
         <template v-else-if="column.key === 'action'">
-          <Button type="link" size="small" @click="openEdit(index)">编辑</Button>
-          <Button type="link" size="small" danger @click="handleDelete(index)">删除</Button>
+          <Button v-auth="['alert:push-settings:update']" type="link" size="small" @click="openEdit(index)">编辑</Button>
+          <Button v-auth="['alert:push-settings:delete']" type="link" size="small" danger @click="handleDelete(index)">删除</Button>
         </template>
       </template>
     </Table>
@@ -52,7 +52,7 @@
           算法任务按用户推送时，钉钉、飞书和企业微信会自动使用这里绑定的地址。
         </div>
       </div>
-      <Button type="primary" @click="openBindingCreate">
+      <Button v-auth="['alert:push-binding:create']" type="primary" @click="openBindingCreate">
         <PlusOutlined />
         新增绑定
       </Button>
@@ -83,14 +83,14 @@
               :status="record.online ? 'success' : 'error'"
               :text="record.online ? '在线' : '离线'"
             />
-            <Button type="link" size="small" @click="openBindingTest(record)">
+            <Button v-auth="['alert:push-settings:test']" type="link" size="small" @click="openBindingTest(record)">
               测试
             </Button>
           </div>
         </template>
         <template v-else-if="column.key === 'action'">
-          <Button type="link" size="small" @click="openBindingEdit(record)">编辑</Button>
-          <Button type="link" size="small" danger @click="handleBindingDelete(record)">删除</Button>
+          <Button v-auth="['alert:push-binding:update']" type="link" size="small" @click="openBindingEdit(record)">编辑</Button>
+          <Button v-auth="['alert:push-binding:delete']" type="link" size="small" danger @click="handleBindingDelete(record)">删除</Button>
         </template>
       </template>
     </Table>

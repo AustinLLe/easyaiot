@@ -19,6 +19,7 @@
             刷新
           </a-button>
           <a-button 
+            v-auth="['camera:record-video:delete']"
             type="primary" 
             danger 
             :disabled="selectedRowKeys.length === 0"
@@ -64,7 +65,7 @@
                       <span>无封面</span>
                     </div>
                     <!-- 播放图标 -->
-                    <div class="play-icon" @click.stop="handlePlay(item)">
+                    <div v-auth="['camera:record-video:play']" class="play-icon" @click.stop="handlePlay(item)">
                       <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="24" cy="24" r="24" fill="rgba(0, 0, 0, 0.5)"/>
                         <path d="M18 14L34 24L18 34V14Z" fill="white"/>
@@ -92,13 +93,13 @@
                     
                     <!-- 操作按钮 -->
                     <div class="card-actions" @click.stop>
-                      <a-button type="link" size="small" @click="handlePlay(item)">
+                      <a-button v-auth="['camera:record-video:play']" type="link" size="small" @click="handlePlay(item)">
                         播放
                       </a-button>
-                      <a-button type="link" size="small" @click="handlePreview(item)">
+                      <a-button v-auth="['camera:record-video:play']" type="link" size="small" @click="handlePreview(item)">
                         预览
                       </a-button>
-                      <a-button type="link" size="small" danger @click="handleDelete(item)">
+                      <a-button v-auth="['camera:record-video:delete']" type="link" size="small" danger @click="handleDelete(item)">
                         删除
                       </a-button>
                     </div>

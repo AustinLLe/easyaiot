@@ -19,6 +19,7 @@
           <CameraPickerPanel
             v-if="cameraPickerOpen"
             v-model:open="cameraPickerOpen"
+            :anchor-el="pickerAnchorRef"
             :initial-selected-ids="selectedCameraIds"
             @confirm="handleCameraConfirm"
             @cancel="handlePickerCancel"
@@ -54,14 +55,6 @@
           allow-clear
           class="toolbar-search"
         />
-
-        <div class="mode-switch">
-          <span class="mode-label">配置模式</span>
-          <a-segmented
-            v-model:value="payload.config_mode"
-            :options="configModeOptions"
-          />
-        </div>
       </div>
 
       <div v-if="payload.camera_bindings.length" class="binding-overview">
@@ -121,7 +114,6 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
-import { onClickOutside } from '@vueuse/core';
 import {
   CloseOutlined,
   DownOutlined,
@@ -203,10 +195,6 @@ function toggleCameraPicker() {
 function handlePickerCancel() {
   cameraPickerOpen.value = false;
 }
-
-onClickOutside(pickerAnchorRef, () => {
-  cameraPickerOpen.value = false;
-});
 
 function handleCameraConfirm(devices: DeviceInfo[]) {
   const existingMap = new Map(
@@ -345,12 +333,13 @@ onMounted(() => {
 
   h3 {
     margin: 0 0 8px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
   }
 
   p {
     margin: 0;
+    font-size: 12px;
     color: rgba(0, 0, 0, 0.45);
   }
 }
@@ -358,7 +347,7 @@ onMounted(() => {
 .binding-panel {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   border: 1px solid #f0f0f0;
@@ -369,11 +358,14 @@ onMounted(() => {
 
 .binding-toolbar {
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px 16px;
   margin-bottom: 12px;
+  overflow: visible;
 }
 
 .picker-anchor {
@@ -392,13 +384,17 @@ onMounted(() => {
 
 .stats-text {
   color: rgba(0, 0, 0, 0.65);
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .toolbar-search {
   width: 200px;
   margin-left: auto;
+
+  :deep(.ant-input) {
+    font-size: 12px;
+  }
 }
 
 .mode-switch {
@@ -417,10 +413,9 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) 260px;
-  gap: 16px;
-  margin-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
 }
 
 .binding-panel :deep(.ant-empty) {
@@ -431,8 +426,8 @@ onMounted(() => {
   margin: 0;
 }
 
-.camera-list-column,
-.shared-model-column {
+.camera-list-column {
+  flex: 1;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -440,8 +435,19 @@ onMounted(() => {
   gap: 12px;
 }
 
+.shared-model-column {
+  flex: 0 0 260px;
+  width: 260px;
+  margin-left: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
 .column-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.65);
 }
@@ -449,13 +455,15 @@ onMounted(() => {
 .camera-list {
   min-height: 0;
   overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   padding-right: 4px;
 }
 
 .camera-card {
+  width: 220px;
+  flex-shrink: 0;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   padding: 12px;
@@ -478,18 +486,18 @@ onMounted(() => {
 }
 
 .camera-icon {
-  font-size: 28px;
+  font-size: 22px;
   color: #1677ff;
 }
 
 .camera-name {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .camera-id {
   color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
+  font-size: 11px;
   margin-top: 4px;
 }
 
@@ -519,13 +527,13 @@ onMounted(() => {
 
 .algo-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: rgba(0, 0, 0, 0.85);
 }
 
 .algo-meta {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(0, 0, 0, 0.45);
 }
 
@@ -536,13 +544,20 @@ onMounted(() => {
   justify-content: center;
   border: 1px dashed #d9d9d9;
   border-radius: 8px;
+  font-size: 12px;
   color: rgba(0, 0, 0, 0.45);
   background: #fafafa;
 }
 
 @media (max-width: 900px) {
   .binding-overview {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .shared-model-column {
+    width: 100%;
+    margin-left: 0;
+    flex-basis: auto;
   }
 }
 </style>

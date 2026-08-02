@@ -11,7 +11,7 @@
               <div class="p-2 bg-white">
                 <div class="list-header">
                   <span class="list-title">录像空间列表</span>
-                  <a-button type="primary" @click="handleSyncMinio" :loading="syncing">
+                  <a-button v-auth="['camera:record-space:sync']" type="primary" @click="handleSyncMinio" :loading="syncing">
                     <template #icon>
                       <SyncOutlined />
                     </template>
@@ -79,6 +79,7 @@
 
 <script lang="ts" setup>
 import {computed, onMounted, onUnmounted, ref} from 'vue';
+import {usePermission} from '@/hooks/web/usePermission';
 import {Empty, List, Spin, Button as AButton} from 'ant-design-vue';
 import {SyncOutlined} from '@ant-design/icons-vue';
 import {BasicForm, useForm} from '@/components/Form';
@@ -93,6 +94,7 @@ const ListItem = List.Item;
 defineOptions({name: 'RecordSpace'});
 
 const {createMessage} = useMessage();
+const { runWithPermission } = usePermission();
 const [registerVideoModal, {openModal: openVideoModal}] = useModal();
 
 const spaceList = ref<RecordSpace[]>([]);
@@ -186,7 +188,9 @@ const loadSpaceList = async () => {
 
 // 查看录像
 const handleViewVideos = (record: RecordSpace) => {
-  openVideoModal(true, {space_id: record.id, space_name: record.space_name});
+  runWithPermission('camera:record-space:view', () => {
+    openVideoModal(true, {space_id: record.id, space_name: record.space_name});
+  });
 };
 
 // 删除
@@ -280,7 +284,9 @@ function handleEditDetail() {
 
 async function handleDeleteDetail() {
   if (currentItem.value) {
-    await handleDelete(currentItem.value);
+    runWithPermission('camera:record-space:delete', async () => {
+      await handleDelete(currentItem.value!);
+    });
   }
   ezd_popover_hidden.value = "ezd-popover-hidden";
 }

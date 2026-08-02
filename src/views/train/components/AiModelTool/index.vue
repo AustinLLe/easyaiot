@@ -338,6 +338,7 @@
 import { computed, reactive, ref, onMounted, onUnmounted, nextTick } from "vue";
 import { getModelPage, runInference, uploadInputFile, getInferenceTaskDetail, getInferenceTasks } from "@/api/device/model";
 import { useMessage } from '@/hooks/web/useMessage';
+import { usePermission } from '@/hooks/web/usePermission';
 import {
   SettingOutlined,
   UploadOutlined,
@@ -356,6 +357,7 @@ import {
 } from '@ant-design/icons-vue';
 
 const { createMessage } = useMessage();
+const { checkPermission } = usePermission();
 
 // 类型定义
 
@@ -573,6 +575,8 @@ const getVideoProgressTitle = (): string => {
 };
 
 const startDetection = async () => {
+  if (!checkPermission('train:test:run'))
+    return
   if (!state.selectedModelId) {
     createMessage.warning('请先选择算法');
     return;
@@ -762,6 +766,10 @@ const triggerVideoUpload = () => {
 };
 
 const handleImageUpload = (event: Event) => {
+  if (!checkPermission('train:test:upload')) {
+    (event.target as HTMLInputElement).value = '';
+    return;
+  }
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {
@@ -779,6 +787,10 @@ const handleImageUpload = (event: Event) => {
 };
 
 const handleVideoUpload = (event: Event) => {
+  if (!checkPermission('train:test:upload')) {
+    (event.target as HTMLInputElement).value = '';
+    return;
+  }
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {

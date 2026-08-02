@@ -325,6 +325,7 @@ onMounted(loadProfiles)
 
           <div class="card-actions">
             <a-button
+              v-auth="['camera:input-processing:restart']"
               :disabled="!profile.enabled"
               :loading="isRestarting(profile.device_id)"
               @click="restart(profile)"
@@ -332,6 +333,7 @@ onMounted(loadProfiles)
               重新探测
             </a-button>
             <a-button
+              v-auth="['camera:input-processing:update']"
               type="primary"
               :disabled="!profile.enabled"
               :loading="isSaving(profile.device_id)"

@@ -61,6 +61,8 @@
                       v-model:value="localConfig.detection_config[field.key]"
                       :options="field.options"
                       class="param-input"
+                      :get-popup-container="getPopupContainer"
+                      :dropdown-style="{ zIndex: 4100 }"
                     />
                     <div v-if="field.range" class="param-range">{{ field.range }}</div>
                   </div>
@@ -211,6 +213,10 @@ const modeOptions = THRESHOLD_MODE_OPTIONS.map(item => ({
 
 const modelDisplayName = computed(() => props.row?.model_name || '—');
 const classOptions = computed(() => getModelClassOptions(props.row?.model_id));
+
+function getPopupContainer() {
+  return document.body;
+}
 
 function getGlobalDefaults() {
   return {

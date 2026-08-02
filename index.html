@@ -164,6 +164,51 @@
     </div>
   </div>
 </div>
+<script>
+  (function () {
+    var STORAGE_KEY = 'easyaiot-platform-interface-config'
+
+    function resolveUrl(url) {
+      if (!url)
+        return ''
+      if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0 || url.indexOf('data:') === 0)
+        return url
+      return url.indexOf('/') === 0 ? url : '/' + url
+    }
+
+    function applyLoadingBranding() {
+      var cfg = {}
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY)
+        if (raw)
+          cfg = JSON.parse(raw)
+      }
+      catch (e) {}
+
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+      var logoRaw = isDark ? (cfg.logoLightUrl || cfg.logoColorUrl) : cfg.logoColorUrl
+      var logoUrl = resolveUrl(logoRaw)
+      var logoEl = document.querySelector('.app-loading-logo')
+      var titleEl = document.querySelector('.app-loading-title')
+
+      if (logoEl && logoUrl)
+        logoEl.src = logoUrl
+      if (titleEl && cfg.platformName)
+        titleEl.textContent = cfg.platformName
+      if (cfg.platformName)
+        document.title = cfg.platformName
+
+      var faviconUrl = resolveUrl(cfg.faviconUrl)
+      if (faviconUrl) {
+        var link = document.querySelector('link[rel="icon"]')
+        if (link)
+          link.href = faviconUrl
+      }
+    }
+
+    applyLoadingBranding()
+  })()
+</script>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

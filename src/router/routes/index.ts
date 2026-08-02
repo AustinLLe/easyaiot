@@ -1,6 +1,6 @@
 import type { AppRouteModule, AppRouteRecordRaw } from '@/router/types'
 
-import { REDIRECT_ROUTE } from '@/router/routes/basic'
+import { LEGACY_ROUTE_REDIRECTS, REDIRECT_ROUTE } from '@/router/routes/basic'
 
 import { PageEnum } from '@/enums/pageEnum'
 import { t } from '@/hooks/web/useI18n'
@@ -90,5 +90,6 @@ export const basicRoutes = [
   SSORoute,
   RootRoute,
   ProfileRoute,
+  ...LEGACY_ROUTE_REDIRECTS,
   REDIRECT_ROUTE,
 ]

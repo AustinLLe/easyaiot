@@ -32,6 +32,7 @@
       <!-- 操作按钮 -->
       <div class="node-actions" @click.stop>
         <a-button
+          v-auth="['camera:directory:update']"
           type="text"
           size="small"
           @click="handleEdit"
@@ -46,6 +47,7 @@
           @confirm="handleDelete"
         >
           <a-button
+            v-auth="['camera:directory:delete']"
             type="text"
             size="small"
             danger

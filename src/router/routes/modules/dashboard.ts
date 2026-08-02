@@ -31,7 +31,7 @@ const dashboard: AppRouteModule = {
     {
       path: 'config',
       name: 'DashboardConfig',
-      component: () => import('@/views/dashboard/settings/index.vue'),
+      redirect: '/system/page-config',
       meta: {
         title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',
@@ -41,7 +41,7 @@ const dashboard: AppRouteModule = {
     {
       path: '/dashboard-config',
       name: 'DashboardConfigStandalone',
-      component: () => import('@/views/dashboard/settings/index.vue'),
+      redirect: '/system/page-config',
       meta: {
         title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',
@@ -51,7 +51,7 @@ const dashboard: AppRouteModule = {
     {
       path: 'settings',
       name: 'DashboardSettingsRedirect',
-      redirect: '/dashboard/config',
+      redirect: '/system/page-config',
       meta: {
         title: t('routes.dashboard.pageConfig'),
         icon: 'ant-design:setting-outlined',

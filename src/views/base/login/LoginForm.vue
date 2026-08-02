@@ -123,7 +123,7 @@ async function handleLogin(params) {
   <LoginFormTitle v-show="getShow" class="enter-x" />
   <Form
     v-show="getShow" ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules"
-    @keypress.enter="handleLogin"
+    @keypress.enter="getCode"
   >
     <FormItem name="username" class="enter-x">
       <Input

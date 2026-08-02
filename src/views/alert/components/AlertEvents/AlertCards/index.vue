@@ -78,7 +78,7 @@
                       :options="PROCESS_STATUS_OPTIONS"
                       :get-popup-container="getPopupContainer"
                       @click.stop
-                      @change="(val) => emit('updateProcess', item, val as UiProcessStatus)"
+                      @change="(val) => onProcessChange(item, val as UiProcessStatus)"
                     />
                   </div>
                   <div class="meta-line meta-status">
@@ -91,7 +91,7 @@
                       :options="ARCHIVE_STATUS_OPTIONS"
                       :get-popup-container="getPopupContainer"
                       @click.stop
-                      @change="(val) => emit('updateArchive', item, val as UiArchiveStatus)"
+                      @change="(val) => onArchiveChange(item, val as UiArchiveStatus)"
                     />
                   </div>
 
@@ -105,14 +105,14 @@
                     >
                       <Icon icon="ant-design:play-circle-outlined" :size="15" color="#3B82F6" />
                     </div>
-                    <div class="btn" title="推送" @click="emit('push', item)">
+                    <div class="btn" title="推送" @click="onPush(item)">
                       <Icon icon="ant-design:send-outlined" :size="15" color="#3B82F6" />
                     </div>
                     <Popconfirm
                       title="是否确认删除？"
                       ok-text="是"
                       cancel-text="否"
-                      @confirm="emit('delete', item)"
+                      @confirm="onDelete(item)"
                     >
                       <div class="btn" title="删除">
                         <Icon icon="material-symbols:delete-outline-rounded" :size="15" color="#DC2626" />
@@ -132,6 +132,7 @@
 
 <script lang="ts" setup>
 import { onMounted, reactive, ref, watch } from 'vue';
+import { usePermission } from '@/hooks/web/usePermission';
 import { Checkbox, List, Popconfirm, Select, Spin, Tag } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
 import { Icon } from '@/components/Icon';
@@ -190,6 +191,16 @@ const emit = defineEmits<{
 }>();
 
 const { createMessage } = useMessage();
+const { runWithPermission } = usePermission();
+
+const onProcessChange = (item: Record<string, any>, val: UiProcessStatus) => {
+  runWithPermission('alert:events:process', () => emit('updateProcess', item, val));
+};
+const onArchiveChange = (item: Record<string, any>, val: UiArchiveStatus) => {
+  runWithPermission('alert:events:archive', () => emit('updateArchive', item, val));
+};
+const onPush = (item: Record<string, any>) => runWithPermission('alert:events:push', () => emit('push', item));
+const onDelete = (item: Record<string, any>) => runWithPermission('alert:events:delete', () => emit('delete', item));
 
 const data = ref<Record<string, any>[]>([]);
 const state = reactive({

@@ -3,10 +3,10 @@
     <BasicTable @register="registerTable" v-if="state.isTableMode">
       <template #toolbar>
         <div class="model-list-toolbar">
-          <a-button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })" data-test-id="upload-local-model">
+          <a-button v-auth="['train:models:create']" type="primary" @click="openAddModal(true, { isEdit: false, isView: false })" data-test-id="upload-local-model">
             上传本地算法
           </a-button>
-          <a-button type="primary" @click="openSyncModal(true)">
+          <a-button v-auth="['train:models:sync']" type="primary" @click="openSyncModal(true)">
             从云端同步算法到本地
           </a-button>
           <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
@@ -24,6 +24,7 @@
                   title: '详情',
                   placement: 'top',
                 },
+                auth: 'train:models:view',
                 onClick: openViewModal.bind(null, record),
               },
               {
@@ -32,6 +33,7 @@
                   placement: 'top',
                 },
                 icon: 'ant-design:edit-filled',
+                auth: 'train:models:update',
                 onClick: openAddModal.bind(null, true, { isEdit: true, isView: false, record }),
               },
               {
@@ -40,6 +42,7 @@
                   placement: 'top',
                 },
                 icon: 'material-symbols:delete-outline-rounded',
+                auth: 'train:models:delete',
                 popConfirm: {
                   placement: 'topRight',
                   title: '是否确认删除？',
@@ -62,10 +65,10 @@
         @edit="handleEdit"
       >
       <template #header>
-        <a-button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })">
+        <a-button v-auth="['train:models:create']" type="primary" @click="openAddModal(true, { isEdit: false, isView: false })">
           上传本地算法
         </a-button>
-        <a-button type="primary" @click="openSyncModal(true)">
+        <a-button v-auth="['train:models:sync']" type="primary" @click="openSyncModal(true)">
           从云端同步算法到本地
         </a-button>
         <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">

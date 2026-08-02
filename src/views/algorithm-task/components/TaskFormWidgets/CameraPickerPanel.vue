@@ -1,5 +1,12 @@
 <template>
-  <div :class="['camera-picker-panel', { embedded, 'camera-picker-panel--dark': theme === 'dark' }]" @mousedown.stop>
+  <Teleport to="body" :disabled="embedded">
+    <div
+      v-if="embedded || (open && anchorEl)"
+      ref="panelRef"
+      :class="['camera-picker-panel', { embedded, 'camera-picker-panel--dark': theme === 'dark' }]"
+      :style="panelStyle"
+      @mousedown.stop
+    >
     <div :class="['camera-toolbar', { 'camera-toolbar--compact': !showSearch }]">
       <span class="toolbar-title">摄像头列表</span>
       <a-input-search
@@ -80,11 +87,13 @@
     </div>
 
     <DialogPlayer @register="registerPlayerModal" />
-  </div>
+    </div>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch, nextTick } from 'vue';
+import { onClickOutside, useElementBounding, useEventListener } from '@vueuse/core';
 import { CaretRightOutlined, CheckOutlined, VideoCameraOutlined } from '@ant-design/icons-vue';
 import {
   getDeviceList,
@@ -108,6 +117,7 @@ const props = withDefaults(defineProps<{
   deferConfirm?: boolean;
   theme?: 'light' | 'dark';
   showSearch?: boolean;
+  anchorEl?: HTMLElement | null;
 }>(), {
   theme: 'light',
   showSearch: true,
@@ -120,6 +130,45 @@ const emit = defineEmits<{
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
+
+const PANEL_WIDTH = 360;
+
+function resolvePopupZIndex() {
+  if (typeof document === 'undefined')
+    return 2100;
+
+  let maxZ = 1000;
+  for (const el of document.querySelectorAll('.ant-modal-wrap, .ant-modal-root, .vben-basic-modal-wrap')) {
+    const z = Number.parseInt(window.getComputedStyle(el).zIndex, 10);
+    if (!Number.isNaN(z))
+      maxZ = Math.max(maxZ, z);
+  }
+  return maxZ + 10;
+}
+
+const panelRef = ref<HTMLElement | null>(null);
+const anchorRef = computed(() => props.anchorEl ?? null);
+const { top, left, height, update } = useElementBounding(anchorRef);
+
+const panelStyle = computed(() => {
+  if (props.embedded)
+    return {};
+
+  if (!props.anchorEl || !open.value)
+    return {};
+
+  let leftPos = left.value;
+  const maxLeft = window.innerWidth - PANEL_WIDTH - 24;
+  if (leftPos > maxLeft)
+    leftPos = Math.max(24, maxLeft);
+
+  return {
+    position: 'fixed',
+    top: `${top.value + height.value + 8}px`,
+    left: `${leftPos}px`,
+    zIndex: resolvePopupZIndex(),
+  } as const;
+});
 
 const ALL_GROUP_KEY = '__all__';
 
@@ -421,9 +470,14 @@ function handleCancel() {
   open.value = false;
 }
 
-watch(open, (visible) => {
-  if (visible)
+watch(open, async (visible) => {
+  if (visible) {
+    if (!props.embedded) {
+      await nextTick();
+      update();
+    }
     initPanelData();
+  }
 }, { immediate: true });
 
 watch(
@@ -449,21 +503,57 @@ watch(selectedGroupKey, (groupKey) => {
   if (open.value)
     loadDevicesByGroup(groupKey);
 });
+
+useEventListener(window, 'scroll', () => {
+  if (open.value && !props.embedded)
+    update();
+}, { capture: true });
+
+useEventListener(window, 'resize', () => {
+  if (open.value && !props.embedded)
+    update();
+});
+
+onClickOutside(panelRef, () => {
+  if (!open.value || props.embedded)
+    return;
+  handleCancel();
+}, { ignore: [anchorRef] });
 </script>
 
 <style lang="less" scoped>
 .camera-picker-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 1050;
-  width: 520px;
+  width: 360px;
   max-width: calc(100vw - 48px);
+  font-size: 12px;
   background: #fff;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+
+  &:not(.embedded) {
+    .camera-body {
+      min-height: 340px;
+    }
+
+    .group-panel {
+      max-height: none;
+      height: 340px;
+    }
+
+    .device-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 340px;
+    }
+
+    .device-list {
+      max-height: none;
+      flex: 1;
+      min-height: 0;
+    }
+  }
 
   &.embedded {
     position: static;
@@ -507,12 +597,17 @@ watch(selectedGroupKey, (groupKey) => {
   background: #fafafa;
 
   .toolbar-title {
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
   }
 
   .toolbar-search {
     max-width: 200px;
+
+    :deep(.ant-input) {
+      font-size: 12px;
+    }
   }
 
   &--compact {
@@ -526,7 +621,7 @@ watch(selectedGroupKey, (groupKey) => {
 }
 
 .group-panel {
-  width: 140px;
+  width: 120px;
   flex-shrink: 0;
   border-right: 1px solid #f0f0f0;
   padding: 8px 0;
@@ -540,8 +635,9 @@ watch(selectedGroupKey, (groupKey) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 34px;
-  padding: 6px 12px 6px 0;
+  min-height: 30px;
+  padding: 4px 12px 4px 0;
+  font-size: 12px;
   cursor: pointer;
 
   &:hover {
@@ -634,7 +730,7 @@ watch(selectedGroupKey, (groupKey) => {
 
 .selected-count {
   color: rgba(0, 0, 0, 0.45);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .device-list {
@@ -649,8 +745,9 @@ watch(selectedGroupKey, (groupKey) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 36px;
-  padding: 6px 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 12px;
   margin: 0 -8px;
   cursor: pointer;
   border-radius: 6px;
@@ -681,9 +778,15 @@ watch(selectedGroupKey, (groupKey) => {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
+
+  :deep(.ant-btn) {
+    font-size: 12px;
+    height: 28px;
+    padding: 0 12px;
+  }
 }
 
 .camera-picker-panel--dark {

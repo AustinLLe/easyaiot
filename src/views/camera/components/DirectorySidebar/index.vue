@@ -5,6 +5,7 @@
         <div class="tree-header-row">
           <span class="tree-header-title">分组</span>
           <a-button
+            v-auth="['camera:directory:create']"
             type="text"
             class="add-directory-btn"
             title="添加目录"

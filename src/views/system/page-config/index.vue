@@ -178,10 +178,10 @@ async function handleReset() {
         <p>{{ t('pageDescription') }}</p>
       </div>
       <div class="actions">
-        <button class="secondary-btn" :disabled="saving" @click="handleReset">
+        <button v-auth="['dashboard:config:reset']" class="secondary-btn" :disabled="saving" @click="handleReset">
           {{ t('resetDefaults') }}
         </button>
-        <button class="primary-btn" :disabled="saving" @click="handleSave">
+        <button v-auth="['dashboard:config:update']" class="primary-btn" :disabled="saving" @click="handleSave">
           {{ saving ? t('saving') : t('save') }}
         </button>
       </div>
@@ -254,6 +254,7 @@ async function handleReset() {
               </div>
 
               <button
+                v-auth="['dashboard:config:upload']"
                 class="upload-library-card"
                 data-testid="open-platform-asset-upload"
                 type="button"
@@ -283,6 +284,7 @@ async function handleReset() {
                     <button
                       v-for="item in roleItems"
                       :key="item.field"
+                      v-auth="['dashboard:config:assign-asset']"
                       type="button"
                       :class="{ active: interfaceForm[item.field] === asset.url }"
                       :data-testid="`assign-${item.field}-${asset.id}`"
@@ -296,6 +298,7 @@ async function handleReset() {
                       }}
                     </button>
                     <button
+                      v-auth="['dashboard:config:delete-asset']"
                       class="danger"
                       type="button"
                       :disabled="isAssetAssigned(asset) || deletingId === asset.id"

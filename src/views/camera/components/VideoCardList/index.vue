@@ -57,20 +57,20 @@
                 </div>
                 <div class="card-actions-wrap">
                 <div class="btns">
-                  <div class="btn" @click="handlePlay(item)" v-if="item.rtmp_stream || item.http_stream">
+                  <div v-if="item.rtmp_stream || item.http_stream" class="btn" @click="onPlay(item)">
                     <Icon icon="octicon:play-16" :size="15" color="#3B82F6" />
                   </div>
-                  <div class="btn" @click="handleView(item)">
+                  <div class="btn" @click="onView(item)">
                     <Icon icon="ant-design:eye-filled" :size="15" color="#3B82F6" />
                   </div>
-                  <div class="btn" @click="handleEdit(item)">
+                  <div class="btn" @click="onEdit(item)">
                     <Icon icon="ant-design:edit-filled" :size="15" color="#3B82F6" />
                   </div>
                   <Popconfirm
                     title="是否确认删除？"
                     ok-text="是"
                     cancel-text="否"
-                    @confirm="handleDelete(item)"
+                    @confirm="onDelete(item)"
                   >
                     <div class="btn">
                       <Icon icon="material-symbols:delete-outline-rounded" :size="15" color="#DC2626" />
@@ -84,7 +84,7 @@
                   :src="getCameraImage(item.manufacturer)"
                   alt="" 
                   class="img" 
-                  @click="handleView(item)">
+                  @click="onView(item)">
               </div>
             </ListItem>
           </template>
@@ -101,6 +101,7 @@ import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
 import {Icon} from '@/components/Icon';
 import {useMessage} from "@/hooks/web/useMessage";
+import {usePermission} from '@/hooks/web/usePermission';
 import HAIKANG_IMAGE from "@/assets/images/video/haikang.png";
 import DAHUA_IMAGE from "@/assets/images/video/dahua.png";
 import HUAWEI_IMAGE from "@/assets/images/video/huawei.png";
@@ -118,6 +119,12 @@ const props = defineProps({
 });
 
 const { createMessage } = useMessage();
+const { runWithPermission } = usePermission();
+
+const onPlay = (item: DeviceInfo) => runWithPermission('camera:devices:play', () => handlePlay(item));
+const onView = (item: DeviceInfo) => runWithPermission('camera:devices:view', () => handleView(item));
+const onEdit = (item: DeviceInfo) => runWithPermission('camera:devices:update', () => handleEdit(item));
+const onDelete = (item: DeviceInfo) => runWithPermission('camera:devices:delete', () => handleDelete(item));
 
 //暴露内部方法
 const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'play']);

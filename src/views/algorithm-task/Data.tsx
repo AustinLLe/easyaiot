@@ -80,10 +80,9 @@ export function getBasicColumns(): BasicColumn[] {
 export function getFormConfig(): Partial<FormProps> {
   return {
     labelWidth: 80,
-    baseColProps: { span: 5 },
+    baseColProps: { span: 4 },
     actionColOptions: {
-      span: 4,
-      offset: 0,
+      span: 12,
       style: { textAlign: 'right' },
     },
     schemas: [

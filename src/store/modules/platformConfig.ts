@@ -17,6 +17,7 @@ import {
   uploadPlatformAsset,
   updatePlatformInterfaceConfig,
 } from '@/api/platform/config'
+import { applyAppLoadingBranding } from '@/logics/appLoadingBranding'
 
 export { PLATFORM_INTERFACE_EVENT, defaultInterfaceConfig }
 export type { InterfaceConfig } from '@/settings/platformConfig'
@@ -123,6 +124,8 @@ export const usePlatformConfigStore = defineStore('platform-config', {
         document.head.appendChild(link)
       }
       link.href = favicon
+
+      applyAppLoadingBranding(cfg)
     },
   },
 })

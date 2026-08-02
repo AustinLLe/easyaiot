@@ -12,6 +12,7 @@
                   title: '详情',
                   placement: 'top',
                 },
+                auth: 'alert:push-history:view',
                 onClick: openDetailDrawer.bind(null, true, { record }),
               },
             ]"

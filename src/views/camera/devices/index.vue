@@ -6,15 +6,15 @@
         <BasicTable v-if="viewMode === 'table'" @register="registerTable">
           <template #toolbar>
             <div class="toolbar-buttons">
-              <a-button type="primary" @click="handleScanOnvif">
+              <a-button v-auth="['camera:devices:scan']" type="primary" @click="handleScanOnvif">
                 <template #icon><ScanOutlined /></template>
                 扫描局域网ONVIF设备
               </a-button>
-              <a-button @click="openAddModal('source')">
+              <a-button v-auth="['camera:devices:create']" @click="openAddModal('source')">
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
-              <a-button @click="handleUpdateOnvifDevice">
+              <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
                 更新ONVIF设备
               </a-button>
@@ -49,15 +49,15 @@
             @play="handleCardPlay"
           >
             <template #header>
-              <a-button type="primary" @click="handleScanOnvif">
+              <a-button v-auth="['camera:devices:scan']" type="primary" @click="handleScanOnvif">
                 <template #icon><ScanOutlined /></template>
                 扫描局域网ONVIF设备
               </a-button>
-              <a-button @click="openAddModal('source')">
+              <a-button v-auth="['camera:devices:create']" @click="openAddModal('source')">
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
-              <a-button @click="handleUpdateOnvifDevice">
+              <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
                 更新ONVIF设备
               </a-button>
@@ -156,11 +156,11 @@ const [registerTable, { reload }] = useTable({
 })
 
 const getTableActions = (record) => {
-  const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP流', onClick: () => handlePlay(record) }]
+  const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP流', auth: 'camera:devices:play', onClick: () => handlePlay(record) }]
   actions.push(
-    { icon: 'ant-design:eye-filled', tooltip: '详情', onClick: () => openAddModal('view', record) },
-    { icon: 'ant-design:edit-filled', tooltip: '编辑', onClick: () => openAddModal('edit', record) },
-    { icon: 'material-symbols:delete-outline-rounded', tooltip: '删除', popConfirm: { title: '确定删除此设备？', confirm: () => handleDelete(record) } },
+    { icon: 'ant-design:eye-filled', tooltip: '详情', auth: 'camera:devices:view', onClick: () => openAddModal('view', record) },
+    { icon: 'ant-design:edit-filled', tooltip: '编辑', auth: 'camera:devices:update', onClick: () => openAddModal('edit', record) },
+    { icon: 'material-symbols:delete-outline-rounded', tooltip: '删除', auth: 'camera:devices:delete', popConfirm: { title: '确定删除此设备？', confirm: () => handleDelete(record) } },
   )
   return actions
 }

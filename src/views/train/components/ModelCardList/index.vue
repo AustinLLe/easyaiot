@@ -23,7 +23,7 @@
             <ListItem class="model-list-item">
               <div class="model-card-box">
                 <div class="model-card-body">
-                  <div class="model-image-container" @click="handleView(item)">
+                  <div class="model-image-container" @click="onView(item)">
                     <img
                       :src="item.imageUrl || '/images/model-preview.jpg'"
                       alt="算法图片"
@@ -33,7 +33,7 @@
 
                   <div class="model-card-info">
                     <h6 class="model-card-title">
-                      <a @click.prevent="handleView(item)">{{ item.name }}</a>
+                      <a @click.prevent="onView(item)">{{ item.name }}</a>
                     </h6>
 
                     <div class="model-tags">
@@ -53,7 +53,7 @@
                           shape="circle"
                           class="card-action-btn"
                           title="查看详情"
-                          @click.stop="handleView(item)"
+                          @click.stop="onView(item)"
                         >
                           <template #icon><EyeOutlined /></template>
                         </Button>
@@ -62,13 +62,13 @@
                           shape="circle"
                           class="card-action-btn"
                           title="编辑算法"
-                          @click.stop="handleEdit(item)"
+                          @click.stop="onEdit(item)"
                         >
                           <template #icon><EditOutlined /></template>
                         </Button>
                         <Popconfirm
                           title="是否确认删除？"
-                          @confirm="handleDelete(item)"
+                          @confirm="onDelete(item)"
                         >
                           <Button
                             type="text"
@@ -95,6 +95,7 @@
 
 <script lang="ts" setup>
 import {onMounted, reactive, ref, watch} from 'vue';
+import {usePermission} from '@/hooks/web/usePermission';
 import {Button, List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
@@ -114,6 +115,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
+
+const { runWithPermission } = usePermission();
+const onView = (item: any) => runWithPermission('train:models:view', () => handleView(item));
+const onEdit = (item: any) => runWithPermission('train:models:update', () => handleEdit(item));
+const onDelete = (item: any) => runWithPermission('train:models:delete', () => handleDelete(item));
 
 const data = ref([]);
 const state = reactive({

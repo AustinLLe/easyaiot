@@ -16,6 +16,8 @@ import { changeTheme } from '@/logics/theme'
 import { useAppStore } from '@/store/modules/app'
 import { useLocaleStore } from '@/store/modules/locale'
 import { usePlatformConfigStoreWithOut } from '@/store/modules/platformConfig'
+import { applyAppLoadingBranding } from '@/logics/appLoadingBranding'
+import { loadInterfaceConfig } from '@/settings/platformConfig'
 
 import { getCommonStoragePrefix, getStorageShortName } from '@/utils/env'
 
@@ -66,6 +68,7 @@ export function initAppConfigStore() {
   localeStore.initLocale()
 
   const platformConfigStore = usePlatformConfigStoreWithOut()
+  applyAppLoadingBranding(loadInterfaceConfig())
   if (!platformConfigStore.remoteLoaded)
     void platformConfigStore.loadInterfaceConfig(true)
 

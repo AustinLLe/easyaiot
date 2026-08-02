@@ -38,7 +38,22 @@ let table: Partial<TableActionType> = {}
 if (!props.outside)
   table = useTableContext()
 
-const { hasPermission } = usePermission()
+const { wrapWithPermission } = usePermission()
+
+function wrapAction(action: ActionItem) {
+  const { popConfirm, onClick, auth } = action
+  return {
+    ...action,
+    onClick: wrapWithPermission(auth, onClick),
+    popConfirm: popConfirm
+      ? {
+          ...popConfirm,
+          confirm: wrapWithPermission(auth, popConfirm.confirm),
+        }
+      : popConfirm,
+  }
+}
+
 function isIfShow(action: ActionItem): boolean {
   const ifShow = action.ifShow
 
@@ -55,15 +70,14 @@ function isIfShow(action: ActionItem): boolean {
 
 const getActions = computed(() => {
   return (toRaw(props.actions) || [])
-    .filter((action) => {
-      return hasPermission(action.auth) && isIfShow(action)
-    })
+    .filter((action) => isIfShow(action))
     .map((action) => {
-      const { popConfirm } = action
+      const wrapped = wrapAction(action)
+      const { popConfirm } = wrapped
       return {
         getPopupContainer: () => unref((table as any)?.wrapRef) ?? document.body,
         type: 'link',
-        ...action,
+        ...wrapped,
         ...(popConfirm || {}),
         onConfirm: popConfirm?.confirm,
         onCancel: popConfirm?.cancel,
@@ -73,13 +87,12 @@ const getActions = computed(() => {
 })
 
 const getDropdownList = computed((): any[] => {
-  const list = (toRaw(props.dropDownActions) || []).filter((action) => {
-    return hasPermission(action.auth) && isIfShow(action)
-  })
+  const list = (toRaw(props.dropDownActions) || []).filter((action) => isIfShow(action))
   return list.map((action, index) => {
-    const { label, popConfirm } = action
+    const wrapped = wrapAction(action)
+    const { label, popConfirm } = wrapped
     return {
-      ...action,
+      ...wrapped,
       ...popConfirm,
       onConfirm: popConfirm?.confirm,
       onCancel: popConfirm?.cancel,

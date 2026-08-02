@@ -2,7 +2,7 @@
   <div class="message-config-page">
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <Button type="primary" preIcon="ant-design:plus-outlined" @click="openConfigModal(true, { type: 'add' })">
+        <Button v-auth="['notice:message-config:create']" type="primary" preIcon="ant-design:plus-outlined" @click="openConfigModal(true, { type: 'add' })">
           新增设置
         </Button>
       </template>
@@ -14,16 +14,19 @@
               {
                 icon: 'ant-design:eye-filled',
                 tooltip: { title: '查看', placement: 'top' },
+                auth: 'notice:message-config:view',
                 onClick: openConfigModal.bind(null, true, { type: 'view', record }),
               },
               {
                 tooltip: { title: '编辑', placement: 'top' },
                 icon: 'ant-design:edit-filled',
+                auth: 'notice:message-config:update',
                 onClick: openConfigModal.bind(null, true, { type: 'edit', record }),
               },
               {
                 tooltip: { title: '删除', placement: 'top' },
                 icon: 'material-symbols:delete-outline-rounded',
+                auth: 'notice:message-config:delete',
                 popConfirm: {
                   placement: 'topRight',
                   title: '是否确认删除？',

@@ -51,11 +51,13 @@ const [register] = useModalInner(async (data) => {
     }
 
     imageUrl.value = url;
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('加载图片失败:', error);
     const errorMsg = error?.response?.data?.message || error?.message || '加载图片失败';
     createMessage.error(errorMsg);
-  } finally {
+  }
+  finally {
     loading.value = false;
   }
 });

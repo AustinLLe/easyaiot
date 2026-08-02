@@ -6,12 +6,12 @@
         <p>查看运行节点磁盘、配置摄像头留存方式，并翻阅已保存录像</p>
       </div>
       <div class="heading-actions">
-        <AButton :loading="refreshing" @click="refreshAll(true)">
+        <AButton v-auth="['storage:storage:scan']" :loading="refreshing" @click="refreshAll(true)">
           <template #icon><ReloadOutlined /></template>
           重新扫描
         </AButton>
         <APopconfirm title="立即按当前策略处理过期录像？" @confirm="handleCleanup">
-          <AButton type="primary" :loading="cleaning">立即执行留存策略</AButton>
+          <AButton v-auth="['storage:retention:cleanup']" type="primary" :loading="cleaning">立即执行留存策略</AButton>
         </APopconfirm>
       </div>
     </div>
@@ -128,7 +128,7 @@
               <h3>快速启用留存方案</h3>
               <p>启用方案只会更新留存设置；录像将在定时任务或点击“立即执行留存策略”时清理。</p>
             </div>
-            <AButton type="dashed" @click="openCustomScheme">
+            <AButton v-auth="['storage:scheme:create']" type="dashed" @click="openCustomScheme">
               <template #icon><PlusOutlined /></template>
               新建自定义方案
             </AButton>
@@ -148,7 +148,7 @@
                     <ATag v-else>预设</ATag>
                   </div>
                   <APopconfirm v-if="!scheme.builtin" title="确认删除这个自定义方案？" @confirm="removeScheme(scheme)">
-                    <AButton type="text" danger size="small">删除</AButton>
+                    <AButton v-auth="['storage:scheme:delete']" type="text" danger size="small">删除</AButton>
                   </APopconfirm>
                 </div>
                 <h4>{{ scheme.name }}</h4>
@@ -163,6 +163,7 @@
                   @confirm="activateScheme(scheme)"
                 >
                   <AButton
+                    v-auth="['storage:scheme:apply']"
                     block
                     :type="schemeState?.current.matched_scheme_id === scheme.id ? 'default' : 'primary'"
                     :disabled="schemeState?.current.matched_scheme_id === scheme.id"
@@ -216,10 +217,10 @@
               <span v-if="record.save_time === 0" class="forever">永久</span>
             </template>
             <template v-else-if="column.key === 'action'">
-              <AButton type="primary" size="small" :loading="savingPolicyId === record.id" @click="savePolicy(record)">
+              <AButton v-auth="['storage:retention:update']" type="primary" size="small" :loading="savingPolicyId === record.id" @click="savePolicy(record)">
                 保存
               </AButton>
-              <AButton type="link" size="small" @click="openDeviceHistory(record.device_id)">查看历史</AButton>
+              <AButton v-auth="['storage:history:view']" type="link" size="small" @click="openDeviceHistory(record.device_id)">查看历史</AButton>
             </template>
           </template>
         </ATable>
@@ -251,7 +252,7 @@
 
         <ASpin :spinning="historyLoading">
           <div v-if="history.length" class="history-grid">
-            <article v-for="item in history" :key="item.id" class="history-card" @click="playHistory(item)">
+            <article v-for="item in history" :key="item.id" class="history-card" @click="onPlayHistory(item)">
               <div class="history-preview">
                 <VideoCameraOutlined />
                 <span class="play-button"><CaretRightFilled /></span>
@@ -363,6 +364,7 @@ import {
   Tag as ATag,
 } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
+import { usePermission } from '@/hooks/web/usePermission';
 import { useModal } from '@/components/Modal';
 import HistoryPlayerModal from './components/HistoryPlayerModal.vue';
 import {
@@ -375,6 +377,7 @@ import {
 defineOptions({ name: 'StorageCenter' });
 
 const { createMessage } = useMessage();
+const { runWithPermission } = usePermission();
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
 const AInputSearch = AInput.Search;
 const ATextarea = AInput.TextArea;
@@ -623,6 +626,10 @@ function getPlaybackUrl(path: string) {
   if (path.startsWith('/api/')) return `${window.location.origin}${path}`;
   const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
   return `${apiBase}${path}`;
+}
+
+function onPlayHistory(item: RecordingHistory) {
+  runWithPermission('storage:history:play', () => playHistory(item));
 }
 
 function playHistory(item: RecordingHistory) {

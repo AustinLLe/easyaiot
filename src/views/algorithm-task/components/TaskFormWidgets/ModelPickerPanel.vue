@@ -105,7 +105,7 @@ const panelStyle = computed(() => {
     position: 'fixed',
     top: `${top.value + height.value + 8}px`,
     left: `${leftPos}px`,
-    zIndex: 1050,
+    zIndex: 2100,
   } as const;
 });
 
@@ -264,7 +264,7 @@ onClickOutside(panelRef, () => {
   background: #fafafa;
 
   .toolbar-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
   }

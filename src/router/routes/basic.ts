@@ -25,6 +25,13 @@ export const PAGE_NOT_FOUND_ROUTE: AppRouteRecordRaw = {
   ],
 }
 
+/** Legacy paths kept for bookmarks; pages live under /system/* via backend menus. */
+export const LEGACY_ROUTE_REDIRECTS: AppRouteRecordRaw[] = [
+  { path: '/storage', redirect: '/system/storage', meta: { hideMenu: true, hideBreadcrumb: true } },
+  { path: '/storage/index', redirect: '/system/storage', meta: { hideMenu: true, hideBreadcrumb: true } },
+  { path: '/system/hardware', redirect: '/system/hardware-status', meta: { hideMenu: true, hideBreadcrumb: true } },
+]
+
 export const REDIRECT_ROUTE: AppRouteRecordRaw = {
   path: '/redirect',
   component: LAYOUT,

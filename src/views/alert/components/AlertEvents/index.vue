@@ -4,9 +4,9 @@
       <template #toolbar>
         <div class="alert-toolbar">
           <div class="alert-toolbar-left">
-            <a-button size="small" @click="handleBatchPush">推送</a-button>
-            <a-button size="small" @click="handleBatchAction('process')">处理</a-button>
-            <Dropdown>
+            <a-button v-auth="['alert:events:push']" size="small" @click="handleBatchPush">推送</a-button>
+            <a-button v-auth="['alert:events:process']" size="small" @click="handleBatchAction('process')">处理</a-button>
+            <Dropdown v-auth="['alert:events:archive']">
               <a-button size="small">归档</a-button>
               <template #overlay>
                 <Menu @click="handleArchiveMenuClick">
@@ -15,8 +15,8 @@
                 </Menu>
               </template>
             </Dropdown>
-            <a-button size="small" @click="handleBatchExport">导出</a-button>
-            <a-button size="small" danger @click="handleBatchAction('delete')">删除</a-button>
+            <a-button v-auth="['alert:events:export']" size="small" @click="handleBatchExport">导出</a-button>
+            <a-button v-auth="['alert:events:delete']" size="small" danger @click="handleBatchAction('delete')">删除</a-button>
           </div>
           <div class="alert-toolbar-right">
             <a-button type="default" preIcon="ant-design:swap-outlined" @click="handleClickSwap">
@@ -89,9 +89,9 @@
         <template #header>
           <div class="alert-toolbar">
             <div class="alert-toolbar-left">
-              <a-button size="small" @click="handleBatchPush">推送</a-button>
-              <a-button size="small" @click="handleBatchAction('process')">处理</a-button>
-              <Dropdown>
+              <a-button v-auth="['alert:events:push']" size="small" @click="handleBatchPush">推送</a-button>
+              <a-button v-auth="['alert:events:process']" size="small" @click="handleBatchAction('process')">处理</a-button>
+              <Dropdown v-auth="['alert:events:archive']">
                 <a-button size="small">归档</a-button>
                 <template #overlay>
                   <Menu @click="handleArchiveMenuClick">
@@ -100,8 +100,8 @@
                   </Menu>
                 </template>
               </Dropdown>
-              <a-button size="small" @click="handleBatchExport">导出</a-button>
-              <a-button size="small" danger @click="handleBatchAction('delete')">删除</a-button>
+              <a-button v-auth="['alert:events:export']" size="small" @click="handleBatchExport">导出</a-button>
+              <a-button v-auth="['alert:events:delete']" size="small" danger @click="handleBatchAction('delete')">删除</a-button>
             </div>
             <div class="alert-toolbar-right">
               <a-button type="default" preIcon="ant-design:swap-outlined" @click="handleClickSwap">
