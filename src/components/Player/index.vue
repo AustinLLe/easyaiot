@@ -27,7 +27,7 @@
             <RtcPlayer ref="rtcPlayer" :play-url="playUrl" :hasAudio="false" />
           </div>
           <div v-if="playerType == 3" style="width: 100%; height: 30.375vw">
-            <video controls autoplay style="width: 100%; height: 30.375vw">
+            <video controls autoplay style="width: 100%; height: 30.375vw; object-fit: cover">
               <source :src="playUrl" type="video/mp4" />
             </video>
           </div>

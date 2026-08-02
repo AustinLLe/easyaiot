@@ -1,6 +1,6 @@
 <template>
   <div id="rtcPlayer" style="width: 100%; height: 100%; background-color: #000c17">
-    <video id="webRtcPlayerBox" controls autoplay style="text-align: left">
+    <video id="webRtcPlayerBox" controls autoplay style="width: 100%; height: 100%; object-fit: cover; text-align: left">
       Your browser is too old which doesn't support HTML5 video.
     </video>
   </div>

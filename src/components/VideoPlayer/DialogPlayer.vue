@@ -21,7 +21,7 @@
               autoplay
               muted
               playsinline
-              style="width: 100%; height: 100%; background: #000; object-fit: contain;"
+              style="width: 100%; height: 100%; background: #000; object-fit: cover;"
             />
             <Jessibuca
               v-else
@@ -113,7 +113,7 @@ import Jessibuca from "@/components/Player/module/jessibuca.vue";
 import Ptz from "@/components/Player/module/ptz.vue";
 import {copyText} from "@/utils/copyTextToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
-import {controlPTZ} from "@/api/device/camera";
+import {controlPTZ, getDeviceInfo} from "@/api/device/camera";
 
 const {createMessage} = useMessage()
 
@@ -153,18 +153,29 @@ const [register, {closeModal}] = useModalInner(async (record) => {
   state.iframeUrl = '';
   state.isFileVideo = false;
 
-  if (!record?.['http_stream']) {
+  let playbackRecord = record;
+  if (record?.['id'] && (record?.['video_input_profile'] || 'original_http_stream' in record)) {
+    try {
+      const response: any = await getDeviceInfo(record['id']);
+      playbackRecord = response?.code !== undefined ? response.data : (response?.data ?? response);
+    }
+    catch {
+      playbackRecord = record;
+    }
+  }
+
+  if (!playbackRecord?.['http_stream']) {
     createMessage.warn('缺少播放地址，无法播放');
-    state.deviceId = record?.['id'] ?? '';
+    state.deviceId = playbackRecord?.['id'] ?? '';
     return;
   }
 
-  state.deviceId = record['id'];
-  state.currentUrl = record['http_stream'] ?? '';
+  state.deviceId = playbackRecord['id'];
+  state.currentUrl = playbackRecord['http_stream'] ?? '';
   state.isFileVideo = /\.mp4($|\?)/i.test(state.currentUrl) || /\/alert\/record/i.test(state.currentUrl);
-  state.iframeUrl = record['http_stream'] ? '<iframe src="' + record['http_stream'] + '"></iframe>' : '';
-  state.videoUrlList = record['http_stream']
-    ? [{ label: 'http_stream', value: record['http_stream'] }]
+  state.iframeUrl = playbackRecord['http_stream'] ? '<iframe src="' + playbackRecord['http_stream'] + '"></iframe>' : '';
+  state.videoUrlList = playbackRecord['http_stream']
+    ? [{ label: 'http_stream', value: playbackRecord['http_stream'] }]
     : [{ label: 'flv', value: '1' }];
   if (state.isFileVideo) {
     await nextTick();

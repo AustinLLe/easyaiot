@@ -9,6 +9,7 @@ import {
 import { useMessage } from '@/hooks/web/useMessage'
 import {
   type VideoInputProfile,
+  getVideoInputProfile,
   getVideoInputProfiles,
   restartVideoInputProfile,
   updateVideoInputProfile,
@@ -77,6 +78,33 @@ function setBusy(target: typeof savingIds, id: string, busy: boolean) {
 const isSaving = (id: string) => savingIds.value.includes(id)
 const isRestarting = (id: string) => restartingIds.value.includes(id)
 
+const delay = (milliseconds: number) => new Promise(resolve => window.setTimeout(resolve, milliseconds))
+
+function unwrapProfile(response: any): VideoInputProfile | undefined {
+  if (response?.code !== undefined)
+    return response.data
+  return response?.data ?? response
+}
+
+function replaceProfile(profile: VideoInputProfile) {
+  const index = profiles.value.findIndex(item => item.device_id === profile.device_id)
+  if (index >= 0)
+    profiles.value.splice(index, 1, profile)
+}
+
+async function waitUntilApplied(deviceId: string) {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const profile = unwrapProfile(await getVideoInputProfile(deviceId))
+    if (profile) {
+      replaceProfile(profile)
+      if (!profile.enabled || ['running', 'passthrough', 'error', 'disabled', 'stopped'].includes(profile.status))
+        return profile
+    }
+    await delay(500)
+  }
+  return undefined
+}
+
 async function save(profile: VideoInputProfile, quiet = false) {
   setBusy(savingIds, profile.device_id, true)
   try {
@@ -85,9 +113,15 @@ async function save(profile: VideoInputProfile, quiet = false) {
       resolution: profile.resolution,
       max_fps: profile.max_fps,
     })
-    if (!quiet)
-      createMessage.success('策略已保存，正在探测并应用')
-    window.setTimeout(loadProfiles, 1200)
+    const applied = await waitUntilApplied(profile.device_id)
+    if (applied?.status === 'error')
+      throw new Error(applied.exception_reason || '视频输入处理启动失败')
+    if (!applied)
+      createMessage.warning('策略已保存，处理进程仍在启动，请稍后刷新确认')
+    else if (!quiet)
+      createMessage.success(applied.processing_required
+        ? `策略已生效，播放与算法将使用${applied.resolution}处理流`
+        : '策略已生效，当前输入符合上限，使用原流直通')
   }
   catch {
     createMessage.error('视频输入处理策略保存失败')
@@ -104,8 +138,10 @@ async function restart(profile: VideoInputProfile) {
   setBusy(restartingIds, profile.device_id, true)
   try {
     await restartVideoInputProfile(profile.device_id)
-    createMessage.success('已重新探测视频输入')
-    window.setTimeout(loadProfiles, 1200)
+    const applied = await waitUntilApplied(profile.device_id)
+    if (applied?.status === 'error')
+      throw new Error(applied.exception_reason || '重新探测失败')
+    createMessage.success(applied ? '已重新探测并应用视频输入' : '已重新探测，处理进程仍在启动')
   }
   catch {
     createMessage.error('重新探测失败')

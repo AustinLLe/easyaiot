@@ -4,6 +4,7 @@
       ref="container"
       :id="playerId"
       class="player-container"
+      :class="{ 'easy-wasm-active': !!easyPlayer }"
       @dblclick="fullscreen"
       @mousemove="mouseenter"
     >
@@ -188,9 +189,9 @@ export default {
             container: this.$refs.container,
             decoder: "/static/js/jessibuca/decoder.js",
             videoBuffer: 0.2, // 缓存时长
-            // 拉伸画面以完整填满播放器窗口；不同摄像头分辨率不再产生黑边或缩在左上角。
-            isResize: false,
-            isFullResize: false,
+            // 等比放大并裁切溢出区域，让画面填满播放器且不产生黑边。
+            isResize: true,
+            isFullResize: true,
             useWCS: this.useWCS,
             useMSE: this.useMSE,
             text: "",
@@ -256,8 +257,8 @@ export default {
       // });
       this.jessibuca.on("videoInfo", function (info) {
         console.log("videoInfo", info);
-        // 视频尺寸可用后再次应用填充模式，确保切换不同分辨率的流时立即重新计算。
-        _this.jessibuca.setScaleMode(0);
+        // 视频尺寸可用后再次应用 cover 模式。
+        _this.jessibuca.setScaleMode(2);
       });
       this.jessibuca.on("error", function (error) {
         console.log("error", error);
@@ -512,15 +513,19 @@ export default {
 .player-container {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   position: relative;
 }
 
-.player-container canvas,
 .player-container video {
   width: 100% !important;
   height: 100% !important;
-  left: 0 !important;
-  top: 0 !important;
-  transform: none !important;
+  object-fit: cover;
+}
+
+.player-container.easy-wasm-active canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
 }
 </style>

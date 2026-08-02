@@ -110,7 +110,7 @@ function resetPlayer() {
   border-radius: 10px;
   background: #07111d;
 }
-.video-shell video { display: block; width: 100%; max-height: 68vh; background: #07111d; }
+.video-shell video { display: block; width: 100%; height: 480px; max-height: 68vh; object-fit: cover; background: #07111d; }
 .video-empty { color: #98a2b3; }
 .video-loading {
   position: absolute;
@@ -137,6 +137,7 @@ function resetPlayer() {
 .record-meta b { margin-top: 4px; color: #263445; font-size: 14px; }
 @media (max-width: 760px) {
   .video-shell { min-height: 260px; }
+  .video-shell video { height: 260px; }
   .record-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>

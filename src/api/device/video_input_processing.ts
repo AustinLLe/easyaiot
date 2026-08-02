@@ -51,6 +51,13 @@ export function getVideoInputProfiles(params: {
   return request('get', `${PREFIX}/list`, params) as Promise<VideoInputProfileList>
 }
 
+export function getVideoInputProfile(deviceId: string) {
+  return request('get', `${PREFIX}/device/${deviceId}`) as Promise<{
+    code?: number
+    data: VideoInputProfile
+  }>
+}
+
 export function updateVideoInputProfile(deviceId: string, data: Pick<VideoInputProfile, 'enabled' | 'resolution' | 'max_fps'>) {
   return request('put', `${PREFIX}/device/${deviceId}`, data)
 }
