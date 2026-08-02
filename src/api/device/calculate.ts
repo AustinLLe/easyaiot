@@ -76,9 +76,18 @@ export const queryAlertCameras = async () => {
   };
 };
 
-export const deleteAlarm = (id) => {
-  return commonApi('delete', `${Api.Alarm}/delete/${id}`);
+export const deleteAlarm = async (id: number) => {
+  const res = await commonApi('delete', `${Api.Alarm}/delete/${id}`, {}, {}, false);
+  return parseVideoAlertResponse(res);
 };
+
+export async function deleteAlarms(ids: number[]) {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  const results = await Promise.allSettled(uniqueIds.map(id => deleteAlarm(id)));
+  const succeeded = results.filter(item => item.status === 'fulfilled').length;
+  const failed = results.length - succeeded;
+  return { succeeded, failed, total: results.length };
+}
 
 export const updateAlertProcessStatus = async (params: {
   ids: number[];

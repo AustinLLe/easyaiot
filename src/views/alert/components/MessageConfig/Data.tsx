@@ -22,6 +22,8 @@ export const getTableColumns = () => {
       width: 140,
       title: '操作',
       dataIndex: 'action',
+      align: 'center',
+      className: 'message-config-action-column',
     },
   ];
 };

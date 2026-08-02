@@ -10,28 +10,28 @@
   >
     <div class="ant-modal-content">
       <div class="ant-modal-body" style="padding: 0px;">
-        <div style="min-height: 200px; max-height: 680px;">
-          <!-- 播放器 -->
-          <div style="height: 420px">
-            <video
-              v-if="state.isFileVideo"
-              ref="htmlVideo"
-              :src="state.currentUrl"
-              controls
-              autoplay
-              muted
-              playsinline
-              style="width: 100%; height: 100%; background: #000; object-fit: cover;"
-            />
-            <Jessibuca
-              v-else
-              ref="jessibuca"
-              :playUrl="state.currentUrl"
-              :hasAudio="false"
-            />
+        <div class="dialog-player-scroll">
+          <div class="dialog-player-video-section">
+            <div class="dialog-player-video-inner">
+              <video
+                v-if="state.isFileVideo"
+                ref="htmlVideo"
+                :src="state.currentUrl"
+                controls
+                autoplay
+                muted
+                playsinline
+                style="width: 100%; height: 100%; background: #000; object-fit: cover;"
+              />
+              <Jessibuca
+                v-else
+                ref="jessibuca"
+                :playUrl="state.currentUrl"
+                :hasAudio="false"
+              />
+            </div>
           </div>
-          <!-- 控制台 -->
-          <div class="tabs">
+          <div class="dialog-player-tabs-section">
             <Tabs v-model:activeKey="state.activeKey">
               <TabPane key="info" tab="实时视频">
                 <div class="real-time-info">
@@ -656,5 +656,51 @@ function handleCancel() {
       }
     }
   }
+}
+</style>
+
+<style scoped lang="less">
+.dialog-player-scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.dialog-player-video-section {
+  flex: 0 0 auto;
+  width: 100%;
+  background: #000;
+}
+
+.dialog-player-video-inner {
+  width: 100%;
+  min-height: 420px;
+  height: auto;
+  position: relative;
+  isolation: isolate;
+}
+
+.dialog-player-video-inner :deep(> div) {
+  width: 100%;
+  min-height: 420px;
+  height: auto !important;
+}
+
+.dialog-player-video-inner :deep(.player-container) {
+  width: 100%;
+  min-height: 420px;
+  height: auto;
+}
+
+.dialog-player-tabs-section {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  padding: 12px 16px 16px;
+  border-top: 1px solid #f0f0f0;
 }
 </style>

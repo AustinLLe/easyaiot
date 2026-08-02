@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import {
+  Empty,
+  Pagination,
+  Select,
+  Spin,
+  Switch,
+  Tag,
+  Tooltip,
+} from 'ant-design-vue'
+import {
   QuestionCircleOutlined,
   ReloadOutlined,
   ThunderboltOutlined,
@@ -26,7 +35,18 @@ const pageSize = 8
 const savingIds = ref<string[]>([])
 const restartingIds = ref<string[]>([])
 const fpsOptions = [30, 25, 24, 20, 15, 10]
-const filters = reactive<{ search: string, enabled?: boolean }>({ search: '', enabled: undefined })
+const enabledFilterOptions = [
+  { label: '已启用', value: 'true' },
+  { label: '已停用', value: 'false' },
+]
+const resolutionOptions = [
+  { label: '原视频流输入', value: 'original' },
+  { label: '1080p（高负载）', value: '1080p' },
+  { label: '720p', value: '720p' },
+  { label: '540p', value: '540p' },
+  { label: '360p', value: '360p' },
+]
+const filters = reactive<{ search: string, enabled?: string }>({ search: '', enabled: undefined })
 
 function normalizeResponse(response: any) {
   const payload = response?.data && !Array.isArray(response.data) && response.data.data
@@ -45,7 +65,7 @@ async function loadProfiles() {
       pageNo: pageNo.value,
       pageSize,
       search: filters.search || undefined,
-      enabled: filters.enabled,
+      enabled: filters.enabled === undefined ? undefined : filters.enabled === 'true',
     }))
     profiles.value = result.data
     total.value = result.total
@@ -186,16 +206,6 @@ onMounted(loadProfiles)
 
 <template>
   <div class="input-processing-page">
-    <a-alert class="policy-note" type="info" show-icon>
-      <template #message>
-        按需处理：只降不升，最高 30 帧
-      </template>
-      <template #description>
-        默认“原视频流输入”为零进程直通。只有输入超过所选清晰度或 30 帧时才启动轻量处理进程；
-        低于上限的输入保持原清晰度和原帧率，不补帧、不放大。
-      </template>
-    </a-alert>
-
     <div class="query-bar">
       <div class="query-fields">
         <span class="query-label">设备名称</span>
@@ -206,15 +216,14 @@ onMounted(loadProfiles)
           placeholder="请输入"
           @press-enter="search"
         />
-        <span class="query-label">处理状态</span>
-        <a-select v-model:value="filters.enabled" class="query-select" allow-clear placeholder="请选择">
-          <a-select-option :value="true">
-            已启用
-          </a-select-option>
-          <a-select-option :value="false">
-            已停用
-          </a-select-option>
-        </a-select>
+        <span class="query-label">启用状态</span>
+        <Select
+          v-model:value="filters.enabled"
+          class="query-select"
+          allow-clear
+          placeholder="请选择"
+          :options="enabledFilterOptions"
+        />
       </div>
       <div class="query-actions">
         <a-button @click="reset">
@@ -239,8 +248,8 @@ onMounted(loadProfiles)
       </a-button>
     </div>
 
-    <a-spin :spinning="loading">
-      <a-empty v-if="!profiles.length && !loading" description="暂无流媒体设备" />
+    <Spin :spinning="loading">
+      <Empty v-if="!profiles.length && !loading" description="暂无流媒体设备" />
       <div v-else class="profile-grid">
         <article v-for="profile in profiles" :key="profile.device_id" class="profile-card">
           <div class="card-head">
@@ -253,9 +262,9 @@ onMounted(loadProfiles)
               </h3>
               <span>{{ [profile.manufacturer, profile.model].filter(Boolean).join(' · ') || '直连设备' }}</span>
             </div>
-            <a-tag :color="statusMeta(profile).color">
+            <Tag :color="statusMeta(profile).color">
               {{ statusMeta(profile).text }}
-            </a-tag>
+            </Tag>
           </div>
 
           <div class="source-summary">
@@ -274,7 +283,7 @@ onMounted(loadProfiles)
           <div class="form-row">
             <label>启用模块</label>
             <div class="switch-field">
-              <a-switch
+              <Switch
                 v-model:checked="profile.enabled"
                 :loading="isSaving(profile.device_id)"
                 @change="toggleProfile(profile)"
@@ -285,37 +294,25 @@ onMounted(loadProfiles)
 
           <div class="form-row">
             <label>清晰度策略</label>
-            <a-select v-model:value="profile.resolution" :disabled="!profile.enabled">
-              <a-select-option value="original">
-                原视频流输入
-              </a-select-option>
-              <a-select-option value="1080p">
-                1080p（高负载）
-              </a-select-option>
-              <a-select-option value="720p">
-                720p
-              </a-select-option>
-              <a-select-option value="540p">
-                540p
-              </a-select-option>
-              <a-select-option value="360p">
-                360p
-              </a-select-option>
-            </a-select>
+            <Select
+              v-model:value="profile.resolution"
+              :disabled="!profile.enabled"
+              :options="resolutionOptions"
+            />
           </div>
 
           <div class="form-row">
             <label>
               帧率上限
-              <a-tooltip title="只对高于上限的输入降帧，低帧率输入保持不变">
-                <QuestionCircleOutlined />
-              </a-tooltip>
+            <Tooltip title="只对高于上限的输入降帧，低帧率输入保持不变">
+              <QuestionCircleOutlined />
+            </Tooltip>
             </label>
-            <a-select v-model:value="profile.max_fps" :disabled="!profile.enabled">
-              <a-select-option v-for="fps in fpsOptions" :key="fps" :value="fps">
-                {{ fps }} fps
-              </a-select-option>
-            </a-select>
+            <Select
+              v-model:value="profile.max_fps"
+              :disabled="!profile.enabled"
+              :options="fpsOptions.map(fps => ({ label: `${fps} fps`, value: fps }))"
+            />
           </div>
 
           <div v-if="profile.exception_reason" class="error-text" :title="profile.exception_reason">
@@ -345,10 +342,10 @@ onMounted(loadProfiles)
           </div>
         </article>
       </div>
-    </a-spin>
+    </Spin>
 
     <div v-if="total > pageSize" class="pagination">
-      <a-pagination
+      <Pagination
         v-model:current="pageNo"
         :page-size="pageSize"
         :total="total"
@@ -364,11 +361,6 @@ onMounted(loadProfiles)
   min-height: calc(100vh - 96px);
   padding: 16px 24px 28px;
   background: #f5f7fa;
-}
-
-.policy-note {
-  margin-bottom: 14px;
-  border-radius: 8px;
 }
 
 .query-bar,

@@ -129,7 +129,7 @@ import { Badge, Dropdown, Menu, MenuItem, Tag } from 'ant-design-vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { extractAlertClientFilters, getBasicColumns, getFormConfig } from '../../Data';
-import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus } from '@/api/device/calculate';
+import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus, deleteAlarms } from '@/api/device/calculate';
 import AlertCards from './AlertCards/index.vue';
 import AlertEventPushModal from './AlertEventPushModal.vue';
 import ImageModal from '../ImageModal/index.vue';
@@ -346,6 +346,21 @@ function handlePushConfirm(payload: AlertPushDraft) {
   clearGridSelection();
 }
 
+async function removeAlerts(ids: number[]) {
+  const { succeeded, failed, total } = await deleteAlarms(ids);
+  reload();
+  cardListReload();
+  if (failed === 0) {
+    createMessage.success(total > 1 ? `已删除 ${succeeded} 条记录` : '删除成功');
+    return;
+  }
+  if (succeeded === 0) {
+    createMessage.error('删除失败');
+    return;
+  }
+  createMessage.warning(`已删除 ${succeeded} 条，${failed} 条失败`);
+}
+
 async function handleBatchAction(action: string) {
   const ids = getSelectedIds();
   if (!ids.length)
@@ -358,7 +373,8 @@ async function handleBatchAction(action: string) {
       clearGridSelection();
       break;
     case 'delete':
-      createMessage.info('删除功能待后端接入，当前为界面预览');
+      await removeAlerts(ids);
+      clearSelectedRowKeys?.();
       clearGridSelection();
       break;
     default:
@@ -480,8 +496,10 @@ async function handleCardUpdateArchive(record: Record<string, any>, status: UiAr
   cardListReload();
 }
 
-function handleCardDelete(_record: Record<string, any>) {
-  createMessage.info('删除功能待后端接入，当前为界面预览');
+async function handleCardDelete(record: Record<string, any>) {
+  if (!record.id)
+    return;
+  await removeAlerts([record.id]);
 }
 </script>
 

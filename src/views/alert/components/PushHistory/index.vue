@@ -3,8 +3,9 @@
     <BasicTable @register="registerTable">
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'action'">
-          <TableAction
-            :actions="[
+          <div class="push-history-table-action">
+            <TableAction
+              :actions="[
               {
                 icon: 'ant-design:eye-filled',
                 tooltip: {
@@ -14,7 +15,8 @@
                 onClick: openDetailDrawer.bind(null, true, { record }),
               },
             ]"
-          />
+            />
+          </div>
         </template>
       </template>
     </BasicTable>
@@ -45,7 +47,9 @@ const [registerTable] = useTable({
       width: 80,
       title: '操作',
       dataIndex: 'action',
+      align: 'center',
       fixed: 'right',
+      className: 'push-history-action-column',
     },
   ],
   useSearchForm: true,
@@ -64,5 +68,19 @@ const [registerTable] = useTable({
 <style lang="less" scoped>
 .push-history-page {
   padding: 0 4px;
+
+  .push-history-table-action {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+
+    :deep([class*='-basic-table-action']) {
+      justify-content: center !important;
+    }
+  }
+
+  :deep(.push-history-action-column) {
+    text-align: center !important;
+  }
 }
 </style>

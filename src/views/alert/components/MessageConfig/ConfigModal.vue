@@ -17,6 +17,7 @@
             <EditTable
               :columns="weixinApplyColumns"
               v-model:list="formData.configuration.weixinApply"
+              :readonly="isViewMode"
             />
           </FormItemRest>
         </template>
@@ -25,6 +26,7 @@
             <EditTable
               :columns="dindinApplyColumns"
               v-model:list="formData.configuration.dindinApply"
+              :readonly="isViewMode"
             />
           </FormItemRest>
         </template>
@@ -58,7 +60,14 @@ import {FormItemRest} from 'ant-design-vue';
 const emits = defineEmits(['success']);
 const {createMessage} = useMessage();
 const opertionType = ref('add');
+const isViewMode = ref(false);
 const describeRef = ref(null);
+
+const MODAL_TITLE_MAP: Record<string, string> = {
+  add: '新增设置',
+  edit: '编辑设置',
+  view: '查看设置',
+};
 
 const CONFIG_DESCRIBE_MAP: Record<number, string> = {
   1: 'sms',
@@ -78,16 +87,22 @@ const formData = ref({
 });
 
 const [registerModal, {setModalProps, closeModal}] = useModalInner((data) => {
-  if (data.type == 'add') {
+  const type = data.type || 'add';
+  opertionType.value = type;
+  isViewMode.value = type === 'view';
+
+  if (type === 'add') {
     changeNoticeType(3);
     setTimeout(() => describeRef.value?.setNoticeType('email'), 0);
   } else {
     editConfigModal(data.record);
   }
+
   setModalProps({
-    title: data.type == 'add' ? '新增设置' : '编辑设置',
+    title: MODAL_TITLE_MAP[type] || '编辑设置',
+    showOkBtn: type !== 'view',
   });
-  opertionType.value = data.type;
+  setProps({ disabled: type === 'view' });
 });
 
 const [
@@ -101,7 +116,7 @@ const [
     validate,
     setFieldsValue,
     resetFields,
-    // setProps,
+    setProps,
   },
 ] = useForm({
   schemas: formSchemas(handleNoticeType),
@@ -163,12 +178,22 @@ const reset = () => {
   formData.value.configuration.weixinApply = [];
 };
 
+function resetModalState() {
+  isViewMode.value = false;
+  setProps({ disabled: false });
+  setModalProps({ showOkBtn: true });
+}
+
 const handleCancel = () => {
   reset();
   resetFields();
+  resetModalState();
 };
 
 const handleOk = () => {
+  if (isViewMode.value)
+    return;
+
   validate()
     .then(async () => {
       const {msgType, id, ...configuration} = getFieldsValue();

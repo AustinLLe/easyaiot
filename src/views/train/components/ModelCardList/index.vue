@@ -1,12 +1,12 @@
 <template>
   <div class="model-card-list-wrapper">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
+    <div class="model-card-list-form p-4 bg-white">
       <BasicForm @register="registerForm" @reset="handleSubmit"/>
     </div>
-    <div class="bg-white">
+    <div class="model-card-list-body bg-white">
       <Spin :spinning="state.loading">
         <List
-          :grid="{ gutter: 2, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 6 }"
+          :grid="{ gutter: 12, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }"
           :data-source="data"
           :pagination="paginationProp"
         >
@@ -22,74 +22,65 @@
           <template #renderItem="{ item }">
             <ListItem class="model-list-item">
               <div class="model-card-box">
-                <div class="model-card-cont">
-                  <!-- 正方形图片容器 -->
+                <div class="model-card-body">
                   <div class="model-image-container" @click="handleView(item)">
                     <img
                       :src="item.imageUrl || '/images/model-preview.jpg'"
                       alt="算法图片"
                       class="model-image"
                     />
-                    <!-- 图片上的小卡片 -->
-                    <div class="image-badges">
-                      <div class="badge badge-format" v-if="getFormatText(item)">
-                        {{ getFormatText(item) }}
-                      </div>
-                      <div class="badge badge-version" v-if="item.version">
-                        v{{ item.version }}
-                      </div>
+                  </div>
+
+                  <div class="model-card-info">
+                    <h6 class="model-card-title">
+                      <a @click.prevent="handleView(item)">{{ item.name }}</a>
+                    </h6>
+
+                    <div class="model-tags">
+                      <Tag color="#1890ff">ID: {{ item.id }}</Tag>
+                      <Tag color="#52c41a">版本: {{ item.version || '未指定' }}</Tag>
+                      <Tag color="#8c8c8c">{{ formatDate(item.created_at) }}</Tag>
                     </div>
-                  </div>
 
-                  <h6 class="model-card-title">
-                    <a>{{ item.name }}</a>
-                  </h6>
+                    <div class="model-description">
+                      {{ item.description || '暂无描述' }}
+                    </div>
 
-                  <!-- 标签区域 -->
-                  <div class="model-tags">
-                    <Tag color="#1890ff">ID: {{ item.id }}</Tag>
-                    <Tag color="#52c41a">版本: {{ item.version || '未指定' }}</Tag>
-                    <Tag color="#8c8c8c">{{ formatDate(item.created_at) }}</Tag>
-                  </div>
-
-                  <div class="model-description">
-                    {{ item.description || '暂无描述' }}
-                  </div>
-
-                  <div class="btns">
-                    <div class="btn-group">
-                      <Button
-                        type="text"
-                        shape="circle"
-                        class="card-action-btn"
-                        title="查看详情"
-                        @click.stop="handleView(item)"
-                      >
-                        <template #icon><EyeOutlined /></template>
-                      </Button>
-                      <Button
-                        type="text"
-                        shape="circle"
-                        class="card-action-btn"
-                        title="编辑算法"
-                        @click.stop="handleEdit(item)"
-                      >
-                        <template #icon><EditOutlined /></template>
-                      </Button>
-                      <Popconfirm
-                        title="是否确认删除？"
-                        @confirm="handleDelete(item)"
-                      >
+                    <div class="btns">
+                      <div class="btn-group">
                         <Button
                           type="text"
                           shape="circle"
                           class="card-action-btn"
-                          title="删除"
-                          @click.stop
+                          title="查看详情"
+                          @click.stop="handleView(item)"
                         >
-                          <template #icon><DeleteOutlined /></template>
+                          <template #icon><EyeOutlined /></template>
                         </Button>
-                      </Popconfirm>
+                        <Button
+                          type="text"
+                          shape="circle"
+                          class="card-action-btn"
+                          title="编辑算法"
+                          @click.stop="handleEdit(item)"
+                        >
+                          <template #icon><EditOutlined /></template>
+                        </Button>
+                        <Popconfirm
+                          title="是否确认删除？"
+                          @confirm="handleDelete(item)"
+                        >
+                          <Button
+                            type="text"
+                            shape="circle"
+                            class="card-action-btn"
+                            title="删除"
+                            @click.stop
+                          >
+                            <template #icon><DeleteOutlined /></template>
+                          </Button>
+                        </Popconfirm>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -213,7 +204,7 @@ function hideLoading() {
 }
 
 const page = ref(1);
-const pageSize = ref(18);
+const pageSize = ref(12);
 const total = ref(0);
 const paginationProp = ref({
   showSizeChanger: false,
@@ -308,6 +299,12 @@ function handleEdit(record: object) {
 
 <style lang="less" scoped>
 .model-card-list-wrapper {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
   :deep(.ant-list-header) {
     border: 0;
   }
@@ -320,92 +317,109 @@ function handleEdit(record: object) {
     margin: 6px;
     padding: 0 !important;
   }
+
+  :deep(.ant-list-pagination) {
+    margin: 12px 16px 16px;
+    text-align: right;
+  }
 }
 
-// 列表项样式
+.model-card-list-form {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.model-card-list-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
 .model-list-item {
   padding: 0 !important;
-  height: 100%;
   display: flex;
 }
 
 .model-card-box {
-  background: #FFFFFF;
-  box-shadow: 0px 0px 4px 0px rgba(24, 24, 24, 0.1);
-  height: 100%;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(24, 24, 24, 0.1);
   width: 100%;
   transition: all 0.3s;
   border-radius: 8px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 400px;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(24, 24, 24, 0.12);
+  }
 }
 
-.model-card-cont {
-  padding: 15px;
+.model-card-body {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  align-items: stretch;
+}
+
+.model-card-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  flex: 1;
 }
 
 .model-card-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 1.36em;
+  line-height: 1.4;
   color: #181818;
-  margin-bottom: 12px;
+  margin: 0 0 8px;
   flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 
   a {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      color: #1890ff;
+    }
   }
 }
 
 .model-tags {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-shrink: 0;
-  overflow: hidden;
-  height: 24px;
   align-items: center;
 }
 
 .model-description {
-  font-size: 14px;
+  font-size: 13px;
   color: #8c8c8c;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  flex: 1;
-  min-height: 63px; // 确保至少3行的高度
 }
 
-/* 优化后的按钮区域 */
 .btns {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  padding-top: 15px;
+  padding-top: 0;
   flex-shrink: 0;
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .btn-group {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -426,60 +440,54 @@ function handleEdit(record: object) {
   }
 }
 
-/* 图片容器 */
 .model-image-container {
   position: relative;
-  width: 100%;
-  padding-bottom: 100%;
+  width: 120px;
+  min-width: 120px;
+  height: 120px;
   overflow: hidden;
-  margin-bottom: 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #f5f5f5;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .model-image {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* 图片上的小卡片 */
 .image-badges {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 6px;
+  left: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   z-index: 10;
 }
 
 .badge {
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
   color: #fff;
-  
+
   &.badge-format {
     background: rgba(24, 144, 255, 0.85);
   }
-  
+
   &.badge-version {
     background: rgba(82, 196, 26, 0.85);
   }
 }
 
-/* 标签样式 */
 :deep(.ant-tag) {
   border-radius: 4px;
   font-size: 12px;
@@ -491,5 +499,6 @@ function handleEdit(record: object) {
   text-overflow: ellipsis;
   flex-shrink: 1;
   max-width: 100%;
+  margin: 0;
 }
 </style>

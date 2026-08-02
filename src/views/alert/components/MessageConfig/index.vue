@@ -8,12 +8,13 @@
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'action'">
-          <TableAction
-            :actions="[
+          <div class="message-config-table-action">
+            <TableAction
+              :actions="[
               {
                 icon: 'ant-design:eye-filled',
-                tooltip: { title: '详情', placement: 'top' },
-                onClick: openDetailDrawer.bind(null, true, { record }),
+                tooltip: { title: '查看', placement: 'top' },
+                onClick: openConfigModal.bind(null, true, { type: 'view', record }),
               },
               {
                 tooltip: { title: '编辑', placement: 'top' },
@@ -30,12 +31,12 @@
                 },
               },
             ]"
-          />
+            />
+          </div>
         </template>
       </template>
     </BasicTable>
     <ConfigModal @register="registerConfigModal" @success="handleSuccess" />
-    <DetailDrawer @register="registerDetailDrawer" />
   </div>
 </template>
 
@@ -43,17 +44,14 @@
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useModal } from '@/components/Modal';
-import { useDrawer } from '@/components/Drawer';
 import { Button } from '@/components/Button';
 import { getFormConfig, getTableColumns } from './Data';
 import ConfigModal from './ConfigModal.vue';
-import DetailDrawer from './DetailDrawer.vue';
 import { messageConfigDelete, messageConfigQuery } from '@/api/modules/notice';
 
 defineOptions({ name: 'AlertMessageConfig' });
 
 const [registerConfigModal, { openModal: openConfigModal }] = useModal();
-const [registerDetailDrawer, { openDrawer: openDetailDrawer }] = useDrawer();
 const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
@@ -74,15 +72,15 @@ function handleSuccess() {
   reload();
 }
 
-async function handleDelete({ id }) {
+async function handleDelete({ id, msgType }) {
   try {
-    await messageConfigDelete({ id });
+    await messageConfigDelete({ id, msgType });
     createMessage.success('删除成功');
     handleSuccess();
   }
-  catch (error) {
+  catch (error: any) {
     console.error(error);
-    createMessage.error('删除失败');
+    createMessage.error(error?.message || error?.msg || '删除失败');
   }
 }
 </script>
@@ -92,8 +90,18 @@ async function handleDelete({ id }) {
   height: 100%;
   padding: 0 4px;
 
-  :deep(.iot-basic-table-action.left) {
+  .message-config-table-action {
+    display: flex;
     justify-content: center;
+    width: 100%;
+
+    :deep([class*='-basic-table-action']) {
+      justify-content: center !important;
+    }
+  }
+
+  :deep(.message-config-action-column) {
+    text-align: center !important;
   }
 }
 </style>

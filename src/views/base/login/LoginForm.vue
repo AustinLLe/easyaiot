@@ -125,15 +125,6 @@ async function handleLogin(params) {
     v-show="getShow" ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules"
     @keypress.enter="handleLogin"
   >
-    <FormItem name="tenantName" class="enter-x">
-      <Input
-        v-if="tenantEnable === 'true'"
-        v-model:value="formData.tenantName"
-        size="large"
-        :placeholder="t('sys.login.tenantName')"
-        class="fix-auto-fill"
-      />
-    </FormItem>
     <FormItem name="username" class="enter-x">
       <Input
         v-model:value="formData.username" size="large" :placeholder="t('sys.login.userName')"

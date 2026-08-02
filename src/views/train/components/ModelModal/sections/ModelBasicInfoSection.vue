@@ -1,15 +1,19 @@
 <template>
-  <div class="section-panel">
+  <div class="section-panel" :class="{ 'section-panel--upload': !showHeader }">
     <div v-if="showHeader" class="section-header">
       <h3>基础信息</h3>
       <p>设置模型名称、版本、格式和文件。</p>
     </div>
 
-    <div class="upload-tip">
+    <div v-if="!showHeader" class="upload-tip">
       先上传模型文件，平台会自动识别格式、基础模型和类别标签。
     </div>
 
-    <Form :labelCol="{ span: 5 }" :wrapperCol="{ span: 19 }" :disabled="isView">
+    <Form
+      :label-col="showHeader ? { span: 5 } : { style: { width: '88px' } }"
+      :wrapper-col="showHeader ? { span: 19 } : { style: { flex: '1' } }"
+      :disabled="isView"
+    >
       <FormItem label="模型文件" required>
         <Upload
           name="file"
@@ -113,7 +117,7 @@ import {
 
 defineOptions({ name: 'ModelBasicInfoSection' });
 
-defineProps<{
+const { showHeader = true } = defineProps<{
   isView?: boolean;
   showHeader?: boolean;
   modelUploadUrl: string;
@@ -225,6 +229,11 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
   max-width: 760px;
 }
 
+.section-panel--upload {
+  max-width: 100%;
+  margin: 0;
+}
+
 .section-header {
   margin-bottom: 20px;
 
@@ -242,6 +251,7 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
 
 .upload-tip {
   margin-bottom: 16px;
+  padding-left: 0;
   font-size: 13px;
   color: rgba(0, 0, 0, 0.45);
 }
@@ -272,5 +282,14 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
   font-size: 13px;
   color: rgba(0, 0, 0, 0.65);
   word-break: break-all;
+}
+</style>
+
+<style lang="less">
+.model-upload-modal {
+  .ant-modal-body > .scrollbar {
+    padding-left: 8px;
+    padding-right: 12px;
+  }
 }
 </style>

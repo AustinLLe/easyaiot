@@ -3,11 +3,12 @@
     @register="register"
     :title="modalTitle"
     @cancel="handleCancel"
-    :width="isEditLayout ? 1200 : 760"
+    :width="isEditLayout ? 1200 : 560"
     :canFullscreen="isEditLayout"
     :showOkBtn="!isEditLayout"
     :showCancelBtn="!isEditLayout"
     :useWrapper="isEditLayout ? false : undefined"
+    :wrapClassName="isEditLayout ? undefined : 'model-upload-modal'"
     @ok="handleUploadOk"
   >
     <template v-if="!isEditLayout">

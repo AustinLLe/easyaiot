@@ -1,7 +1,7 @@
 <template>
   <div class="table-wrapper">
     <Table
-      :columns="columns"
+      :columns="displayColumns"
       :data-source="dataSource"
       bordered
       :pagination="false"
@@ -24,7 +24,7 @@
             ].includes(column.dataIndex)
           "
         >
-          <Input v-model:value="record[column.dataIndex]" />
+          <Input v-model:value="record[column.dataIndex]" :disabled="readonly" />
         </template>
         <template v-else-if="column.dataIndex === 'time'">
           <DatePicker
@@ -32,9 +32,10 @@
             allowClear
             showTime
             valueFormat="x"
+            :disabled="readonly"
           />
         </template>
-        <template v-else-if="column.dataIndex === 'operation'">
+        <template v-else-if="column.dataIndex === 'operation' && !readonly">
           <Button type="text" danger @click="handleDelete(record.id)">
             <template #icon>
               <DeleteOutlined />
@@ -43,7 +44,7 @@
         </template>
       </template>
     </Table>
-    <Button type="dashed" @click="handleAdd" style="width: 100%; margin-top: 5px">
+    <Button v-if="!readonly" type="dashed" @click="handleAdd" style="width: 100%; margin-top: 5px">
       <template #icon>
         <PlusOutlined />
       </template>
@@ -72,6 +73,10 @@
       type: Array as PropType<any[]>,
       default: () => [],
     },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
   });
 
   const dataSource = computed({
@@ -79,10 +84,16 @@
     set: (val) => emit('update:list', val),
   });
 
+  const displayColumns = computed(() => {
+    if (!props.readonly)
+      return props.columns;
+    return props.columns.filter(col => col.dataIndex !== 'operation');
+  });
+
   const tableScroll = computed(() => {
-    const hasFixed = props.columns.some((col) => col.fixed);
+    const hasFixed = displayColumns.value.some((col) => col.fixed);
     if (!hasFixed) return undefined;
-    const width = props.columns.reduce(
+    const width = displayColumns.value.reduce(
       (sum, col) => sum + (Number(col.width) || 120),
       0,
     );
