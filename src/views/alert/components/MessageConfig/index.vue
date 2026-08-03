@@ -83,7 +83,9 @@ function getTableActions(record) {
     icon: 'material-symbols:delete-outline-rounded',
     popConfirm: {
       placement: 'topRight',
-      title: '是否确认删除？',
+      title: +record.msgType === 3
+        ? '确认删除该发件账号？关联邮件模板会自动迁移到默认账号。'
+        : '是否确认删除？',
       confirm: handleDelete.bind(null, record),
     },
   });
