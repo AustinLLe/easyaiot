@@ -1,4 +1,4 @@
-import {Badge} from "ant-design-vue";
+import {Badge, Tag} from "ant-design-vue";
 import {Icon} from "@/components/Icon";
 
 export const getTableColumns = () => {
@@ -19,7 +19,21 @@ export const getTableColumns = () => {
       },
     },
     {
-      width: 140,
+      title: '发件邮箱',
+      dataIndex: 'mailFrom',
+      customRender: ({record}) => record?.configurationMap?.mailFrom || '-',
+    },
+    {
+      width: 90,
+      title: '默认',
+      dataIndex: 'isDefault',
+      align: 'center',
+      customRender: ({record}) => record?.msgType === 3
+        ? <Tag color={record.isDefault ? 'green' : 'default'}>{record.isDefault ? '默认' : '否'}</Tag>
+        : '-',
+    },
+    {
+      width: 180,
       title: '操作',
       dataIndex: 'action',
       align: 'center',

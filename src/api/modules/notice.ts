@@ -7,6 +7,7 @@ enum Api {
   message_config_add = `${MESSAGE_PREFIX}/config/add`,
   message_config_update = `${MESSAGE_PREFIX}/config/update`,
   message_config_delete = `${MESSAGE_PREFIX}/config/delete`,
+  message_config_setDefault = `${MESSAGE_PREFIX}/config/setDefault`,
   message_config_query = `${MESSAGE_PREFIX}/config/query`,
   message_config_mailSendTest = `${MESSAGE_PREFIX}/config/mailSendTest`,
 
@@ -53,6 +54,10 @@ export const messageConfigUpdate = (data) => {
 // 删除
 export const messageConfigDelete = (params) => {
   return commonApi('get', Api.message_config_delete, { params });
+};
+
+export const messageConfigSetDefault = (id) => {
+  return commonApi('post', Api.message_config_setDefault, { data: { id } });
 };
 
 // 查询（GET 须走 params，否则 msgType 等筛选条件不会拼到 URL）
