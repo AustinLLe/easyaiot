@@ -15,6 +15,12 @@ LayoutMap.set('IFRAME', IFRAME)
 
 let dynamicViewsModules: Record<string, () => Promise<Recordable>>
 
+const LEGACY_VIEW_COMPONENT_ALIASES: Record<string, string> = {
+  'storage/index': 'system/storage/index',
+  'dashboard/settings/index': 'system/page-config/index',
+  'system/hardware/index': 'system/hardware-status/index',
+}
+
 // Dynamic introduction
 function asyncImportRoute(routes: AppRouteRecordRaw[] | undefined) {
   dynamicViewsModules = dynamicViewsModules || import.meta.glob('../../views/**/*.{vue,tsx}')
@@ -50,14 +56,15 @@ function asyncImportRoute(routes: AppRouteRecordRaw[] | undefined) {
 }
 
 function dynamicImport(dynamicViewsModules: Record<string, () => Promise<Recordable>>, component: string) {
+  const resolvedComponent = LEGACY_VIEW_COMPONENT_ALIASES[component] || component
   const keys = Object.keys(dynamicViewsModules)
   const matchKeys = keys.filter((key) => {
     const k = key.replace('../../views', '')
-    const startFlag = component.startsWith('/')
-    const endFlag = component.endsWith('.vue') || component.endsWith('.tsx')
+    const startFlag = resolvedComponent.startsWith('/')
+    const endFlag = resolvedComponent.endsWith('.vue') || resolvedComponent.endsWith('.tsx')
     const startIndex = startFlag ? 0 : 1
     const lastIndex = endFlag ? k.length : k.lastIndexOf('.')
-    return k.substring(startIndex, lastIndex) === component
+    return k.substring(startIndex, lastIndex) === resolvedComponent
   })
   if (matchKeys?.length === 1) {
     const matchKey = matchKeys[0]
