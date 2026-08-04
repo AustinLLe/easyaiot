@@ -51,6 +51,7 @@
     "@easydarwin/easyplayer": "^5.1.1",
     "@easydarwin/easywasmplayer": "^4.0.13",
     "@iconify/iconify": "^3.1.1",
+    "@kjgl77/datav-vue3": "^1.7.4",
     "@types/color": "^3.0.3",
     "@types/keymaster": "^1.6.30",
     "@types/lodash": "^4.14.184",

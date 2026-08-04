@@ -1,22 +1,22 @@
 <template>
-  <div class="alarm-panel">
-    <div class="panel-header">
+  <div class="alarm-panel" :class="{ 'alarm-panel--full': fullWidth, 'alarm-panel--strip': layout === 'strip', 'alarm-panel--embedded': hideHeader }">
+    <div v-if="!hideHeader" class="panel-header">
       <div class="header-title">告警事件</div>
       <div class="header-count">
-        今日告警 <span class="count-number">{{ todayAlarmCount }}</span> 次
+        今日告警 <span class="count-number">{{ todayAlarmCount ?? 0 }}</span> 次
       </div>
     </div>
-    
+
     <div class="panel-content">
       <div
-        v-for="alarm in alarmList"
+        v-for="alarm in displayList"
         :key="alarm.id"
         class="alarm-item"
       >
-        <div class="alarm-image">
-          <img 
-            v-if="getImageUrl(alarm) && !alarm.imageError" 
-            :src="getImageUrl(alarm)" 
+        <div class="alarm-image" @click="handlePreview(alarm)">
+          <img
+            v-if="getImageUrl(alarm) && !alarm.imageError"
+            :src="getImageUrl(alarm)"
             alt="告警图片"
             class="alarm-img"
             @error="handleImageError(alarm)"
@@ -45,26 +45,47 @@
         </div>
       </div>
       
-      <div v-if="alarmList.length === 0" class="empty-state">
+      <div v-if="displayList.length === 0" class="empty-state">
         <Icon icon="ant-design:inbox-outlined" :size="48" />
         <div class="empty-text">暂无告警信息</div>
       </div>
     </div>
-    <div class="boxfoot"></div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue'
 import { Icon } from '@/components/Icon'
 
 defineOptions({
-  name: 'AlarmPanel'
+  name: 'AlarmPanel',
 })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   alarmList?: any[]
   todayAlarmCount?: number
+  fullWidth?: boolean
+  layout?: 'list' | 'strip'
+  hideHeader?: boolean
+}>(), {
+  alarmList: () => [],
+  todayAlarmCount: 0,
+  fullWidth: false,
+  layout: 'list',
+  hideHeader: false,
+})
+
+const emit = defineEmits<{
+  preview: [alarm: any]
 }>()
+
+const displayList = computed(() => props.alarmList || [])
+
+function handlePreview(alarm: any) {
+  if (!getImageUrl(alarm))
+    return
+  emit('preview', alarm)
+}
 
 // 获取告警图标
 const getAlarmIcon = (type: string) => {
@@ -398,11 +419,78 @@ const handleImageLoad = (alarm: any) => {
   justify-content: center;
   padding: 60px 20px;
   color: rgba(255, 255, 255, 0.4);
-  
+
   .empty-text {
     margin-top: 16px;
     font-size: 14px;
   }
 }
 
+.alarm-panel--full {
+  width: 100%;
+}
+
+.alarm-panel--embedded {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+
+  .panel-content {
+    max-height: none;
+  }
+}
+
+.alarm-panel--strip {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+
+  .panel-header {
+    display: none;
+  }
+
+  .panel-content {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .alarm-item {
+    width: 168px;
+    min-width: 168px;
+    margin-bottom: 0;
+    flex-direction: column;
+    padding: 10px;
+    cursor: default;
+  }
+
+  .alarm-image {
+    width: 100%;
+    height: 96px;
+  }
+
+  .alarm-info {
+    gap: 4px;
+  }
+
+  .alarm-title {
+    font-size: 12px;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .empty-state {
+    width: 100%;
+    min-height: 140px;
+    padding: 32px 20px;
+  }
+}
 </style>
