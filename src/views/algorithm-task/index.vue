@@ -93,10 +93,16 @@
                   </div>
                   <div class="card-actions-wrap">
                   <div class="btns">
-                    <div class="btn" @click="onCardToggleTask(item)" :title="item.is_enabled ? '停止' : '启动'">
+                    <div
+                      v-auth="[item.is_enabled ? 'algorithm:task:stop' : 'algorithm:task:start']"
+                      class="btn"
+                      @click="onCardToggleTask(item)"
+                      :title="item.is_enabled ? '停止' : '启动'"
+                    >
                       <Icon :icon="item.is_enabled ? 'ant-design:pause-circle-outlined' : 'ant-design:play-circle-outlined'" :size="15" color="#3B82F6" />
                     </div>
                     <div
+                      v-auth="['algorithm:task:update']"
                       class="btn"
                       :class="{ disabled: item.is_enabled }"
                       @click="onCardEdit(item)"
@@ -115,6 +121,7 @@
                       @confirm="onCardDelete(item)"
                     >
                       <div
+                        v-auth="['algorithm:task:delete']"
                         class="btn"
                         :class="{ disabled: item.is_enabled }"
                         :title="item.is_enabled ? '任务运行中，无法删除' : '删除'"
