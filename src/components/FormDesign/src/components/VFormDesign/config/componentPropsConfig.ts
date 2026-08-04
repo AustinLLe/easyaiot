@@ -547,11 +547,11 @@ const componentAttrs: IBaseComponentProps = {
       componentProps: {
         options: [
           {
-            label: 'outline',
+            label: '描边',
             value: 'outline',
           },
           {
-            label: 'solid',
+            label: '填充',
             value: 'solid',
           },
         ],
@@ -979,11 +979,11 @@ const componentAttrs: IBaseComponentProps = {
       componentProps: {
         options: [
           {
-            label: 'click',
+            label: '点击',
             value: 'click',
           },
           {
-            label: 'hover',
+            label: '悬停',
             value: 'hover',
           },
         ],
@@ -998,19 +998,19 @@ const componentAttrs: IBaseComponentProps = {
       componentProps: {
         options: [
           {
-            label: 'default',
+            label: '默认',
             value: 'default',
           },
           {
-            label: 'primary',
+            label: '主要',
             value: 'primary',
           },
           {
-            label: 'danger',
+            label: '危险',
             value: 'danger',
           },
           {
-            label: 'dashed',
+            label: '虚线',
             value: 'dashed',
           },
         ],

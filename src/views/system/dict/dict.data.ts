@@ -29,31 +29,31 @@ const options = [
   },
   {
     value: 'pink',
-    label: 'pink',
+    label: '粉色',
   },
   {
     value: 'red',
-    label: 'red',
+    label: '红色',
   },
   {
     value: 'orange',
-    label: 'orange',
+    label: '橙色',
   },
   {
     value: 'green',
-    label: 'green',
+    label: '绿色',
   },
   {
     value: 'cyan',
-    label: 'cyan',
+    label: '青色',
   },
   {
     value: 'blue',
-    label: 'blue',
+    label: '蓝色',
   },
   {
     value: 'purple',
-    label: 'purple',
+    label: '紫色',
   },
 ]
 

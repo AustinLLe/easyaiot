@@ -1,6 +1,8 @@
 // ---- from algorithmParamSchema.ts ----
 import { ref } from 'vue';
 import type { AlgorithmParamPreset } from '../algorithmTaskDraft.types';
+import { useLocaleStoreWithOut } from '@/store/modules/locale';
+import { localizeDetectionClassLabel } from '@/utils/detectionClassLabel';
 
 export type ParamFieldType = 'number' | 'integer';
 
@@ -658,7 +660,7 @@ export function getModelClassOptions(modelId?: number | null): Array<{ label: st
   void modelDefaultProfileCacheVersion.value;
   const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
   if (profile?.class_options?.length)
-    return profile.class_options.map(({ label, value }) => ({ label, value }));
+    return localizeClassOptions(profile.class_options);
   return [];
 }
 
@@ -666,7 +668,7 @@ export function getModelAlertClassOptions(modelId?: number | null): Array<{ labe
   void modelDefaultProfileCacheVersion.value;
   const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
   if (profile?.class_options?.length) {
-    return profile.class_options.map(({ label, value }) => ({
+    return localizeClassOptions(profile.class_options).map(({ label, value }) => ({
       label,
       value,
       class_key: value,
@@ -683,7 +685,7 @@ export function getClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<
       .map(item => createClassOption(item))
       .filter((item): item is ClassOption => !!item),
   );
-  return options.map(({ label, value }) => ({ label, value }));
+  return localizeClassOptions(options);
 }
 
 export function getAlertClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<{ label: string; value: string; class_key?: string }> {
@@ -694,10 +696,18 @@ export function getAlertClassOptionsForDraftModels(draft: AlgorithmTaskDraft): A
       .map(item => createClassOption(item))
       .filter((item): item is ClassOption => !!item),
   );
-  return options.map(({ label, value }) => ({
+  return localizeClassOptions(options).map(({ label, value }) => ({
     label,
     value,
     class_key: value,
+  }));
+}
+
+function localizeClassOptions(options: ClassOption[]): Array<{ label: string; value: string }> {
+  const locale = useLocaleStoreWithOut().getLocale;
+  return options.map(({ label, raw_label, value }) => ({
+    label: localizeDetectionClassLabel(raw_label || label, locale),
+    value,
   }));
 }
 

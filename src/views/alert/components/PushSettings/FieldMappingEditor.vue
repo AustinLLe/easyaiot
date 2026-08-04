@@ -104,8 +104,8 @@ const rows = defineModel<PushFieldMappingGroup[]>('rows', { required: true });
 const { createMessage } = useMessage();
 
 const fieldKeyOptions = computed(() => [
-  ...ALGORITHM_OUTPUT_FIELDS.map(item => ({ label: item.key, value: item.key })),
-  ...ANALYSIS_OUTPUT_FIELDS.map(item => ({ label: item.key, value: item.key })),
+  ...ALGORITHM_OUTPUT_FIELDS.map(item => ({ label: item.label, value: item.key })),
+  ...ANALYSIS_OUTPUT_FIELDS.map(item => ({ label: item.label, value: item.key })),
 ]);
 
 function addGroup() {

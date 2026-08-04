@@ -10,9 +10,9 @@ export const getTableColumns = () => {
         return {
           1: '阿里云短信',
           2: '腾讯云短信',
-          3: 'EMail',
+          3: '邮件',
           4: '企业微信',
-          5: 'Webhook',
+          5: '网络回调',
           6: '钉钉',
           7: '飞书',
         }[text];
@@ -55,11 +55,11 @@ export const getFormConfig = () => {
           options: [
             { label: '阿里云短信', value: '1' },
             { label: '腾讯云短信', value: '2' },
-            { label: 'EMail', value: '3' },
+            { label: '邮件', value: '3' },
             { label: '企业微信', value: '4' },
             { label: '钉钉', value: '6' },
             { label: '飞书', value: '7' },
-            { label: 'Webhook', value: '5' },
+            { label: '网络回调', value: '5' },
           ],
         },
       },
@@ -89,7 +89,7 @@ export const formSchemas = (handleNoticeType) => {
           {label: '企业微信', value: 4},
           {label: '钉钉', value: 6},
           {label: '飞书', value: 7},
-          {label: 'Webhook', value: 5},
+          {label: '网络回调', value: 5},
         ],
         onChange: (e) => {
           handleNoticeType(e);

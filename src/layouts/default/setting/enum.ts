@@ -103,18 +103,13 @@ export function getMenuTriggerOptions(hideTop: boolean) {
 }
 
 export const routerTransitionOptions = [
-  RouterTransitionEnum.ZOOM_FADE,
-  RouterTransitionEnum.FADE,
-  RouterTransitionEnum.ZOOM_OUT,
-  RouterTransitionEnum.FADE_SIDE,
-  RouterTransitionEnum.FADE_BOTTOM,
-  RouterTransitionEnum.FADE_SCALE,
-].map((item) => {
-  return {
-    label: item,
-    value: item,
-  }
-})
+  { label: '缩放淡入', value: RouterTransitionEnum.ZOOM_FADE },
+  { label: '淡入淡出', value: RouterTransitionEnum.FADE },
+  { label: '缩放退出', value: RouterTransitionEnum.ZOOM_OUT },
+  { label: '侧滑淡入', value: RouterTransitionEnum.FADE_SIDE },
+  { label: '底部淡入', value: RouterTransitionEnum.FADE_BOTTOM },
+  { label: '缩放渐变', value: RouterTransitionEnum.FADE_SCALE },
+]
 
 export const menuTypeList = [
   {

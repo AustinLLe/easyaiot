@@ -136,7 +136,7 @@ const state = reactive({
   iframeUrl: '',
   isFileVideo: false,
   mediaType: 'flv',
-  videoUrlList: [{label: 'flv', value: "1"}],
+  videoUrlList: [{label: 'FLV 直播流', value: "1"}],
   deviceId: '',
   activeKey: 'info',
   playerOptions: {
@@ -175,8 +175,8 @@ const [register, {closeModal}] = useModalInner(async (record) => {
   state.isFileVideo = /\.mp4($|\?)/i.test(state.currentUrl) || /\/alert\/record/i.test(state.currentUrl);
   state.iframeUrl = playbackRecord['http_stream'] ? '<iframe src="' + playbackRecord['http_stream'] + '"></iframe>' : '';
   state.videoUrlList = playbackRecord['http_stream']
-    ? [{ label: 'http_stream', value: playbackRecord['http_stream'] }]
-    : [{ label: 'flv', value: '1' }];
+    ? [{ label: 'HTTP 播放流', value: playbackRecord['http_stream'] }]
+    : [{ label: 'FLV 直播流', value: '1' }];
   if (state.isFileVideo) {
     await nextTick();
     if (htmlVideo.value) {

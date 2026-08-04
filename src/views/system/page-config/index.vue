@@ -37,7 +37,7 @@ const uploading = computed(() => uploadingCount.value > 0)
 
 const localeOptions: Array<{ label: string, value: PlatformDisplayLocale }> = [
   { label: '简体中文', value: 'zh_CN' },
-  { label: 'English', value: 'en' },
+  { label: '英文', value: 'en' },
 ]
 
 const roleItems: Array<{
