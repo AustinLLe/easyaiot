@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import {
-  Empty,
-  Pagination,
-  Select,
-  Spin,
-  Switch,
-  Tag,
-  Tooltip,
+  Button as AButton,
+  Empty as AEmpty,
+  Input as AInput,
+  Pagination as APagination,
+  Select as ASelect,
+  Spin as ASpin,
+  Switch as ASwitch,
+  Tag as ATag,
+  Tooltip as ATooltip,
 } from 'ant-design-vue'
 import {
   QuestionCircleOutlined,
@@ -209,7 +211,7 @@ onMounted(loadProfiles)
     <div class="query-bar">
       <div class="query-fields">
         <span class="query-label">设备名称</span>
-        <a-input
+        <AInput
           v-model:value="filters.search"
           class="query-input"
           allow-clear
@@ -217,7 +219,7 @@ onMounted(loadProfiles)
           @press-enter="search"
         />
         <span class="query-label">启用状态</span>
-        <Select
+        <ASelect
           v-model:value="filters.enabled"
           class="query-select"
           allow-clear
@@ -226,12 +228,12 @@ onMounted(loadProfiles)
         />
       </div>
       <div class="query-actions">
-        <a-button @click="reset">
+        <AButton @click="reset">
           重置
-        </a-button>
-        <a-button type="primary" @click="search">
+        </AButton>
+        <AButton type="primary" @click="search">
           查询
-        </a-button>
+        </AButton>
       </div>
     </div>
 
@@ -240,16 +242,16 @@ onMounted(loadProfiles)
         <h2>视频输入处理</h2>
         <span>每个流媒体设备自动对应一个处理模块</span>
       </div>
-      <a-button :loading="loading" @click="loadProfiles">
+      <AButton :loading="loading" @click="loadProfiles">
         <template #icon>
           <ReloadOutlined />
         </template>
         刷新状态
-      </a-button>
+      </AButton>
     </div>
 
-    <Spin :spinning="loading">
-      <Empty v-if="!profiles.length && !loading" description="暂无流媒体设备" />
+    <ASpin :spinning="loading">
+      <AEmpty v-if="!profiles.length && !loading" description="暂无流媒体设备" />
       <div v-else class="profile-grid">
         <article v-for="profile in profiles" :key="profile.device_id" class="profile-card">
           <div class="card-head">
@@ -262,9 +264,9 @@ onMounted(loadProfiles)
               </h3>
               <span>{{ [profile.manufacturer, profile.model].filter(Boolean).join(' · ') || '直连设备' }}</span>
             </div>
-            <Tag :color="statusMeta(profile).color">
+            <ATag :color="statusMeta(profile).color">
               {{ statusMeta(profile).text }}
-            </Tag>
+            </ATag>
           </div>
 
           <div class="source-summary">
@@ -283,7 +285,7 @@ onMounted(loadProfiles)
           <div class="form-row">
             <label>启用模块</label>
             <div class="switch-field">
-              <Switch
+              <ASwitch
                 v-model:checked="profile.enabled"
                 :loading="isSaving(profile.device_id)"
                 @change="toggleProfile(profile)"
@@ -294,7 +296,7 @@ onMounted(loadProfiles)
 
           <div class="form-row">
             <label>清晰度策略</label>
-            <Select
+            <ASelect
               v-model:value="profile.resolution"
               :disabled="!profile.enabled"
               :options="resolutionOptions"
@@ -304,11 +306,11 @@ onMounted(loadProfiles)
           <div class="form-row">
             <label>
               帧率上限
-            <Tooltip title="只对高于上限的输入降帧，低帧率输入保持不变">
+            <ATooltip title="只对高于上限的输入降帧，低帧率输入保持不变">
               <QuestionCircleOutlined />
-            </Tooltip>
+            </ATooltip>
             </label>
-            <Select
+            <ASelect
               v-model:value="profile.max_fps"
               :disabled="!profile.enabled"
               :options="fpsOptions.map(fps => ({ label: `${fps} fps`, value: fps }))"
@@ -324,15 +326,15 @@ onMounted(loadProfiles)
           </div>
 
           <div class="card-actions">
-            <a-button
+            <AButton
               v-auth="['camera:input-processing:restart']"
               :disabled="!profile.enabled"
               :loading="isRestarting(profile.device_id)"
               @click="restart(profile)"
             >
               重新探测
-            </a-button>
-            <a-button
+            </AButton>
+            <AButton
               v-auth="['camera:input-processing:update']"
               type="primary"
               :disabled="!profile.enabled"
@@ -340,14 +342,14 @@ onMounted(loadProfiles)
               @click="save(profile)"
             >
               应用策略
-            </a-button>
+            </AButton>
           </div>
         </article>
       </div>
-    </Spin>
+    </ASpin>
 
     <div v-if="total > pageSize" class="pagination">
-      <Pagination
+      <APagination
         v-model:current="pageNo"
         :page-size="pageSize"
         :total="total"

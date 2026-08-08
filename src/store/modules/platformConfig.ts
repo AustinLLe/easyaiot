@@ -18,6 +18,7 @@ import {
   updatePlatformInterfaceConfig,
 } from '@/api/platform/config'
 import { applyAppLoadingBranding } from '@/logics/appLoadingBranding'
+import { getAccessToken } from '@/utils/auth'
 
 export { PLATFORM_INTERFACE_EVENT, defaultInterfaceConfig }
 export type { InterfaceConfig } from '@/settings/platformConfig'
@@ -61,6 +62,8 @@ export const usePlatformConfigStore = defineStore('platform-config', {
         this.applyInterfaceConfig()
       }
       if (!loadRemote || this.remoteLoaded)
+        return this.interfaceConfig
+      if (!getAccessToken())
         return this.interfaceConfig
 
       try {

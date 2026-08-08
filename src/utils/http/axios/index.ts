@@ -184,6 +184,8 @@ const transform: AxiosTransform = {
     switch (code) {
       case ResultEnum.UNAUTHORIZED:
         timeoutMsg = t('sys.api.timeoutMessage')
+        if (options.skipSessionValidate)
+          break
         // eslint-disable-next-line no-case-declarations
         const userStore = useUserStoreWithOut()
         userStore.setAccessToken(undefined)

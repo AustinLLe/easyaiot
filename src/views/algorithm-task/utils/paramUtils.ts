@@ -523,7 +523,7 @@ function normalizeClassLabels(value: unknown): ClassOption[] {
         const row = item as Record<string, unknown>;
         return createClassOption(
           row.class_key ?? row.classKey ?? row.class_id ?? row.classId ?? row.value ?? index,
-          row.label ?? row.name ?? row.class_name ?? row.className,
+          row.description ?? row.label ?? row.name ?? row.class_name ?? row.className,
         );
       }
       return createClassOption(item);
@@ -543,7 +543,7 @@ function normalizeDrawObjectClasses(value: unknown): ClassOption[] {
       const objectRow = item as Record<string, unknown>;
       return createClassOption(
         objectRow.class_key ?? objectRow.classKey ?? objectRow.value,
-        objectRow.label ?? objectRow.name ?? objectRow.class_name ?? objectRow.className,
+        objectRow.label ?? objectRow.description ?? objectRow.class_label ?? objectRow.classLabel ?? objectRow.name ?? objectRow.class_name ?? objectRow.className,
       );
     })
     .filter((item): item is ClassOption => !!item);
@@ -613,7 +613,7 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
     .map(item => createClassOption(item))
     .filter((item): item is ClassOption => !!item);
   const drawObjectClasses = normalizeDrawObjectClasses(drawObjects);
-  const classOptions = uniqueClassOptions(classLabels, drawObjectClasses, classWhitelistOptions);
+  const classOptions = uniqueClassOptions(drawObjectClasses, classLabels, classWhitelistOptions);
 
   return {
     custom_enabled,

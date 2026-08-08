@@ -325,7 +325,7 @@ const DEFAULT_DYNAMIC_TRIGGER = {
   dwell_sec: 3,
   extract_interval: 25,
   lost_track_buffer: 25,
-  matching_threshold: 0.8,
+  matching_threshold: 0.2,
   same_track_suppress_sec: 300,
   enter_confirm_frames: 2,
   allow_leave_sec: 1,
@@ -333,6 +333,7 @@ const DEFAULT_DYNAMIC_TRIGGER = {
   max_speed_jump: 0,
   smooth_alpha: 0.25,
   lock_class: true,
+  predict_boxes: false,
 };
 
 export function ensureClipRecordDefaults(rule: AlertRuleDraft) {

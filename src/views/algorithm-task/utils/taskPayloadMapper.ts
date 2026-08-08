@@ -319,6 +319,9 @@ export function buildBackendTaskPayloadFromDraft(
   const dynamicTrackingConfig = rules.find(rule =>
     rule.enabled && rule.behavior_type !== 'static_count' && rule.dynamic_trigger,
   )?.dynamic_trigger;
+  const dynamicTrackingConfigs = rules
+    .filter(rule => rule.enabled && rule.behavior_type !== 'static_count' && rule.dynamic_trigger)
+    .map(rule => rule.dynamic_trigger!);
   const trackingSimilarityThreshold =
     dynamicTrackingConfig?.matching_threshold
     ?? draft.detection_config.tracking_similarity_threshold
@@ -331,6 +334,7 @@ export function buildBackendTaskPayloadFromDraft(
     dynamicTrackingConfig?.smooth_alpha
     ?? draft.detection_config.tracking_smooth_alpha
     ?? DEFAULT_TRACKING_SMOOTH_ALPHA;
+  const predictBoxes = dynamicTrackingConfigs.some(config => !!config.predict_boxes);
 
   const payload: AlgorithmTaskPayload = {
     task_name: draft.task_name.trim(),
@@ -364,6 +368,7 @@ export function buildBackendTaskPayloadFromDraft(
       max_lost_frames: trackingMaxAge,
       smooth_alpha: trackingSmoothAlpha,
       frame_rate: 30,
+      predict_boxes: predictBoxes,
     },
     bindings: buildBindingsFromDraft(draft),
     alert_config: {

@@ -156,7 +156,7 @@ async function handleModuleClick(path: string, hover = false) {
     if (!hover)
       go(path)
     childrenMenus.value = []
-    closeMenu()
+    forceCloseMenu()
     return
   }
   childrenMenus.value = children
@@ -180,14 +180,21 @@ async function setActive(setChildren = false) {
         if (unref(getMixSideFixed))
           openMenu.value = children.length > 0
       }
-      if (children.length === 0)
+      if (children.length === 0) {
         childrenMenus.value = []
+        forceCloseMenu()
+      }
     }
   }
 }
 
 function handleMenuClick(path: string) {
   go(path)
+}
+
+function forceCloseMenu() {
+  openMenu.value = false
+  mixSideHasChildren.value = false
 }
 
 function handleClickOutside() {

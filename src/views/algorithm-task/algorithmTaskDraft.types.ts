@@ -51,6 +51,7 @@ export interface DynamicTriggerDraft {
   max_speed_jump?: number;
   smooth_alpha?: number;
   lock_class?: boolean;
+  predict_boxes?: boolean;
 }
 
 /** 任务级默认推理配置（文档 detection_config 中的全局项） */

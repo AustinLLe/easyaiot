@@ -125,6 +125,10 @@ export class VAxios {
     // 响应结果拦截器处理
     this.axiosInstance.interceptors.response.use(async (res: AxiosResponse<any>) => {
       const config = res.config
+      const requestOptions = (config as unknown as any).requestOptions
+      if (res.data.code === 401 && requestOptions?.skipSessionValidate) {
+        return Promise.reject(new Error('Unauthorized'))
+      }
       if (res.data.code === 401) {
         // 如果未认证，并且未进行刷新令牌，说明可能是访问令牌过期了
         if (!isRefreshToken) {
