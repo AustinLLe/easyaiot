@@ -30,7 +30,7 @@
           />
         </FormItem>
       </div>
-      <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required>
+      <FormItem v-if="showExtractInterval" label="抽帧间隔" required>
         <InputNumber
           v-model:value="payload.detection_config.extract_interval"
           :min="1"
@@ -112,6 +112,11 @@ const snapIntervalMax = computed(() => {
   return 23;
 });
 
+const showExtractInterval = computed(() =>
+  payload.value.task_type === 'patrol'
+  || (payload.value.task_type === 'realtime' && payload.value.analysis_mode !== 'dynamic'),
+);
+
 const defenseConfig = computed({
   get: (): DefenseSchedulePickerValue => ({
     is_full_day_defense: payload.value.is_full_day_defense !== false,
@@ -136,7 +141,7 @@ const defenseConfig = computed({
 watch(
   () => payload.value.task_type,
 	  (type) => {
-	    if (type === 'realtime' && !payload.value.detection_config.extract_interval)
+	    if ((type === 'realtime' || type === 'patrol') && !payload.value.detection_config.extract_interval)
 	      payload.value.detection_config.extract_interval = 25;
 	    if (type === 'realtime' && !payload.value.analysis_mode)
 	      payload.value.analysis_mode = 'static';
