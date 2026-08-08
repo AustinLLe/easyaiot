@@ -1,5 +1,5 @@
 # 构建阶段 - WEB 正式站（build context: WEB/）
-FROM m.daocloud.io/docker.io/library/node:22-alpine3.21 AS builder
+FROM docker.1ms.run/library/node:22-alpine3.21 AS builder
 
 RUN npm config set registry https://registry.npmmirror.com/
 RUN npm install -g pnpm@9.0.4
@@ -26,7 +26,7 @@ RUN set -o pipefail && \
     test -f /app/dist/index.html
 
 # 生产阶段
-FROM m.daocloud.io/docker.io/library/nginx:1.29.2-alpine
+FROM docker.1ms.run/library/nginx:1.29.2-alpine
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
