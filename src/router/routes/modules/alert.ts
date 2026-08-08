@@ -1,5 +1,6 @@
 import type { AppRouteModule } from '@/router/types'
 import { LAYOUT } from '@/router/constant'
+import { RoleEnum } from '@/enums/roleEnum'
 
 const alert: AppRouteModule = {
   path: '/alert',
@@ -31,6 +32,16 @@ const alert: AppRouteModule = {
       meta: {
         title: '推送设置',
         icon: 'ant-design:send-outlined',
+      },
+    },
+    {
+      path: 'server-alert',
+      name: 'AlertServerAlert',
+      component: () => import('@/views/alert/server-alert/index.vue'),
+      meta: {
+        title: '服务器告警',
+        icon: 'ant-design:dashboard-outlined',
+        roles: [RoleEnum.SUPER_ADMIN],
       },
     },
     {
