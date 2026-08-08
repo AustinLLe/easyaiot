@@ -2,6 +2,14 @@ import { defHttp } from '@/utils/http/axios'
 
 export interface PercentMetric {
   percent: number
+  contributors?: ResourceContributor[]
+}
+
+export interface ResourceContributor {
+  key: string
+  label: string
+  percent: number
+  color: string
 }
 
 export interface LoadMetric extends PercentMetric {

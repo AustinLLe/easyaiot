@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import type { HardwareStatus } from '@/api/system/hardware'
+import type { HardwareStatus, ResourceContributor } from '@/api/system/hardware'
 import { getHardwareStatus } from '@/api/system/hardware'
 
 defineOptions({ name: 'SystemHardwareStatus' })
@@ -10,6 +10,7 @@ const loading = ref(true)
 const failed = ref(false)
 let timer: number | undefined
 let requestInFlight = false
+const circumference = 339.29
 
 const cards = computed(() => {
   const current = status.value
@@ -17,57 +18,52 @@ const cards = computed(() => {
     return []
   return [
     {
-      key: 'load',
-      title: '负载',
-      percent: current.load.percent,
-      value: loadDescription(current.load.percent),
-      detail: `1 / 5 / 15 分钟：${current.load.oneMinute} / ${current.load.fiveMinutes} / ${current.load.fifteenMinutes}`,
-    },
-    {
       key: 'cpu',
       title: 'CPU',
       percent: current.cpu.percent,
       value: `${current.cpu.cores} 核心`,
-      detail: '当前 CPU 使用率',
+      detail: '各进程占整机 CPU 容量',
+      contributors: current.cpu.contributors || [],
     },
     {
       key: 'memory',
       title: '内存',
       percent: current.memory.percent,
       value: `${current.memory.usedGiB} GB / ${current.memory.totalGiB} GB`,
-      detail: '已用 / 总容量',
+      detail: '各进程占整机内存容量',
+      contributors: current.memory.contributors || [],
     },
     {
       key: 'root',
-      title: '/',
+      title: '系统盘 /',
       percent: current.rootDisk.percent,
       value: `${current.rootDisk.usedGiB} GB / ${current.rootDisk.totalGiB} GB`,
-      detail: '系统根分区',
+      detail: '系统根分区空间构成',
+      contributors: current.rootDisk.contributors || [],
     },
     {
       key: 'data',
-      title: '/srv/easyaiot-data',
+      title: '业务数据盘',
       percent: current.dataDisk.percent,
       value: `${current.dataDisk.usedGiB} GB / ${current.dataDisk.totalGiB} GB`,
-      detail: '业务数据分区',
+      detail: '/srv/easyaiot-data 空间构成',
+      contributors: current.dataDisk.contributors || [],
     },
   ]
 })
 
-function loadDescription(percent: number) {
-  if (percent < 50)
-    return '运行流畅'
-  if (percent < 80)
-    return '负载适中'
-  return '负载较高'
-}
-
-function ringColor(percent: number) {
-  if (percent >= 90)
-    return '#ef4444'
-  if (percent >= 75)
-    return '#f59e0b'
-  return '#16a34a'
+function ringSegments(contributors: ResourceContributor[]) {
+  let offset = 0
+  return contributors.map((item) => {
+    const percent = Math.max(0, Math.min(100, item.percent))
+    const segment = {
+      ...item,
+      dasharray: `${circumference * percent / 100} ${circumference}`,
+      dashoffset: -circumference * offset / 100,
+    }
+    offset += percent
+    return segment
+  })
 }
 
 async function refresh() {
@@ -94,7 +90,7 @@ function handleVisibilityChange() {
 
 onMounted(() => {
   refresh()
-  timer = window.setInterval(refresh, 1000)
+  timer = window.setInterval(refresh, 500)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
@@ -110,10 +106,10 @@ onBeforeUnmount(() => {
     <div class="page-heading">
       <div>
         <h2>硬件状态</h2>
-        <p>服务器资源每秒自动更新</p>
+        <p>服务器资源每 0.5 秒自动更新 · 当前负载 {{ status?.load.percent ?? '--' }}%</p>
       </div>
       <div class="live-state" :class="{ offline: failed }">
-        <span class="live-dot"></span>
+        <span class="live-dot" />
         {{ failed ? '更新中断，正在重试' : '实时更新' }}
       </div>
     </div>
@@ -121,27 +117,46 @@ onBeforeUnmount(() => {
     <a-spin :spinning="loading">
       <div class="metric-grid">
         <section v-for="card in cards" :key="card.key" class="metric-card">
-          <div class="progress-ring" :aria-label="`${card.title} ${Math.round(card.percent)}%`">
-            <svg viewBox="0 0 120 120" aria-hidden="true">
-              <circle class="ring-track" cx="60" cy="60" r="52" />
-              <circle
-                class="ring-progress"
-                cx="60"
-                cy="60"
-                r="52"
-                :stroke="ringColor(card.percent)"
-                :stroke-dashoffset="326.73 * (1 - card.percent / 100)"
-              />
-            </svg>
-            <div class="ring-label">
-              <span class="ring-number">{{ Math.round(card.percent) }}</span>
-              <span class="ring-unit">%</span>
+          <div class="metric-main">
+            <div class="progress-ring" :aria-label="`${card.title} ${Math.round(card.percent)}%`">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring-track" cx="60" cy="60" r="54" />
+                <circle
+                  v-for="segment in ringSegments(card.contributors)"
+                  :key="segment.key"
+                  class="ring-segment"
+                  cx="60"
+                  cy="60"
+                  r="54"
+                  :stroke="segment.color"
+                  :stroke-dasharray="segment.dasharray"
+                  :stroke-dashoffset="segment.dashoffset"
+                />
+              </svg>
+              <div class="ring-label">
+                <span class="ring-number">{{ Math.round(card.percent) }}</span>
+                <span class="ring-unit">%</span>
+              </div>
+            </div>
+            <div class="metric-copy">
+              <div class="metric-title" :title="card.title">
+                {{ card.title }}
+              </div>
+              <div class="metric-value">
+                {{ card.value }}
+              </div>
+              <div class="metric-detail">
+                {{ card.detail }}
+              </div>
             </div>
           </div>
-          <div class="metric-copy">
-            <div class="metric-title" :title="card.title">{{ card.title }}</div>
-            <div class="metric-value">{{ card.value }}</div>
-            <div class="metric-detail">{{ card.detail }}</div>
+
+          <div class="contributor-list">
+            <div v-for="item in card.contributors" :key="item.key" class="contributor-row">
+              <span class="legend-dot" :style="{ backgroundColor: item.color }" />
+              <span class="contributor-name" :title="item.label">{{ item.label }}</span>
+              <strong>{{ item.percent.toFixed(1) }}%</strong>
+            </div>
           </div>
         </section>
       </div>
@@ -164,9 +179,9 @@ onBeforeUnmount(() => {
 
   h2 {
     margin: 0;
-    color: #1f2937;
     font-size: 24px;
     font-weight: 700;
+    color: #1f2937;
   }
 
   p {
@@ -179,8 +194,8 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 8px;
   align-items: center;
-  color: #168a43;
   font-weight: 600;
+  color: #168a43;
 
   &.offline {
     color: #d97706;
@@ -190,35 +205,37 @@ onBeforeUnmount(() => {
 .live-dot {
   width: 9px;
   height: 9px;
+  background: currentcolor;
   border-radius: 50%;
-  background: currentColor;
   box-shadow: 0 0 0 4px rgb(22 163 74 / 12%);
 }
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(210px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(460px, 1fr));
+  gap: 18px;
 }
 
 .metric-card {
-  display: flex;
-  min-height: 300px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 26px 22px;
-  border: 1px solid #eef1ef;
-  border-radius: 12px;
+  min-height: 390px;
+  padding: 28px;
   background: #fff;
+  border: 1px solid #eef1ef;
+  border-radius: 14px;
   box-shadow: 0 5px 18px rgb(24 39 30 / 6%);
+}
+
+.metric-main {
+  display: flex;
+  gap: 32px;
+  align-items: center;
 }
 
 .progress-ring {
   position: relative;
-  width: 148px;
-  height: 148px;
-  flex: 0 0 148px;
+  flex: 0 0 230px;
+  width: 230px;
+  height: 230px;
 
   svg {
     display: block;
@@ -229,19 +246,17 @@ onBeforeUnmount(() => {
 }
 
 .ring-track,
-.ring-progress {
+.ring-segment {
   fill: none;
-  stroke-width: 9;
+  stroke-width: 11;
 }
 
 .ring-track {
   stroke: #edf0ee;
 }
 
-.ring-progress {
-  stroke-dasharray: 326.73;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.65s ease, stroke 0.3s ease;
+.ring-segment {
+  transition: stroke-dasharray 0.35s ease, stroke-dashoffset 0.35s ease;
 }
 
 .ring-label {
@@ -253,71 +268,106 @@ onBeforeUnmount(() => {
 }
 
 .ring-number {
-  color: #16a34a;
-  font-size: 42px;
+  font-size: 52px;
   font-weight: 800;
   line-height: 1;
+  color: #111827;
 }
 
 .ring-unit {
-  margin-left: 2px;
-  color: #16a34a;
-  font-size: 15px;
+  margin-left: 3px;
+  font-size: 17px;
   font-weight: 700;
+  color: #64748b;
 }
 
 .metric-copy {
-  width: 100%;
-  margin-top: 22px;
-  text-align: left;
+  min-width: 0;
 }
 
 .metric-title {
   overflow: hidden;
-  color: #303632;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
+  color: #303632;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .metric-value {
-  margin-top: 6px;
-  color: #242a26;
+  margin-top: 8px;
   font-size: 25px;
   font-weight: 800;
   line-height: 1.25;
+  color: #242a26;
 }
 
 .metric-detail {
-  margin-top: 8px;
+  margin-top: 10px;
+  font-size: 14px;
   color: #8a938d;
-  font-size: 13px;
 }
 
-@media (max-width: 1500px) {
-  .metric-grid {
-    grid-template-columns: repeat(3, minmax(230px, 1fr));
+.contributor-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 22px;
+  padding-top: 20px;
+  margin-top: 24px;
+  border-top: 1px solid #eef1ef;
+}
+
+.contributor-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  color: #4b5563;
+
+  strong {
+    font-variant-numeric: tabular-nums;
+    color: #1f2937;
   }
 }
 
-@media (max-width: 900px) {
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.contributor-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1150px) {
   .metric-grid {
-    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
   .hardware-page {
     padding: 14px;
   }
 
-  .metric-grid {
-    grid-template-columns: 1fr;
+  .page-heading,
+  .metric-main {
+    align-items: flex-start;
   }
 
-  .page-heading {
-    align-items: flex-start;
+  .metric-main {
+    flex-direction: column;
+  }
+
+  .progress-ring {
+    align-self: center;
+  }
+
+  .contributor-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>
