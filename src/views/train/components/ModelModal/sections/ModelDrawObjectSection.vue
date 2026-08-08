@@ -37,6 +37,17 @@
               />
               <span v-else class="cell-text">{{ record.class_key || '-' }}</span>
             </template>
+            <template v-else-if="column.key === 'class_label'">
+              <Input
+                v-if="isRowEditing(record.id)"
+                v-model:value="record.class_label"
+                size="small"
+                class="cell-input"
+                placeholder="class label"
+                :disabled="isView"
+              />
+              <span v-else class="cell-text">{{ record.class_label || '-' }}</span>
+            </template>
             <template v-else-if="column.key === 'label'">
               <Input
                 v-if="isRowEditing(record.id)"
@@ -192,6 +203,7 @@ import {
   syncClassLabelsTextFromDrawObjects,
   syncClassWhitelistFromDrawObjects,
 } from '../useDraft';
+import { translateClassLabel } from '../../../utils/classLabelUtils';
 import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../modelDraft.types';
 import {
   DEFAULT_DRAW_OBJECT_PRESETS,
@@ -217,7 +229,7 @@ const colorPopoverMap = reactive<Record<string, boolean>>({});
 const showPreviewOverlay = ref(true);
 const importVisible = ref(false);
 const editingRowId = ref<string | null>(null);
-const editingSnapshot = ref<{ class_key: string; label: string } | null>(null);
+const editingSnapshot = ref<{ class_key: string; class_label: string; label: string } | null>(null);
 const isNewEditingRow = ref(false);
 
 const tableItems = computed({
@@ -259,6 +271,7 @@ const previewItems = computed(() =>
 
 const columns: ColumnsType<ModelDrawObjectItem> = [
   { title: '类别ID', key: 'class_key', width: 88 },
+  { title: '类别标签', key: 'class_label', width: 104, ellipsis: true },
   { title: '描述文本', key: 'label', width: 112, ellipsis: true },
   { title: '颜色', key: 'color', width: 56, align: 'center' },
   { title: '是否绘制', key: 'enabled', width: 80, align: 'center' },
@@ -276,10 +289,10 @@ function syncDrawObjectDerivedState() {
 }
 
 function handleAdd() {
-  const item = createDrawObjectItem({ class_key: '', label: '' });
+  const item = createDrawObjectItem({ class_key: '', class_label: '', label: '' });
   tableItems.value = [...tableItems.value, item];
   editingRowId.value = item.id;
-  editingSnapshot.value = { class_key: '', label: '' };
+  editingSnapshot.value = { class_key: '', class_label: '', label: '' };
   isNewEditingRow.value = true;
 }
 
@@ -300,6 +313,7 @@ function handleEditRow(id: string) {
   editingRowId.value = id;
   editingSnapshot.value = {
     class_key: row.class_key,
+    class_label: row.class_label,
     label: row.label,
   };
   isNewEditingRow.value = false;
@@ -325,6 +339,7 @@ function handleCancelEdit() {
     const row = tableItems.value.find(item => item.id === id);
     if (row) {
       row.class_key = editingSnapshot.value.class_key;
+      row.class_label = editingSnapshot.value.class_label;
       row.label = editingSnapshot.value.label;
     }
   }
@@ -337,6 +352,8 @@ function handleFinishEdit(id: string) {
     createMessage.warning('类别ID不能为空');
     return;
   }
+  if (!row.label?.trim() && row.class_label?.trim())
+    row.label = translateClassLabel(row.class_label);
   clearEditingState();
   syncDrawObjectDerivedState();
 }
@@ -416,9 +433,9 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
 }
 
 .draw-object-left {
-  flex: 0 0 420px;
-  width: 420px;
-  max-width: 420px;
+  flex: 0 0 520px;
+  width: 520px;
+  max-width: 520px;
   min-width: 0;
 }
 

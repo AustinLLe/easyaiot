@@ -15,6 +15,7 @@ export interface ModelDrawRegion {
 export interface ModelDrawObjectItem {
   id: string;
   class_key: string;
+  class_label: string;
   label: string;
   color: string;
   enabled: boolean;

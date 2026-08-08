@@ -6,6 +6,7 @@ export const DRAW_OBJECT_IMPORT_SHEET_NAME = '绘制对象';
 /** 与绘制对象表格列一致，顺序固定 */
 export const DRAW_OBJECT_IMPORT_COLUMNS = [
   { field: 'class_key', header: 'ClassID', required: true, example: 'person' },
+  { field: 'class_label', header: '类别标签', required: false, example: 'person' },
   { field: 'label', header: '描述文本', required: false, example: '行人' },
   { field: 'color', header: '颜色', required: false, example: '#ff0000' },
   { field: 'enabled', header: '是否绘制', required: false, example: '是' },

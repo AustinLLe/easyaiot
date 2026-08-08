@@ -92,6 +92,13 @@
                   </FormItem>
                 </Col>
                 <Col :span="12">
+                  <FormItem :label="TXT.predictBoxes">
+                    <Switch v-model:checked="localRule.dynamic_trigger!.predict_boxes" :checked-children="TXT.on" :un-checked-children="TXT.off" />
+                  </FormItem>
+                </Col>
+              </Row>
+              <Row :gutter="16">
+                <Col :span="12">
                   <FormItem :label="triggerLabel" required>
                     <Select
                       v-if="localRule.behavior_type === 'intrusion'"
@@ -275,6 +282,7 @@ const TXT = {
   selectClass: '\u8bf7\u9009\u62e9\u8981\u8ffd\u8e2a\u7684\u7c7b\u522b',
   trigger: '\u89e6\u53d1',
   extractInterval: '\u62bd\u5e27\u95f4\u9694',
+  predictBoxes: '\u542f\u7528\u9884\u6d4b\u6846\u7ed8\u5236',
   intrusionTrigger: '\u5165\u4fb5\u89e6\u53d1\u65b9\u5f0f',
   triggerType: '\u89e6\u53d1\u65b9\u5f0f',
   enterNow: '\u8fdb\u5165\u533a\u57df\u7acb\u5373\u89e6\u53d1',
@@ -359,7 +367,7 @@ function ensureDynamicDefaults(rule: AlertRuleDraft) {
     dwell_sec: rule.dynamic_trigger.dwell_sec ?? 3,
     extract_interval: rule.dynamic_trigger.extract_interval ?? 25,
     lost_track_buffer: rule.dynamic_trigger.lost_track_buffer ?? 25,
-    matching_threshold: rule.dynamic_trigger.matching_threshold ?? 0.8,
+    matching_threshold: rule.dynamic_trigger.matching_threshold ?? 0.2,
     same_track_suppress_sec: rule.dynamic_trigger.same_track_suppress_sec ?? rule.alarm_suppress_time ?? 300,
     enter_confirm_frames: rule.dynamic_trigger.enter_confirm_frames ?? 2,
     allow_leave_sec: rule.dynamic_trigger.allow_leave_sec ?? 1,
@@ -367,6 +375,7 @@ function ensureDynamicDefaults(rule: AlertRuleDraft) {
     max_speed_jump: rule.dynamic_trigger.max_speed_jump ?? 0,
     smooth_alpha: rule.dynamic_trigger.smooth_alpha ?? 0.25,
     lock_class: rule.dynamic_trigger.lock_class ?? true,
+    predict_boxes: rule.dynamic_trigger.predict_boxes ?? false,
   };
   if (!rule.target_classes)
     rule.target_classes = [];

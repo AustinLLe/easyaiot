@@ -8,6 +8,7 @@ import {
   DRAW_OBJECT_IMPORT_TEMPLATE_FILENAME,
 } from '../constants/drawObjectImportTemplate';
 import type { ModelDrawObjectItem, ModelDrawRegion, ModelPreviewRect } from '../modelDraft.types';
+import { translateClassLabel } from './classLabelUtils';
 
 export const DEFAULT_MODEL_PREVIEW = '/images/model-preview.jpg';
 
@@ -256,7 +257,7 @@ export function downloadDrawObjectTemplate() {
     [...DRAW_OBJECT_IMPORT_HEADERS],
     [...DRAW_OBJECT_IMPORT_EXAMPLE_ROW],
   ]);
-  ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
+  ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, DRAW_OBJECT_IMPORT_SHEET_NAME);
   XLSX.writeFile(wb, DRAW_OBJECT_IMPORT_TEMPLATE_FILENAME);
@@ -301,7 +302,9 @@ export async function parseDrawObjectExcel(file: File): Promise<ModelDrawObjectI
 
     items.push(createDrawObjectItem({
       class_key: classKey,
-      label: String(row[columnIndexMap.label] ?? '').trim(),
+      class_label: String(row[columnIndexMap.class_label] ?? '').trim() || classKey,
+      label: String(row[columnIndexMap.label] ?? '').trim()
+        || translateClassLabel(String(row[columnIndexMap.class_label] ?? '').trim() || classKey),
       color: parseColor(row[columnIndexMap.color]),
       enabled: parseEnabled(row[columnIndexMap.enabled]),
     }));

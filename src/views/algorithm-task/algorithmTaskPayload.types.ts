@@ -71,6 +71,7 @@ export interface BackendTrackingConfig {
   smooth_alpha: number;
   min_confidence?: number;
   frame_rate?: number;
+  predict_boxes?: boolean;
 }
 
 export interface BackendAlertRuleCondition {

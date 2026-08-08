@@ -10,6 +10,7 @@ import {
   DEFAULT_DRAW_CLASS_ID,
   normalizeDrawRegions,
 } from '../../utils/drawUtils';
+import { isAsciiClassLabel, translateClassLabel } from '../../utils/classLabelUtils';
 
 let drawObjectIdSeq = 1;
 
@@ -52,6 +53,7 @@ export function createDrawObjectItem(
   return {
     id: String(drawObjectIdSeq++),
     class_key: '',
+    class_label: '',
     label: '',
     color: '#81807a',
     enabled: true,
@@ -80,6 +82,7 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
         class_key: LEGACY_DEFAULT_CLASS_KEYS.has(row.class_key?.trim() ?? '')
           ? DEFAULT_DRAW_CLASS_ID
           : row.class_key,
+        class_label: row.class_label,
         label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
         color: row.color,
         enabled: row.enabled,
@@ -98,6 +101,7 @@ function mergeLegacyDrawObjectRows(items: ModelDrawObjectItem[], modelName: stri
         class_key: LEGACY_DEFAULT_CLASS_KEYS.has(first.class_key?.trim() ?? '')
           ? DEFAULT_DRAW_CLASS_ID
           : first.class_key,
+        class_label: first.class_label,
         label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
         color: first.color,
         enabled: first.enabled,
@@ -128,12 +132,18 @@ function normalizeDrawObjectItems(raw: unknown, modelName = ''): ModelDrawObject
     const row = item as Record<string, unknown>;
     const classKey = String(row.class_key ?? row.classKey ?? '').trim();
     const preset = DEFAULT_DRAW_OBJECT_PRESETS[index];
+    const rawClassLabel = String(row.class_label ?? row.classLabel ?? row.class_name ?? row.className ?? row.name ?? '').trim();
     const rawLabel = String(row.label ?? row.description ?? '').trim();
+    const classLabel = rawClassLabel || (isAsciiClassLabel(rawLabel) ? rawLabel : '');
+    const description = rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL && rawLabel !== classLabel
+      ? rawLabel
+      : translateClassLabel(classLabel);
     const previewRegions = normalizeDrawRegions(row.preview_regions);
     return createDrawObjectItem({
       id: String(row.id ?? index + 1),
       class_key: classKey || DEFAULT_DRAW_CLASS_ID,
-      label: rawLabel && rawLabel !== LEGACY_DEFAULT_DRAW_LABEL ? rawLabel : '',
+      class_label: classLabel,
+      label: description,
       color: String(row.color ?? '#ff0000'),
       enabled: row.enabled !== false,
       preview_regions: previewRegions,
@@ -266,6 +276,9 @@ export type ModelClassLabelDraft = {
   class_key?: string;
   classKey?: string;
   label?: string;
+  class_label?: string;
+  classLabel?: string;
+  description?: string;
   name?: string;
 };
 
@@ -274,7 +287,7 @@ function normalizeClassLabelDrafts(labels?: ModelClassLabelDraft[]): Array<{ cla
   const seen = new Set<string>();
   for (const [index, item] of (labels ?? []).entries()) {
     const classKey = String(item.class_key ?? item.classKey ?? index).trim();
-    const label = String(item.label ?? item.name ?? '').trim();
+    const label = String(item.class_label ?? item.classLabel ?? item.label ?? item.name ?? '').trim();
     if (!classKey || !label || seen.has(classKey))
       continue;
     seen.add(classKey);
@@ -306,8 +319,8 @@ export function classLabelsToText(labels?: ModelClassLabelDraft[]): string {
 
 export function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
   return dedupeDrawObjectItems(items)
-    .filter(item => item.class_key.trim() && item.label.trim())
-    .map(item => `${item.class_key.trim()} ${item.label.trim()}`)
+    .filter(item => item.class_key.trim() && (item.class_label || item.label).trim())
+    .map(item => `${item.class_key.trim()} ${(item.class_label || item.label).trim()}`)
     .join('\n');
 }
 
@@ -338,7 +351,8 @@ export function applyClassLabelsToDraft(draft: ModelDraft, labels: ModelClassLab
       return {
         id: existing?.id ?? String(index + 1),
         class_key: item.class_key,
-        label: item.label,
+        class_label: item.label,
+        label: existing?.label?.trim() || translateClassLabel(item.label),
         color: existing?.color ?? ['#ff4d4f', '#1677ff', '#52c41a', '#faad14', '#722ed1'][index % 5],
         enabled: existing?.enabled ?? true,
         preview_regions: existing?.preview_regions,
@@ -441,7 +455,8 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
         .map((classKey, index) => createDrawObjectItem({
           id: String(index + 1),
           class_key: String(classKey).trim(),
-          label: String(classKey).trim(),
+          class_label: String(classKey).trim(),
+          label: translateClassLabel(String(classKey).trim()),
           enabled: true,
           preview_regions: index === 0 ? buildDefaultPreviewRegions() : undefined,
         }))
