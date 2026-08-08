@@ -192,6 +192,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         options: [
           { label: '实时算法任务', value: 'realtime' },
           { label: '抓拍算法任务', value: 'snap' },
+          { label: '轮巡算法任务', value: 'patrol' },
         ],
       },
     },
@@ -227,7 +228,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         },
       },
       helpMessage: '选择要使用的模型列表，模型文件本地没有会自动下载',
-      ifShow: ({ values }) => values.task_type === 'realtime' || values.task_type === 'snap',
+      ifShow: ({ values }) => ['realtime', 'snap', 'patrol'].includes(values.task_type),
     },
     {
       field: 'cron_expression',
@@ -259,8 +260,10 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         placeholder: '每N帧抽一次',
         min: 1,
       },
-      helpMessage: '实时算法任务中，每N帧抽一次进行检测（默认25）',
-      ifShow: ({ values }) => values.task_type === 'realtime',
+      helpMessage: '实时/轮巡算法任务中，每N帧抽一次进行检测（默认25）',
+      ifShow: ({ values }) =>
+        values.task_type === 'patrol'
+        || (values.task_type === 'realtime' && !values.tracking_enabled),
     },
     {
       field: 'tracking_enabled',
@@ -349,7 +352,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         ]);
       },
       helpMessage: '是否启用告警事件，启用后会记录告警信息',
-      ifShow: ({ values }) => values.task_type === 'realtime' || values.task_type === 'snap',
+      ifShow: ({ values }) => ['realtime', 'snap', 'patrol'].includes(values.task_type),
     },
   ],
   showActionButtonGroup: false,
@@ -553,7 +556,7 @@ const handleSubmit = async () => {
     }
 
     // 算法任务（实时和抓拍）必须指定模型ID列表
-    if ((values.task_type === 'realtime' || values.task_type === 'snap') && (!values.model_ids || values.model_ids.length === 0)) {
+    if (['realtime', 'snap', 'patrol'].includes(values.task_type) && (!values.model_ids || values.model_ids.length === 0)) {
       createMessage.error('算法任务必须选择至少一个模型');
       confirmLoading.value = false;
       setModalProps({ confirmLoading: false });
