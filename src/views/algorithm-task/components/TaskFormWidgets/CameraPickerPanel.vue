@@ -3,7 +3,7 @@
     <div
       v-if="embedded || (open && anchorEl)"
       ref="panelRef"
-      :class="['camera-picker-panel', { embedded, 'camera-picker-panel--dark': theme === 'dark' }]"
+      :class="['camera-picker-panel', { embedded, embeddedHorizontal: embedded && embeddedHorizontal, 'camera-picker-panel--dark': theme === 'dark' }]"
       :style="panelStyle"
       @mousedown.stop
     >
@@ -58,13 +58,14 @@
             <div
               v-for="device in filteredDevices"
               :key="normalizeDeviceId(device.id)"
-              :class="['device-row', { selected: isDeviceSelected(device.id) }]"
+              :class="['device-row', { selected: isDeviceSelected(device.id), locked: isDeviceLocked(device.id) }]"
               @click="toggleDevice(normalizeDeviceId(device.id))"
             >
               <span :class="['select-box', { checked: isDeviceSelected(device.id) }]">
                 <CheckOutlined v-if="isDeviceSelected(device.id)" class="select-check" />
               </span>
               <span class="device-name">{{ device.name || device.id }}</span>
+              <span v-if="isDeviceLocked(device.id)" class="device-locked-tag">{{ lockedDeviceLabel }}</span>
               <a-button
                 type="text"
                 size="small"
@@ -81,7 +82,7 @@
       </div>
     </div>
 
-    <div v-if="!embedded || !singleSelect" class="picker-footer">
+    <div v-if="(!embedded || !singleSelect) && !hideFooter" class="picker-footer">
       <a-button @click="handleCancel">取消</a-button>
       <a-button type="primary" @click="handleConfirm">确定</a-button>
     </div>
@@ -118,9 +119,18 @@ const props = withDefaults(defineProps<{
   theme?: 'light' | 'dark';
   showSearch?: boolean;
   anchorEl?: HTMLElement | null;
+  /** 仅展示这些设备（轮巡组编辑等场景） */
+  restrictToDeviceIds?: string[];
+  /** 已被其他组占用、不可选择的设备 */
+  lockedDeviceIds?: string[];
+  lockedDeviceLabel?: string;
+  hideFooter?: boolean;
+  /** 内嵌模式下仍保持左右布局（弹窗内使用） */
+  embeddedHorizontal?: boolean;
 }>(), {
   theme: 'light',
   showSearch: true,
+  lockedDeviceLabel: '已分配',
 });
 
 const emit = defineEmits<{
@@ -231,11 +241,17 @@ const visibleGroups = computed<DisplayGroup[]>(() => [
 ]);
 
 const filteredDevices = computed(() => {
+  let devices = currentDevices.value;
+  if (props.restrictToDeviceIds?.length) {
+    const allowed = new Set(props.restrictToDeviceIds.map(String));
+    devices = devices.filter(device => allowed.has(normalizeDeviceId(device.id)));
+  }
+
   const keyword = searchText.value.trim().toLowerCase();
   if (!keyword)
-    return currentDevices.value;
+    return devices;
 
-  return currentDevices.value.filter((device) => {
+  return devices.filter((device) => {
     const name = (device.name || device.id || '').toLowerCase();
     return name.includes(keyword);
   });
@@ -260,6 +276,15 @@ const indeterminate = computed(() => {
 
 function isDeviceSelected(id: string | number) {
   return selectedDeviceIds.value.includes(normalizeDeviceId(id));
+}
+
+function isDeviceLocked(id: string | number) {
+  const normalized = normalizeDeviceId(id);
+  if (!props.lockedDeviceIds?.length)
+    return false;
+  if (selectedDeviceIds.value.includes(normalized))
+    return false;
+  return props.lockedDeviceIds.map(String).includes(normalized);
 }
 
 function isExpanded(directoryId: number) {
@@ -291,6 +316,9 @@ function forgetSelectedDevice(id: string) {
 }
 
 function toggleDevice(id: string) {
+  if (isDeviceLocked(id))
+    return;
+
   if (props.singleSelect) {
     const device = currentDevices.value.find(item => normalizeDeviceId(item.id) === id)
       || filteredDevices.value.find(item => normalizeDeviceId(item.id) === id);
@@ -325,6 +353,8 @@ function handleSelectAll(checked: boolean) {
   const next = new Set(selectedDeviceIds.value);
   if (checked) {
     filteredDevices.value.forEach((device) => {
+      if (isDeviceLocked(device.id))
+        return;
       const id = normalizeDeviceId(device.id);
       next.add(id);
       rememberSelectedDevice(device);
@@ -585,6 +615,46 @@ onClickOutside(panelRef, () => {
       max-height: 180px;
     }
   }
+
+  &.embeddedHorizontal {
+    .camera-toolbar {
+      padding: 12px 16px;
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .camera-body {
+      flex-direction: row;
+      min-height: 320px;
+    }
+
+    .group-panel {
+      width: 120px;
+      max-height: none;
+      height: auto;
+      align-self: stretch;
+      padding: 8px 4px;
+      border-right: 1px solid #f0f0f0;
+      border-bottom: none;
+    }
+
+    .group-item {
+      padding-right: 8px;
+    }
+
+    .device-panel {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 320px;
+    }
+
+    .device-list {
+      max-height: none;
+      flex: 1;
+      min-height: 0;
+    }
+  }
 }
 
 .camera-toolbar {
@@ -760,6 +830,11 @@ onClickOutside(panelRef, () => {
   &.selected {
     background: #e6f4ff;
   }
+
+  &.locked {
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
 }
 
 .device-name {
@@ -767,6 +842,15 @@ onClickOutside(panelRef, () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.device-locked-tag {
+  padding: 0 6px;
+  color: #1677ff;
+  font-size: 11px;
+  background: #e6f4ff;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .preview-btn {

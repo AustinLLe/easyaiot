@@ -25,7 +25,7 @@
           <Select
             v-model:value="payload.analysis_mode"
             :options="analysisModeOptions"
-            :disabled="payload.task_type === 'snap'"
+            :disabled="payload.task_type === 'snap' || payload.task_type === 'patrol'"
             class="field-control"
           />
         </FormItem>
@@ -71,6 +71,7 @@ import {
   DEFAULT_SNAP_INTERVAL_UNIT,
   ensureSnapIntervalDefaults,
 } from '../useDraft';
+import { createDefaultPatrolConfig } from '../../../utils/patrolUtils';
 import {
   createEmptyDefenseSchedule,
   ensureDefenseDefaults,
@@ -86,11 +87,16 @@ ensureDefenseDefaults(payload.value);
 const taskTypeOptions = [
   { label: '实时算法任务', value: 'realtime' },
   { label: '抓拍算法任务', value: 'snap' },
+  { label: '轮巡算法任务', value: 'patrol' },
 ];
 
 const analysisModeOptions = computed<Array<{ label: string; value: AnalysisMode; disabled?: boolean }>>(() => [
   { label: '静态检测', value: 'static' },
-  { label: '动态追踪', value: 'dynamic', disabled: payload.value.task_type === 'snap' },
+  {
+    label: '动态追踪',
+    value: 'dynamic',
+    disabled: payload.value.task_type === 'snap' || payload.value.task_type === 'patrol',
+  },
 ]);
 
 const snapUnitOptions: Array<{ label: string; value: SnapIntervalUnit }> = [
@@ -139,6 +145,12 @@ watch(
 	      payload.value.detection_config.enable_tracking = false;
 	      ensureSnapIntervalDefaults(payload.value);
 	    }
+	    if (type === 'patrol') {
+	      payload.value.analysis_mode = 'static';
+	      payload.value.detection_config.enable_tracking = false;
+	      if (!payload.value.patrol_config)
+	        payload.value.patrol_config = createDefaultPatrolConfig();
+	    }
 	  },
 	  { immediate: true },
 	);
@@ -147,6 +159,10 @@ watch(
   () => payload.value.analysis_mode,
   (mode) => {
     if (payload.value.task_type === 'snap' && mode !== 'static') {
+      payload.value.analysis_mode = 'static';
+      return;
+    }
+    if (payload.value.task_type === 'patrol' && mode !== 'static') {
       payload.value.analysis_mode = 'static';
       return;
     }

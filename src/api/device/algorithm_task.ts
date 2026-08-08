@@ -32,7 +32,7 @@ export interface AlgorithmTask {
   id: number;
   task_name: string;
   task_code: string;
-  task_type: 'realtime' | 'snap'; // realtime:实时算法任务, snap:抓拍算法任务
+  task_type: 'realtime' | 'snap' | 'patrol'; // realtime:实时算法任务, snap:抓拍算法任务, patrol:轮巡算法任务
   device_ids?: string[];
   device_names?: string[];
   pusher_id?: number;
@@ -90,7 +90,7 @@ export const listAlgorithmTasks = (params?: {
   pageSize?: number;
   search?: string;
   device_id?: string;
-  task_type?: 'realtime' | 'snap';
+  task_type?: 'realtime' | 'snap' | 'patrol';
   is_enabled?: boolean | 0 | 1;
 }) => {
   return commonApi<AlgorithmTaskListResponse>('get', `${ALGORITHM_PREFIX}/task/list`, { params });

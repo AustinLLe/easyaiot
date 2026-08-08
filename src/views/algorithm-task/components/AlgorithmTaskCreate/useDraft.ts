@@ -33,6 +33,10 @@ import type {
 import type { AlgorithmParamConfigDraft, RegionDraft } from '../../algorithmTaskDraft.types';
 import { syncFlattenRegionsFromConfigs } from '../../utils/paramUtils';
 import {
+  createDefaultPatrolConfig,
+  validatePatrolConfig,
+} from '../../utils/patrolUtils';
+import {
   DEFAULT_SNAP_INTERVAL_UNIT,
   DEFAULT_SNAP_INTERVAL_VALUE,
   ensureSnapIntervalDefaults,
@@ -94,6 +98,7 @@ export function createDefaultDraft(): AlgorithmTaskDraft {
     regions: [],
     alert_rules: [],
     alert_push_configs: [],
+    patrol_config: createDefaultPatrolConfig(),
     is_full_day_defense: true,
     defense_mode: 'full',
     defense_schedule: createFullDefenseSchedule(),
@@ -125,6 +130,8 @@ export function validateSectionDraft(
       if (draft.camera_bindings.some(binding => binding.model_ids.length === 0))
         return '每个摄像头至少绑定一个算法';
       return null;
+    case 'patrol':
+      return validatePatrolConfig(draft);
     case 'model':
       return null;
     case 'region':
@@ -428,6 +435,23 @@ export function buildDraftFromBackendTaskPayload(payload: AlgorithmTaskPayload):
       draft.snap_interval_value = parsed.value;
       draft.snap_interval_unit = parsed.unit;
     }
+  }
+
+  if (payload.patrol_config) {
+    draft.patrol_config = {
+      group_mode: payload.patrol_config.group_mode ?? 'manual',
+      cameras_per_group: payload.patrol_config.cameras_per_group,
+      analysis_duration_sec: payload.patrol_config.analysis_duration_sec,
+      groups: (payload.patrol_config.groups ?? []).map(group => ({
+        group_id: group.group_id,
+        group_name: group.group_name,
+        device_ids: [...group.device_ids],
+        analysis_duration_sec: group.analysis_duration_sec,
+      })),
+    };
+  }
+  else if (draft.task_type === 'patrol') {
+    draft.patrol_config = createDefaultPatrolConfig();
   }
 
   draft.camera_bindings = (payload.bindings ?? []).map(binding => ({

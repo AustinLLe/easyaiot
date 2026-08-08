@@ -358,6 +358,19 @@ export function buildBackendTaskPayloadFromDraft(
           frame_skip: draft.detection_config.extract_interval ?? 25,
         }
       : null,
+    patrol_config: draft.task_type === 'patrol'
+      ? {
+          group_mode: draft.patrol_config?.group_mode ?? 'manual',
+          cameras_per_group: draft.patrol_config?.cameras_per_group,
+          analysis_duration_sec: draft.patrol_config?.analysis_duration_sec,
+          groups: (draft.patrol_config?.groups ?? []).map(group => ({
+            group_id: group.group_id,
+            group_name: group.group_name,
+            device_ids: [...group.device_ids],
+            analysis_duration_sec: group.analysis_duration_sec,
+          })),
+        }
+      : null,
     tracking_config: {
       enabled: trackingEnabled,
       backend: trackingEnabled ? 'supervision' : 'simple',

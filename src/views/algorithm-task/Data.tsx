@@ -37,9 +37,15 @@ export function getBasicColumns(): BasicColumn[] {
       dataIndex: 'task_type',
       width: 120,
       customRender: ({ text }) => {
+        const labelMap: Record<string, { label: string; color: string }> = {
+          realtime: { label: '实时算法任务', color: 'blue' },
+          snap: { label: '抓拍算法任务', color: 'green' },
+          patrol: { label: '轮巡算法任务', color: 'purple' },
+        };
+        const item = labelMap[String(text)] ?? { label: String(text), color: 'default' };
         return (
-          <Tag color={text === 'realtime' ? 'blue' : 'green'}>
-            {text === 'realtime' ? '实时算法任务' : '抓拍算法任务'}
+          <Tag color={item.color}>
+            {item.label}
           </Tag>
         );
       },
@@ -117,6 +123,7 @@ export function getFormConfig(): Partial<FormProps> {
             { value: '', label: '全部' },
             { value: 'realtime', label: '实时算法任务' },
             { value: 'snap', label: '抓拍算法任务' },
+            { value: 'patrol', label: '轮巡算法任务' },
           ],
         },
       },

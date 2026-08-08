@@ -1,4 +1,4 @@
-export type AlgorithmTaskSectionKey = 'basic' | 'camera' | 'model' | 'region' | 'alert' | 'alert_push';
+export type AlgorithmTaskSectionKey = 'basic' | 'camera' | 'patrol' | 'model' | 'region' | 'alert' | 'alert_push';
 
 export type AlgorithmTaskMode = 'wizard';
 
@@ -231,6 +231,25 @@ export interface AlertPushDraft {
 
 export type SnapIntervalUnit = 'second' | 'minute' | 'hour';
 
+export type PatrolGroupMode = 'auto' | 'manual';
+
+export interface PatrolGroupDraft {
+  group_id: string;
+  group_name: string;
+  device_ids: string[];
+  /** 每组分析时长（秒），手动分组时使用 */
+  analysis_duration_sec?: number;
+}
+
+export interface PatrolConfigDraft {
+  group_mode: PatrolGroupMode;
+  /** 自动分组：每组摄像头数量 */
+  cameras_per_group?: number;
+  /** 自动分组：每组分析时长（秒） */
+  analysis_duration_sec?: number;
+  groups: PatrolGroupDraft[];
+}
+
 export interface DefenseWeekScheduleEntry {
   week_start: string;
   week_end: string;
@@ -239,7 +258,9 @@ export interface DefenseWeekScheduleEntry {
 
 export interface AlgorithmTaskDraft {
   task_name: string;
-  task_type: 'realtime' | 'snap';
+  task_type: 'realtime' | 'snap' | 'patrol';
+  /** 轮巡任务分组配置（仅 patrol） */
+  patrol_config?: PatrolConfigDraft;
   analysis_mode: AnalysisMode;
   /** 抓拍间隔数值（仅抓拍任务） */
   snap_interval_value?: number;

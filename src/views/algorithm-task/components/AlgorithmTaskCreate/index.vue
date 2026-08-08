@@ -67,6 +67,7 @@ import {
   ExperimentOutlined,
   InfoCircleOutlined,
   NotificationOutlined,
+  SyncOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons-vue';
 import { BasicModal } from '@/components/Modal';
@@ -92,6 +93,7 @@ import { saveWizardDraft } from '../../utils/stores';
 import { setTaskMode } from '../../utils/stores';
 import BasicInfoSection from './sections/BasicInfoSection.vue';
 import CameraAlgorithmSection from './sections/CameraAlgorithmSection.vue';
+import PatrolSection from './sections/PatrolSection.vue';
 import ModelDetectionSection from './sections/ModelDetectionSection.vue';
 import RegionSection from './sections/RegionSection.vue';
 import AlertRuleSection from './sections/AlertRuleSection.vue';
@@ -123,16 +125,22 @@ const baseSectionList: Array<{
   label: string;
   icon: Component;
   component: Component;
+  patrolOnly?: boolean;
 }> = [
   { key: 'basic', label: '基础信息', icon: InfoCircleOutlined, component: BasicInfoSection },
   { key: 'camera', label: '摄像头与算法', icon: VideoCameraOutlined, component: CameraAlgorithmSection },
+  { key: 'patrol', label: '轮巡配置', icon: SyncOutlined, component: PatrolSection, patrolOnly: true },
   { key: 'model', label: '算法阈值', icon: ExperimentOutlined, component: ModelDetectionSection },
   { key: 'region', label: '区域选择', icon: BorderOutlined, component: RegionSection },
   { key: 'alert', label: '告警规则', icon: AlertOutlined, component: AlertRuleSection },
   { key: 'alert_push', label: '告警推送', icon: NotificationOutlined, component: AlertPushSection },
 ];
 
-const sectionList = computed(() => baseSectionList);
+const sectionList = computed(() => {
+  if (taskPayload.value.task_type === 'patrol')
+    return baseSectionList;
+  return baseSectionList.filter(item => !item.patrolOnly);
+});
 
 const sectionIndex = computed(() =>
   sectionList.value.findIndex(item => item.key === activeSection.value),
@@ -180,6 +188,7 @@ function normalizeInitialDraft(draft: AlgorithmTaskDraft): AlgorithmTaskDraft {
     regions: Array.isArray(draft.regions) ? draft.regions : [],
     alert_rules: Array.isArray(draft.alert_rules) ? draft.alert_rules : [],
     alert_push_configs: Array.isArray(draft.alert_push_configs) ? draft.alert_push_configs : [],
+    patrol_config: draft.patrol_config ?? undefined,
   } as AlgorithmTaskDraft;
   next.analysis_mode = next.task_type === 'realtime' && next.analysis_mode === 'dynamic'
     ? 'dynamic'
@@ -219,6 +228,14 @@ watch(open, (visible) => {
     submitting.value = false;
   }
 });
+
+watch(
+  () => taskPayload.value.task_type,
+  (type) => {
+    if (type !== 'patrol' && activeSection.value === 'patrol')
+      activeSection.value = 'camera';
+  },
+);
 
 function showValidationError(error: string) {
   createWarningModal({ title: '提示', content: error });

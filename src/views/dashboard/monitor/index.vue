@@ -1,132 +1,91 @@
 <template>
   <div class="overview-dashboard datav-dashboard">
     <header class="dashboard-heading">
-      <Decoration5 class="heading-decoration" :color="['#3b82f6', '#1e3a5f']" />
-      <div class="heading-main">
-        <div>
-          <div class="eyebrow">EASYAIOT EDGE</div>
-          <h1>首页看板</h1>
-          <p>设备、算法与告警态势实时汇总</p>
-        </div>
-        <div class="heading-actions">
-          <div class="period-tabs" role="tablist" aria-label="统计周期">
-            <button
-              v-for="item in periodOptions"
-              :key="item.value"
-              :class="['period-tab', { active: selectedPeriod === item.value }]"
-              role="tab"
-              :aria-selected="selectedPeriod === item.value"
-              @click="selectedPeriod = item.value"
-            >
-              {{ item.label }}
-            </button>
-          </div>
-          <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
-            <Icon icon="ant-design:reload-outlined" :size="16" />
-            {{ loading ? '刷新中' : '刷新数据' }}
-          </button>
-        </div>
+      <div class="heading-title-center">
+        <div class="heading-eyebrow">EASYAIOT EDGE</div>
+        <h1 class="heading-title">边缘智能算法应用平台</h1>
       </div>
+      <Decoration5
+        ref="decorationRef"
+        class="heading-decoration"
+        :dur="DECORATION_ANIM_DUR"
+        :color="['#3b82f6', '#1e3a5f']"
+      />
     </header>
 
-    <section class="metric-grid" aria-label="数据统计">
-      <BorderBox13
-        v-for="metric in metrics"
-        :key="metric.label"
-        class="metric-border"
-        :color="['#3b82f6aa', '#1e3a5faa']"
-        background-color="rgba(8, 18, 36, 0.72)"
-      >
-        <article class="metric-card">
-          <div class="metric-icon" :style="{ color: metric.color, backgroundColor: `${metric.color}18` }">
-            <Icon :icon="metric.icon" :size="22" />
+    <section class="dashboard-body fade-in fade-in-delayed">
+      <!-- 左上：时间 -->
+      <BorderBox13 class="panel-border time-panel" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
+        <article class="panel time-panel-inner">
+          <div class="time-panel-clock">
+            <div class="datetime-date">{{ currentDate }}</div>
+            <div class="datetime-clock">{{ currentTime }}</div>
           </div>
-          <div>
-            <div class="metric-label">{{ metric.label }}</div>
-            <div class="metric-value">{{ metric.value }}</div>
-            <div class="metric-hint">{{ metric.hint }}</div>
-          </div>
-        </article>
-      </BorderBox13>
-    </section>
-
-    <section class="dashboard-grid">
-      <BorderBox13 class="panel-border" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
-        <article class="panel stats-panel">
-          <div class="panel-title-row ranking-title-row">
-            <div>
-              <span class="panel-kicker">报警统计</span>
-              <h2>报警排行</h2>
+          <div class="heading-actions time-panel-actions">
+            <div class="period-tabs" role="tablist" aria-label="统计周期">
+              <button
+                v-for="item in periodOptions"
+                :key="item.value"
+                :class="['period-tab', { active: selectedPeriod === item.value }]"
+                role="tab"
+                :aria-selected="selectedPeriod === item.value"
+                @click="selectedPeriod = item.value"
+              >
+                {{ item.label }}
+              </button>
             </div>
-            <div class="ranking-title-actions">
-              <div class="stats-tabs" role="tablist" aria-label="报警排行类型">
-                <button
-                  :class="['stats-tab', { active: statsTab === 'algorithm' }]"
-                  role="tab"
-                  :aria-selected="statsTab === 'algorithm'"
-                  @click="statsTab = 'algorithm'"
-                >
-                  算法
-                </button>
-                <button
-                  :class="['stats-tab', { active: statsTab === 'camera' }]"
-                  role="tab"
-                  :aria-selected="statsTab === 'camera'"
-                  @click="statsTab = 'camera'"
-                >
-                  摄像头
-                </button>
-              </div>
-              <div v-if="statsTab === 'camera'" class="mode-toggle">
-                <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
-                <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
-              </div>
-              <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
-            </div>
-          </div>
-
-          <div v-if="statsTab === 'algorithm'" class="stats-tab-panel">
-            <div v-if="algorithmRanking.length" class="donut-section">
-              <div class="donut" :style="donutStyle">
-                <div class="donut-center">
-                  <strong>{{ currentPeriod.alarm_count }}</strong>
-                  <span>报警总数</span>
-                </div>
-              </div>
-              <div class="legend-list">
-                <div v-for="(item, index) in algorithmRanking" :key="item.name" class="legend-row">
-                  <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }"></span>
-                  <span class="legend-name" :title="item.name">{{ item.name }}</span>
-                  <strong>{{ item.count }}</strong>
-                  <span>{{ item.percentage.toFixed(1) }}%</span>
-                </div>
-              </div>
-            </div>
-            <div v-else class="empty-state">当前周期暂无算法报警</div>
-          </div>
-
-          <div v-else class="stats-tab-panel">
-            <div v-if="displayRanking.length" class="ranking-list">
-              <div v-for="(item, index) in displayRanking.slice(0, 8)" :key="`${rankingMode}-${item.name}`" class="ranking-row">
-                <span :class="['rank-number', { top: index < 3 }]">{{ index + 1 }}</span>
-                <div class="rank-content">
-                  <div class="rank-meta">
-                    <span :title="item.name">{{ item.name }}</span>
-                    <strong>{{ item.count }} 次</strong>
-                  </div>
-                  <div class="rank-track">
-                    <span :style="{ width: `${rankingWidth(item.count)}%` }"></span>
-                  </div>
-                  <small v-if="rankingMode === 'camera'">{{ item.directory_name || '未分组' }}</small>
-                </div>
-              </div>
-            </div>
-            <div v-else class="empty-state">当前周期暂无摄像头报警</div>
+            <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
+              <Icon icon="ant-design:reload-outlined" :size="16" />
+              {{ loading ? '刷新中' : '刷新数据' }}
+            </button>
           </div>
         </article>
       </BorderBox13>
 
-      <BorderBox13 class="panel-border video-border" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
+      <!-- 左中：四指标合成 -->
+      <BorderBox13 class="panel-border metrics-panel" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
+        <article class="panel metrics-combo-panel">
+          <div class="metrics-combo">
+            <div
+              class="metric-feature"
+              :style="{ '--metric-color': metrics[0].color }"
+            >
+              <div
+                class="metric-feature-icon"
+                :style="{ color: metrics[0].color, backgroundColor: `${metrics[0].color}24`, borderColor: `${metrics[0].color}4d` }"
+              >
+                <Icon :icon="metrics[0].icon" :size="28" />
+              </div>
+              <div class="metric-feature-label">{{ metrics[0].label }}</div>
+              <div class="metric-feature-value">{{ displayMetricValues[0] ?? 0 }}</div>
+              <div class="metric-feature-hint">{{ metrics[0].hint }}</div>
+            </div>
+            <div class="metric-side-list">
+              <div
+                v-for="(metric, index) in metrics.slice(1)"
+                :key="metric.key"
+                class="metric-side-item"
+                :style="{ '--metric-color': metric.color }"
+              >
+                <div
+                  class="metric-side-icon"
+                  :style="{ color: metric.color, backgroundColor: `${metric.color}24`, borderColor: `${metric.color}4d` }"
+                >
+                  <Icon :icon="metric.icon" :size="18" />
+                </div>
+                <div class="metric-side-body">
+                  <div class="metric-side-label">{{ metric.label }}</div>
+                  <div class="metric-side-value">{{ displayMetricValues[index + 1] ?? 0 }}</div>
+                </div>
+                <div class="metric-side-hint">{{ metric.hint }}</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </BorderBox13>
+
+      <!-- 中上：视频 -->
+      <BorderBox13 class="panel-border video-panel-wrap" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
         <article class="panel video-panel">
         <div class="panel-title-row video-title-row">
           <div>
@@ -138,33 +97,32 @@
           </span>
         </div>
 
-        <div class="video-filters">
-          <Select
-            v-model:value="selectedTaskId"
-            class="filter-select"
-            placeholder="选择算法任务"
-            :loading="tasksLoading"
-            :options="taskOptions"
-            @change="handleTaskChange"
-          />
-          <Select
-            v-model:value="selectedCameraId"
-            class="filter-select"
-            placeholder="选择任务摄像头"
-            :disabled="!selectedTaskId"
-            :options="cameraOptions"
-          />
-          <Select
-            v-model:value="selectedAlgorithm"
-            class="filter-select"
-            placeholder="选择任务算法"
-            allow-clear
-            :disabled="!selectedTaskId"
-            :options="algorithmOptions"
-          />
-        </div>
-
         <div class="video-stage">
+          <div class="video-filters video-filters--overlay">
+            <Select
+              v-model:value="selectedTaskId"
+              class="filter-select"
+              placeholder="选择算法任务"
+              :loading="tasksLoading"
+              :options="taskOptions"
+              @change="handleTaskChange"
+            />
+            <Select
+              v-model:value="selectedCameraId"
+              class="filter-select"
+              placeholder="选择任务摄像头"
+              :disabled="!selectedTaskId"
+              :options="cameraOptions"
+            />
+            <Select
+              v-model:value="selectedAlgorithm"
+              class="filter-select"
+              placeholder="选择任务算法"
+              allow-clear
+              :disabled="!selectedTaskId"
+              :options="algorithmOptions"
+            />
+          </div>
           <Jessibuca
             v-if="currentStreamUrl"
             :key="currentStreamUrl"
@@ -187,7 +145,8 @@
         </article>
       </BorderBox13>
 
-      <BorderBox13 class="panel-border alarm-panel-border" :color="['#ef4444aa', '#3b82f6aa']" background-color="rgba(8, 18, 36, 0.82)">
+      <!-- 右侧：告警列表（通栏） -->
+      <BorderBox13 class="panel-border alarm-panel-wrap" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.82)">
         <section class="panel alarm-side-panel">
           <div class="panel-title-row alarm-title-row">
             <div>
@@ -196,12 +155,11 @@
             </div>
             <span class="panel-total">今日 {{ todayAlarmCount }} 次</span>
           </div>
-          <p class="alarm-tip">点击缩略图查看大图</p>
           <div class="alarm-feed">
             <article
               v-for="alarm in alarmList"
               :key="alarm.id"
-              class="alarm-feed-item"
+              class="alarm-feed-item alarm-card"
             >
               <button
                 type="button"
@@ -215,22 +173,25 @@
                   alt="告警截图"
                   @error="markAlarmImageBroken(alarm.id)"
                 />
-                <Icon v-else icon="ant-design:picture-outlined" :size="28" />
+                <Icon v-else icon="ant-design:picture-outlined" :size="22" />
+                <span v-if="getAlarmImageUrl(alarm) && !isAlarmImageBroken(alarm.id)" class="alarm-thumb-zoom">
+                  <Icon icon="ant-design:zoom-in-outlined" :size="22" />
+                </span>
               </button>
               <div class="alarm-feed-body">
-                <div class="alarm-feed-title" :title="alarm.event || alarm.title">
-                  {{ alarm.event || alarm.title || '未知事件' }}
+                <div class="alarm-feed-head">
+                  <span class="alarm-feed-title" :title="getAlarmTitle(alarm)">
+                    {{ getAlarmTitle(alarm) }}
+                  </span>
+                  <span v-if="isRealtimeAlarm(alarm)" class="alarm-tag-live">实时</span>
                 </div>
                 <div class="alarm-feed-row">
-                  <span class="alarm-feed-label">时间</span>
+                  <span class="alarm-feed-label">时间：</span>
                   <span class="alarm-feed-value" :title="alarm.time">{{ alarm.time || '-' }}</span>
                 </div>
                 <div class="alarm-feed-row">
-                  <span class="alarm-feed-label">位置</span>
+                  <span class="alarm-feed-label">摄像头：</span>
                   <span class="alarm-feed-value" :title="alarm.device_name">{{ alarm.device_name || '未知设备' }}</span>
-                </div>
-                <div class="alarm-feed-footer">
-                  <span class="alarm-feed-tag">{{ getAlarmTaskTypeLabel(alarm) }}</span>
                 </div>
               </div>
             </article>
@@ -238,6 +199,75 @@
           </div>
         </section>
       </BorderBox13>
+
+      <!-- 底部：摄像头（左）+ 算法（中） -->
+      <div class="rankings-bottom-row">
+      <BorderBox13 class="panel-border ranking-camera-panel" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
+        <article class="panel stats-panel">
+          <div class="panel-title-row ranking-title-row">
+            <div>
+              <h2>摄像头排行</h2>
+            </div>
+            <div class="ranking-title-actions">
+              <div class="mode-toggle">
+                <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
+                <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="displayRanking.length" class="stats-tab-panel">
+            <div class="ranking-list">
+              <div v-for="(item, index) in displayRanking.slice(0, 8)" :key="`${rankingMode}-${item.name}`" class="ranking-row">
+                <span :class="['rank-number', { top: index < 3 }]">{{ index + 1 }}</span>
+                <div class="rank-content">
+                  <div class="rank-meta">
+                    <span :title="item.name">{{ item.name }}</span>
+                    <strong>{{ item.count }} 次</strong>
+                  </div>
+                  <div class="rank-track">
+                    <span :style="{ width: `${rankingWidth(item.count)}%` }"></span>
+                  </div>
+                  <small v-if="rankingMode === 'camera'">{{ item.directory_name || '未分组' }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">当前周期暂无摄像头报警</div>
+        </article>
+      </BorderBox13>
+
+      <BorderBox13 class="panel-border ranking-algo-panel" :color="['#3b82f6aa', '#1e3a5faa']" background-color="rgba(8, 18, 36, 0.72)">
+        <article class="panel stats-panel">
+          <div class="panel-title-row ranking-title-row">
+            <div>
+              <h2>算法排行</h2>
+            </div>
+            <span class="panel-total">{{ currentPeriod.alarm_count }} 次</span>
+          </div>
+
+          <div v-if="algorithmRanking.length" class="stats-tab-panel">
+            <div class="donut-section ranking-algo-donut-section">
+              <div class="donut" :style="donutStyle">
+                <div class="donut-center">
+                  <strong>{{ currentPeriod.alarm_count }}</strong>
+                  <span>报警总数</span>
+                </div>
+              </div>
+              <div class="legend-list">
+                <div v-for="(item, index) in algorithmRanking" :key="item.name" class="legend-row">
+                  <span class="legend-dot" :style="{ backgroundColor: chartColors[index % chartColors.length] }"></span>
+                  <span class="legend-name" :title="item.name">{{ item.name }}</span>
+                  <strong>{{ item.count }}</strong>
+                  <span>{{ item.percentage.toFixed(1) }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">当前周期暂无算法报警</div>
+        </article>
+      </BorderBox13>
+      </div>
     </section>
 
     <ImageModal @register="registerImageModal" />
@@ -245,7 +275,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Select } from 'ant-design-vue'
 import { BorderBox13, Decoration5 } from '@kjgl77/datav-vue3'
 import { Icon } from '@/components/Icon'
@@ -266,7 +296,6 @@ defineOptions({ name: 'MonitorDashboard' })
 
 type PeriodKey = 'today' | 'week' | 'month'
 type RankingMode = 'camera' | 'directory'
-type StatsTab = 'algorithm' | 'camera'
 
 interface RankingItem {
   name: string
@@ -296,15 +325,59 @@ const emptyPeriod = (label: string): PeriodStatistics => ({
   directory_ranking: [],
 })
 
+const DECORATION_ANIM_DUR = 2
+
 const { createMessage } = useMessage()
 const [registerImageModal, { openModal: openImageModal }] = useModal()
+const decorationRef = ref<InstanceType<typeof Decoration5> | null>(null)
+const currentDate = ref('')
+const currentTime = ref('')
 const loading = ref(false)
 const tasksLoading = ref(false)
 const alarmList = ref<any[]>([])
 const brokenAlarmImages = ref<Set<number>>(new Set())
+const displayMetricValues = ref<number[]>([0, 0, 0, 0])
 let alarmRefreshTimer: number | undefined
+let clockTimer: number | undefined
+let metricAnimFrame: number | undefined
+
+function animateMetricValues(targets: number[]) {
+  if (metricAnimFrame)
+    cancelAnimationFrame(metricAnimFrame)
+  const starts = targets.map((_, index) => displayMetricValues.value[index] ?? 0)
+  const duration = 900
+  const startedAt = performance.now()
+  function tick(now: number) {
+    const progress = Math.min((now - startedAt) / duration, 1)
+    const eased = 1 - (1 - progress) ** 3
+    displayMetricValues.value = targets.map((target, index) =>
+      Math.round(starts[index] + (target - starts[index]) * eased),
+    )
+    if (progress < 1)
+      metricAnimFrame = requestAnimationFrame(tick)
+  }
+  metricAnimFrame = requestAnimationFrame(tick)
+}
+
+function playDecorationOnce() {
+  const root = decorationRef.value?.$el as HTMLElement | undefined
+  if (!root)
+    return
+  root.querySelectorAll('animate').forEach((anim) => {
+    anim.setAttribute('repeatCount', '1')
+  })
+}
+
+function updateDateTime() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  currentDate.value = `${year}年${month}月${day}日 ${weekDays[now.getDay()]}`
+  currentTime.value = now.toLocaleTimeString('zh-CN', { hour12: false })
+}
 const selectedPeriod = ref<PeriodKey>('today')
-const statsTab = ref<StatsTab>('algorithm')
 const rankingMode = ref<RankingMode>('camera')
 const periodOptions = [
   { label: '今日', value: 'today' as PeriodKey },
@@ -339,12 +412,61 @@ const displayRanking = computed(() => (
     : currentPeriod.value.directory_ranking || []
 ))
 
-const metrics = computed(() => [
-  { label: `${currentPeriod.value.label}报警`, value: currentPeriod.value.alarm_count, hint: '报警事件总量', icon: 'ant-design:alert-outlined', color: '#ef4444' },
-  { label: '活跃摄像头', value: currentPeriod.value.active_camera_count, hint: `设备总数 ${statistics.value.camera_count}`, icon: 'ant-design:video-camera-outlined', color: '#3b82f6' },
-  { label: '触发算法', value: currentPeriod.value.active_algorithm_count, hint: `任务总数 ${statistics.value.algorithm_count}`, icon: 'ant-design:deployment-unit-outlined', color: '#8b5cf6' },
-  { label: '模型总数', value: statistics.value.model_count, hint: '已接入算法模型', icon: 'ant-design:cluster-outlined', color: '#22c55e' },
-])
+const metrics = computed(() => {
+  const cameraTotal = statistics.value.camera_count
+  const cameraActive = currentPeriod.value.active_camera_count
+  const cameraRate = cameraTotal
+    ? ((cameraActive / cameraTotal) * 100).toFixed(1)
+    : '0.0'
+
+  const algorithmTotal = statistics.value.algorithm_count
+  const algorithmActive = currentPeriod.value.active_algorithm_count
+  const algorithmRate = algorithmTotal
+    ? ((algorithmActive / algorithmTotal) * 100).toFixed(1)
+    : '0.0'
+
+  const modelCount = statistics.value.model_count
+
+  return [
+    {
+      key: 'alarm',
+      label: `${currentPeriod.value.label}报警`,
+      value: currentPeriod.value.alarm_count,
+      hint: '报警事件总量',
+      icon: 'ant-design:alert-outlined',
+      color: '#f87171',
+    },
+    {
+      key: 'camera',
+      label: '活跃摄像头',
+      value: cameraActive,
+      hint: `设备总数 ${cameraTotal} · 在线率 ${cameraRate}%`,
+      icon: 'ant-design:video-camera-outlined',
+      color: '#22d3ee',
+    },
+    {
+      key: 'algorithm',
+      label: '触发算法',
+      value: algorithmActive,
+      hint: `任务总数 ${algorithmTotal} · 触发占比 ${algorithmRate}%`,
+      icon: 'ant-design:deployment-unit-outlined',
+      color: '#a78bfa',
+    },
+    {
+      key: 'model',
+      label: '模型总数',
+      value: modelCount,
+      hint: modelCount ? '已接入算法模型' : '已接入算法模型 · 待接入',
+      icon: 'ant-design:cluster-outlined',
+      color: '#34d399',
+    },
+  ]
+})
+
+watch(
+  () => metrics.value.map(metric => metric.value),
+  values => animateMetricValues(values),
+)
 
 const todayAlarmCount = computed(() => statistics.value.periods.today?.alarm_count ?? 0)
 
@@ -486,22 +608,48 @@ function markAlarmImageBroken(id?: number) {
     brokenAlarmImages.value.add(id)
 }
 
-function getAlarmTaskTypeLabel(alarm: any) {
-  let taskType = alarm.task_type
-  if (!taskType && alarm.information) {
+function isRealtimeAlarm(alarm: any) {
+  const taskType = String(alarm?.task_type || alarm?.taskType || '').toLowerCase()
+  if (taskType === 'realtime' || taskType === 'real_time')
+    return true
+  if (alarm?.information) {
     try {
       const info = typeof alarm.information === 'string'
         ? JSON.parse(alarm.information)
         : alarm.information
-      taskType = info?.task_type
+      const infoType = String(info?.task_type || info?.taskType || '').toLowerCase()
+      return infoType === 'realtime' || infoType === 'real_time'
     }
     catch {
-      taskType = undefined
+      return false
     }
   }
-  if (taskType === 'snap' || taskType === 'snapshot')
-    return '抓拍'
-  return '实时'
+  return false
+}
+
+function getAlarmTitle(alarm: any) {
+  if (alarm.task_name)
+    return alarm.task_name
+  if (alarm.title)
+    return alarm.title
+  if (alarm.event)
+    return alarm.event
+  if (alarm.object)
+    return alarm.object
+  if (alarm.rule_name)
+    return alarm.rule_name
+  if (alarm.information) {
+    try {
+      const info = typeof alarm.information === 'string'
+        ? JSON.parse(alarm.information)
+        : alarm.information
+      return info?.task_name || info?.title || info?.event || info?.object || info?.rule_name || '未知任务'
+    }
+    catch {
+      return '未知任务'
+    }
+  }
+  return '未知任务'
 }
 
 function handleAlarmPreview(alarm: any) {
@@ -576,7 +724,11 @@ async function refreshDashboard() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  updateDateTime()
+  clockTimer = window.setInterval(updateDateTime, 1000)
+  await nextTick()
+  playDecorationOnce()
   refreshDashboard()
   alarmRefreshTimer = window.setInterval(loadAlarmList, 30000)
 })
@@ -584,11 +736,16 @@ onMounted(() => {
 onUnmounted(() => {
   if (alarmRefreshTimer)
     window.clearInterval(alarmRefreshTimer)
+  if (clockTimer)
+    window.clearInterval(clockTimer)
+  if (metricAnimFrame)
+    cancelAnimationFrame(metricAnimFrame)
 })
 </script>
 
 <style lang="less" scoped>
 .overview-dashboard {
+  position: relative;
   box-sizing: border-box;
   display: flex;
   height: calc(100vh - 112px);
@@ -596,11 +753,59 @@ onUnmounted(() => {
   padding: 20px 28px 24px;
   overflow: hidden;
   color: #dce8ff;
-  background:
-    radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.16), transparent 32%),
-    radial-gradient(circle at 100% 0, rgba(239, 68, 68, 0.08), transparent 28%),
-    #07111f;
+  background: #070b16;
   flex-direction: column;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 500px at 15% -10%, rgba(61, 123, 255, 0.16), transparent 60%),
+      radial-gradient(800px 500px at 85% -10%, rgba(34, 211, 238, 0.10), transparent 60%),
+      radial-gradient(700px 600px at 50% 110%, rgba(61, 123, 255, 0.08), transparent 60%);
+    content: '';
+    z-index: 0;
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(93, 140, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(93, 140, 255, 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    content: '';
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 100%);
+    opacity: 0.35;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-up 0.5s ease both;
+}
+
+.fade-in-delayed {
+  animation-delay: 0.08s;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .datav-dashboard {
@@ -615,22 +820,51 @@ onUnmounted(() => {
   position: relative;
   margin-bottom: 14px;
   flex-shrink: 0;
+}
 
-  h1 { margin: 2px 0 4px; font-size: 28px; line-height: 1.2; font-weight: 700; color: #f8fbff; }
-  p { margin: 0; color: #8ea3c7; }
+.heading-title-center {
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.heading-eyebrow {
+  margin-bottom: 6px;
+  color: #22d3ee;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.heading-title {
+  margin: 0;
+  background: linear-gradient(90deg, #fff, #a9c2ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
 }
 
 .heading-decoration {
   width: 100%;
   height: 42px;
-  margin-bottom: 8px;
 }
 
-.heading-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+.datetime-date {
+  color: #8ea3c7;
+  font-size: 13px;
+}
+
+.datetime-clock {
+  margin-top: 4px;
+  color: #f8fbff;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
 .eyebrow, .panel-kicker {
@@ -643,16 +877,30 @@ onUnmounted(() => {
 .refresh-button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   height: 38px;
-  padding: 0 16px;
+  padding: 0 18px;
   color: #fff;
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  font-size: 13px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #2f6bff, #1fb6ff);
   border: 0;
   border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(47, 107, 255, 0.4);
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
-  &:disabled { opacity: .55; cursor: wait; }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 22px rgba(47, 107, 255, 0.55);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+  }
 }
 
 .heading-actions {
@@ -664,39 +912,220 @@ onUnmounted(() => {
 
 .period-tabs {
   display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(96, 165, 250, 0.18);
+  gap: 2px;
+  padding: 3px;
+  background: rgba(13, 20, 40, 0.8);
+  border: 1px solid rgba(93, 140, 255, 0.14);
   border-radius: 10px;
   flex-shrink: 0;
 }
 
-.period-tab, .mode-toggle button, .stats-tab {
+.period-tab, .mode-toggle button {
   border: 0;
   cursor: pointer;
-  transition: .2s ease;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .period-tab {
-  min-width: 76px;
-  padding: 8px 18px;
-  color: #9fb4d9;
+  min-width: 72px;
+  padding: 6px 16px;
+  color: #8fa1c4;
+  font-size: 12.5px;
   background: transparent;
-  border-radius: 7px;
-  &.active { color: #f8fbff; background: rgba(59, 130, 246, 0.28); box-shadow: 0 3px 12px rgba(31, 45, 75, .18); }
+  border-radius: 8px;
+
+  &.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(61, 123, 255, 0.5), rgba(34, 211, 238, 0.25));
+    box-shadow: 0 2px 10px rgba(61, 123, 255, 0.3);
+  }
 }
 
-.metric-grid {
+.dashboard-body {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 14px;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1;
+  grid-template-columns: minmax(250px, 0.9fr) minmax(200px, 0.75fr) minmax(200px, 0.75fr) minmax(270px, 1fr);
+  grid-template-rows: minmax(132px, auto) 1fr minmax(200px, 0.85fr);
+  grid-template-areas:
+    "time    video video  alarms"
+    "metrics video video  alarms"
+    "camera  algo  algo   alarms";
+}
+
+.time-panel { grid-area: time; min-height: 132px; }
+.metrics-panel { grid-area: metrics; min-height: 0; }
+.video-panel-wrap { grid-area: video; min-height: 0; }
+.alarm-panel-wrap { grid-area: alarms; min-height: 0; }
+.rankings-bottom-row { display: contents; }
+
+.ranking-camera-panel { grid-area: camera; min-height: 0; }
+.ranking-algo-panel { grid-area: algo; min-height: 0; }
+
+.time-panel-inner {
+  display: flex;
+  height: 100%;
+  min-height: 132px;
+  padding: 16px 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-panel-clock {
   flex-shrink: 0;
 }
 
-.metric-border {
-  min-height: 96px;
+.time-panel-actions {
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metrics-combo-panel {
+  padding: 14px 16px !important;
+}
+
+.metrics-combo {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  gap: 12px;
+}
+
+.metric-feature {
+  position: relative;
+  display: flex;
+  width: 42%;
+  min-width: 0;
+  padding: 14px 12px;
+  overflow: hidden;
+  background: rgba(13, 20, 40, 0.55);
+  border: 1px solid rgba(93, 140, 255, 0.14);
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  &::after {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--metric-color, #3d7bff), transparent);
+    content: '';
+    opacity: 0.85;
+  }
+}
+
+.metric-feature-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 10px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.metric-feature-label {
+  color: #8fa1c4;
+  font-size: 12px;
+}
+
+.metric-feature-value {
+  margin-top: 6px;
+  color: #eef3ff;
+  font-family: 'DIN Alternate', 'Bahnschrift', 'Segoe UI', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-feature-hint {
+  margin-top: 4px;
+  color: #5a6a8c;
+  font-size: 10px;
+}
+
+.metric-side-list {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.metric-side-item {
+  display: grid;
+  padding: 8px 10px;
+  background: rgba(13, 20, 40, 0.45);
+  border: 1px solid rgba(93, 140, 255, 0.1);
+  border-radius: 10px;
+  align-items: center;
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: auto auto;
+  gap: 0 10px;
+}
+
+.metric-side-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  grid-row: 1 / span 2;
+}
+
+.metric-side-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  grid-column: 2;
+}
+
+.metric-side-label {
+  overflow: hidden;
+  color: #8fa1c4;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-side-value {
+  color: #eef3ff;
+  font-family: 'DIN Alternate', 'Bahnschrift', 'Segoe UI', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-side-hint {
+  overflow: hidden;
+  color: #5a6a8c;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  grid-column: 2;
+}
+
+.panel-border {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  transition: transform 0.25s ease, filter 0.25s ease;
+
+  &:hover {
+    filter: brightness(1.04);
+  }
 }
 
 .metric-card, .panel {
@@ -705,62 +1134,10 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-.metric-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 96px;
-  padding: 16px 20px;
-  border-radius: 14px;
-}
-
-.metric-icon { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 13px; }
-.metric-label { color: #8ea3c7; font-size: 13px; }
-.metric-value { margin: 2px 0; color: #f8fbff; font-size: 28px; font-weight: 700; line-height: 1.1; }
-.metric-hint { color: #6f86ad; font-size: 11px; }
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: minmax(250px, .9fr) minmax(420px, 1.5fr) minmax(270px, 1fr);
-  gap: 14px;
-  min-height: 0;
-  overflow: hidden;
-  flex: 1;
-}
-
-.panel-border {
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
 .panel { display: flex; min-width: 0; height: 100%; padding: 20px; border-radius: 14px; flex-direction: column; }
-.panel-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.panel-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-shrink: 0; }
 .panel-title-row h2 { margin: 3px 0 0; color: #f8fbff; font-size: 18px; font-weight: 650; }
 .panel-total { padding: 5px 9px; color: #fca5a5; font-size: 12px; background: rgba(239, 68, 68, 0.16); border-radius: 999px; flex-shrink: 0; }
-
-.stats-tabs {
-  display: inline-flex;
-  padding: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.stats-tab {
-  min-width: 64px;
-  padding: 6px 12px;
-  color: #8ea3c7;
-  font-size: 12px;
-  background: transparent;
-  border-radius: 6px;
-
-  &.active {
-    color: #f8fbff;
-    background: rgba(59, 130, 246, 0.24);
-    box-shadow: 0 2px 7px rgba(32, 45, 72, 0.08);
-  }
-}
 
 .stats-tab-panel {
   display: flex;
@@ -771,7 +1148,11 @@ onUnmounted(() => {
 
 .ranking-title-row {
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.ranking-title-row h2 {
+  margin: 0;
 }
 
 .ranking-title-actions {
@@ -785,7 +1166,59 @@ onUnmounted(() => {
   min-height: 0;
 }
 
-.donut-section { display: flex; flex: 1; align-items: center; justify-content: center; gap: 20px; min-height: 0; flex-direction: column; }
+.donut-section {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.ranking-algo-donut-section {
+  display: grid;
+  grid-template-columns: auto 1fr minmax(170px, 38%);
+  align-items: start;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+
+.ranking-algo-donut-section .donut {
+  grid-column: 1;
+  align-self: start;
+  margin-left: 52px;
+  transform: rotate(-90deg) translateY(-8px);
+}
+
+.ranking-algo-panel .donut {
+  width: 132px;
+  height: 132px;
+}
+
+.ranking-algo-panel .donut::after {
+  width: 80px;
+  height: 80px;
+}
+
+.ranking-algo-panel .donut-center strong {
+  font-size: 22px;
+}
+
+.ranking-algo-panel .legend-list {
+  grid-column: 3;
+  align-self: start;
+  width: 100%;
+  min-height: 0;
+  padding-top: 6px;
+  padding-left: 14px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(93, 140, 255, 0.12);
+  flex: unset;
+}
+
 .donut { position: relative; display: grid; width: 168px; height: 168px; flex-shrink: 0; place-items: center; border-radius: 50%; transform: rotate(-90deg); }
 .donut::after { width: 100px; height: 100px; background: #07111f; border-radius: 50%; content: ''; }
 .donut-center { position: absolute; z-index: 1; display: flex; align-items: center; color: #f8fbff; transform: rotate(90deg); flex-direction: column; }
@@ -801,7 +1234,50 @@ onUnmounted(() => {
 .video-title-row { margin-bottom: 14px; }
 .stream-status { padding: 5px 9px; color: #8ea3c7; font-size: 11px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; }
 .stream-status.online { color: #86efac; background: rgba(34, 197, 94, 0.14); }
-.video-filters { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.video-filters {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 8px;
+}
+
+.video-filters--overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  padding: 0 0 12px;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 18, 36, 0.82) 0%,
+    rgba(8, 18, 36, 0.52) 72%,
+    transparent 100%
+  );
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.video-filters--overlay :deep(.ant-select-selector) {
+  background: rgba(15, 28, 50, 0.55) !important;
+  border-color: rgba(96, 165, 250, 0.32) !important;
+  color: #e2ebff;
+}
+
+.video-filters--overlay :deep(.ant-select-selection-item),
+.video-filters--overlay :deep(.ant-select-selection-placeholder) {
+  color: rgba(226, 235, 255, 0.88);
+}
+
+.video-filters--overlay :deep(.ant-select-arrow),
+.video-filters--overlay :deep(.ant-select-clear) {
+  color: rgba(226, 235, 255, 0.65);
+}
+
+.video-filters--overlay :deep(.ant-select-disabled .ant-select-selector) {
+  background: rgba(15, 28, 50, 0.35) !important;
+  border-color: rgba(96, 165, 250, 0.18) !important;
+}
+
 .filter-select { width: 100%; }
 .video-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #09111f; border: 1px solid #25324a; border-radius: 12px; }
 .video-player { width: 100%; height: 100%; }
@@ -854,9 +1330,9 @@ onUnmounted(() => {
 
 .alarm-feed {
   display: flex;
-  gap: 12px;
-  min-height: 0;
-  padding-right: 4px;
+  gap: 10px;
+  min-height: 120px;
+  padding-right: 2px;
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
@@ -864,38 +1340,41 @@ onUnmounted(() => {
 }
 
 .alarm-feed-item {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(96, 165, 250, 0.18);
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px;
+  background: rgba(13, 20, 40, 0.7);
+  border: 1px solid rgba(93, 140, 255, 0.12);
+  border-left: 0;
   border-radius: 12px;
   flex-shrink: 0;
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  cursor: pointer;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
 
   &:hover {
-    background: rgba(59, 130, 246, 0.08);
-    border-color: rgba(96, 165, 250, 0.35);
-    box-shadow: 0 0 18px rgba(59, 130, 246, 0.1);
+    background: rgba(19, 28, 54, 0.85);
+    border-color: rgba(93, 140, 255, 0.4);
+    transform: translateX(-2px);
   }
 }
 
 .alarm-thumb {
+  position: relative;
   display: grid;
-  width: 38%;
-  min-width: 110px;
-  max-width: 160px;
-  flex: 0 0 38%;
+  width: 128px;
+  height: auto;
+  min-height: 0;
+  flex: 0 0 128px;
+  aspect-ratio: 16 / 10;
   place-items: center;
   overflow: hidden;
   color: #6f86ad;
   background: rgba(255, 255, 255, 0.04);
-  border: 0;
-  border-right: 1px solid rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(93, 140, 255, 0.15);
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform .2s ease;
+  transition: border-color 0.2s ease;
 
   img {
     width: 100%;
@@ -904,43 +1383,75 @@ onUnmounted(() => {
   }
 
   &:hover:not(:disabled) {
-    transform: scale(1.02);
+    border-color: rgba(96, 165, 250, 0.45);
+
+    .alarm-thumb-zoom {
+      opacity: 1;
+    }
   }
 
   &:disabled {
     cursor: default;
-    opacity: .75;
+    opacity: 0.75;
   }
+}
+
+.alarm-thumb-zoom {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  color: #fff;
+  background: rgba(7, 11, 22, 0.45);
+  opacity: 0;
+  place-items: center;
+  transition: opacity 0.2s ease;
 }
 
 .alarm-feed-body {
   display: flex;
   min-width: 0;
-  padding: 12px 14px;
   flex: 1;
   flex-direction: column;
-  justify-content: space-between;
+}
+
+.alarm-feed-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .alarm-feed-title {
   overflow: hidden;
-  margin-bottom: 8px;
-  color: #f8fbff;
-  font-size: 14px;
-  font-weight: 650;
+  color: #eef3ff;
+  font-size: 13.5px;
+  font-weight: 600;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.alarm-tag-live {
+  padding: 2px 7px;
+  color: #34d399;
+  font-size: 10px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .alarm-feed-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 5px;
+  gap: 8px;
+  margin-top: 4px;
   min-width: 0;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .alarm-feed-label {
@@ -950,28 +1461,11 @@ onUnmounted(() => {
 
 .alarm-feed-value {
   overflow: hidden;
-  color: #dce8ff;
+  color: #b6c7e4;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-}
-
-.alarm-feed-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.alarm-feed-tag {
-  padding: 3px 10px;
-  color: #bfdbfe;
-  font-size: 11px;
-  background: rgba(59, 130, 246, 0.18);
-  border: 1px solid rgba(96, 165, 250, 0.24);
-  border-radius: 999px;
-  flex-shrink: 0;
 }
 
 @media (max-width: 1280px) {
@@ -981,28 +1475,60 @@ onUnmounted(() => {
     overflow: auto;
   }
 
-  .dashboard-grid {
-    grid-template-columns: 1fr 1.5fr;
-    min-height: 520px;
+  .dashboard-body {
+    grid-template-columns: minmax(240px, 280px) 1fr 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "time    video video"
+      "metrics video video"
+      "alarms  alarms  alarms"
+      "camera  algo  algo";
+    min-height: 720px;
   }
 
-  .alarm-panel-border { grid-column: 1 / -1; }
-  .stats-panel { grid-column: auto; }
+  .alarm-panel-wrap { min-height: 360px; }
 }
 
 @media (max-width: 900px) {
   .overview-dashboard { padding: 18px; }
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
-  .dashboard-grid { grid-template-columns: 1fr; min-height: auto; }
-  .alarm-panel-border { grid-column: auto; }
-  .panel-border { min-height: 420px; }
+
+  .dashboard-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "time"
+      "metrics"
+      "video"
+      "alarms"
+      "camera"
+      "algo";
+    min-height: auto;
+  }
+
+  .panel-border { min-height: 320px; }
+  .video-panel-wrap { min-height: 420px; }
+  .alarm-panel-wrap { min-height: 400px; }
 }
 
 @media (max-width: 600px) {
-  .heading-main { align-items: flex-start; gap: 12px; flex-direction: column; }
-  .heading-actions { flex-wrap: wrap; width: 100%; }
-  .metric-grid { grid-template-columns: 1fr; }
+  .time-panel-inner { flex-direction: column; align-items: stretch; }
+  .time-panel-actions { justify-content: center; width: 100%; }
+  .metrics-combo { flex-direction: column; }
+  .metric-feature { width: 100%; }
   .video-filters { grid-template-columns: 1fr; }
-  .stats-tab-row { align-items: flex-start; flex-direction: column; }
+  .ranking-algo-donut-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .ranking-algo-donut-section .donut {
+    margin-left: 0;
+  }
+
+  .ranking-algo-panel .legend-list {
+    padding-left: 0;
+    border-left: 0;
+  }
 }
 </style>

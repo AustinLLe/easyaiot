@@ -64,7 +64,7 @@
                     <div class="flex" style="justify-content: space-between;">
                       <div class="prop">
                         <div class="label">任务类型</div>
-                        <div class="value">{{ item.task_type === 'realtime' ? '实时算法任务' : '抓拍算法任务' }}</div>
+                        <div class="value">{{ getTaskTypeLabel(item.task_type) }}</div>
                       </div>
                     </div>
                     <div class="flex" style="justify-content: space-between;">
@@ -321,7 +321,7 @@ const total = ref(0);
 // 搜索参数
 const searchParams = ref<{
   search?: string;
-  task_type?: 'realtime' | 'snap';
+  task_type?: 'realtime' | 'snap' | 'patrol';
   is_enabled?: boolean;
 }>({});
 
@@ -502,6 +502,15 @@ const getTaskImage = (taskType: string) => {
   return taskType === 'snap' ? SNAP_TASK_IMAGE : AI_TASK_IMAGE;
 };
 
+function getTaskTypeLabel(taskType?: string) {
+  const map: Record<string, string> = {
+    realtime: '实时算法任务',
+    snap: '抓拍算法任务',
+    patrol: '轮巡算法任务',
+  };
+  return map[taskType ?? ''] ?? '未知任务类型';
+}
+
 // 表单提交
 async function handleSubmit() {
   const params = await validate();
@@ -534,6 +543,7 @@ const [registerForm, { validate }] = useForm({
           { value: '', label: '全部' },
           { value: 'realtime', label: '实时算法任务' },
           { value: 'snap', label: '抓拍算法任务' },
+          { value: 'patrol', label: '轮巡算法任务' },
         ],
       },
     },

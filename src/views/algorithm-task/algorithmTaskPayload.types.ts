@@ -9,6 +9,7 @@ import type {
   DynamicGeometryDraft,
   DynamicTriggerDraft,
   SnapIntervalUnit,
+  PatrolConfigDraft,
 } from './algorithmTaskDraft.types';
 
 export interface BackendDetectionConfig {
@@ -143,12 +144,13 @@ export interface BackendAlertPushConfig {
 /** 后端同学提供的完整任务 JSON 模板 */
 export interface AlgorithmTaskPayload {
   task_name: string;
-  task_type: 'realtime' | 'snap';
+  task_type: 'realtime' | 'snap' | 'patrol';
   analysis_mode?: AnalysisMode;
   task_mode: 'wizard' | 'workflow';
   is_enabled: boolean;
   schedule: BackendTaskSchedule;
   snap_config: BackendSnapConfig | null;
+  patrol_config?: PatrolConfigDraft | null;
   tracking_config: BackendTrackingConfig;
   bindings: BackendTaskBinding[];
   alert_config: BackendAlertConfig;
