@@ -277,6 +277,10 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
   }
 }
 
+.section-panel--upload .image-preview img {
+  max-height: 120px;
+}
+
 .file-path {
   margin-top: 8px;
   font-size: 13px;
@@ -288,8 +292,13 @@ function handleImageUpload(info: { file: { status?: string; response?: UploadRes
 <style lang="less">
 .model-upload-modal {
   .ant-modal-body > .scrollbar {
-    padding-left: 8px;
-    padding-right: 12px;
+    padding-left: 12px;
+    padding-right: 16px;
+    overflow: hidden;
+  }
+
+  .ant-modal-body > .scrollbar > .scrollbar__wrap {
+    overflow-x: hidden;
   }
 }
 </style>

@@ -3,7 +3,9 @@
     @register="register"
     :title="modalTitle"
     @cancel="handleCancel"
-    :width="isEditLayout ? 1200 : 560"
+    :width="isEditLayout ? 1200 : 720"
+    :height="isEditLayout ? undefined : 520"
+    :minHeight="isEditLayout ? 600 : 200"
     :canFullscreen="isEditLayout"
     :showOkBtn="!isEditLayout"
     :showCancelBtn="!isEditLayout"
@@ -12,15 +14,17 @@
     @ok="handleUploadOk"
   >
     <template v-if="!isEditLayout">
-      <Spin :spinning="state.editLoading">
-        <ModelBasicInfoSection
-          v-model:draft="draft"
-          :show-header="false"
-          :model-upload-url="uploadConfig.modelUploadUrl"
-          :image-upload-url="uploadConfig.imageUploadUrl"
-          :headers="uploadConfig.headers"
-        />
-      </Spin>
+      <div class="model-upload-body">
+        <Spin :spinning="state.editLoading">
+          <ModelBasicInfoSection
+            v-model:draft="draft"
+            :show-header="false"
+            :model-upload-url="uploadConfig.modelUploadUrl"
+            :image-upload-url="uploadConfig.imageUploadUrl"
+            :headers="uploadConfig.headers"
+          />
+        </Spin>
+      </div>
     </template>
 
     <template v-else>
@@ -262,6 +266,10 @@ function handleEditSave() {
 </script>
 
 <style lang="less" scoped>
+.model-upload-body {
+  padding: 4px 8px 8px;
+}
+
 .model-edit-modal {
   display: flex;
   flex-direction: column;
