@@ -74,7 +74,9 @@ const getTheme = computed(() => rootProps.theme)
 
 const getOverlayStyle = computed((): CSSProperties => {
   return {
-    minWidth: '200px',
+    minWidth: '132px',
+    maxWidth: '220px',
+    width: 'max-content',
   }
 })
 

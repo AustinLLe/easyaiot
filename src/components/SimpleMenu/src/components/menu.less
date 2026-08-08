@@ -18,15 +18,30 @@
 }
 
 .@{menu-prefix-cls}-menu-popover {
+  width: max-content !important;
+  max-width: 220px;
+
   .ant-popover-arrow {
     display: none;
   }
 
+  .ant-popover-inner {
+    width: max-content;
+    max-width: 220px;
+  }
+
   .ant-popover-inner-content {
     padding: 0;
+    overflow: hidden;
   }
 
   .@{menu-prefix-cls} {
+    width: auto;
+    min-width: 132px;
+    max-width: 220px;
+    max-height: 70vh;
+    overflow-y: auto;
+
     &-opened > * > &-submenu-title-icon {
       transform: translateY(-50%) rotate(90deg) !important;
     }
