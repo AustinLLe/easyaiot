@@ -263,7 +263,7 @@ import ServiceManageDrawer from './components/ServiceManage/index.vue';
 import DeviceRegionDetectionDrawer from './components/DeviceRegion/index.vue';
 import SnapSpaceDrawer from './components/SnapSpaceDrawer/index.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
-import { getBasicColumns, getFormConfig } from './Data';
+import { getBasicColumns, getFormConfig, normalizeIsEnabledFilter } from './Data';
 import AI_TASK_IMAGE from '@/assets/images/video/ai-task.png';
 import SNAP_TASK_IMAGE from '@/assets/images/video/snap-task.png';
 
@@ -333,18 +333,12 @@ const [registerTable, { reload }] = useTable({
   title: '算法任务列表',
   api: fetchAlgorithmTaskListMerged,
   beforeFetch: (params) => {
-    // 转换参数格式
-    let is_enabled = undefined;
-    if (params.is_enabled !== '' && params.is_enabled !== undefined) {
-      // 将布尔值转换为整数：true -> 1, false -> 0
-      is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
-    }
     return {
       pageNo: params.page,
       pageSize: params.pageSize,
       search: params.search || undefined,
       task_type: params.task_type || undefined,
-      is_enabled: is_enabled,
+      is_enabled: normalizeIsEnabledFilter(params.is_enabled),
     };
   },
   columns: getBasicColumns(),
@@ -458,9 +452,7 @@ const loadTasks = async () => {
       pageSize: pageSize.value,
       ...searchParams.value
     };
-    if (params.is_enabled !== undefined && params.is_enabled !== '') {
-      params.is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
-    }
+    params.is_enabled = normalizeIsEnabledFilter(params.is_enabled);
     const response = await fetchAlgorithmTaskListMerged(params);
     if (response.code === 0) {
       taskList.value = response.data || [];
@@ -547,14 +539,14 @@ const [registerForm, { validate }] = useForm({
     },
     {
       field: 'is_enabled',
-      label: '启用状态',
+      label: '运行状态',
       component: 'Select',
       componentProps: {
-        placeholder: '请选择启用状态',
+        placeholder: '请选择运行状态',
         options: [
           { value: '', label: '全部' },
-          { value: 1, label: '已启用' },
-          { value: 0, label: '已禁用' },
+          { value: 1, label: '运行中' },
+          { value: 0, label: '已停止' },
         ],
       },
     },

@@ -12,6 +12,19 @@ function isTaskRunning(value: unknown) {
   return false;
 }
 
+/** Normalize search-form is_enabled to 0/1 for list API; empty means no filter. */
+export function normalizeIsEnabledFilter(value: unknown): 0 | 1 | undefined {
+  if (value === '' || value === undefined || value === null)
+    return undefined;
+  return isTaskRunning(value) ? 1 : 0;
+}
+
+const RUNNING_STATUS_FILTER_OPTIONS = [
+  { value: '', label: '全部' },
+  { value: 1, label: '运行中' },
+  { value: 0, label: '已停止' },
+];
+
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
@@ -109,15 +122,11 @@ export function getFormConfig(): Partial<FormProps> {
       },
       {
         field: 'is_enabled',
-        label: '启用状态',
+        label: '运行状态',
         component: 'Select',
         componentProps: {
-          placeholder: '请选择启用状态',
-          options: [
-            { value: '', label: '全部' },
-            { value: 1, label: '已启用' },
-            { value: 0, label: '已禁用' },
-          ],
+          placeholder: '请选择运行状态',
+          options: RUNNING_STATUS_FILTER_OPTIONS,
         },
       },
     ],

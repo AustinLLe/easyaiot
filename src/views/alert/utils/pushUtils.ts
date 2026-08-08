@@ -136,14 +136,19 @@ export function ensureChannelProfileDefaults(push: AlertPushDraft): AlertPushDra
 }
 
 export const DEFAULT_PUSH_TEST_PAYLOAD: Record<string, unknown> = {
-  alarm_pic_data: null,
-  alarm_pic_name: 'alarm_picture.jpg',
-  alarm_pic_url: 'http://example.com/alarm_picture.jpg',
+  platform_name: '边缘智能算法应用平台',
+  title: '行人闯入 告警通知',
+  alert_type: '行人闯入',
+  device_name: '测试摄像头-01',
+  detection_summary: 'person x 1',
   algorithm_id: 4,
   algorithm_name: '行人闯入',
-  algorithm_name_en: 'CR_PERSON_INVASION',
-  analysis_job_id: 'ee6234ca5a7541dba61062d66ad82a8b',
-  camera_group: null,
+  task_id: 1,
+  task_name: '测试算法任务',
+  severity: '告警',
+  rule_name: '行人闯入',
+  object: 'person',
+  count: 1,
 };
 
 export function buildPushTestPayloadText(endpoint?: AlarmPushEndpoint | null): string {
