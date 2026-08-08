@@ -1,5 +1,5 @@
 # 构建阶段 - WEB 正式站（build context: WEB/）
-FROM docker.1ms.run/library/node:22-alpine3.21 AS builder
+FROM docker.m.daocloud.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
 
 RUN npm config set registry https://registry.npmmirror.com/
 RUN npm install -g pnpm@9.0.4
