@@ -75,6 +75,12 @@ export function getBasicColumns(): BasicColumn[] {
       },
     },
     {
+      title: '预计内存占用',
+      dataIndex: 'estimated_memory_mib',
+      width: 130,
+      customRender: ({ text }) => `${Number(text || 0).toFixed(2)} MiB`,
+    },
+    {
       title: '关联模型',
       dataIndex: 'model_names',
       width: 200,

@@ -76,6 +76,9 @@ export interface AlgorithmTask {
   config_json?: string | AlgorithmTaskPayload;
   created_at?: string;
   updated_at?: string;
+  /** 同配置稳定运行时任务进程树的平均内存；0 表示等待首次稳定采样 */
+  estimated_memory_mib?: number;
+  estimated_memory_updated_at?: string;
 }
 
 export interface AlgorithmTaskListResponse {
@@ -123,10 +126,32 @@ export const deleteAlgorithmTask = (task_id: number) => {
   return commonApi('delete', `${ALGORITHM_PREFIX}/task/${task_id}`);
 };
 
-export const startAlgorithmTask = (task_id: number) => {
+export const startAlgorithmTask = (task_id: number, forceMemoryStart = false) => {
   return commonApi<{ code: number; msg: string; data: AlgorithmTask }>(
     'post',
-    `${ALGORITHM_PREFIX}/task/${task_id}/start`
+    `${ALGORITHM_PREFIX}/task/${task_id}/start`,
+    { data: { force_memory_start: forceMemoryStart }, errorMessageMode: 'none' },
+  );
+};
+
+export interface AlgorithmTaskMemoryAdmission {
+  task_id: number;
+  estimated_memory_mib: number;
+  available_memory_mib: number;
+  reserve_memory_mib: number;
+  allocatable_memory_mib: number;
+  available_ratio?: number | null;
+  warning: boolean;
+  blocked: boolean;
+  requires_confirmation: boolean;
+  message: string;
+}
+
+export const getAlgorithmTaskMemoryAdmission = (task_id: number) => {
+  return commonApi<AlgorithmTaskMemoryAdmission>(
+    'get',
+    `${ALGORITHM_PREFIX}/task/${task_id}/memory-admission`,
+    { errorMessageMode: 'none' },
   );
 };
 

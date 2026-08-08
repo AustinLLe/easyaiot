@@ -85,6 +85,10 @@
                         <div class="label">关联模型</div>
                         <div class="value">{{ item.model_names || '--' }}</div>
                       </div>
+                      <div class="prop">
+                        <div class="label">预计内存占用</div>
+                        <div class="value">{{ Number(item.estimated_memory_mib || 0).toFixed(2) }} MiB</div>
+                      </div>
                       <div class="prop" v-if="item.algorithm_services && item.algorithm_services.length > 0 && !item.model_names">
                         <div class="label">关联算法服务</div>
                         <div class="value">{{ item.algorithm_services.map(s => s.service_name).join(', ') }}</div>
@@ -236,7 +240,9 @@ import {
   updateAlgorithmTask,
   listAlgorithmTasks,
   getTaskStreams,
+  getAlgorithmTaskMemoryAdmission,
   type AlgorithmTask,
+  type AlgorithmTaskMemoryAdmission,
   type CameraStreamInfo,
 } from '@/api/device/algorithm_task';
 import {
@@ -687,8 +693,17 @@ const handleStart = async (record: AlgorithmTask) => {
     return;
   }
   try {
-    if (!(await confirmMultipleAlgorithmWarning(record.id))) return;
-    const response = await startAlgorithmTask(record.id);
+    const admissionResponse = await getAlgorithmTaskMemoryAdmission(record.id);
+    const admission = ((admissionResponse as any)?.data?.task_id
+      ? (admissionResponse as any).data
+      : admissionResponse) as AlgorithmTaskMemoryAdmission;
+    if (admission.blocked) {
+      createMessage.error(admission.message || '当前系统可分配内存严重不足，已禁止启用该算法任务。');
+      return;
+    }
+    if (Number(record.estimated_memory_mib || 0) === 0 && !(await confirmMultipleAlgorithmWarning(record.id))) return;
+    if (admission.warning && !(await confirmMemoryAdmission(admission))) return;
+    const response = await startAlgorithmTask(record.id, admission.warning);
     // 由于 isTransformResponse: true，成功时返回的是任务对象（data.data），而不是包含 code 的响应对象
     if (response && (response as any).id) {
       // 检查是否有 already_running 字段
@@ -716,7 +731,23 @@ const handleStart = async (record: AlgorithmTask) => {
     }
   } catch (error) {
     console.error('启动算法任务失败', error);
-    createMessage.error('启动失败');
+    const body = (error as any)?.response?.data;
+    const decision = body?.data as AlgorithmTaskMemoryAdmission | undefined;
+    if (decision?.warning && !decision.blocked) {
+      if (await confirmMemoryAdmission(decision)) {
+        try {
+          await startAlgorithmTask(record.id, true);
+          createMessage.success('启动成功');
+          handleSuccess();
+          return;
+        } catch (retryError) {
+          createMessage.error((retryError as any)?.response?.data?.msg || '启动失败');
+          return;
+        }
+      }
+      return;
+    }
+    createMessage.error(body?.msg || '启动失败');
   }
 };
 
@@ -787,6 +818,19 @@ const confirmMultipleAlgorithmWarning = async (startingTaskId: number): Promise<
       content: '本测试服务器难以稳定承载两个及以上算法任务同时运行，继续操作可能造成内存耗尽并影响主服务。',
       okText: '仍要继续',
       cancelText: '取消',
+      onOk: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
+};
+
+const confirmMemoryAdmission = (admission: AlgorithmTaskMemoryAdmission): Promise<boolean> => {
+  return new Promise<boolean>((resolve) => {
+    Modal.confirm({
+      title: '内存不足警告',
+      content: admission.message || '当前系统内存不足，继续启动该算法任务可能导致内存占用超出可用阈值!',
+      okText: '继续启用',
+      cancelText: '放弃',
       onOk: () => resolve(true),
       onCancel: () => resolve(false),
     });
