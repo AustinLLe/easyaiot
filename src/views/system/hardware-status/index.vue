@@ -52,9 +52,20 @@ const cards = computed(() => {
   ]
 })
 
-function ringSegments(contributors: ResourceContributor[]) {
+function ringColor(percent: number) {
+  if (percent >= 90)
+    return '#ef4444'
+  if (percent >= 75)
+    return '#f59e0b'
+  return '#16a34a'
+}
+
+function ringSegments(contributors: ResourceContributor[], totalPercent: number) {
+  const values = contributors.length
+    ? contributors
+    : [{ key: 'total', label: '已使用', percent: totalPercent, color: ringColor(totalPercent) }]
   let offset = 0
-  return contributors.map((item) => {
+  return values.map((item) => {
     const percent = Math.max(0, Math.min(100, item.percent))
     const segment = {
       ...item,
@@ -122,7 +133,7 @@ onBeforeUnmount(() => {
               <svg viewBox="0 0 120 120" aria-hidden="true">
                 <circle class="ring-track" cx="60" cy="60" r="54" />
                 <circle
-                  v-for="segment in ringSegments(card.contributors)"
+                  v-for="segment in ringSegments(card.contributors, card.percent)"
                   :key="segment.key"
                   class="ring-segment"
                   cx="60"
