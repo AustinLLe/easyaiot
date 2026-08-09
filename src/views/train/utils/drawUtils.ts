@@ -257,13 +257,16 @@ export function downloadDrawObjectTemplate() {
     [...DRAW_OBJECT_IMPORT_HEADERS],
     [...DRAW_OBJECT_IMPORT_EXAMPLE_ROW],
   ]);
-  ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
+  ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, DRAW_OBJECT_IMPORT_SHEET_NAME);
   XLSX.writeFile(wb, DRAW_OBJECT_IMPORT_TEMPLATE_FILENAME);
 }
 
-export async function parseDrawObjectExcel(file: File): Promise<ModelDrawObjectItem[]> {
+export async function parseDrawObjectExcel(
+  file: File,
+  existingClassKeys: Iterable<string> = [],
+): Promise<ModelDrawObjectItem[]> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
   const sheetName = workbook.SheetNames[0];
@@ -284,6 +287,9 @@ export async function parseDrawObjectExcel(file: File): Promise<ModelDrawObjectI
 
   const items: ModelDrawObjectItem[] = [];
   const classKeySet = new Set<string>();
+  const reservedKeys = new Set(
+    [...existingClassKeys].map(key => String(key).trim()).filter(Boolean),
+  );
 
   for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
     const row = rows[rowIndex] ?? [];
@@ -297,6 +303,9 @@ export async function parseDrawObjectExcel(file: File): Promise<ModelDrawObjectI
 
     if (classKeySet.has(classKey))
       throw new Error(`第 ${lineNo} 行 ClassID「${classKey}」在文件中重复`);
+
+    if (reservedKeys.has(classKey))
+      throw new Error(`第 ${lineNo} 行 ClassID「${classKey}」与已有绘制对象重复`);
 
     classKeySet.add(classKey);
 

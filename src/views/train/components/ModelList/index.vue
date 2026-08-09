@@ -6,9 +6,11 @@
           <a-button v-auth="['train:models:create']" type="primary" @click="openAddModal(true, { isEdit: false, isView: false })" data-test-id="upload-local-model">
             上传本地算法
           </a-button>
+          <!-- 暂时隐藏从云端同步
           <a-button v-auth="['train:models:sync']" type="primary" @click="openSyncModal(true)">
             从云端同步算法到本地
           </a-button>
+          -->
           <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
             切换视图
           </a-button>
@@ -57,8 +59,7 @@
     <div v-else class="model-card-mode">
       <ModelCardList
         :params="params"
-        :api="getModelPage"
-        :model-options="modelOptions"
+        :api="queryModelList"
         @get-method="getMethod"
         @delete="handleDel"
         @view="handleView"
@@ -68,9 +69,11 @@
         <a-button v-auth="['train:models:create']" type="primary" @click="openAddModal(true, { isEdit: false, isView: false })">
           上传本地算法
         </a-button>
+        <!-- 暂时隐藏从云端同步
         <a-button v-auth="['train:models:sync']" type="primary" @click="openSyncModal(true)">
           从云端同步算法到本地
         </a-button>
+        -->
         <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
           切换视图
         </a-button>
@@ -78,25 +81,34 @@
       </ModelCardList>
     </div>
     <ModelModal @register="registerAddModel" @success="handleSuccess"/>
+    <!-- 暂时隐藏从云端同步
     <CloudSyncModal @register="registerSyncModal" @success="handleSuccess"/>
+    -->
   </div>
 </template>
 
 <script lang="ts" setup name="modelManagement">
-import { onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from "./data";
 import ModelModal from "../ModelModal/index.vue";
-import CloudSyncModal from "../CloudSyncModal/index.vue";
+// import CloudSyncModal from "../CloudSyncModal/index.vue";
 import { useModal } from "@/components/Modal";
 import { deleteModel, getModelPage } from "@/api/device/model";
 import ModelCardList from "../ModelCardList/index.vue";
+import { queryModelPage } from "../../utils/modelListQuery";
+import { confirmDeleteModel, preloadAlgorithmTaskUsageCache } from '@/views/algorithm-task/utils/algorithmTaskUsageUtils';
 
 const { createMessage } = useMessage();
 
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {});
+});
+
 const [registerAddModel, { openModal: openAddModal }] = useModal();
-const [registerSyncModal, { openModal: openSyncModal }] = useModal();
+// 暂时隐藏从云端同步
+// const [registerSyncModal, { openModal: openSyncModal }] = useModal();
 
 defineOptions({ name: 'ModelList' })
 
@@ -104,27 +116,8 @@ const state = reactive({
   isTableMode: true,
 });
 
-const modelOptions = ref<any[]>([]);
-
-const loadModelOptions = async () => {
-  try {
-    const res = await getModelPage({ pageNo: 1, pageSize: 1000 });
-    const models = res.data || [];
-    modelOptions.value = models.map((model: any) => ({
-      label: `${model.name} (${model.version})`,
-      value: model.id,
-    }));
-  } catch (error) {
-    console.error('获取算法列表失败:', error);
-    modelOptions.value = [];
-  }
-};
-
-onMounted(() => {
-  loadModelOptions();
-});
-
 const params = {};
+const queryModelList = (requestParams: Record<string, any> = {}) => queryModelPage(getModelPage, requestParams);
 let cardListReload = () => {};
 
 function getMethod(m: any) {
@@ -143,9 +136,8 @@ function handleEdit(record) {
   openAddModal(true, { isEdit: true, isView: false, record });
 }
 
-function handleDel(record) {
-  handleDelete(record);
-  cardListReload();
+async function handleDel(record) {
+  await handleDelete(record);
 }
 
 function handleClickSwap() {
@@ -155,26 +147,19 @@ function handleClickSwap() {
 function handleSuccess() {
   reload({ page: 0 });
   cardListReload();
-  loadModelOptions();
 }
 
-const [registerTable, { reload, getForm }] = useTable({
+const [registerTable, { reload }] = useTable({
   canResize: true,
   resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '算法管理',
-  api: async (params) => {
-    const requestParams = { ...params };
-    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
-      delete requestParams.model_id;
-    }
-    return getModelPage(requestParams);
-  },
+  api: queryModelList,
   columns: getBasicColumns(),
   useSearchForm: true,
   showTableSetting: false,
   pagination: true,
-  formConfig: getFormConfig(modelOptions.value),
+  formConfig: getFormConfig(),
   fetchSetting: {
     listField: 'data',
     totalField: 'total',
@@ -182,24 +167,10 @@ const [registerTable, { reload, getForm }] = useTable({
   rowKey: 'id',
 });
 
-watch(() => modelOptions.value, (newOptions) => {
-  if (newOptions.length > 0) {
-    const form = getForm();
-    if (form) {
-      form.updateSchema({
-        field: 'model_id',
-        componentProps: {
-          options: [
-            { label: '全部', value: '' },
-            ...newOptions,
-          ],
-        },
-      });
-    }
-  }
-}, { deep: true });
-
 const handleDelete = async (record) => {
+  const canDelete = await confirmDeleteModel(record.id, record.name);
+  if (!canDelete)
+    return;
   try {
     await deleteModel(record.id);
     createMessage.success('删除成功');

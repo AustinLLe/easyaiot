@@ -26,23 +26,53 @@
         </a-input>
       </div>
       <div class="tree-content">
-        <div
-          v-for="dir in filteredDirectoryTree"
-          :key="dir.id"
-          class="tree-node"
-        >
-          <DirectoryTreeNode
-            :directory="dir"
-            :level="0"
-            :expanded-keys="expandedKeys"
-            :selected-id="selectedDirectoryId"
-            @toggle="handleToggleNode"
-            @select="handleSelectDirectory"
-            @edit="handleEditDirectory"
-            @delete="handleDeleteDirectory"
-          />
+        <div class="all-root-node">
+          <div
+            class="all-root-content"
+            :class="{ 'node-selected': selectedDirectoryId === null }"
+            @click="handleSelectAll"
+          >
+            <div class="node-left">
+              <span
+                class="expand-icon"
+                @click.stop="handleToggleAll"
+              >
+                <Icon
+                  :icon="isAllExpanded ? 'ant-design:down-outlined' : 'ant-design:right-outlined'"
+                  :style="{ fontSize: '12px', color: '#666' }"
+                />
+              </span>
+              <Icon
+                icon="ant-design:folder-outlined"
+                :style="{ fontSize: '16px', color: '#1890ff', marginRight: '8px' }"
+              />
+              <span class="node-name">全部</span>
+            </div>
+          </div>
+
+          <div v-if="isAllExpanded" class="all-root-children">
+            <div
+              v-for="dir in filteredDirectoryTree"
+              :key="dir.id"
+              class="tree-node"
+            >
+              <DirectoryTreeNode
+                :directory="dir"
+                :level="1"
+                :expanded-keys="expandedKeys"
+                :selected-id="selectedDirectoryId"
+                @toggle="handleToggleNode"
+                @select="handleSelectDirectory"
+                @edit="handleEditDirectory"
+                @delete="handleDeleteDirectory"
+              />
+            </div>
+            <a-empty
+              v-if="filteredDirectoryTree.length === 0 && directorySearchText"
+              description="暂无匹配目录"
+            />
+          </div>
         </div>
-        <a-empty v-if="filteredDirectoryTree.length === 0" description="暂无目录" />
       </div>
     </div>
 
@@ -68,6 +98,9 @@ import DirectoryModal from '../DirectoryManage/DirectoryModal.vue';
 import DirectoryTreeNode from '../DirectoryManage/DirectoryTreeNode.vue';
 import { PlusOutlined } from '@ant-design/icons-vue';
 
+/** 虚拟根节点「全部」，用于展开/折叠状态 */
+const ALL_DIRECTORY_KEY = -1;
+
 const emit = defineEmits<{
   select: [directory: DeviceDirectory | null];
 }>();
@@ -77,8 +110,10 @@ const [registerDirectoryModal, { openModal: openDirectoryModal }] = useModal();
 
 const selectedDirectoryId = ref<number | null>(null);
 const directoryTree = ref<DeviceDirectory[]>([]);
-const expandedKeys = ref<Set<number>>(new Set());
+const expandedKeys = ref<Set<number>>(new Set([ALL_DIRECTORY_KEY]));
 const directorySearchText = ref<string>('');
+
+const isAllExpanded = computed(() => expandedKeys.value.has(ALL_DIRECTORY_KEY));
 
 const filteredDirectoryTree = computed(() => {
   if (!directorySearchText.value) {
@@ -133,11 +168,11 @@ const loadDirectoryList = async () => {
       directoryTree.value = data;
 
       if (isInitialLoad) {
-        expandedKeys.value = new Set();
+        expandedKeys.value = new Set([ALL_DIRECTORY_KEY]);
       }
       else {
         const validIds = collectDirectoryIds(data);
-        const newExpandedKeys = new Set<number>();
+        const newExpandedKeys = new Set<number>([ALL_DIRECTORY_KEY]);
         currentExpandedKeys.forEach((id) => {
           if (validIds.has(id)) {
             newExpandedKeys.add(id);
@@ -148,9 +183,7 @@ const loadDirectoryList = async () => {
     }
     else {
       directoryTree.value = [];
-      if (directoryTree.value.length === 0) {
-        expandedKeys.value = new Set();
-      }
+      expandedKeys.value = new Set([ALL_DIRECTORY_KEY]);
     }
   }
   catch (error) {
@@ -206,6 +239,18 @@ const findParentDirectory = (childId: number, nodes: DeviceDirectory[]): DeviceD
   return null;
 };
 
+const isTopLevelDirectory = (directoryId: number) =>
+  directoryTree.value.some(dir => dir.id === directoryId);
+
+const handleToggleAll = () => {
+  const newExpandedKeys = new Set(expandedKeys.value);
+  if (newExpandedKeys.has(ALL_DIRECTORY_KEY))
+    newExpandedKeys.delete(ALL_DIRECTORY_KEY);
+  else
+    newExpandedKeys.add(ALL_DIRECTORY_KEY);
+  expandedKeys.value = newExpandedKeys;
+};
+
 const handleToggleNode = (directoryId: number, level: number) => {
   const newExpandedKeys = new Set(expandedKeys.value);
 
@@ -214,7 +259,15 @@ const handleToggleNode = (directoryId: number, level: number) => {
     removeChildrenKeys(directoryId, newExpandedKeys);
   }
   else {
-    if (level === 0) {
+    if (level === 1 && isTopLevelDirectory(directoryId)) {
+      directoryTree.value.forEach((dir) => {
+        if (dir.id !== directoryId && newExpandedKeys.has(dir.id)) {
+          newExpandedKeys.delete(dir.id);
+          removeChildrenKeys(dir.id, newExpandedKeys);
+        }
+      });
+    }
+    else if (level === 0) {
       directoryTree.value.forEach((dir) => {
         if (dir.id !== directoryId && newExpandedKeys.has(dir.id)) {
           newExpandedKeys.delete(dir.id);
@@ -241,16 +294,20 @@ const handleToggleNode = (directoryId: number, level: number) => {
   expandedKeys.value = newExpandedKeys;
 };
 
-const handleSelectDirectory = (directory: DeviceDirectory) => {
-  if (selectedDirectoryId.value === directory.id) {
-    selectedDirectoryId.value = null;
-    emit('select', null);
-    return;
-  }
+const handleSelectAll = () => {
+  if (selectedDirectoryId.value === null)
+    return
+  selectedDirectoryId.value = null
+  emit('select', null)
+}
 
-  selectedDirectoryId.value = directory.id;
-  emit('select', directory);
-};
+const handleSelectDirectory = (directory: DeviceDirectory) => {
+  if (selectedDirectoryId.value === directory.id)
+    return
+
+  selectedDirectoryId.value = directory.id
+  emit('select', directory)
+}
 
 const handleEditDirectory = (directory: DeviceDirectory) => {
   openDirectoryModal(true, {
@@ -267,8 +324,7 @@ const handleDeleteDirectory = async (directory: DeviceDirectory) => {
       createMessage.success('删除成功');
       loadDirectoryList();
       if (selectedDirectoryId.value === directory.id) {
-        selectedDirectoryId.value = null;
-        emit('select', null);
+        handleSelectAll()
       }
       expandedKeys.value.delete(directory.id);
     }
@@ -293,20 +349,21 @@ const handleDirectorySuccess = () => {
 };
 
 const clearSelection = () => {
-  selectedDirectoryId.value = null;
-  emit('select', null);
-};
+  handleSelectAll()
+}
 
 defineExpose({
   refresh: loadDirectoryList,
   loadDirectoryList,
   clearSelection,
+  selectAll: handleSelectAll,
   selectedDirectoryId,
-});
+})
 
-onMounted(() => {
-  loadDirectoryList();
-});
+onMounted(async () => {
+  await loadDirectoryList()
+  emit('select', null)
+})
 </script>
 
 <style lang="less" scoped>
@@ -366,6 +423,63 @@ onMounted(() => {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
+
+      .all-root-node {
+        user-select: none;
+      }
+
+      .all-root-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        margin-bottom: 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        &.node-selected {
+          background-color: #e6f7ff;
+          border-left: 3px solid #1890ff;
+        }
+
+        .node-left {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .expand-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          margin-right: 4px;
+          cursor: pointer;
+
+          &:hover {
+            color: #1890ff !important;
+          }
+        }
+
+        .node-name {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .all-root-children {
+        margin-left: 0;
+      }
 
       .tree-node {
         margin-bottom: 0;

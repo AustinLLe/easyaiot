@@ -54,6 +54,11 @@ import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, FormItem, Input, Select, Spin, TreeSelect} from 'ant-design-vue';
 import {getDirectoryList} from '@/api/device/camera';
 import {convertDirectoryTreeForSelect} from '../../utils/directoryUtils';
+import {
+  fetchAllDeviceNames,
+  type DeviceNameItem,
+  validateDeviceNameUnique,
+} from '../../utils/deviceNameUtils';
 
 defineOptions({name: 'VideoRegisterModal'})
 
@@ -75,6 +80,16 @@ const modelRef = reactive({
 });
 
 const directoryTreeOptions = ref<any[]>([]);
+const existingDevices = ref<DeviceNameItem[]>([]);
+
+async function loadExistingDevices() {
+  try {
+    existingDevices.value = await fetchAllDeviceNames();
+  } catch (error) {
+    console.error('加载设备列表失败', error);
+    existingDevices.value = [];
+  }
+}
 
 async function loadDirectoryOptions() {
   try {
@@ -94,7 +109,7 @@ const getTitle = computed(() => ('注册设备'));
 const [register, {closeModal}] = useModalInner(async (data) => {
   const {record, defaultDirectoryId} = data;
   state.record = record;
-  await loadDirectoryOptions();
+  await Promise.all([loadDirectoryOptions(), loadExistingDevices()]);
   modelRef.directory_id = defaultDirectoryId ?? undefined;
 });
 
@@ -122,7 +137,21 @@ function onSelectAll(selected, selectedRows, changeRows) {
 }
 
 const rulesRef = reactive({
-  deviceVersion: [{required: true, message: '请输入视频设备号', trigger: ['change']}],
+  name: [
+    {required: true, message: '请输入设备名称', trigger: ['change']},
+    {
+      validator: (_rule, value) => {
+        const error = validateDeviceNameUnique(value, existingDevices.value);
+        if (error)
+          return Promise.reject(error);
+        return Promise.resolve();
+      },
+      trigger: ['change', 'blur'],
+    },
+  ],
+  stream: [{required: true, message: '请选择码流索引', trigger: ['change']}],
+  username: [{required: true, message: '请输入用户名', trigger: ['change']}],
+  password: [{required: true, message: '请输入密码', trigger: ['change']}],
 });
 
 function handleCLickChange(value) {
@@ -138,10 +167,13 @@ function handleCancel() {
 }
 
 function handleOk() {
-  // alert(JSON.stringify(modelRef));
-  emits('success', {...modelRef, ...state.record});
-  closeModal();
-  resetFields();
+  validate().then(() => {
+    emits('success', {...modelRef, ...state.record});
+    closeModal();
+    resetFields();
+  }).catch(() => {
+    // 表单校验失败，保持弹窗打开
+  });
 }
 </script>
 <style lang="less" scoped>

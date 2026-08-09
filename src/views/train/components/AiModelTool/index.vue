@@ -153,7 +153,7 @@
                 <div class="video-title">
                   <span>原始输入源</span>
                 </div>
-                <div class="video-content">
+                <div class="video-content video-content-scrollable">
                   <div v-if="state.uploadedImage" class="image-preview">
                     <img :src="state.uploadedImage" alt="原始图片" class="preview-image">
                   </div>
@@ -2075,7 +2075,7 @@ body {
           max-width: 100%;
           max-height: 100%;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           position: relative;
           overflow: hidden;

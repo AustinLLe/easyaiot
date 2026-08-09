@@ -94,14 +94,13 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref, watch} from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import {usePermission} from '@/hooks/web/usePermission';
 import {Button, List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
 import {DeleteOutlined, EditOutlined, EyeOutlined} from '@ant-design/icons-vue';
-import {getModelPage} from '@/api/device/model';
 import {getFormConfig} from './Data';
 
 defineOptions({name: 'ModelCardList'})
@@ -111,7 +110,6 @@ const ListItem = List.Item;
 const props = defineProps({
   params: propTypes.object.def({}),
   api: propTypes.func,
-  modelOptions: propTypes.array.def([]),
 });
 
 const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
@@ -126,41 +124,8 @@ const state = reactive({
   loading: true,
 });
 
-const modelOptions = ref<any[]>([]);
-
-const loadModelOptions = async () => {
-  if (props.modelOptions.length > 0) {
-    modelOptions.value = props.modelOptions as any[];
-    return;
-  }
-  try {
-    const res = await getModelPage({pageNo: 1, pageSize: 1000});
-    const models = res.data || [];
-    modelOptions.value = models.map((model: any) => ({
-      label: `${model.name} (${model.version})`,
-      value: model.id,
-    }));
-  } catch (error) {
-    console.error('获取算法列表失败:', error);
-    modelOptions.value = [];
-  }
-};
-
-function syncModelSelectOptions() {
-  updateSchema({
-    field: 'model_id',
-    componentProps: {
-      options: [
-        {label: '全部', value: ''},
-        ...modelOptions.value,
-      ],
-    },
-  });
-}
-
-const formConfig = getFormConfig(modelOptions.value);
-const [registerForm, {validate, updateSchema}] = useForm({
-  schemas: formConfig,
+const [registerForm, {validate}] = useForm({
+  schemas: getFormConfig(),
   labelWidth: 80,
   baseColProps: {span: 6},
   actionColOptions: {span: 12},
@@ -168,23 +133,10 @@ const [registerForm, {validate, updateSchema}] = useForm({
   submitFunc: handleSubmit,
 });
 
-onMounted(async () => {
-  await loadModelOptions();
-  syncModelSelectOptions();
+onMounted(() => {
   fetch();
   emit('getMethod', fetch);
 });
-
-watch(
-  () => props.modelOptions,
-  async (options) => {
-    if (options.length > 0) {
-      modelOptions.value = options as any[];
-      syncModelSelectOptions();
-    }
-  },
-  {deep: true},
-);
 
 async function handleSubmit() {
   const formData = await validate();
@@ -195,9 +147,6 @@ async function fetch(p = {}) {
   const {api, params} = props;
   if (api && isFunction(api)) {
     const requestParams: Record<string, any> = {...params, pageNo: page.value, pageSize: pageSize.value, ...p};
-    if (requestParams.model_id === '' || requestParams.model_id === undefined) {
-      delete requestParams.model_id;
-    }
     const res = await api(requestParams);
     data.value = res.data;
     total.value = res.total;

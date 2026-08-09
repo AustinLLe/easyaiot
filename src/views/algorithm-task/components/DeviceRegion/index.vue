@@ -64,6 +64,7 @@
           :initial-image-path="deviceImagePaths[selectedDeviceId]"
           :model-ids="activeModelIds"
           :draft-only="draftMode"
+          :view-only="draftViewOnly"
           :hide-model-selector="hideModelSelector"
           @save="handleRegionSave"
           @image-captured="handleImageCaptured"
@@ -115,6 +116,7 @@ const { createMessage } = useMessage();
 const regionDrawerRef = ref<InstanceType<typeof DeviceRegionDrawer> | null>(null);
 
 const draftMode = ref(false);
+const draftViewOnly = ref(false);
 const draftRow = ref<RegionTableRow | null>(null);
 const draftConfig = ref<RegionConfigDraft | null>(null);
 const draftOnSave = ref<((config: RegionConfigDraft) => void) | null>(null);
@@ -128,19 +130,21 @@ const [register, { setModalProps }] = useModalInner(async (data) => {
   taskModelIds.value = null;
   taskId.value = null;
   draftMode.value = false;
+  draftViewOnly.value = false;
   draftRow.value = null;
   draftConfig.value = null;
   draftOnSave.value = null;
 
   if (data?.mode === 'draft' && data?.draft && data?.row) {
     draftMode.value = true;
+    draftViewOnly.value = !!data.viewOnly;
     draftRow.value = data.row;
     draftConfig.value = data.config ?? null;
     draftOnSave.value = data.onSave ?? null;
     taskModelIds.value = [data.row.model_id];
 
     const subtitle = buildDraftModalSubtitle(data.row);
-    setModalProps({ title: `分析区域 - ${subtitle}` });
+    setModalProps({ title: draftViewOnly.value ? `查看分析区域 - ${subtitle}` : `分析区域 - ${subtitle}` });
 
     await loadDraftDevices(data.draft, data.row);
     return;

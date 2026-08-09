@@ -142,7 +142,6 @@ import { useMessage } from '@/hooks/web/useMessage';
 import moment from 'moment';
 import { extractAlertClientFilters, getFormConfig } from '@/views/alert/Data';
 import {
-  filterAlertsClientSide,
   getArchiveStatus,
   getProcessStatus,
   getRecordClipStatus,
@@ -260,10 +259,10 @@ async function fetch(p?: Record<string, any>) {
     try {
       state.loading = true;
       const apiParams = { ...lastSearchParams.value };
-      const clientFilters = extractAlertClientFilters(apiParams);
+      extractAlertClientFilters(apiParams);
       const res = await api({ ...params, pageNo: page.value, pageSize: pageSize.value, ...apiParams });
       const list = Array.isArray(res?.alert_list) ? res.alert_list : [];
-      data.value = filterAlertsClientSide(list, clientFilters, props.uiState);
+      data.value = list;
       brokenSnapshotIds.value = new Set();
       total.value = res.total || 0;
       const visibleIds = new Set(data.value.map(item => item.id));

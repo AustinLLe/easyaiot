@@ -142,6 +142,19 @@
         >
           <Row :gutter="0">
             <Col :span="12">
+              <FormItem label="分组" name="directory_id">
+                <TreeSelect
+                  v-model:value="modelRef.directory_id"
+                  placeholder="请选择分组（可选）"
+                  :tree-data="directoryTreeOptions"
+                  allow-clear
+                  tree-default-expand-all
+                  :field-names="{ label: 'name', value: 'id', children: 'children' }"
+                  style="width: 100%"
+                />
+              </FormItem>
+            </Col>
+            <Col :span="12">
               <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
                 <Input v-model:value="modelRef.name"/>
               </FormItem>
@@ -245,8 +258,13 @@ import {CopyOutlined} from '@ant-design/icons-vue';
 import {useMessage} from '@/hooks/web/useMessage';
 import {copyText} from '@/utils/copyTextToClipboard';
 // 导入新的API函数
-import {discoverDevices, getDeviceList, getDirectoryList, moveDeviceToDirectory, registerDevice, updateDevice} from "@/api/device/camera";
+import {discoverDevices, getDirectoryList, moveDeviceToDirectory, registerDevice, updateDevice} from "@/api/device/camera";
 import {convertDirectoryTreeForSelect} from "../../utils/directoryUtils";
+import {
+  fetchAllDeviceNames,
+  type DeviceNameItem,
+  validateDeviceNameUnique,
+} from "../../utils/deviceNameUtils";
 import {BasicTable, TableAction, useTable} from "@/components/Table";
 import {getOnvifBasicColumns, getOnvifFormConfig} from "./Data";
 import VideoRegisterModal from "../VideoRegisterModal/index.vue";
@@ -312,6 +330,29 @@ const modelRef = reactive({
 });
 
 const directoryTreeOptions = ref<any[]>([]);
+const existingDevices = ref<DeviceNameItem[]>([]);
+const originalDirectoryId = ref<number | null | undefined>(undefined);
+
+async function loadExistingDevices() {
+  try {
+    existingDevices.value = await fetchAllDeviceNames();
+  } catch (error) {
+    console.error('加载设备列表失败', error);
+    existingDevices.value = [];
+  }
+}
+
+function createDeviceNameRule(excludeId?: string) {
+  return {
+    validator: (_rule, value) => {
+      const error = validateDeviceNameUnique(value, existingDevices.value, excludeId);
+      if (error)
+        return Promise.reject(error);
+      return Promise.resolve();
+    },
+    trigger: ['change', 'blur'],
+  };
+}
 
 async function loadDirectoryOptions() {
   try {
@@ -328,11 +369,27 @@ async function loadDirectoryOptions() {
   }
 }
 
-async function assignDeviceToDirectory(deviceId: string | number | undefined, directoryId?: number) {
-  if (!deviceId || !directoryId) {
-    return;
-  }
-  await moveDeviceToDirectory(String(deviceId), directoryId);
+async function assignDeviceToDirectory(
+  deviceId: string | number | undefined,
+  directoryId?: number | null,
+) {
+  if (!deviceId)
+    return
+  await moveDeviceToDirectory(String(deviceId), directoryId ?? null)
+}
+
+async function syncDirectoryIfChanged(deviceId: string | number) {
+  const newDirectoryId = modelRef.directory_id ?? null
+  const oldDirectoryId = originalDirectoryId.value ?? null
+  if (newDirectoryId === oldDirectoryId)
+    return
+  await moveDeviceToDirectory(String(deviceId), newDirectoryId)
+  originalDirectoryId.value = newDirectoryId
+}
+
+function stripDirectoryFromUpdateData(updateData: Record<string, unknown>) {
+  delete updateData.directory_id
+  return updateData
 }
 
 
@@ -346,10 +403,11 @@ const [register, {closeModal}] = useModalInner(async (data) => {
   state.isView = isView;
   state.type = type;
 
-  await loadDirectoryOptions();
+  await Promise.all([loadDirectoryOptions(), loadExistingDevices()]);
 
   // 如果是新增直连设备，重置相关字段
   if (type === 'source' && !isEdit && !isView) {
+    modelRef.id = '';
     modelRef.cameraType = 'custom';
     modelRef.ip = '';
     modelRef.port = 554;
@@ -359,6 +417,12 @@ const [register, {closeModal}] = useModalInner(async (data) => {
     modelRef.name = '';
     modelRef.stream = 0;
     modelRef.directory_id = defaultDirectoryId ?? undefined;
+    originalDirectoryId.value = undefined;
+  }
+
+  if (!isEdit && !isView) {
+    modelRef.id = '';
+    originalDirectoryId.value = undefined;
   }
 
   // 更新验证规则
@@ -428,7 +492,10 @@ const [
 // 动态验证规则函数
 const getRules = () => {
   const baseRules: any = {
-    name: [{required: true, message: '请输入设备名称', trigger: ['change']}],
+    name: [
+      {required: true, message: '请输入设备名称', trigger: ['change']},
+      createDeviceNameRule(state.isEdit ? modelRef.id : undefined),
+    ],
     // 编辑模式下，cameraType 不是必填的（因为编辑的设备可能没有这个字段）
     // 只有新增直连设备时才需要 cameraType
     cameraType: state.isEdit ? [] : [{required: true, message: '请选择摄像头类型', trigger: ['change']}],
@@ -639,6 +706,11 @@ function handleRegisterSuccess(value) {
     createMessage.error('设备名称不能为空');
     return;
   }
+  const duplicateNameError = validateDeviceNameUnique(name, existingDevices.value);
+  if (duplicateNameError) {
+    createMessage.warning(duplicateNameError);
+    return;
+  }
   if (username == null || username === '' || password === null || password === '') {
     createMessage.error('用户名与密码不能为空');
     return;
@@ -693,10 +765,15 @@ async function modelEdit(record) {
     state.editLoading = true;
     Object.keys(modelRef).forEach((item) => {
       // 如果 record 中有该字段，则使用 record 的值；否则保留 modelRef 的默认值
+      if (item === 'directory_id') {
+        return
+      }
       if (record.hasOwnProperty(item) && record[item] !== undefined && record[item] !== null) {
         modelRef[item] = record[item];
       }
     });
+    modelRef.directory_id = record.directory_id ?? undefined
+    originalDirectoryId.value = record.directory_id ?? null
     // 编辑模式下，如果 cameraType 不存在，尝试通过设备特征判断
     if (!modelRef.cameraType) {
       // 如果设备有source但没有IP或IP为空，可能是自定义摄像头
@@ -759,6 +836,12 @@ function handleOk() {
     if (!modelRef.name) {
       isValid = false;
       errorMsg = '请输入设备名称';
+    } else {
+      const duplicateNameError = validateDeviceNameUnique(modelRef.name, existingDevices.value);
+      if (duplicateNameError) {
+        isValid = false;
+        errorMsg = duplicateNameError;
+      }
     }
 
     if (!isValid) {
@@ -816,6 +899,7 @@ function handleOk() {
         
         closeModal();
         resetFields();
+        originalDirectoryId.value = undefined;
         emits('success');
       } catch (error: any) {
         createMessage.error(error?.msg || '设备注册失败');
@@ -839,7 +923,7 @@ function handleOk() {
       // 编辑操作：如果有ID则更新，否则新增
       if (state.isEdit && modelRef.id) {
         // 编辑时，过滤掉不必要的字段（如空的 cameraType）
-        const updateData = {...modelRef};
+        const updateData = stripDirectoryFromUpdateData({...modelRef});
         // 如果 cameraType 是空字符串，则不发送该字段
         // 但对于自定义摄像头（cameraType === 'custom'），需要保留该字段以便后端识别
         if (updateData.cameraType === '') {
@@ -850,11 +934,17 @@ function handleOk() {
           updateData.cameraType = 'custom';
         }
         await updateDevice(modelRef.id, updateData);
+        try {
+          await syncDirectoryIfChanged(modelRef.id);
+        } catch (error) {
+          console.warn('更新分组失败:', error);
+          createMessage.warning('设备已保存，但分组更新失败');
+        }
       } else if (state.type === 'camera') {
         // 摄像头处理
         if (modelRef.id) {
           // 编辑时，过滤掉不必要的字段
-          const updateData = {...modelRef};
+          const updateData = stripDirectoryFromUpdateData({...modelRef});
           if (updateData.cameraType === '') {
             delete updateData.cameraType;
           }
@@ -863,6 +953,12 @@ function handleOk() {
             updateData.cameraType = 'custom';
           }
           await updateDevice(modelRef.id, updateData);
+          try {
+            await syncDirectoryIfChanged(modelRef.id);
+          } catch (error) {
+            console.warn('更新分组失败:', error);
+            createMessage.warning('设备已保存，但分组更新失败');
+          }
         } else {
           const response = await registerDevice(modelRef);
           const deviceId = response?.data?.id;
@@ -877,7 +973,7 @@ function handleOk() {
         // 默认处理：如果有ID则更新，否则新增
         if (modelRef.id) {
           // 编辑时，过滤掉不必要的字段
-          const updateData = {...modelRef};
+          const updateData = stripDirectoryFromUpdateData({...modelRef});
           if (updateData.cameraType === '') {
             delete updateData.cameraType;
           }
@@ -886,6 +982,12 @@ function handleOk() {
             updateData.cameraType = 'custom';
           }
           await updateDevice(modelRef.id, updateData);
+          try {
+            await syncDirectoryIfChanged(modelRef.id);
+          } catch (error) {
+            console.warn('更新分组失败:', error);
+            createMessage.warning('设备已保存，但分组更新失败');
+          }
         } else {
           const response = await registerDevice(modelRef);
           const deviceId = response?.data?.id;
@@ -896,6 +998,7 @@ function handleOk() {
       createMessage.success('操作成功');
       closeModal();
       resetFields();
+      originalDirectoryId.value = undefined;
       // 延迟一下再触发刷新，确保后端状态已更新
       setTimeout(() => {
         emits('success');

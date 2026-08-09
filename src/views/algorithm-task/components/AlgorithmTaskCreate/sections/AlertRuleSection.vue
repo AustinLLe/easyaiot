@@ -10,7 +10,7 @@
         动态追踪模式下，区域入侵、停留和越线的绘制将合并到单条告警规则中配置。
       </div>
 
-      <div class="table-toolbar">
+      <div v-if="!readonly" class="table-toolbar">
         <Button type="primary" @click="openCreate">
           <PlusOutlined />
           添加告警规则
@@ -42,7 +42,9 @@
             {{ formatDynamicTrigger(record) }}
           </template>
           <template v-else-if="column.key === 'clip_record_enabled'">
+            <span v-if="readonly">{{ record.clip_record_enabled ? '开' : '关' }}</span>
             <Switch
+              v-else
               :checked="!!record.clip_record_enabled"
               checked-children="开"
               un-checked-children="关"
@@ -51,7 +53,9 @@
             />
           </template>
           <template v-else-if="column.key === 'enabled'">
+            <span v-if="readonly">{{ record.enabled ? '开' : '关' }}</span>
             <Switch
+              v-else
               v-model:checked="record.enabled"
               checked-children="开"
               un-checked-children="关"
@@ -60,9 +64,9 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <Button type="link" size="small" @click="openEdit(index)">
-              编辑
+              {{ readonly ? '查看' : '编辑' }}
             </Button>
-            <Button type="link" size="small" danger @click="handleDelete(index)">
+            <Button v-if="!readonly" type="link" size="small" danger @click="handleDelete(index)">
               删除
             </Button>
           </template>
@@ -74,6 +78,7 @@
       v-model:open="editVisible"
       :rule="editingRule"
       :is-create="editingIndex === null"
+      :readonly="readonly"
       :task-type="payload.task_type"
       v-model:detection-config="payload.detection_config"
       :class-options="classOptions"
@@ -87,6 +92,7 @@
       v-model:open="dynamicEditVisible"
       :rule="editingRule"
       :is-create="editingIndex === null"
+      :readonly="readonly"
       :class-options="classOptions"
       :class-options-by-model="classOptionsByModel"
       :model-options="modelOptions"
@@ -123,10 +129,12 @@ import {
   getModelAlertClassOptions,
 } from '../../../utils/paramUtils';
 import { clearTrackingParams } from '../../../utils/taskUtils';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'AlertRuleSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 const editVisible = ref(false);
 const dynamicEditVisible = ref(false);
@@ -214,6 +222,8 @@ function openEdit(index: number) {
 }
 
 function handleEditSave(rule: AlertRuleDraft) {
+  if (readonly.value)
+    return;
   if (editingIndex.value === null) {
     assignNextRuleSeq(rule, payload.value.alert_rules);
     payload.value.alert_rules.push(rule);

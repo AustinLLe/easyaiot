@@ -9,7 +9,8 @@
         <Input
           v-model:value="payload.task_name"
           placeholder="例如：安全帽检测任务"
-          allow-clear
+          :allow-clear="!readonly"
+          :disabled="readonly"
           class="field-control"
         />
       </FormItem>
@@ -18,6 +19,7 @@
           <Select
             v-model:value="payload.task_type"
             :options="taskTypeOptions"
+            :disabled="readonly"
             class="field-control"
           />
         </FormItem>
@@ -25,7 +27,7 @@
           <Select
             v-model:value="payload.analysis_mode"
             :options="analysisModeOptions"
-            :disabled="payload.task_type === 'snap' || payload.task_type === 'patrol'"
+            :disabled="readonly || payload.task_type === 'snap' || payload.task_type === 'patrol'"
             class="field-control"
           />
         </FormItem>
@@ -37,6 +39,7 @@
           :max="1000"
           :step="1"
           :precision="0"
+          :disabled="readonly"
           placeholder="例如：25"
           class="field-control"
         />
@@ -47,17 +50,19 @@
             v-model:value="payload.snap_interval_value"
             :min="1"
             :max="snapIntervalMax"
+            :disabled="readonly"
             placeholder="间隔"
             class="snap-interval-value"
           />
           <Select
             v-model:value="payload.snap_interval_unit"
             :options="snapUnitOptions"
+            :disabled="readonly"
             class="snap-interval-unit"
           />
         </div>
       </FormItem>
-      <DefenseSchedulePicker v-model:modelValue="defenseConfig" />
+      <DefenseSchedulePicker v-model:modelValue="defenseConfig" :disabled="readonly" />
     </Form>
   </div>
 </template>
@@ -77,10 +82,12 @@ import {
   ensureDefenseDefaults,
   type DefenseSchedulePickerValue,
 } from '../../../utils/taskUtils';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'BasicInfoSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 ensureDefenseDefaults(payload.value);
 

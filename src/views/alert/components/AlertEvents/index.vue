@@ -19,6 +19,12 @@
             <a-button v-auth="['alert:events:delete']" size="small" danger @click="handleBatchAction('delete')">删除</a-button>
           </div>
           <div class="alert-toolbar-right">
+            <AlertEventsRefreshControls
+              :config="refreshConfig"
+              :refreshing="manualRefreshing"
+              @refresh="handleManualRefresh"
+              @save="handleRefreshConfigSave"
+            />
             <a-button type="default" preIcon="ant-design:swap-outlined" @click="handleClickSwap">
               切换视图
             </a-button>
@@ -104,6 +110,12 @@
               <a-button v-auth="['alert:events:delete']" size="small" danger @click="handleBatchAction('delete')">删除</a-button>
             </div>
             <div class="alert-toolbar-right">
+              <AlertEventsRefreshControls
+                :config="refreshConfig"
+                :refreshing="manualRefreshing"
+                @refresh="handleManualRefresh"
+                @save="handleRefreshConfigSave"
+              />
               <a-button type="default" preIcon="ant-design:swap-outlined" @click="handleClickSwap">
                 切换视图
               </a-button>
@@ -132,6 +144,7 @@ import { extractAlertClientFilters, getBasicColumns, getFormConfig } from '../..
 import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus, deleteAlarms } from '@/api/device/calculate';
 import AlertCards from './AlertCards/index.vue';
 import AlertEventPushModal from './AlertEventPushModal.vue';
+import AlertEventsRefreshControls from './AlertEventsRefreshControls.vue';
 import ImageModal from '../ImageModal/index.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 import { useModal } from '@/components/Modal';
@@ -146,7 +159,6 @@ import {
 import { getPushProfiles } from '@/views/alert/utils/mockPushSettingsStore';
 import {
   exportAlertsToCsv,
-  filterAlertsClientSide,
   getArchiveStatus,
   getProcessStatus,
   getRecordClipStatus,
@@ -158,6 +170,12 @@ import {
   type UiArchiveStatus,
   type UiProcessStatus,
 } from '../../alertDisplayUtils';
+import {
+  getRefreshIntervalMs,
+  loadAlertRefreshConfig,
+  saveAlertRefreshConfig,
+  type AlertRefreshConfig,
+} from '../../utils/alertRefreshConfig';
 
 defineOptions({ name: 'AlertEvents' });
 
@@ -175,16 +193,12 @@ const pushModalVisible = ref(false);
 const pendingPushIds = ref<number[]>([]);
 const gridSelectedIds = ref<number[]>([]);
 const gridSelectedRows = ref<Record<string, any>[]>([]);
+const refreshConfig = ref<AlertRefreshConfig>(loadAlertRefreshConfig());
+const manualRefreshing = ref(false);
 
 function handleClickSwap() {
   state.isTableMode = !state.isTableMode;
 }
-
-const clientFilters = reactive({
-  severity: null as string | null,
-  process_status: null as string | null,
-  archive_status: null as string | null,
-});
 
 let cardListReload = () => {};
 
@@ -219,33 +233,57 @@ const [
     listField: 'alert_list',
     totalField: 'total',
   },
-  beforeFetch: (params) => {
-    const filters = extractAlertClientFilters(params);
-    clientFilters.severity = filters.severity;
-    clientFilters.process_status = filters.process_status;
-    clientFilters.archive_status = filters.archive_status;
-    return params;
-  },
-  afterFetch: (list) => {
-    const rows = Array.isArray(list) ? list : [];
-    const filtered = filterAlertsClientSide(rows, clientFilters, uiState);
-    return filtered;
-  },
+  beforeFetch: (params) => extractAlertClientFilters(params),
   rowKey: 'id',
 });
 
 let refreshTimer: number | undefined;
 
+function refreshAlertLists() {
+  reload();
+  cardListReload();
+}
+
+async function handleManualRefresh() {
+  if (manualRefreshing.value)
+    return;
+  manualRefreshing.value = true;
+  try {
+    refreshAlertLists();
+  }
+  finally {
+    window.setTimeout(() => {
+      manualRefreshing.value = false;
+    }, 400);
+  }
+}
+
+function stopRefreshTimer() {
+  if (refreshTimer) {
+    window.clearInterval(refreshTimer);
+    refreshTimer = undefined;
+  }
+}
+
+function startRefreshTimer() {
+  stopRefreshTimer();
+  if (!refreshConfig.value.enabled)
+    return;
+  refreshTimer = window.setInterval(refreshAlertLists, getRefreshIntervalMs(refreshConfig.value));
+}
+
+function handleRefreshConfigSave(config: AlertRefreshConfig) {
+  refreshConfig.value = saveAlertRefreshConfig(config);
+  startRefreshTimer();
+  createMessage.success('刷新设置已保存');
+}
+
 onMounted(() => {
-  refreshTimer = window.setInterval(() => {
-    reload();
-    cardListReload();
-  }, 5000);
+  startRefreshTimer();
 });
 
 onUnmounted(() => {
-  if (refreshTimer)
-    window.clearInterval(refreshTimer);
+  stopRefreshTimer();
 });
 
 function isSnapTask(record: Record<string, any>) {

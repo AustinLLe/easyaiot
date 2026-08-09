@@ -1,8 +1,6 @@
 // ---- from algorithmParamSchema.ts ----
 import { ref } from 'vue';
 import type { AlgorithmParamPreset } from '../algorithmTaskDraft.types';
-import { useLocaleStoreWithOut } from '@/store/modules/locale';
-import { localizeDetectionClassLabel } from '@/utils/detectionClassLabel';
 
 export type ParamFieldType = 'number' | 'integer';
 
@@ -523,7 +521,7 @@ function normalizeClassLabels(value: unknown): ClassOption[] {
         const row = item as Record<string, unknown>;
         return createClassOption(
           row.class_key ?? row.classKey ?? row.class_id ?? row.classId ?? row.value ?? index,
-          row.description ?? row.label ?? row.name ?? row.class_name ?? row.className,
+          row.label ?? row.name ?? row.class_name ?? row.className,
         );
       }
       return createClassOption(item);
@@ -543,7 +541,7 @@ function normalizeDrawObjectClasses(value: unknown): ClassOption[] {
       const objectRow = item as Record<string, unknown>;
       return createClassOption(
         objectRow.class_key ?? objectRow.classKey ?? objectRow.value,
-        objectRow.label ?? objectRow.description ?? objectRow.class_label ?? objectRow.classLabel ?? objectRow.name ?? objectRow.class_name ?? objectRow.className,
+        objectRow.label ?? objectRow.name ?? objectRow.class_name ?? objectRow.className,
       );
     })
     .filter((item): item is ClassOption => !!item);
@@ -604,8 +602,6 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
     custom_enabled = detectionConfig.custom_enabled === true;
   if (record.custom_enabled != null)
     custom_enabled = record.custom_enabled === true;
-  if (!custom_enabled && Object.keys(algorithm_params).length)
-    custom_enabled = true;
 
   const classLabels = normalizeClassLabels(record.class_labels ?? detectionConfig.class_labels);
   const classWhitelist = normalizeClassWhitelist(detectionConfig.class_whitelist);
@@ -613,7 +609,7 @@ export function parseModelDefaultProfile(record: Record<string, unknown>): Model
     .map(item => createClassOption(item))
     .filter((item): item is ClassOption => !!item);
   const drawObjectClasses = normalizeDrawObjectClasses(drawObjects);
-  const classOptions = uniqueClassOptions(drawObjectClasses, classLabels, classWhitelistOptions);
+  const classOptions = uniqueClassOptions(classLabels, drawObjectClasses, classWhitelistOptions);
 
   return {
     custom_enabled,
@@ -660,7 +656,7 @@ export function getModelClassOptions(modelId?: number | null): Array<{ label: st
   void modelDefaultProfileCacheVersion.value;
   const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
   if (profile?.class_options?.length)
-    return localizeClassOptions(profile.class_options);
+    return profile.class_options.map(({ label, value }) => ({ label, value }));
   return [];
 }
 
@@ -668,7 +664,7 @@ export function getModelAlertClassOptions(modelId?: number | null): Array<{ labe
   void modelDefaultProfileCacheVersion.value;
   const profile = modelId != null ? modelDefaultProfileCache.get(Number(modelId)) : undefined;
   if (profile?.class_options?.length) {
-    return localizeClassOptions(profile.class_options).map(({ label, value }) => ({
+    return profile.class_options.map(({ label, value }) => ({
       label,
       value,
       class_key: value,
@@ -685,7 +681,7 @@ export function getClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<
       .map(item => createClassOption(item))
       .filter((item): item is ClassOption => !!item),
   );
-  return localizeClassOptions(options);
+  return options.map(({ label, value }) => ({ label, value }));
 }
 
 export function getAlertClassOptionsForDraftModels(draft: AlgorithmTaskDraft): Array<{ label: string; value: string; class_key?: string }> {
@@ -696,18 +692,10 @@ export function getAlertClassOptionsForDraftModels(draft: AlgorithmTaskDraft): A
       .map(item => createClassOption(item))
       .filter((item): item is ClassOption => !!item),
   );
-  return localizeClassOptions(options).map(({ label, value }) => ({
+  return options.map(({ label, value }) => ({
     label,
     value,
     class_key: value,
-  }));
-}
-
-function localizeClassOptions(options: ClassOption[]): Array<{ label: string; value: string }> {
-  const locale = useLocaleStoreWithOut().getLocale;
-  return options.map(({ label, raw_label, value }) => ({
-    label: localizeDetectionClassLabel(raw_label || label, locale),
-    value,
   }));
 }
 
@@ -718,11 +706,11 @@ function applyModelDefaultProfile(
   const detection = profile.detection_config || {};
   const next: AlgorithmParamConfigDraft = {
     ...config,
-    custom_enabled: profile.custom_enabled,
+    custom_enabled: false,
     detection_config: {
       ...config.detection_config,
       ...Object.fromEntries(
-        Object.entries(detection).filter(([, value]) => value !== undefined),
+        Object.entries(detection).filter(([key, value]) => value !== undefined && key !== 'custom_enabled'),
       ),
       class_whitelist: detection.class_whitelist
         ? [...detection.class_whitelist]
@@ -730,9 +718,7 @@ function applyModelDefaultProfile(
       draw_objects: detection.draw_objects ? { ...detection.draw_objects } : config.detection_config.draw_objects,
       draw_style: detection.draw_style ? { ...detection.draw_style } : config.detection_config.draw_style,
     },
-    algorithm_params: profile.custom_enabled
-      ? { ...profile.algorithm_params }
-      : {},
+    algorithm_params: { ...profile.algorithm_params },
   };
   return next;
 }
@@ -940,9 +926,7 @@ function cloneParamConfig(
       imgsz: config.detection_config.imgsz ?? 416,
       extract_interval: config.detection_config.extract_interval ?? 25,
     },
-    algorithm_params: customEnabled
-      ? { ...config.algorithm_params }
-      : {},
+    algorithm_params: { ...(config.algorithm_params || {}) },
   };
 }
 
@@ -1130,9 +1114,6 @@ export function parseModelExtensionProfile(record: Record<string, unknown>): Mod
       ? (detectionConfig as Record<string, unknown>).algorithm_param_descriptions
       : undefined),
   );
-
-  if (!custom_enabled && Object.keys(algorithm_params).length)
-    custom_enabled = true;
 
   return { custom_enabled, algorithm_params, algorithm_param_descriptions };
 }

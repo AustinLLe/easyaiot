@@ -1,29 +1,34 @@
 import { FormSchema } from '@/components/Table';
+import { MODEL_FORMAT_FILTER_OPTIONS } from '../../utils/modelListQuery';
 
-export const getFormConfig = (modelOptions: any[] = []): FormSchema[] => {
+export const getFormConfig = (): FormSchema[] => {
   return [
     {
-      field: 'model_id',
+      field: 'search',
       label: '算法',
-      component: 'Select',
+      component: 'Input',
       componentProps: {
-        placeholder: '请选择算法',
-        showSearch: true,
+        placeholder: '请输入算法名称',
         allowClear: true,
-        filterOption: (input: string, option: any) =>
-          option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0,
-        options: [
-          { label: '全部', value: '' },
-          ...modelOptions,
-        ],
       },
     },
     {
-      field: 'version',
-      label: '版本',
+      field: 'model_format',
+      label: '格式',
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        placeholder: '全部',
+        options: MODEL_FORMAT_FILTER_OPTIONS,
+      },
+    },
+    {
+      field: 'base_model',
+      label: '基础模型',
       component: 'Input',
       componentProps: {
-        placeholder: '请输入版本',
+        placeholder: '请输入基础模型',
+        allowClear: true,
       },
     },
   ];

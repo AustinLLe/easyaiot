@@ -3,18 +3,18 @@
     <div v-if="visible" class="dynamic-rule-overlay" @mousedown.self="handleCancel">
       <div class="dynamic-rule-dialog" role="dialog" aria-modal="true">
         <div class="dynamic-rule-header">
-          <span class="dynamic-rule-title">{{ isCreate ? TXT.addTitle : TXT.editTitle }}</span>
+          <span class="dynamic-rule-title">{{ modalTitle }}</span>
           <button type="button" class="dynamic-rule-close" @click="handleCancel">x</button>
         </div>
 
-        <div class="dynamic-rule-body">
+        <div class="dynamic-rule-body" :class="{ 'form-readonly': readonly }">
           <Form layout="vertical" class="dynamic-rule-form">
             <div class="form-block">
               <div class="block-title">{{ TXT.basic }}</div>
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.ruleName" required>
-                    <Input v-model:value="localRule.rule_name" :placeholder="TXT.ruleNamePlaceholder" allow-clear />
+                    <Input v-model:value="localRule.rule_name" :placeholder="TXT.ruleNamePlaceholder" :allow-clear="!readonly" :disabled="readonly" :readonly="readonly" />
                   </FormItem>
                 </Col>
                 <Col :span="12">
@@ -22,6 +22,7 @@
                     <Select
                       v-model:value="localRule.behavior_type"
                       :options="DYNAMIC_BEHAVIOR_OPTIONS"
+                      :disabled="readonly"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                       style="width: 100%"
@@ -33,7 +34,7 @@
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.enabled">
-                    <Switch v-model:checked="localRule.enabled" :checked-children="TXT.on" :un-checked-children="TXT.off" />
+                    <Switch v-model:checked="localRule.enabled" :checked-children="TXT.on" :un-checked-children="TXT.off" :disabled="readonly" />
                   </FormItem>
                 </Col>
                 <Col :span="12">
@@ -41,6 +42,7 @@
                     <Select
                       v-model:value="localRule.severity"
                       :options="SEVERITY_OPTIONS"
+                      :disabled="readonly"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                       style="width: 100%"
@@ -59,7 +61,8 @@
                       v-model:value="localRule.target_model_id"
                       :placeholder="TXT.selectModel"
                       :options="modelOptions"
-                      allow-clear
+                      :allow-clear="!readonly"
+                      :disabled="readonly"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                       style="width: 100%"
@@ -74,6 +77,7 @@
                       mode="multiple"
                       :placeholder="TXT.selectClass"
                       :options="targetClassOptions"
+                      :disabled="readonly"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                       style="width: 100%"
@@ -88,22 +92,16 @@
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.extractInterval" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.extract_interval" :min="1" :max="1000" :precision="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.extract_interval" :min="1" :max="1000" :precision="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
-                <Col :span="12">
-                  <FormItem :label="TXT.predictBoxes">
-                    <Switch v-model:checked="localRule.dynamic_trigger!.predict_boxes" :checked-children="TXT.on" :un-checked-children="TXT.off" />
-                  </FormItem>
-                </Col>
-              </Row>
-              <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="triggerLabel" required>
                     <Select
                       v-if="localRule.behavior_type === 'intrusion'"
                       v-model:value="localRule.dynamic_trigger!.mode"
                       :options="intrusionTriggerOptions"
+                      :disabled="readonly"
                       :get-popup-container="selectPopupContainer"
                       :dropdown-style="SELECT_DROPDOWN_STYLE"
                       style="width: 100%"
@@ -115,40 +113,40 @@
               <Row v-if="showDwellSeconds || showShortLeaveTolerance" :gutter="16">
                 <Col v-if="showDwellSeconds" :span="12">
                   <FormItem :label="TXT.dwellSeconds" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.dwell_sec" :min="1" :max="86400" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.dwell_sec" :min="1" :max="86400" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
                 <Col v-if="showShortLeaveTolerance" :span="12">
                   <FormItem :label="TXT.shortLeaveToleranceSeconds">
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.allow_leave_sec" :min="0" :max="86400" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.allow_leave_sec" :min="0" :max="86400" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.sameTrackSuppressSeconds" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.same_track_suppress_sec" :min="0" :max="86400" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.same_track_suppress_sec" :min="0" :max="86400" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.suppressSeconds" required>
-                    <InputNumber v-model:value="localRule.alarm_suppress_time" :min="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.alarm_suppress_time" :min="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row :gutter="16">
                 <Col v-if="localRule.behavior_type === 'intrusion'" :span="12">
                   <FormItem :label="TXT.enterConfirmFrames">
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.enter_confirm_frames" :min="1" :max="120" :precision="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.enter_confirm_frames" :min="1" :max="120" :precision="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row v-if="localRule.behavior_type === 'dwell'" :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.crowdCount" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.crowd_count" :min="1" :max="1000" :precision="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.crowd_count" :min="1" :max="1000" :precision="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
@@ -159,31 +157,31 @@
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.lostTrackBuffer" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.lost_track_buffer" :min="1" :max="1000" :precision="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.lost_track_buffer" :min="1" :max="1000" :precision="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
                 <Col :span="12">
                   <FormItem :label="TXT.matchingThreshold" required>
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.matching_threshold" :min="0.01" :max="1" :step="0.01" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.matching_threshold" :min="0.01" :max="1" :step="0.01" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.maxSpeedJump">
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.max_speed_jump" :min="0" :precision="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.max_speed_jump" :min="0" :precision="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
                 <Col :span="12">
                   <FormItem :label="TXT.smoothAlpha">
-                    <InputNumber v-model:value="localRule.dynamic_trigger!.smooth_alpha" :min="0" :max="1" :step="0.01" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.dynamic_trigger!.smooth_alpha" :min="0" :max="1" :step="0.01" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
               <Row :gutter="16">
                 <Col :span="12">
                   <FormItem :label="TXT.lockClass">
-                    <Switch v-model:checked="localRule.dynamic_trigger!.lock_class" :checked-children="TXT.on" :un-checked-children="TXT.off" />
+                    <Switch v-model:checked="localRule.dynamic_trigger!.lock_class" :checked-children="TXT.on" :un-checked-children="TXT.off" :disabled="readonly" />
                   </FormItem>
                 </Col>
               </Row>
@@ -194,17 +192,17 @@
               <Row :gutter="16">
                 <Col :span="8">
                   <FormItem :label="TXT.recordEnabled">
-                    <Switch v-model:checked="localRule.clip_record_enabled" :checked-children="TXT.on" :un-checked-children="TXT.off" />
+                    <Switch v-model:checked="localRule.clip_record_enabled" :checked-children="TXT.on" :un-checked-children="TXT.off" :disabled="readonly" />
                   </FormItem>
                 </Col>
                 <Col v-if="localRule.clip_record_enabled" :span="8">
                   <FormItem :label="TXT.beforeSeconds" required>
-                    <InputNumber v-model:value="localRule.clip_before_sec" :min="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.clip_before_sec" :min="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
                 <Col v-if="localRule.clip_record_enabled" :span="8">
                   <FormItem :label="TXT.afterSeconds" required>
-                    <InputNumber v-model:value="localRule.clip_after_sec" :min="0" style="width: 100%" />
+                    <InputNumber v-model:value="localRule.clip_after_sec" :min="0" :disabled="readonly" style="width: 100%" />
                   </FormItem>
                 </Col>
               </Row>
@@ -213,8 +211,8 @@
         </div>
 
         <div class="dynamic-rule-footer">
-          <Button @click="handleCancel">{{ TXT.cancel }}</Button>
-          <Button type="primary" @click="handleSave">{{ TXT.save }}</Button>
+          <Button @click="handleCancel">{{ readonly ? TXT.close : TXT.cancel }}</Button>
+          <Button v-if="!readonly" type="primary" @click="handleSave">{{ TXT.save }}</Button>
         </div>
       </div>
     </div>
@@ -254,6 +252,7 @@ defineOptions({ name: 'DynamicAlertRuleEditModal' });
 const props = defineProps<{
   rule: AlertRuleDraft | null;
   isCreate: boolean;
+  readonly?: boolean;
   classOptions: Array<{ label: string; value: string; class_key?: string }>;
   classOptionsByModel?: Record<number, Array<{ label: string; value: string; class_key?: string }>>;
   modelOptions: Array<{ label: string; value: number }>;
@@ -282,7 +281,6 @@ const TXT = {
   selectClass: '\u8bf7\u9009\u62e9\u8981\u8ffd\u8e2a\u7684\u7c7b\u522b',
   trigger: '\u89e6\u53d1',
   extractInterval: '\u62bd\u5e27\u95f4\u9694',
-  predictBoxes: '\u542f\u7528\u9884\u6d4b\u6846\u7ed8\u5236',
   intrusionTrigger: '\u5165\u4fb5\u89e6\u53d1\u65b9\u5f0f',
   triggerType: '\u89e6\u53d1\u65b9\u5f0f',
   enterNow: '\u8fdb\u5165\u533a\u57df\u7acb\u5373\u89e6\u53d1',
@@ -305,8 +303,15 @@ const TXT = {
   beforeSeconds: '\u544a\u8b66\u524d\uff08\u79d2\uff09',
   afterSeconds: '\u544a\u8b66\u540e\uff08\u79d2\uff09',
   cancel: '\u53d6\u6d88',
+  close: '\u5173\u95ed',
   save: '\u4fdd\u5b58',
 };
+
+const modalTitle = computed(() => {
+  if (props.readonly)
+    return '查看动态追踪规则';
+  return props.isCreate ? TXT.addTitle : TXT.editTitle;
+});
 
 const visible = defineModel<boolean>('open', { default: false });
 const { createWarningModal } = useMessage();
@@ -367,7 +372,7 @@ function ensureDynamicDefaults(rule: AlertRuleDraft) {
     dwell_sec: rule.dynamic_trigger.dwell_sec ?? 3,
     extract_interval: rule.dynamic_trigger.extract_interval ?? 25,
     lost_track_buffer: rule.dynamic_trigger.lost_track_buffer ?? 25,
-    matching_threshold: rule.dynamic_trigger.matching_threshold ?? 0.2,
+    matching_threshold: rule.dynamic_trigger.matching_threshold ?? 0.8,
     same_track_suppress_sec: rule.dynamic_trigger.same_track_suppress_sec ?? rule.alarm_suppress_time ?? 300,
     enter_confirm_frames: rule.dynamic_trigger.enter_confirm_frames ?? 2,
     allow_leave_sec: rule.dynamic_trigger.allow_leave_sec ?? 1,
@@ -375,7 +380,6 @@ function ensureDynamicDefaults(rule: AlertRuleDraft) {
     max_speed_jump: rule.dynamic_trigger.max_speed_jump ?? 0,
     smooth_alpha: rule.dynamic_trigger.smooth_alpha ?? 0.25,
     lock_class: rule.dynamic_trigger.lock_class ?? true,
-    predict_boxes: rule.dynamic_trigger.predict_boxes ?? false,
   };
   if (!rule.target_classes)
     rule.target_classes = [];
@@ -416,6 +420,8 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.readonly)
+    return;
   ensureDynamicDefaults(localRule.value);
   const error = validateDynamicAlertRule(localRule.value);
   if (error) {
@@ -522,6 +528,24 @@ function handleSave() {
 .dynamic-rule-form {
   :deep(.ant-form-item) {
     margin-bottom: 14px;
+  }
+}
+
+.form-readonly {
+  :deep(.ant-input),
+  :deep(.ant-input-number),
+  :deep(.ant-select),
+  :deep(.ant-switch),
+  :deep(.ant-checkbox-wrapper),
+  :deep(.ant-radio-wrapper),
+  :deep(.ant-btn) {
+    pointer-events: none;
+  }
+
+  :deep(.ant-input),
+  :deep(.ant-input-number),
+  :deep(.ant-select-selector) {
+    background: #fafafa;
   }
 }
 </style>

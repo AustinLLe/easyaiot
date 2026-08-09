@@ -6,18 +6,22 @@
         <BasicTable v-if="viewMode === 'table'" @register="registerTable">
           <template #toolbar>
             <div class="toolbar-buttons">
+              <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:scan']" type="primary" @click="handleScanOnvif">
                 <template #icon><ScanOutlined /></template>
                 扫描局域网ONVIF设备
               </a-button>
+              -->
               <a-button v-auth="['camera:devices:create']" @click="openAddModal('source')">
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
                 更新ONVIF设备
               </a-button>
+              -->
               <a-button type="default" @click="handleToggleViewMode">
                 <template #icon><SwapOutlined /></template>
                 切换视图
@@ -49,18 +53,22 @@
             @play="handleCardPlay"
           >
             <template #header>
+              <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:scan']" type="primary" @click="handleScanOnvif">
                 <template #icon><ScanOutlined /></template>
                 扫描局域网ONVIF设备
               </a-button>
+              -->
               <a-button v-auth="['camera:devices:create']" @click="openAddModal('source')">
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
                 更新ONVIF设备
               </a-button>
+              -->
               <a-button type="default" @click="handleToggleViewMode">
                 <template #icon><SwapOutlined /></template>
                 切换视图
@@ -88,15 +96,25 @@ import {
   deleteDevice,
   getDeviceList,
   getDirectoryDevices,
-  refreshDevices,
+  // refreshDevices,
   type DeviceDirectory,
 } from '@/api/device/camera'
-import { ScanOutlined, SyncOutlined, SwapOutlined, VideoCameraAddOutlined } from '@ant-design/icons-vue'
+import {
+  SwapOutlined,
+  VideoCameraAddOutlined,
+  // ScanOutlined,
+  // SyncOutlined,
+} from '@ant-design/icons-vue'
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
 import DirectorySidebar from '../components/DirectorySidebar/index.vue'
 import VideoCardList from '../components/VideoCardList/index.vue'
+import { confirmDeleteDevice, preloadAlgorithmTaskUsageCache } from '@/views/algorithm-task/utils/algorithmTaskUsageUtils'
 
 defineOptions({ name: 'CameraDevices' })
+
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {});
+});
 
 const { createMessage } = useMessage()
 const [registerAddModel, { openModal }] = useModal()
@@ -186,7 +204,19 @@ const openAddModal = (type, record = null) => {
   openModal(true, { type, record, isEdit: type === 'edit', isView: type === 'view', defaultDirectoryId: selectedDirectoryId.value })
 }
 
-const handleScanOnvif = () => openAddModal('onvif')
+// 暂时隐藏 ONVIF 相关按钮，保留逻辑便于恢复
+// const handleScanOnvif = () => openAddModal('onvif')
+//
+// const handleUpdateOnvifDevice = async () => {
+//   try {
+//     await refreshDevices()
+//     createMessage.success('ONVIF设备更新成功')
+//     handleSuccess()
+//   }
+//   catch {
+//     createMessage.error('ONVIF设备更新失败')
+//   }
+// }
 
 const handleSuccess = () => {
   directorySidebarRef.value?.refresh()
@@ -197,6 +227,9 @@ const handleSuccess = () => {
 }
 
 const handleDelete = async (record) => {
+  const canDelete = await confirmDeleteDevice(record.id, record.name)
+  if (!canDelete)
+    return
   try {
     await deleteDevice(record.id)
     createMessage.success('删除成功')
@@ -207,23 +240,10 @@ const handleDelete = async (record) => {
   }
 }
 
-const handleUpdateOnvifDevice = async () => {
-  try {
-    await refreshDevices()
-    createMessage.success('ONVIF设备更新成功')
-    handleSuccess()
-  }
-  catch {
-    createMessage.error('ONVIF设备更新失败')
-  }
-}
-
 const handleCardView = (record) => openAddModal('view', record)
 const handleCardEdit = (record) => openAddModal('edit', record)
 const handleCardDelete = async (record) => handleDelete(record)
 const handleCardPlay = (record) => handlePlay(record)
-
-onMounted(() => handleSuccess())
 </script>
 
 <style lang="less" scoped>

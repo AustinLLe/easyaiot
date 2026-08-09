@@ -59,11 +59,13 @@ function getTableActions(record) {
     {
       icon: 'ant-design:eye-filled',
       tooltip: { title: '查看', placement: 'top' },
+      auth: 'notice:message-config:view',
       onClick: openConfigModal.bind(null, true, { type: 'view', record }),
     },
     {
       tooltip: { title: '编辑', placement: 'top' },
       icon: 'ant-design:edit-filled',
+      auth: 'notice:message-config:update',
       onClick: openConfigModal.bind(null, true, { type: 'edit', record }),
     },
   ];
@@ -71,6 +73,7 @@ function getTableActions(record) {
     actions.push({
       tooltip: { title: '设为默认发件账号', placement: 'top' },
       icon: 'ant-design:star-outlined',
+      auth: 'notice:message-config:update',
       popConfirm: {
         placement: 'topRight',
         title: `确定将 ${record.configurationMap?.mailFrom || '该账号'} 设为默认发件账号？`,
@@ -81,6 +84,7 @@ function getTableActions(record) {
   actions.push({
     tooltip: { title: '删除', placement: 'top' },
     icon: 'material-symbols:delete-outline-rounded',
+    auth: 'notice:message-config:delete',
     popConfirm: {
       placement: 'topRight',
       title: +record.msgType === 3

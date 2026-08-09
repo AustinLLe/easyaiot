@@ -1,4 +1,5 @@
 import { BasicColumn, FormProps } from '@/components/Table';
+import { MODEL_FORMAT_FILTER_OPTIONS } from '../../utils/modelListQuery';
 
 export function getBasicColumns(): BasicColumn[] {
   return [
@@ -57,37 +58,37 @@ export function getBasicColumns(): BasicColumn[] {
   ];
 }
 
-export function getFormConfig(modelOptions: any[] = []): Partial<FormProps> {
+export function getFormConfig(): Partial<FormProps> {
   return {
     labelWidth: 90,
     baseColProps: { span: 6 },
     schemas: [
       {
-        field: 'model_id',
+        field: 'search',
         label: '算法',
-        component: 'Select',
+        component: 'Input',
         componentProps: {
-          placeholder: '请选择算法',
-          showSearch: true,
+          placeholder: '请输入算法名称',
           allowClear: true,
-          filterOption: (input: string, option: any) =>
-            option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0,
-          options: [
-            { label: '全部', value: '' },
-            ...modelOptions,
-          ],
         },
       },
       {
-        field: 'status',
-        label: '状态',
+        field: 'model_format',
+        label: '格式',
         component: 'Select',
         componentProps: {
-          options: [
-            { label: '草稿', value: 0 },
-            { label: '已发布', value: 1 },
-            { label: '已下线', value: 3 },
-          ],
+          allowClear: true,
+          placeholder: '全部',
+          options: MODEL_FORMAT_FILTER_OPTIONS,
+        },
+      },
+      {
+        field: 'base_model',
+        label: '基础模型',
+        component: 'Input',
+        componentProps: {
+          placeholder: '请输入基础模型',
+          allowClear: true,
         },
       },
     ],

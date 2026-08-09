@@ -8,33 +8,33 @@
             v-for="tool in tools"
             :key="tool.id"
             class="toolbar-tool-item"
-            :class="{ active: activeTool === tool.id }"
-            @click="setActiveTool(tool.id)"
+            :class="{ active: activeTool === tool.id, disabled: viewOnly }"
+            @click="!viewOnly && setActiveTool(tool.id)"
           >
             <Icon :icon="tool.icon" />
             <span>{{ tool.name }}</span>
           </div>
         </div>
         <span class="toolbar-divider" aria-hidden="true" />
-        <a-button type="primary" @click="handleCapture" :loading="capturing">
+        <a-button type="primary" :disabled="viewOnly" @click="handleCapture" :loading="capturing">
           <template #icon>
             <CameraOutlined />
           </template>
           抓拍图片
         </a-button>
-        <a-button @click="handleClear" :disabled="!currentImage">
+        <a-button :disabled="viewOnly || !currentImage" @click="handleClear">
           <template #icon>
             <ClearOutlined />
           </template>
           清空画布
         </a-button>
-        <a-button type="primary" @click="handleSave" :disabled="!currentImage" :loading="saving">
+        <a-button type="primary" :disabled="viewOnly || !currentImage" @click="handleSave" :loading="saving">
           <template #icon>
             <SaveOutlined />
           </template>
           保存区域
         </a-button>
-        <a-button @click="handleDeleteSelected" :disabled="selectedRegionId === null" danger>
+        <a-button :disabled="viewOnly || selectedRegionId === null" @click="handleDeleteSelected" danger>
           <template #icon>
             <DeleteOutlined />
           </template>
@@ -69,12 +69,12 @@
                     selected: selectedModelIds.includes(model.id),
                     disabled: !selectedRegion
                   }"
-                  @click="!isModelListDisabled && toggleModelSelection(model.id)"
+                  @click="!viewOnly && !isModelListDisabled && toggleModelSelection(model.id)"
                 >
                   <a-checkbox
                     :checked="selectedModelIds.includes(model.id)"
-                    :disabled="isModelListDisabled"
-                    @change="(e) => !isModelListDisabled && handleModelCheckboxChange(model.id, e.target.checked)"
+                    :disabled="viewOnly || isModelListDisabled"
+                    @change="(e) => !viewOnly && !isModelListDisabled && handleModelCheckboxChange(model.id, e.target.checked)"
                     @click.stop
                   />
                   <span class="model-name" :class="{ disabled: isModelListDisabled }">
@@ -141,6 +141,7 @@
               <span class="region-type">{{ getRegionTypeName(region.region_type) }}</span>
               <div class="region-actions">
                 <a-button
+                  v-if="!viewOnly"
                   type="text"
                   size="small"
                   class="edit-name-btn"
@@ -152,6 +153,7 @@
                   </template>
                 </a-button>
                 <a-button
+                  v-if="!viewOnly"
                   type="text"
                   size="small"
                   danger
@@ -209,6 +211,8 @@ const props = defineProps<{
   draftOnly?: boolean;
   /** 紧凑布局：仅画布，隐藏内置工具栏与侧栏 */
   compactMode?: boolean;
+  /** 只读查看：保留完整界面，禁止绘制/编辑/保存 */
+  viewOnly?: boolean;
   /** 隐藏左侧算法模型选择（组合模式固定算法时使用） */
   hideModelSelector?: boolean;
 }>();
@@ -502,6 +506,8 @@ const generateRandomColor = (): string => {
 
 // 设置活动工具
 const setActiveTool = (toolId: string): void => {
+  if (props.viewOnly)
+    return;
   activeTool.value = toolId;
   // 切换到任何工具时，都清空区域选择和模型选择（失去全部焦点）
   selectedRegionId.value = null;
@@ -927,7 +933,7 @@ const handleMouseDown = (e: MouseEvent) => {
   startX.value = x;
   startY.value = y;
 
-  if (activeTool.value === ToolType.SELECT) {
+  if (props.viewOnly || activeTool.value === ToolType.SELECT) {
     // 选择模式：检查点击是否在某个区域内
     let clickedRegion = false;
     for (let i = regions.value.length - 1; i >= 0; i--) {
@@ -952,6 +958,9 @@ const handleMouseDown = (e: MouseEvent) => {
     draw();
     return;
   }
+
+  if (props.viewOnly)
+    return;
 
   if ([ToolType.RECTANGLE, ToolType.POLYGON].includes(activeTool.value)) {
     isDrawing.value = true;
@@ -1686,6 +1695,12 @@ defineExpose({
           border-color: @primary-color;
           color: @light-text;
           background: @light-bg;
+        }
+
+        &.disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+          pointer-events: none;
         }
 
         :deep(.iconify) {

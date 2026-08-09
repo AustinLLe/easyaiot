@@ -50,6 +50,7 @@
             <Spin :spinning="state.editLoading">
               <component
                 :is="currentSectionComponent"
+                ref="activeSectionRef"
                 v-if="currentSectionComponent"
                 v-model:draft="draft"
                 :is-view="state.isView"
@@ -95,7 +96,7 @@ import { useUserStoreWithOut } from '@/store/modules/user';
 import { createModel, updateModel } from '@/api/device/model';
 import { clearModelExtensionProfileCache } from '@/views/algorithm-task/utils/paramUtils';
 import type { ModelDraft, ModelSectionKey } from '../../modelDraft.types';
-import { createDefaultModelDraft, mapRecordToModelDraft } from './useDraft';
+import { createDefaultModelDraft, mapRecordToModelDraft, validateDrawObjects } from './useDraft';
 import ModelBasicInfoSection from './sections/ModelBasicInfoSection.vue';
 import ModelDefaultThresholdSection from './sections/ModelDefaultThresholdSection.vue';
 import ModelDrawObjectSection from './sections/ModelDrawObjectSection.vue';
@@ -128,6 +129,10 @@ const state = reactive({
 const draft = ref<ModelDraft>(createDefaultModelDraft());
 const activeSection = ref<ModelSectionKey>('basic');
 const isEditLayout = ref(false);
+const activeSectionRef = ref<{
+  flushPendingParamsEdit?: () => boolean;
+  validateSection?: () => boolean;
+} | null>(null);
 
 const sectionList: Array<{
   key: ModelSectionKey;
@@ -212,12 +217,8 @@ function buildApiPayload() {
     labels: draft.value.class_labels_text,
     imageUrl: draft.value.imageUrl,
     custom_enabled: draft.value.custom_enabled,
-    algorithm_params: draft.value.custom_enabled
-      ? { ...draft.value.algorithm_params }
-      : {},
-    algorithm_param_descriptions: draft.value.custom_enabled
-      ? { ...draft.value.algorithm_param_descriptions }
-      : {},
+    algorithm_params: { ...draft.value.algorithm_params },
+    algorithm_param_descriptions: { ...(draft.value.algorithm_param_descriptions ?? {}) },
     detection_config: {
       ...draft.value.detection_config,
       custom_enabled: draft.value.custom_enabled,
@@ -233,6 +234,26 @@ async function submitModel() {
     createMessage.warning(error);
     if (isEditLayout.value)
       activeSection.value = 'basic';
+    return;
+  }
+
+  if (activeSection.value === 'threshold') {
+    const flushed = activeSectionRef.value?.flushPendingParamsEdit?.() ?? true;
+    if (!flushed)
+      return;
+  }
+
+  if (activeSection.value === 'draw_object') {
+    const valid = activeSectionRef.value?.validateSection?.() ?? true;
+    if (!valid)
+      return;
+  }
+
+  const drawObjectError = validateDrawObjects(draft.value.draw_objects.items);
+  if (drawObjectError) {
+    createMessage.warning(drawObjectError);
+    if (isEditLayout.value)
+      activeSection.value = 'draw_object';
     return;
   }
 

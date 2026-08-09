@@ -156,12 +156,10 @@
       :mock-task-id="editingMockId"
       :editing-task-id="editingTaskId"
       :initial-draft="editingDraft"
+      :readonly="wizardReadonly"
       @success="handleSuccess"
     />
 
-    <!-- 查看/编辑模态框 -->
-    <AlgorithmTaskModal @register="registerTaskModal" @success="handleSuccess" />
-    
     <!-- 服务管理 -->
     <ServiceManageDrawer @register="registerServiceModal" @success="handleSuccess" />
     
@@ -264,7 +262,6 @@ import {
 } from './components/AlgorithmTaskCreate/useDraft';
 import type { AlgorithmTaskDraft } from './algorithmTaskDraft.types';
 import AlgorithmTaskCreateModal from './components/AlgorithmTaskCreate/index.vue';
-import AlgorithmTaskModal from './components/AlgorithmTaskModal/index.vue';
 import ServiceManageDrawer from './components/ServiceManage/index.vue';
 import DeviceRegionDetectionDrawer from './components/DeviceRegion/index.vue';
 import SnapSpaceDrawer from './components/SnapSpaceDrawer/index.vue';
@@ -303,11 +300,11 @@ const viewMode = ref<'table' | 'card'>('table');
 // 卡片模式相关
 const taskList = ref<AlgorithmTask[]>([]);
 const loading = ref(false);
-const [registerTaskModal, { openModal: openTaskModal }] = useModal();
 const [registerServiceModal, { openModal: openServiceModal }] = useModal();
 const [registerRegionModal, { openModal: openRegionModal }] = useModal();
 const [registerSnapSpaceModal, { openModal: openSnapSpaceModal }] = useModal();
 const createVisible = ref(false);
+const wizardReadonly = ref(false);
 const editingMockId = ref<number | null>(null);
 const editingTaskId = ref<number | null>(null);
 const editingDraft = ref<AlgorithmTaskDraft | null>(null);
@@ -358,7 +355,7 @@ const [registerTable, { reload }] = useTable({
   },
   rowKey: 'id',
   actionColumn: {
-    width: 200,
+    width: 280,
     title: '操作',
     dataIndex: 'action',
     align: 'center',
@@ -389,7 +386,7 @@ const handleCopyDeviceNames = (item: AlgorithmTask) => {
 
 import type { ActionItem } from '@/components/Table';
 
-// 获取表格操作按钮（启动 / 编辑 / 心跳 / 删除）
+// 获取表格操作按钮（启动 / 查看 / 编辑 / 心跳 / 删除）
 const getTableActions = (record: AlgorithmTask): ActionItem[] => {
   const actions: ActionItem[] = [];
 
@@ -407,6 +404,12 @@ const getTableActions = (record: AlgorithmTask): ActionItem[] => {
       onClick: () => handleStart(record),
     });
   }
+
+  actions.push({
+    label: '详情',
+    auth: 'algorithm:task:view',
+    onClick: () => handleView(record),
+  });
 
   actions.push({
     label: '编辑',
@@ -578,6 +581,7 @@ const [registerForm, { validate }] = useForm({
 });
 
 function handleCreateTask() {
+  wizardReadonly.value = false;
   editingMockId.value = null;
   editingTaskId.value = null;
   editingDraft.value = null;
@@ -585,14 +589,40 @@ function handleCreateTask() {
 }
 
 function openWizardEditor(record: AlgorithmTask, draft: AlgorithmTaskDraft) {
+  wizardReadonly.value = false;
   editingMockId.value = null;
   editingTaskId.value = record.id;
   editingDraft.value = draft;
   createVisible.value = true;
 }
 
+function openWizardViewer(record: AlgorithmTask, draft: AlgorithmTaskDraft) {
+  wizardReadonly.value = true;
+  editingMockId.value = isMockAlgorithmTask(record.id) ? record.id : null;
+  editingTaskId.value = isMockAlgorithmTask(record.id) ? null : record.id;
+  editingDraft.value = draft;
+  createVisible.value = true;
+}
+
 const handleView = (record: AlgorithmTask) => {
-  openTaskModal(true, { type: 'view', record });
+  const enriched = enrichTaskWithMode(record);
+
+  if (isMockAlgorithmTask(record.id)) {
+    const draft = getMockDraftByTaskId(record.id);
+    if (!draft) {
+      createMessage.error('未找到 mock 任务配置');
+      return;
+    }
+    openWizardViewer(enriched, draft);
+    return;
+  }
+
+  const storedDraft = getWizardDraftByTaskId(record.id);
+  const storedPayload = getWizardSubmitPayloadByTaskId(record.id);
+  const draft = storedDraft
+    ?? buildDraftFromStoredPayload(storedPayload)
+    ?? buildDraftFromAlgorithmTask(enriched);
+  openWizardViewer(enriched, draft);
 };
 
 const handleEdit = (record: AlgorithmTask) => {
@@ -600,6 +630,7 @@ const handleEdit = (record: AlgorithmTask) => {
     createMessage.warning('任务运行中，无法编辑，请先停止任务');
     return;
   }
+  wizardReadonly.value = false;
   const enriched = enrichTaskWithMode(record);
 
   if (isMockAlgorithmTask(record.id)) {

@@ -317,6 +317,93 @@ export function classLabelsToText(labels?: ModelClassLabelDraft[]): string {
     .join('\n');
 }
 
+export function validateDrawObjectRow(row: ModelDrawObjectItem): string | null {
+  if (!row.class_key?.trim())
+    return '类别ID不能为空';
+  if (!row.class_label?.trim())
+    return '类别标签不能为空';
+  return null;
+}
+
+export function findDuplicateClassKey(
+  items: ModelDrawObjectItem[],
+  excludeId?: string,
+): string | null {
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (excludeId && item.id === excludeId)
+      continue;
+    const classKey = item.class_key?.trim();
+    if (!classKey)
+      continue;
+    if (seen.has(classKey))
+      return classKey;
+    seen.add(classKey);
+  }
+  return null;
+}
+
+export function validateDrawObjectRowUnique(
+  row: ModelDrawObjectItem,
+  items: ModelDrawObjectItem[],
+): string | null {
+  const classKey = row.class_key?.trim();
+  if (!classKey)
+    return null;
+  const duplicated = items.some(
+    item => item.id !== row.id && item.class_key?.trim() === classKey,
+  );
+  if (duplicated)
+    return `类别ID「${classKey}」已存在`;
+  return null;
+}
+
+export function validateDrawObjectRowComplete(
+  row: ModelDrawObjectItem,
+  items: ModelDrawObjectItem[],
+): string | null {
+  return validateDrawObjectRow(row) ?? validateDrawObjectRowUnique(row, items);
+}
+
+export function validateDrawObjects(items: ModelDrawObjectItem[]): string | null {
+  for (const item of items) {
+    const error = validateDrawObjectRow(item);
+    if (error)
+      return error;
+  }
+  const duplicateKey = findDuplicateClassKey(items);
+  if (duplicateKey)
+    return `类别ID「${duplicateKey}」重复，请修改后重试`;
+  return null;
+}
+
+export function validateImportDrawObjects(
+  existing: ModelDrawObjectItem[],
+  imported: ModelDrawObjectItem[],
+): string | null {
+  for (const item of imported) {
+    const error = validateDrawObjectRow(item);
+    if (error)
+      return error;
+  }
+
+  const existingKeys = new Set(
+    existing.map(item => item.class_key.trim()).filter(Boolean),
+  );
+  for (const item of imported) {
+    const classKey = item.class_key.trim();
+    if (existingKeys.has(classKey))
+      return `类别ID「${classKey}」与已有绘制对象重复`;
+    existingKeys.add(classKey);
+  }
+  return null;
+}
+
+export function finalizeDrawObjectLabel(row: ModelDrawObjectItem) {
+  if (!row.label?.trim() && row.class_label?.trim())
+    row.label = translateClassLabel(row.class_label);
+}
+
 export function buildClassLabelsTextFromDrawObjects(items: ModelDrawObjectItem[]): string {
   return dedupeDrawObjectItems(items)
     .filter(item => item.class_key.trim() && (item.class_label || item.label).trim())
@@ -412,8 +499,6 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
         ? [...cfg.class_whitelist as string[]]
         : draft.detection_config.class_whitelist,
     };
-    if (cfg.custom_enabled != null)
-      draft.custom_enabled = cfg.custom_enabled === true;
   }
   else {
     const applied = applyPresetToConfig(schema, 'balanced', modelId ?? 0);
@@ -435,15 +520,8 @@ export function mapRecordToModelDraft(record: Record<string, unknown>): ModelDra
     record.algorithm_param_descriptions
     ?? (record.detection_config as Record<string, unknown> | undefined)?.algorithm_param_descriptions,
   );
-  if (record.custom_enabled != null)
-    draft.custom_enabled = record.custom_enabled === true;
-  else if (Object.keys(draft.algorithm_params).length)
-    draft.custom_enabled = true;
-  else if (record.detection_config && typeof record.detection_config === 'object') {
-    const legacyPreset = String((record.detection_config as Record<string, unknown>).preset ?? '');
-    if (legacyPreset && legacyPreset !== 'balanced')
-      draft.custom_enabled = true;
-  }
+  // 阈值 UI 每次打开固定「默认」模式，扩展参数仍保留作 stash
+  draft.custom_enabled = false;
 
   if (record.draw_objects && typeof record.draw_objects === 'object') {
     const drawObjects = record.draw_objects as Record<string, unknown>;

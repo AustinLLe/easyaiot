@@ -7,7 +7,7 @@
         type="link"
         size="small"
         class="add-param-link"
-        :disabled="disabled"
+        :disabled="disabled || !!editingRowId"
         @click="addRow"
       >
         <PlusOutlined />
@@ -19,69 +19,111 @@
       该模型未在算法管理中配置扩展参数，请先在「算法管理 → 阈值配置 → 扩展」中维护。
     </div>
 
-    <div v-else-if="rows.length" class="param-cards">
-      <div v-for="(row, index) in rows" :key="row.id" class="param-card">
-        <div class="param-card-main" :class="{ 'param-card-main--define': mode === 'define' }">
-          <template v-if="mode === 'define'">
+    <div v-else-if="rows.length" class="param-table" :class="mode === 'define' ? 'param-table--define' : 'param-table--inherit'">
+      <div class="param-table-head">
+        <span class="col-name">参数名</span>
+        <span class="col-desc">描述</span>
+        <span class="col-value">参数值</span>
+        <span v-if="mode === 'define'" class="col-action">操作</span>
+      </div>
+
+      <div
+        v-for="(row, index) in rows"
+        :key="row.id"
+        class="param-table-row"
+        :class="{ 'param-table-row--editing': mode === 'define' && isRowEditing(row.id) }"
+      >
+        <template v-if="mode === 'define'">
+          <div class="col-name">
             <Input
+              v-if="isRowEditing(row.id)"
               v-model:value="row.key"
               placeholder="参数名"
-              class="param-field param-name-field"
               :disabled="disabled"
-              @change="syncParams"
             />
+            <span v-else class="cell-text">{{ row.key || '-' }}</span>
+          </div>
+          <div class="col-desc">
             <Input
+              v-if="isRowEditing(row.id)"
               v-model:value="row.description"
               placeholder="参数描述"
-              class="param-field param-desc-field"
               :disabled="disabled"
-              @change="syncParams"
             />
+            <span v-else class="cell-text cell-text-muted">{{ row.description || '-' }}</span>
+          </div>
+          <div class="col-value">
+            <Input
+              v-if="isRowEditing(row.id)"
+              v-model:value="row.value"
+              placeholder="参数值"
+              :disabled="disabled"
+            />
+            <span v-else class="cell-text">{{ row.value || '-' }}</span>
+          </div>
+          <div class="col-action">
+            <template v-if="isRowEditing(row.id)">
+              <Button
+                type="link"
+                size="small"
+                danger
+                class="action-link"
+                :disabled="disabled"
+                @click="removeRow(index)"
+              >
+                删除
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                class="action-link action-save"
+                :disabled="disabled"
+                @click="saveRow(row.id)"
+              >
+                保存
+              </Button>
+            </template>
+            <Button
+              v-else
+              type="link"
+              size="small"
+              class="action-link"
+              :disabled="disabled || !!editingRowId"
+              @click="startEditRow(row.id)"
+            >
+              编辑
+            </Button>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="col-name">
+            <span class="cell-text">{{ row.key }}</span>
+          </div>
+          <div class="col-desc">
+            <span class="cell-text cell-text-muted">
+              {{ row.description || '继承自算法管理，仅可修改参数值' }}
+            </span>
+          </div>
+          <div class="col-value">
             <Input
               v-model:value="row.value"
               placeholder="参数值"
-              class="param-field param-value-field"
               :disabled="disabled"
               @change="syncParams"
             />
-            <Button
-              type="text"
-              size="small"
-              danger
-              class="param-delete-btn"
-              :disabled="disabled"
-              @click="removeRow(index)"
-            >
-              <DeleteOutlined />
-            </Button>
-          </template>
-          <template v-else>
-            <div class="param-card-text">
-              <div class="param-card-title">{{ row.key }}</div>
-              <div class="param-card-desc">
-                {{ row.description || '继承自算法管理，仅可修改参数值' }}
-              </div>
-            </div>
-            <div class="param-card-input">
-              <Input
-                v-model:value="row.value"
-                placeholder="参数值"
-                class="param-value-input"
-                :disabled="disabled"
-                @change="syncParams"
-              />
-            </div>
-          </template>
-        </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Button, Input } from 'ant-design-vue';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined } from '@ant-design/icons-vue';
+import { useMessage } from '@/hooks/web/useMessage';
 
 defineOptions({ name: 'CustomAlgorithmParamsEditor' });
 
@@ -111,7 +153,10 @@ const descriptions = defineModel<Record<string, string>>('descriptions', {
   default: () => ({}),
 });
 
+const { createMessage } = useMessage();
+
 const rows = ref<ParamRow[]>([]);
+const editingRowId = ref<string | null>(null);
 let rowSeq = 0;
 
 const effectiveKeys = computed(() =>
@@ -140,6 +185,14 @@ function rowsFromParams(
   });
 }
 
+function isRowEditing(id: string) {
+  return editingRowId.value === id;
+}
+
+function clearEditingState() {
+  editingRowId.value = null;
+}
+
 function syncParams() {
   const next: Record<string, string> = {};
   const nextDesc: Record<string, string> = {};
@@ -157,16 +210,65 @@ function syncParams() {
     descriptions.value = nextDesc;
 }
 
-function addRow() {
-  if (props.disabled || props.mode === 'inherit')
+function startEditRow(id: string) {
+  const row = rows.value.find(item => item.id === id);
+  if (!row)
     return;
-  rows.value.push({ id: nextRowId(), key: '', value: '', description: '' });
+  editingRowId.value = id;
+}
+
+function saveRow(id: string, options?: { silent?: boolean }) {
+  const row = rows.value.find(item => item.id === id);
+  if (!row) {
+    clearEditingState();
+    return true;
+  }
+
+  const key = row.key.trim();
+  if (!key) {
+    if (!options?.silent)
+      createMessage.warning('参数名不能为空');
+    return false;
+  }
+
+  const duplicated = rows.value.some(item => item.id !== id && item.key.trim() === key);
+  if (duplicated) {
+    if (!options?.silent)
+      createMessage.warning(`参数名「${key}」已存在`);
+    return false;
+  }
+
+  row.key = key;
+  row.description = row.description.trim();
+  clearEditingState();
+  syncParams();
+  return true;
+}
+
+/** 底部保存前调用：将未点行内保存的编辑行写入 draft */
+function flushPendingEdit(options?: { silent?: boolean }) {
+  if (!editingRowId.value)
+    return true;
+  return saveRow(editingRowId.value, options);
+}
+
+defineExpose({ flushPendingEdit });
+
+function addRow() {
+  if (props.disabled || props.mode === 'inherit' || editingRowId.value)
+    return;
+  const item: ParamRow = { id: nextRowId(), key: '', value: '', description: '' };
+  rows.value.push(item);
+  startEditRow(item.id);
 }
 
 function removeRow(index: number) {
   if (props.mode === 'inherit')
     return;
+  const row = rows.value[index];
   rows.value.splice(index, 1);
+  if (row && editingRowId.value === row.id)
+    clearEditingState();
   syncParams();
 }
 
@@ -181,9 +283,9 @@ function rebuildRows() {
 
 watch(
   () => [modelValue.value, descriptions.value, props.mode, effectiveKeys.value.join('|')] as const,
-  ([params, descMap, mode, _keysSig], [_prevParams, _prevDesc, prevMode]) => {
-    const hasDraftRow = mode === 'define' && rows.value.some(row => !row.key.trim());
-    if (hasDraftRow)
+  ([params, descMap, mode, _keysSig], oldTuple) => {
+    const prevMode = oldTuple?.[2];
+    if (mode === 'define' && editingRowId.value)
       return;
 
     if (mode === 'inherit') {
@@ -226,6 +328,11 @@ watch(
   },
   { deep: true },
 );
+
+onBeforeUnmount(() => {
+  if (props.mode === 'define' && editingRowId.value)
+    flushPendingEdit({ silent: true });
+});
 </script>
 
 <style lang="less" scoped>
@@ -266,102 +373,102 @@ watch(
   height: auto;
 }
 
-.param-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.param-card {
+.param-table {
   border: 1px solid #e8e8e8;
   border-radius: 6px;
+  overflow: hidden;
   background: #fff;
 }
 
-.param-card-main {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 16px;
-}
-
-.param-card-main--define {
+.param-table-head,
+.param-table-row {
+  display: grid;
   align-items: center;
   gap: 8px;
+  padding: 10px 12px;
 }
 
-.param-field {
-  min-width: 0;
+.param-table--define .param-table-head,
+.param-table--define .param-table-row {
+  grid-template-columns: 120px minmax(120px, 320px) 120px 100px;
 }
 
-.param-name-field {
-  flex: 0 0 120px;
+.param-table--inherit .param-table-head,
+.param-table--inherit .param-table-row {
+  grid-template-columns: 120px minmax(0, 1fr) 140px;
 }
 
-.param-desc-field {
-  flex: 1;
-}
-
-.param-value-field {
-  flex: 0 0 120px;
-}
-
-.param-card-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.param-card-title {
-  margin-bottom: 6px;
-  font-size: 14px;
+.param-table-head {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 13px;
   font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.param-table-row {
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 44px;
+}
+
+.param-table-row:last-child {
+  border-bottom: none;
+}
+
+.param-table-row--editing {
+  background: #fafcff;
+}
+
+.col-name,
+.col-desc,
+.col-value,
+.col-action {
+  min-width: 0;
+}
+
+.col-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-left: 8px;
+  white-space: nowrap;
+}
+
+.cell-text {
+  display: block;
+  font-size: 14px;
   color: rgba(0, 0, 0, 0.88);
-  line-height: 1.4;
+  line-height: 1.5;
   word-break: break-all;
 }
 
-.param-card-desc {
-  font-size: 13px;
+.cell-text-muted {
   color: rgba(0, 0, 0, 0.45);
-  line-height: 1.6;
 }
 
-.param-card-input {
-  display: flex;
-  flex-shrink: 0;
-  align-items: flex-start;
-  gap: 4px;
-  width: 140px;
+.action-link {
+  padding: 0 4px;
+  height: auto;
 }
 
-.param-value-input {
-  flex: 1;
-  min-width: 0;
+.action-save {
+  color: #1677ff;
 }
 
-.param-delete-btn {
-  flex-shrink: 0;
-}
-
-@media (max-width: 560px) {
-  .param-card-main {
-    flex-direction: column;
+@media (max-width: 720px) {
+  .param-table-head,
+  .param-table-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
-  .param-card-main--define {
-    align-items: stretch;
+  .param-table-head .col-action {
+    display: none;
   }
 
-  .param-name-field,
-  .param-desc-field,
-  .param-value-field {
-    flex: 1 1 auto;
-    width: 100%;
-  }
-
-  .param-card-input {
-    width: 100%;
+  .col-action {
+    justify-content: flex-start;
   }
 }
 </style>
