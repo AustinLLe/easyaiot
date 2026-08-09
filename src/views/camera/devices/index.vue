@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -108,8 +108,13 @@ import {
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
 import DirectorySidebar from '../components/DirectorySidebar/index.vue'
 import VideoCardList from '../components/VideoCardList/index.vue'
+import { confirmDeleteDevice, preloadAlgorithmTaskUsageCache } from '@/views/algorithm-task/utils/algorithmTaskUsageUtils'
 
 defineOptions({ name: 'CameraDevices' })
+
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {});
+});
 
 const { createMessage } = useMessage()
 const [registerAddModel, { openModal }] = useModal()
@@ -222,6 +227,9 @@ const handleSuccess = () => {
 }
 
 const handleDelete = async (record) => {
+  const canDelete = await confirmDeleteDevice(record.id, record.name)
+  if (!canDelete)
+    return
   try {
     await deleteDevice(record.id)
     createMessage.success('删除成功')

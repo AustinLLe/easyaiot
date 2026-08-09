@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup name="modelManagement">
-import { reactive } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from "./data";
@@ -98,8 +98,13 @@ import { useModal } from "@/components/Modal";
 import { deleteModel, getModelPage } from "@/api/device/model";
 import ModelCardList from "../ModelCardList/index.vue";
 import { queryModelPage } from "../../utils/modelListQuery";
+import { confirmDeleteModel, preloadAlgorithmTaskUsageCache } from '@/views/algorithm-task/utils/algorithmTaskUsageUtils';
 
 const { createMessage } = useMessage();
+
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {});
+});
 
 const [registerAddModel, { openModal: openAddModal }] = useModal();
 // 暂时隐藏从云端同步
@@ -131,9 +136,8 @@ function handleEdit(record) {
   openAddModal(true, { isEdit: true, isView: false, record });
 }
 
-function handleDel(record) {
-  handleDelete(record);
-  cardListReload();
+async function handleDel(record) {
+  await handleDelete(record);
 }
 
 function handleClickSwap() {
@@ -164,6 +168,9 @@ const [registerTable, { reload }] = useTable({
 });
 
 const handleDelete = async (record) => {
+  const canDelete = await confirmDeleteModel(record.id, record.name);
+  if (!canDelete)
+    return;
   try {
     await deleteModel(record.id);
     createMessage.success('删除成功');
