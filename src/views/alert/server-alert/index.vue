@@ -1,6 +1,18 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import {
+  Button as AButton,
+  Form as AForm,
+  FormItem as AFormItem,
+  InputNumber as AInputNumber,
+  RadioButton as ARadioButton,
+  RadioGroup as ARadioGroup,
+  Spin as ASpin,
+  Switch as ASwitch,
+  Table as ATable,
+  Tag as ATag,
+  message,
+} from 'ant-design-vue'
 import AlertPushFormFields from '@/views/algorithm-task/components/AlertEditors/AlertPushFormFields.vue'
 import type { AlertPushDraft } from '@/views/algorithm-task/algorithmTaskDraft.types'
 import {
@@ -32,6 +44,36 @@ const METRICS: Array<{ key: ServerAlertMetricKey, title: string, description: st
   { key: 'memory', title: '内存', description: '服务器物理内存使用率' },
   { key: 'rootDisk', title: '系统盘 /', description: '系统根分区使用率' },
   { key: 'dataDisk', title: '业务数据盘', description: '/srv/easyaiot-data 使用率' },
+]
+
+const ALERT_PRESETS: Array<{
+  key: string
+  name: string
+  description: string
+  thresholds: Record<ServerAlertMetricKey, number>
+  repeatIntervalMinutes: number
+}> = [
+  {
+    key: 'sensitive',
+    name: '敏感监控',
+    description: '更早发现资源压力，适合调试期和关键任务。',
+    thresholds: { cpu: 75, memory: 80, rootDisk: 85, dataDisk: 85 },
+    repeatIntervalMinutes: 15,
+  },
+  {
+    key: 'balanced',
+    name: '均衡（推荐）',
+    description: '兼顾发现速度和告警频率，适合日常生产。',
+    thresholds: { cpu: 85, memory: 85, rootDisk: 90, dataDisk: 90 },
+    repeatIntervalMinutes: 30,
+  },
+  {
+    key: 'stable',
+    name: '稳健运行',
+    description: '只关注高资源压力，适合负载波动较大的环境。',
+    thresholds: { cpu: 90, memory: 90, rootDisk: 95, dataDisk: 95 },
+    repeatIntervalMinutes: 60,
+  },
 ]
 
 function defaultMetrics(): Record<ServerAlertMetricKey, ServerAlertMetricConfig> {
@@ -68,12 +110,12 @@ const eventPage = ref(1)
 const eventPageSize = 10
 const eventColumns = [
   { title: '资源', dataIndex: 'metricName', key: 'metricName' },
-  { title: '触发值', key: 'triggerValue' },
-  { title: '阈值', key: 'threshold' },
-  { title: '状态', key: 'active' },
-  { title: '通知结果', key: 'notificationResult' },
-  { title: '触发时间', key: 'triggeredAt' },
-  { title: '恢复时间', key: 'recoveredAt' },
+  { title: '触发值', dataIndex: 'triggerValue', key: 'triggerValue' },
+  { title: '阈值', dataIndex: 'threshold', key: 'threshold' },
+  { title: '状态', dataIndex: 'active', key: 'active' },
+  { title: '通知结果', dataIndex: 'notificationResult', key: 'notificationResult' },
+  { title: '触发时间', dataIndex: 'triggeredAt', key: 'triggeredAt' },
+  { title: '恢复时间', dataIndex: 'recoveredAt', key: 'recoveredAt' },
 ]
 let timer: number | undefined
 let statusInFlight = false
@@ -87,6 +129,31 @@ const metricCards = computed(() => METRICS.map((definition) => {
     config: metrics[definition.key],
   }
 }))
+
+const selectedPreset = computed(() => ALERT_PRESETS.find(preset => (
+  preset.repeatIntervalMinutes === repeatIntervalMinutes.value
+  && recoveryNotification.value
+  && METRICS.every(item => (
+    metrics[item.key].enabled
+    && Number(metrics[item.key].threshold) === preset.thresholds[item.key]
+  ))
+))?.key || 'custom')
+
+function applyAlertPreset(key: string) {
+  const preset = ALERT_PRESETS.find(item => item.key === key)
+  if (!preset)
+    return
+  for (const item of METRICS) {
+    metrics[item.key].enabled = true
+    metrics[item.key].threshold = preset.thresholds[item.key]
+  }
+  repeatIntervalMinutes.value = preset.repeatIntervalMinutes
+  recoveryNotification.value = true
+}
+
+function handlePresetChange(event: { target: { value: string } }) {
+  applyAlertPreset(event.target.value)
+}
 
 function ringColor(percent: number, alarming: boolean) {
   if (alarming)
@@ -311,6 +378,42 @@ onBeforeUnmount(() => {
       <div class="settings-grid">
         <section class="panel">
           <h3>告警策略</h3>
+          <p class="section-description">
+            选择内置策略可快速填写阈值，应用后仍可逐项调整。
+          </p>
+          <a-radio-group
+            class="preset-selector"
+            :value="selectedPreset"
+            @change="handlePresetChange"
+          >
+            <a-radio-button
+              v-for="preset in ALERT_PRESETS"
+              :key="preset.key"
+              :value="preset.key"
+            >
+              {{ preset.name }}
+            </a-radio-button>
+            <a-radio-button value="custom">
+              自定义
+            </a-radio-button>
+          </a-radio-group>
+          <div class="preset-cards">
+            <button
+              v-for="preset in ALERT_PRESETS"
+              :key="preset.key"
+              type="button"
+              class="preset-card"
+              :class="{ active: selectedPreset === preset.key }"
+              @click="applyAlertPreset(preset.key)"
+            >
+              <strong>{{ preset.name }}</strong>
+              <span>{{ preset.description }}</span>
+              <small>
+                CPU {{ preset.thresholds.cpu }}% · 内存 {{ preset.thresholds.memory }}% ·
+                磁盘 {{ preset.thresholds.rootDisk }}% · {{ preset.repeatIntervalMinutes }} 分钟提醒
+              </small>
+            </button>
+          </div>
           <a-form layout="vertical">
             <a-form-item label="重复提醒间隔">
               <a-input-number
@@ -357,6 +460,7 @@ onBeforeUnmount(() => {
           row-key="id"
           :columns="eventColumns"
           :data-source="events"
+          :columns="eventColumns"
           :pagination="{
             current: eventPage,
             pageSize: eventPageSize,
@@ -367,10 +471,10 @@ onBeforeUnmount(() => {
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'triggerValue'">
-              {{ record.triggerValue.toFixed(1) }}%
+              {{ Number(record.triggerValue || 0).toFixed(1) }}%
             </template>
             <template v-else-if="column.key === 'threshold'">
-              {{ record.threshold.toFixed(1) }}%
+              {{ Number(record.threshold || 0).toFixed(1) }}%
             </template>
             <template v-else-if="column.key === 'active'">
               <a-tag :color="record.active ? 'error' : 'success'">
@@ -378,7 +482,8 @@ onBeforeUnmount(() => {
               </a-tag>
             </template>
             <template v-else-if="column.key === 'notificationResult'">
-              成功 {{ record.notificationResult?.sent || 0 }} / 失败 {{ record.notificationResult?.failed || 0 }}
+              成功 {{ record.notificationResult?.sent || 0 }} /
+              失败 {{ record.notificationResult?.failed || 0 }}
             </template>
             <template v-else-if="column.key === 'triggeredAt'">
               {{ formatToDateTime(record.triggeredAt) }}
@@ -592,6 +697,50 @@ onBeforeUnmount(() => {
   margin-bottom: 18px !important;
 }
 
+.preset-selector {
+  margin-bottom: 14px;
+}
+
+.preset-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  color: #26312a;
+  text-align: left;
+  cursor: pointer;
+  background: #fafcfb;
+  border: 1px solid #e5ebe7;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+
+  strong {
+    font-size: 14px;
+  }
+
+  span,
+  small {
+    color: #77827b;
+  }
+
+  span {
+    line-height: 1.5;
+  }
+
+  &.active {
+    background: #f2f7ff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgb(59 130 246 / 10%);
+  }
+}
+
 .form-help {
   margin-top: 7px;
   font-size: 12px;
@@ -628,7 +777,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .settings-grid,
-  .metric-grid {
+  .metric-grid,
+  .preset-cards {
     grid-template-columns: 1fr;
   }
 
