@@ -66,6 +66,15 @@ const events = ref<ServerAlertEvent[]>([])
 const eventTotal = ref(0)
 const eventPage = ref(1)
 const eventPageSize = 10
+const eventColumns = [
+  { title: '资源', dataIndex: 'metricName', key: 'metricName' },
+  { title: '触发值', key: 'triggerValue' },
+  { title: '阈值', key: 'threshold' },
+  { title: '状态', key: 'active' },
+  { title: '通知结果', key: 'notificationResult' },
+  { title: '触发时间', key: 'triggeredAt' },
+  { title: '恢复时间', key: 'recoveredAt' },
+]
 let timer: number | undefined
 let statusInFlight = false
 
@@ -346,6 +355,7 @@ onBeforeUnmount(() => {
         </div>
         <a-table
           row-key="id"
+          :columns="eventColumns"
           :data-source="events"
           :pagination="{
             current: eventPage,
@@ -355,39 +365,28 @@ onBeforeUnmount(() => {
           }"
           @change="(pagination) => loadEvents(pagination.current || 1)"
         >
-          <a-table-column title="资源" data-index="metricName" />
-          <a-table-column title="触发值">
-            <template #default="{ record }">
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'triggerValue'">
               {{ record.triggerValue.toFixed(1) }}%
             </template>
-          </a-table-column>
-          <a-table-column title="阈值">
-            <template #default="{ record }">
+            <template v-else-if="column.key === 'threshold'">
               {{ record.threshold.toFixed(1) }}%
             </template>
-          </a-table-column>
-          <a-table-column title="状态">
-            <template #default="{ record }">
+            <template v-else-if="column.key === 'active'">
               <a-tag :color="record.active ? 'error' : 'success'">
                 {{ record.active ? '告警中' : '已恢复' }}
               </a-tag>
             </template>
-          </a-table-column>
-          <a-table-column title="通知结果">
-            <template #default="{ record }">
+            <template v-else-if="column.key === 'notificationResult'">
               成功 {{ record.notificationResult?.sent || 0 }} / 失败 {{ record.notificationResult?.failed || 0 }}
             </template>
-          </a-table-column>
-          <a-table-column title="触发时间">
-            <template #default="{ record }">
+            <template v-else-if="column.key === 'triggeredAt'">
               {{ formatToDateTime(record.triggeredAt) }}
             </template>
-          </a-table-column>
-          <a-table-column title="恢复时间">
-            <template #default="{ record }">
+            <template v-else-if="column.key === 'recoveredAt'">
               {{ record.recoveredAt ? formatToDateTime(record.recoveredAt) : '--' }}
             </template>
-          </a-table-column>
+          </template>
         </a-table>
       </section>
 
