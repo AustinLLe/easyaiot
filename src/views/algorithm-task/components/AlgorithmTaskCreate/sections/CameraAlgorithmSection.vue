@@ -7,7 +7,8 @@
 
     <div class="binding-panel">
       <div class="binding-toolbar">
-        <div ref="pickerAnchorRef" class="picker-anchor">
+        <template v-if="!readonly">
+          <div ref="pickerAnchorRef" class="picker-anchor">
           <a-button type="primary" @click="toggleCameraPicker">
             <template #icon>
               <VideoCameraOutlined />
@@ -44,6 +45,7 @@
             @cancel="handleModelPickerCancel"
           />
         </div>
+        </template>
 
         <span class="stats-text">
           已选择：摄像头数量 {{ stats.cameraCount }} | 算法数量 {{ stats.algorithmCount }}
@@ -70,7 +72,7 @@
                 <a-tag :color="binding.online === false ? 'default' : 'green'">
                   {{ binding.online === false ? '离线' : '在线' }}
                 </a-tag>
-                <a-button type="text" size="small" @click="removeCamera(binding.device_id)">
+                <a-button v-if="!readonly" type="text" size="small" @click="removeCamera(binding.device_id)">
                   <CloseOutlined />
                 </a-button>
               </div>
@@ -98,7 +100,7 @@
                 <div class="algo-name">{{ getModelName(modelId) }}</div>
                 <div class="algo-meta">{{ getModelMetaText(modelId) }}</div>
               </div>
-              <a-button type="text" size="small" @click="removeModel(modelId)">
+              <a-button v-if="!readonly" type="text" size="small" @click="removeModel(modelId)">
                 <CloseOutlined />
               </a-button>
             </div>
@@ -127,6 +129,7 @@ import ModelPickerPanel from '../../TaskFormWidgets/ModelPickerPanel.vue';
 import { normalizeRealModelIds, syncLegacyIdsFromDraft } from '../useDraft';
 import { seedModelDefaultProfiles } from '../../../utils/paramUtils';
 import type { AlgorithmTaskDraft, CameraBindingDraft } from '../../../algorithmTaskDraft.types';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'CameraAlgorithmSection' });
 
@@ -136,6 +139,7 @@ interface ModelMeta {
 }
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 function syncLegacyIds() {
   syncLegacyIdsFromDraft(payload.value);

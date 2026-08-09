@@ -343,14 +343,16 @@ export function buildDraftFromAlgorithmTask(task: AlgorithmTask): AlgorithmTaskD
 }
 
 function restoreParamConfigFromModel(model: BackendBindingModel): AlgorithmParamConfigDraft {
-  const hasAlgorithmParams = Object.keys(model.algorithm_params || {}).length > 0;
   const defaultDetection = createDefaultDetectionConfig();
   const detectionConfig = (model as BackendBindingModel & {
-    detection_config?: Partial<BackendBindingModel['detection_config']>;
+    detection_config?: Partial<BackendBindingModel['detection_config']> & { custom_enabled?: boolean };
   }).detection_config ?? {};
+  const algorithmParams = model.algorithm_params && typeof model.algorithm_params === 'object'
+    ? { ...model.algorithm_params }
+    : {};
   return {
     preset: 'balanced',
-    custom_enabled: hasAlgorithmParams,
+    custom_enabled: false,
     detection_config: {
       model_id: model.model_id,
       conf: detectionConfig.conf ?? defaultDetection.conf,
@@ -367,7 +369,7 @@ function restoreParamConfigFromModel(model: BackendBindingModel): AlgorithmParam
         ? { ...detectionConfig.draw_style }
         : undefined,
     },
-    algorithm_params: hasAlgorithmParams ? { ...model.algorithm_params } : {},
+    algorithm_params: algorithmParams,
   };
 }
 

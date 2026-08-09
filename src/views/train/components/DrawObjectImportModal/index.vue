@@ -53,6 +53,10 @@ import { downloadDrawObjectTemplate, parseDrawObjectExcel } from '../../utils/dr
 
 defineOptions({ name: 'DrawObjectImportModal' });
 
+const props = defineProps<{
+  existingClassKeys?: string[];
+}>();
+
 const visible = defineModel<boolean>('open', { default: false });
 
 const emit = defineEmits<{
@@ -97,7 +101,7 @@ async function handleFileChange(event: Event) {
 
   importing.value = true;
   try {
-    const items = await parseDrawObjectExcel(file);
+    const items = await parseDrawObjectExcel(file, props.existingClassKeys ?? []);
     emit('success', items);
     visible.value = false;
   }

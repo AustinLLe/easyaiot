@@ -7,17 +7,19 @@
     >
       <div class="alert-rule-edit-dialog" role="dialog" aria-modal="true">
         <div class="alert-rule-edit-header">
-          <span class="alert-rule-edit-title">{{ isCreate ? '添加告警规则' : '编辑告警规则' }}</span>
+          <span class="alert-rule-edit-title">{{ modalTitle }}</span>
           <button type="button" class="alert-rule-edit-close" @click="handleCancel">×</button>
         </div>
 
-        <div class="alert-rule-edit-body">
+        <div class="alert-rule-edit-body" :class="{ 'form-readonly': readonly }">
           <Form layout="vertical" class="rule-form">
             <FormItem label="规则名称" required>
               <Input
                 v-model:value="localRule.rule_name"
                 placeholder="例如：未戴安全帽"
-                allow-clear
+                :allow-clear="!readonly"
+                :disabled="readonly"
+                :readonly="readonly"
               />
             </FormItem>
 
@@ -26,6 +28,7 @@
                 v-model:checked="localRule.enabled"
                 checked-children="开"
                 un-checked-children="关"
+                :disabled="readonly"
               />
             </FormItem>
 
@@ -43,7 +46,9 @@
                     <Tag color="blue">{{ record.seq }}</Tag>
                   </template>
                   <template v-else-if="column.key === 'model_id'">
+                    <span v-if="readonly">{{ getModelLabel(record.model_id) }}</span>
                     <Select
+                      v-else
                       v-model:value="record.model_id"
                       placeholder="请选择算法"
                       allow-clear
@@ -55,7 +60,9 @@
                     />
                   </template>
                   <template v-else-if="column.key === 'class_name'">
+                    <span v-if="readonly">{{ record.class_name || '—' }}</span>
                     <Select
+                      v-else
                       v-model:value="record.class_name"
                       placeholder="请选择"
                       allow-clear
@@ -66,7 +73,9 @@
                     />
                   </template>
                   <template v-else-if="column.key === 'operator'">
+                    <span v-if="readonly">{{ getOperatorLabel(record.operator) }}</span>
                     <Select
+                      v-else
                       v-model:value="record.operator"
                       placeholder="请选择"
                       allow-clear
@@ -77,7 +86,9 @@
                     />
                   </template>
                   <template v-else-if="column.key === 'count'">
+                    <span v-if="readonly">{{ record.count ?? '—' }}</span>
                     <InputNumber
+                      v-else
                       v-model:value="record.count"
                       placeholder="数量"
                       :min="0"
@@ -98,7 +109,7 @@
                   </template>
                 </template>
               </Table>
-              <Button type="dashed" block class="add-condition-btn" @click="handleAddCondition">
+              <Button v-if="!readonly" type="dashed" block class="add-condition-btn" @click="handleAddCondition">
                 <PlusOutlined />
                 添加条件
               </Button>
@@ -112,6 +123,7 @@
               <LogicExpressionBuilder
                 v-model:expression="localRule.logic_expression"
                 :conditions="localRule.conditions"
+                :readonly="readonly"
               />
             </FormItem>
 
@@ -122,6 +134,7 @@
                     v-model:value="localRule.duration_sec"
                     placeholder="例如 3"
                     :min="0"
+                    :disabled="readonly"
                     style="width: 100%"
                   />
                 </FormItem>
@@ -132,6 +145,7 @@
                     v-model:value="localRule.alarm_suppress_time"
                     placeholder="例如 300"
                     :min="0"
+                    :disabled="readonly"
                     style="width: 100%"
                   />
                 </FormItem>
@@ -145,6 +159,7 @@
                     v-model:checked="localRule.clip_record_enabled"
                     checked-children="开"
                     un-checked-children="关"
+                    :disabled="readonly"
                   />
                 </FormItem>
               </Col>
@@ -153,7 +168,8 @@
                   <Select
                     v-model:value="localRule.severity"
                     placeholder="请选择"
-                    allow-clear
+                    :allow-clear="!readonly"
+                    :disabled="readonly"
                     :options="SEVERITY_OPTIONS"
                     :get-popup-container="selectPopupContainer"
                     :dropdown-style="SELECT_DROPDOWN_STYLE"
@@ -170,6 +186,7 @@
                   v-model:value="localRule.clip_before_sec"
                   placeholder="10"
                   :min="0"
+                  :disabled="readonly"
                   class="clip-duration-input"
                 />
                 <span class="clip-duration-unit">秒</span>
@@ -179,6 +196,7 @@
                   v-model:value="localRule.clip_after_sec"
                   placeholder="10"
                   :min="0"
+                  :disabled="readonly"
                   class="clip-duration-input"
                 />
                 <span class="clip-duration-unit">秒</span>
@@ -194,8 +212,8 @@
         </div>
 
         <div class="alert-rule-edit-footer">
-          <Button @click="handleCancel">取消</Button>
-          <Button type="primary" @click="handleSave">保存</Button>
+          <Button @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</Button>
+          <Button v-if="!readonly" type="primary" @click="handleSave">保存</Button>
         </div>
       </div>
     </div>
@@ -246,6 +264,7 @@ defineOptions({ name: 'AlertRuleEditModal' });
 const props = defineProps<{
   rule: AlertRuleDraft | null;
   isCreate: boolean;
+  readonly?: boolean;
   taskType: 'realtime' | 'snap';
   classOptions: Array<{ label: string; value: string; class_key?: string }>;
   classOptionsByModel?: Record<number, Array<{ label: string; value: string; class_key?: string }>>;
@@ -254,7 +273,13 @@ const props = defineProps<{
 
 const detectionConfig = defineModel<DetectionConfigDraft>('detectionConfig', { required: true });
 
-const showTrackingConfig = computed(() => props.isCreate && props.taskType === 'realtime');
+const showTrackingConfig = computed(() => !props.readonly && props.isCreate && props.taskType === 'realtime');
+
+const modalTitle = computed(() => {
+  if (props.readonly)
+    return '查看告警规则';
+  return props.isCreate ? '添加告警规则' : '编辑告警规则';
+});
 
 const emit = defineEmits<{
   save: [rule: AlertRuleDraft];
@@ -266,14 +291,19 @@ const { createWarningModal } = useMessage();
 
 const localRule = ref<AlertRuleDraft>(createEmptyAlertRule(0));
 
-const conditionColumns = [
-  { title: '序号', key: 'seq', width: 56, align: 'center' as const },
-  { title: '算法名称', key: 'model_id', width: '22%' },
-  { title: '检测类别', key: 'class_name', width: '22%' },
-  { title: '判断关系', key: 'operator', width: '16%' },
-  { title: '数量', key: 'count', width: '14%' },
-  { title: '操作', key: 'action', width: 52, align: 'center' as const },
-];
+const conditionColumns = computed(() => {
+  const columns = [
+    { title: '序号', key: 'seq', width: 56, align: 'center' as const },
+    { title: '算法名称', key: 'model_id', width: '22%' },
+    { title: '检测类别', key: 'class_name', width: '22%' },
+    { title: '判断关系', key: 'operator', width: '16%' },
+    { title: '数量', key: 'count', width: '14%' },
+  ];
+  if (!props.readonly) {
+    columns.push({ title: '操作', key: 'action', width: 52, align: 'center' as const });
+  }
+  return columns;
+});
 
 watch(
   () => [visible.value, props.rule, props.isCreate] as const,
@@ -315,6 +345,18 @@ function getClassOptions(modelId?: number | null) {
   if (modelId != null && props.classOptionsByModel?.[modelId]?.length)
     return props.classOptionsByModel[modelId];
   return props.classOptions;
+}
+
+function getModelLabel(modelId?: number | null) {
+  if (modelId == null)
+    return '—';
+  return props.modelOptions.find(item => item.value === modelId)?.label ?? String(modelId);
+}
+
+function getOperatorLabel(operator?: string | null) {
+  if (!operator)
+    return '—';
+  return OPERATOR_OPTIONS.find(item => item.value === operator)?.label ?? operator;
 }
 
 function optionMatchesClass(option: { value: string; class_key?: string }, className: string) {
@@ -360,6 +402,8 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.readonly)
+    return;
   syncModelNamesOnConditions(localRule.value.conditions, props.modelOptions);
   if (props.taskType === 'snap')
     localRule.value.duration_sec = 0;
@@ -518,6 +562,24 @@ function handleSave() {
 
   :deep(.field-control) {
     max-width: none;
+  }
+}
+
+.form-readonly {
+  :deep(.ant-input),
+  :deep(.ant-input-number),
+  :deep(.ant-select),
+  :deep(.ant-switch),
+  :deep(.ant-checkbox-wrapper),
+  :deep(.ant-radio-wrapper),
+  :deep(.ant-btn) {
+    pointer-events: none;
+  }
+
+  :deep(.ant-input),
+  :deep(.ant-input-number),
+  :deep(.ant-select-selector) {
+    background: #fafafa;
   }
 }
 </style>

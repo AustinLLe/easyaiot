@@ -42,28 +42,21 @@ export function normalizeAlertTimeRangeParams(params: Record<string, any>) {
   return params;
 }
 
-export type AlertClientFilters = {
-  severity: string | null;
-  process_status: string | null;
-  archive_status: string | null;
-};
-
-/** 拆分 API 参数与本地展示筛选字段（表格/宫格共用） */
-export function extractAlertClientFilters(params: Record<string, any>): AlertClientFilters {
+/** 规范化告警列表查询参数（表格/宫格共用，统一传后端 /alert/page） */
+export function extractAlertClientFilters(params: Record<string, any>) {
   normalizeAlertTimeRangeParams(params);
   if (params._process_status)
     params.process_status = params._process_status;
   if (params._archive_status)
     params.archive_status = params._archive_status;
-  const clientFilters: AlertClientFilters = {
-    severity: params._severity ?? null,
-    process_status: null,
-    archive_status: null,
-  };
+  if (params._severity)
+    params.severity = params._severity;
   delete params._severity;
   delete params._process_status;
   delete params._archive_status;
-  return clientFilters;
+  if (params.severity === undefined || params.severity === null || params.severity === '')
+    delete params.severity;
+  return params;
 }
 
 export function getBasicColumns(): BasicColumn[] {

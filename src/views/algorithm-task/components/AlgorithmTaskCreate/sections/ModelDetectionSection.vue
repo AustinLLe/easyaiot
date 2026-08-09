@@ -34,7 +34,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'action'">
             <Button type="link" size="small" @click="openEdit(record as ThresholdTableRow)">
-              编辑
+              {{ readonly ? '查看' : '编辑' }}
             </Button>
           </template>
         </template>
@@ -46,6 +46,7 @@
       :row="editingRow"
       :config="editingConfig"
       :global-detection-config="payload.detection_config"
+      :readonly="readonly"
       @save="handleEditSave"
       @cancel="handleEditClose"
     />
@@ -71,10 +72,12 @@ import {
   seedModelDefaultProfiles,
   saveParamConfigForRow,
 } from '../../../utils/paramUtils';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'ModelDetectionSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 const modelSearchText = ref('');
 const cameraSearchText = ref('');
@@ -166,6 +169,8 @@ function openEdit(row: ThresholdTableRow) {
 }
 
 function handleEditSave(config: AlgorithmParamConfigDraft) {
+  if (readonly.value)
+    return;
   if (!editingRow.value)
     return;
   saveParamConfigForRow(payload.value, editingRow.value, config);

@@ -7,23 +7,24 @@
     >
       <div class="alert-push-edit-dialog" role="dialog" aria-modal="true">
         <div class="alert-push-edit-header">
-          <span class="alert-push-edit-title">{{ isCreate ? '添加告警推送' : '编辑告警推送' }}</span>
+          <span class="alert-push-edit-title">{{ modalTitle }}</span>
           <button type="button" class="alert-push-edit-close" @click="handleCancel">×</button>
         </div>
 
-        <div class="alert-push-edit-body">
+        <div class="alert-push-edit-body" :class="{ 'form-readonly': readonly }">
           <AlertPushFormFields
             v-model:push="localPush"
             :task-name="taskName"
             :alert-rules="alertRules"
             :user-label-map="userLabelMap"
             :profile-label-map="profileLabelMap"
+            :disabled="readonly"
           />
         </div>
 
         <div class="alert-push-edit-footer">
-          <Button @click="handleCancel">取消</Button>
-          <Button type="primary" @click="handleSave">保存</Button>
+          <Button @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</Button>
+          <Button v-if="!readonly" type="primary" @click="handleSave">保存</Button>
         </div>
       </div>
     </div>
@@ -31,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Button } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import AlertPushFormFields from './AlertPushFormFields.vue';
@@ -48,6 +49,7 @@ defineOptions({ name: 'AlertPushEditModal' });
 const props = defineProps<{
   pushConfig: AlertPushDraft | null;
   isCreate: boolean;
+  readonly?: boolean;
   taskName?: string;
   alertRules?: AlertRuleDraft[];
   userLabelMap?: Map<number, string>;
@@ -61,6 +63,12 @@ const emit = defineEmits<{
 
 const visible = defineModel<boolean>('open', { default: false });
 const { createWarningModal } = useMessage();
+
+const modalTitle = computed(() => {
+  if (props.readonly)
+    return '查看告警推送';
+  return props.isCreate ? '添加告警推送' : '编辑告警推送';
+});
 
 const localPush = ref<AlertPushDraft>(createEmptyAlertPush(0));
 
@@ -79,6 +87,8 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.readonly)
+    return;
   const normalized = normalizeAlertPushBeforeSave({
     ...localPush.value,
     push_name: localPush.value.push_name.trim(),
@@ -168,5 +178,16 @@ function handleSave() {
   padding: 12px 24px;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
+}
+
+.form-readonly {
+  :deep(.ant-input),
+  :deep(.ant-input-number),
+  :deep(.ant-select),
+  :deep(.ant-switch),
+  :deep(.ant-checkbox-wrapper),
+  :deep(.ant-radio-wrapper) {
+    pointer-events: none;
+  }
 }
 </style>

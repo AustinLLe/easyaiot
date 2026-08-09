@@ -1,45 +1,53 @@
 <template>
   <div class="logic-expression-builder">
-    <div class="expr-display">
-      <template v-if="tokens.length">
-        <span
-          v-for="(token, index) in tokens"
-          :key="`${token.type}_${index}`"
-          class="expr-chip"
-          :class="chipClass(token)"
-          draggable="true"
-          @dragstart="handleDragStart(index)"
-          @dragover.prevent
-          @drop="handleDrop(index)"
+    <template v-if="readonly">
+      <div class="expr-display expr-display-readonly">
+        <span v-if="displayExpression">{{ formatLogicExpressionDisplay(displayExpression) }}</span>
+        <span v-else class="expr-placeholder">全部满足（未填写条件关系）</span>
+      </div>
+    </template>
+    <template v-else>
+      <div class="expr-display">
+        <template v-if="tokens.length">
+          <span
+            v-for="(token, index) in tokens"
+            :key="`${token.type}_${index}`"
+            class="expr-chip"
+            :class="chipClass(token)"
+            draggable="true"
+            @dragstart="handleDragStart(index)"
+            @dragover.prevent
+            @drop="handleDrop(index)"
+          >
+            {{ chipLabel(token) }}
+            <button type="button" class="chip-remove" @click="removeToken(index)">×</button>
+          </span>
+        </template>
+        <span v-else class="expr-placeholder">点击下方按钮构建条件关系，如 (1 且 2) 或 3</span>
+      </div>
+
+      <div class="expr-toolbar">
+        <span class="toolbar-label">插入：</span>
+        <Button
+          v-for="seq in availableSeqs"
+          :key="`seq_${seq}`"
+          size="small"
+          @click="appendToken({ type: 'cond', seq })"
         >
-          {{ chipLabel(token) }}
-          <button type="button" class="chip-remove" @click="removeToken(index)">×</button>
-        </span>
-      </template>
-      <span v-else class="expr-placeholder">点击下方按钮构建条件关系，如 (1 且 2) 或 3</span>
-    </div>
+          {{ seq }}
+        </Button>
+        <Button size="small" @click="appendToken({ type: 'op', value: 'AND' })">且</Button>
+        <Button size="small" @click="appendToken({ type: 'op', value: 'OR' })">或</Button>
+        <Button size="small" @click="appendToken({ type: 'paren', value: '(' })">(</Button>
+        <Button size="small" @click="appendToken({ type: 'paren', value: ')' })">)</Button>
+        <Button size="small" type="primary" ghost class="btn-compact" @click="handleValidate">检测</Button>
+        <Button size="small" danger class="btn-compact" @click="clearTokens">清空</Button>
+      </div>
 
-    <div class="expr-toolbar">
-      <span class="toolbar-label">插入：</span>
-      <Button
-        v-for="seq in availableSeqs"
-        :key="`seq_${seq}`"
-        size="small"
-        @click="appendToken({ type: 'cond', seq })"
-      >
-        {{ seq }}
-      </Button>
-      <Button size="small" @click="appendToken({ type: 'op', value: 'AND' })">且</Button>
-      <Button size="small" @click="appendToken({ type: 'op', value: 'OR' })">或</Button>
-      <Button size="small" @click="appendToken({ type: 'paren', value: '(' })">(</Button>
-      <Button size="small" @click="appendToken({ type: 'paren', value: ')' })">)</Button>
-      <Button size="small" type="primary" ghost class="btn-compact" @click="handleValidate">检测</Button>
-      <Button size="small" danger class="btn-compact" @click="clearTokens">清空</Button>
-    </div>
-
-    <div v-if="displayExpression" class="expr-preview">
-      预览：{{ formatLogicExpressionDisplay(displayExpression) }}
-    </div>
+      <div v-if="displayExpression" class="expr-preview">
+        预览：{{ formatLogicExpressionDisplay(displayExpression) }}
+      </div>
+    </template>
   </div>
 </template>
 
@@ -60,6 +68,7 @@ defineOptions({ name: 'LogicExpressionBuilder' });
 
 const props = defineProps<{
   conditions: AlertRuleConditionDraft[];
+  readonly?: boolean;
 }>();
 
 const expression = defineModel<string>('expression', { required: true });
@@ -184,6 +193,11 @@ watch(
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
   background: #fafafa;
+}
+
+.expr-display-readonly {
+  border-style: solid;
+  color: rgba(0, 0, 0, 0.88);
 }
 
 .expr-placeholder {

@@ -6,7 +6,7 @@
     </div>
 
     <div class="alert-push-panel">
-      <div class="table-toolbar">
+      <div v-if="!readonly" class="table-toolbar">
         <Button type="primary" @click="openCreate">
           <PlusOutlined />
           添加告警推送
@@ -41,7 +41,9 @@
               : formatRecipientUserIds(record.recipient_user_ids, userLabelMap) }}
           </template>
           <template v-else-if="column.key === 'enabled'">
+            <span v-if="readonly">{{ record.enabled ? '开' : '关' }}</span>
             <Switch
+              v-else
               v-model:checked="record.enabled"
               checked-children="开"
               un-checked-children="关"
@@ -50,9 +52,9 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <Button type="link" size="small" @click="openEdit(index)">
-              编辑
+              {{ readonly ? '查看' : '编辑' }}
             </Button>
-            <Button type="link" size="small" danger @click="handleDelete(index)">
+            <Button v-if="!readonly" type="link" size="small" danger @click="handleDelete(index)">
               删除
             </Button>
           </template>
@@ -64,6 +66,7 @@
       v-model:open="editVisible"
       :push-config="editingPush"
       :is-create="editingIndex === null"
+      :readonly="readonly"
       :task-name="payload.task_name"
       :alert-rules="payload.alert_rules"
       :user-label-map="userLabelMap"
@@ -75,7 +78,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { PlusOutlined } from '@ant-design/icons-vue';
 import { Button, Modal, Switch, Table } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
@@ -94,10 +97,12 @@ import {
   getPushModeLabel,
   normalizeAlertPushBeforeSave,
 } from '../../../utils/alertUtils';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'AlertPushSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 const { createWarningModal } = useMessage();
 
@@ -107,7 +112,7 @@ const editingPush = ref<AlertPushDraft | null>(null);
 const userLabelMap = ref(new Map<number, string>());
 const profileLabelMap = ref(new Map<string, string>());
 
-const tableColumns: ColumnsType<AlertPushDraft> = [
+const tableColumns = computed<ColumnsType<AlertPushDraft>>(() => [
   { title: '关联规则', key: 'rule_ids', width: '14%', ellipsis: true },
   { title: '推送名称', dataIndex: 'push_name', key: 'push_name', ellipsis: true },
   { title: '推送模式', key: 'push_mode', width: '11%', ellipsis: true },
@@ -115,7 +120,7 @@ const tableColumns: ColumnsType<AlertPushDraft> = [
   { title: '推送用户', key: 'recipient_user_ids', width: '13%', ellipsis: true },
   { title: '是否启用', key: 'enabled', width: '10%', align: 'center' },
   { title: '操作', key: 'action', width: '12%', align: 'center' },
-];
+]);
 
 onMounted(async () => {
   await loadPushProfiles();
@@ -164,6 +169,8 @@ function openEdit(index: number) {
 }
 
 function handleEditSave(push: AlertPushDraft) {
+  if (readonly.value)
+    return;
   const normalized = normalizeAlertPushBeforeSave(push);
   if (editingIndex.value === null) {
     payload.value.alert_push_configs.push(normalized);

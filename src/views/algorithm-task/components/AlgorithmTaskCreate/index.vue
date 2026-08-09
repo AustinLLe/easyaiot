@@ -40,12 +40,12 @@
       </div>
 
       <div class="create-footer">
-        <a-button type="link" size="small" @click="handleCancel">取消</a-button>
+        <a-button type="link" size="small" @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</a-button>
         <div class="footer-actions">
           <a-button v-if="!isFirstSection" size="small" @click="handlePrev">上一步</a-button>
           <a-button v-if="!isLastSection" size="small" type="primary" @click="handleNext">下一步</a-button>
           <a-button
-            v-else
+            v-else-if="!readonly"
             size="small"
             type="primary"
             :loading="submitting"
@@ -99,6 +99,7 @@ import RegionSection from './sections/RegionSection.vue';
 import AlertRuleSection from './sections/AlertRuleSection.vue';
 import AlertPushSection from './sections/AlertPushSection.vue';
 import { confirmUnsavedAlgorithmTaskExit } from '../../utils/taskUtils';
+import { provideAlgorithmTaskReadonly } from './useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'AlgorithmTaskCreateModal' });
 
@@ -106,6 +107,7 @@ const props = defineProps<{
   mockTaskId?: number | null;
   editingTaskId?: number | null;
   initialDraft?: AlgorithmTaskDraft | null;
+  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -113,6 +115,8 @@ const emit = defineEmits<{
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
+
+provideAlgorithmTaskReadonly(computed(() => !!props.readonly));
 
 const { createMessage, createWarningModal } = useMessage();
 const submitting = ref(false);
@@ -159,9 +163,13 @@ const isEditingApiTask = computed(() =>
   props.editingTaskId != null && !isMockAlgorithmTask(props.editingTaskId),
 );
 
-const modalTitle = computed(() =>
-  isEditingMock.value || isEditingApiTask.value ? '编辑算法任务' : '创建算法任务',
-);
+const modalTitle = computed(() => {
+  if (props.readonly)
+    return '任务详情';
+  if (isEditingMock.value || isEditingApiTask.value)
+    return '编辑算法任务';
+  return '创建算法任务';
+});
 
 function resetPayload() {
   taskPayload.value = createDefaultDraft();
@@ -246,6 +254,10 @@ function handleNavClick({ key }: { key: string | number }) {
   const targetIndex = sectionList.value.findIndex(item => item.key === targetKey);
   if (targetIndex < 0)
     return;
+  if (props.readonly) {
+    activeSection.value = targetKey;
+    return;
+  }
   const currentIndex = sectionIndex.value;
 
   if (targetIndex > currentIndex) {
@@ -275,10 +287,12 @@ function handlePrev() {
 }
 
 function handleNext() {
-  const error = validateSection(activeSection.value);
-  if (error) {
-    showValidationError(error);
-    return;
+  if (!props.readonly) {
+    const error = validateSection(activeSection.value);
+    if (error) {
+      showValidationError(error);
+      return;
+    }
   }
   if (!isLastSection.value)
     activeSection.value = sectionList.value[sectionIndex.value + 1].key;
@@ -370,7 +384,7 @@ async function handleSave() {
 }
 
 async function confirmUnsavedExit(): Promise<boolean> {
-  if (isEditingMock.value || isEditingApiTask.value)
+  if (props.readonly || isEditingMock.value || isEditingApiTask.value)
     return true;
   return confirmUnsavedAlgorithmTaskExit();
 }

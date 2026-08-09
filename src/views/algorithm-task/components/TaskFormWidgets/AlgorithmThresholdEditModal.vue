@@ -7,7 +7,7 @@
     >
       <div class="threshold-edit-dialog" role="dialog" aria-modal="true">
         <div class="threshold-edit-header">
-          <span class="threshold-edit-title">模型与检测参数</span>
+          <span class="threshold-edit-title">{{ readonly ? '查看模型与检测参数' : '模型与检测参数' }}</span>
           <button type="button" class="threshold-edit-close" @click="handleCancel">×</button>
         </div>
 
@@ -24,6 +24,7 @@
             <ClassWhitelistSelect
               v-model:value="localConfig.detection_config.class_whitelist"
               :options="classOptions"
+              :disabled="readonly"
             />
           </div>
 
@@ -35,7 +36,7 @@
             />
           </div>
 
-          <div class="param-panel">
+          <div class="param-panel" :class="{ 'param-panel-readonly': readonly }">
             <div v-if="!localConfig.custom_enabled" class="param-cards">
               <div
                 v-for="field in paramFields"
@@ -54,12 +55,14 @@
                       :min="field.min"
                       :max="field.max"
                       :step="field.step"
+                      :disabled="readonly"
                       class="param-input"
                     />
                     <Select
                       v-else-if="field.type === 'select'"
                       v-model:value="localConfig.detection_config[field.key]"
                       :options="field.options"
+                      :disabled="readonly"
                       class="param-input"
                       :get-popup-container="getPopupContainer"
                       :dropdown-style="{ zIndex: 4100 }"
@@ -74,6 +77,7 @@
               v-else
               mode="inherit"
               :param-keys="modelExtensionKeys"
+              :disabled="readonly"
               v-model:value="localConfig.algorithm_params"
               v-model:descriptions="modelExtensionDescriptions"
             />
@@ -81,8 +85,8 @@
         </div>
 
         <div class="threshold-edit-footer">
-          <Button @click="handleCancel">取消</Button>
-          <Button type="primary" @click="handleSave">保存</Button>
+          <Button @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</Button>
+          <Button v-if="!readonly" type="primary" @click="handleSave">保存</Button>
         </div>
       </div>
     </div>
@@ -117,6 +121,7 @@ const props = defineProps<{
   row: ThresholdTableRow | null;
   config: AlgorithmParamConfigDraft | null;
   globalDetectionConfig?: DetectionConfigDraft;
+  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -266,21 +271,25 @@ function normalizeConfig(
   if (cloned.detection_config.extract_interval == null)
     cloned.detection_config.extract_interval = defaults.extract_interval;
 
-  if (Object.keys(cloned.algorithm_params || {}).length)
-    cloned.custom_enabled = true;
-
+  cloned.custom_enabled = false;
   return cloned;
 }
 
 watch(
-  () => [visible.value, props.config, props.row] as const,
-  async ([open, config, row]) => {
+  () => [visible.value, props.config, props.row, props.readonly] as const,
+  async ([open, config, row, readonly]) => {
     if (!open)
       return;
-    localConfig.value = createInitialConfig(row, config);
+    if (readonly && config) {
+      localConfig.value = cloneConfig(config);
+      if (row)
+        localConfig.value.detection_config.model_id = row.model_id;
+    }
+    else {
+      localConfig.value = createInitialConfig(row, config);
+      localConfig.value.custom_enabled = false;
+    }
     await loadModelExtension(row?.model_id);
-    if (localConfig.value.custom_enabled)
-      applyModelExtensionParams(localConfig.value.algorithm_params);
   },
 );
 
@@ -319,18 +328,13 @@ function cloneConfig(config: AlgorithmParamConfigDraft): AlgorithmParamConfigDra
       imgsz: config.detection_config.imgsz ?? 416,
       extract_interval: config.detection_config.extract_interval ?? 25,
     },
-    algorithm_params: customEnabled
-      ? { ...config.algorithm_params }
-      : {},
+    algorithm_params: { ...(config.algorithm_params || {}) },
   };
 }
 
 function handleModeChange(enabled: boolean | string) {
-  if (enabled !== true) {
-    localConfig.value.algorithm_params = {};
-    return;
-  }
-  applyModelExtensionParams(localConfig.value.algorithm_params);
+  if (enabled === true)
+    applyModelExtensionParams(localConfig.value.algorithm_params);
 }
 
 function handleCancel() {
@@ -339,6 +343,8 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.readonly)
+    return;
   const config = cloneConfig(localConfig.value);
   if (config.custom_enabled && modelExtensionKeys.value.length) {
     config.algorithm_params = mergeExtensionParamsForTask(
@@ -452,6 +458,14 @@ function handleSave() {
 
 .param-panel {
   min-height: 480px;
+
+  &.param-panel-readonly {
+    :deep(.ant-input),
+    :deep(.ant-input-number),
+    :deep(.ant-select-selector) {
+      background: #fafafa;
+    }
+  }
 }
 
 .class-section-title {

@@ -97,6 +97,13 @@ notification.config({
   duration: 3,
 })
 
+Message.config({
+  top: '24px',
+  duration: 3,
+  maxCount: 3,
+  getContainer: () => document.body,
+})
+
 /**
  * @description: message
  */

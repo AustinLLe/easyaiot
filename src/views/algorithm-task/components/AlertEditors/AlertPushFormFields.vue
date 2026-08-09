@@ -6,6 +6,7 @@
         mode="multiple"
         placeholder="请选择要推送的告警规则"
         allow-clear
+        :disabled="disabled"
         placement="bottomLeft"
         :options="alertRuleOptions"
         :get-popup-container="selectPopupContainer"
@@ -18,7 +19,8 @@
       <Input
         v-model:value="pushModel.push_name"
         placeholder="例如：高等级邮件通知"
-        allow-clear
+        :allow-clear="!disabled"
+        :disabled="disabled"
       />
     </FormItem>
 
@@ -27,6 +29,7 @@
         v-model:checked="pushModel.enabled"
         checked-children="开"
         un-checked-children="关"
+        :disabled="disabled"
       />
     </FormItem>
 
@@ -34,6 +37,7 @@
       <RadioGroup
         v-model:value="pushModel.push_mode"
         :options="PUSH_MODE_OPTIONS"
+        :disabled="disabled"
       />
     </FormItem>
 
@@ -42,6 +46,7 @@
         v-model:value="pushModel.content.platform_name"
         placeholder="默认使用当前平台名称"
         :maxlength="64"
+        :disabled="disabled"
       />
     </FormItem>
 
@@ -50,6 +55,7 @@
         <CheckboxGroup
           v-model:value="pushModel.channels"
           :options="CHANNEL_OPTIONS"
+          :disabled="disabled"
         />
       </FormItem>
 
@@ -62,6 +68,7 @@
           value-field="id"
           placeholder="请选择推送用户"
           placement="bottomLeft"
+          :disabled="disabled"
           :get-popup-container="selectPopupContainer"
           :dropdown-style="SELECT_DROPDOWN_STYLE"
           style="width: 100%"
@@ -72,7 +79,8 @@
         <Input
           v-model:value="pushModel.content.title_template"
           placeholder="例如：车间门口高等级告警"
-          allow-clear
+          :allow-clear="!disabled"
+          :disabled="disabled"
         />
       </FormItem>
 
@@ -80,6 +88,7 @@
         <CheckboxGroup
           v-model:value="pushModel.content.include_fields"
           :options="CONTENT_FIELD_OPTIONS"
+          :disabled="disabled"
         />
       </FormItem>
 
@@ -88,6 +97,7 @@
           v-model:value="pushModel.content.remark"
           placeholder="附加在推送正文末尾"
           :rows="2"
+          :disabled="disabled"
         />
       </FormItem>
 
@@ -103,6 +113,7 @@
           mode="multiple"
           placeholder="请选择推送地址"
           allow-clear
+          :disabled="disabled"
           placement="bottomLeft"
           :options="addressProfileOptions"
           :get-popup-container="selectPopupContainer"
@@ -153,6 +164,7 @@ const props = withDefaults(defineProps<{
   showRuleSelect?: boolean;
   showPushName?: boolean;
   showEnabled?: boolean;
+  disabled?: boolean;
 }>(), {
   alertRules: () => [],
   formClass: 'push-form',

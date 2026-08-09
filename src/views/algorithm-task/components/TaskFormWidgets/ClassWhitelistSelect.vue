@@ -5,7 +5,8 @@
       mode="multiple"
       placeholder="选择参与检测类别（不选=保留全部输出）"
       style="width: 100%"
-      allow-clear
+      :allow-clear="!disabled"
+      :disabled="disabled"
       :max-tag-count="4"
       :options="classOptions"
       option-filter-prop="label"
@@ -25,6 +26,7 @@ defineOptions({ name: 'ClassWhitelistSelect' });
 const modelValue = defineModel<string[]>('value', { default: () => [] });
 const props = defineProps<{
   options?: Array<{ label: string; value: string }>;
+  disabled?: boolean;
 }>();
 
 const classOptions = computed(() =>

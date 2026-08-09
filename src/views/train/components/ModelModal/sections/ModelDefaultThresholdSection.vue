@@ -10,7 +10,6 @@
           v-model:value="draft.custom_enabled"
           :options="modeOptions"
           :disabled="isView"
-          @change="handleModeChange"
         />
       </div>
     </div>
@@ -47,6 +46,7 @@
 
     <CustomAlgorithmParamsEditor
       v-else
+      ref="paramsEditorRef"
       mode="define"
       v-model:value="draft.algorithm_params"
       v-model:descriptions="draft.algorithm_param_descriptions"
@@ -56,6 +56,7 @@
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue';
 import { InputNumber, Segmented, Select } from 'ant-design-vue';
 import CustomAlgorithmParamsEditor from '@/views/algorithm-task/components/TaskFormWidgets/CustomAlgorithmParamsEditor.vue';
 import type { ModelDraft } from '../../../modelDraft.types';
@@ -66,6 +67,14 @@ defineOptions({ name: 'ModelDefaultThresholdSection' });
 defineProps<{ isView?: boolean }>();
 
 const draft = defineModel<ModelDraft>('draft', { required: true });
+
+const paramsEditorRef = ref<InstanceType<typeof CustomAlgorithmParamsEditor> | null>(null);
+
+function flushPendingParamsEdit() {
+  return paramsEditorRef.value?.flushPendingEdit?.() ?? true;
+}
+
+defineExpose({ flushPendingParamsEdit });
 
 const modeOptions = THRESHOLD_MODE_OPTIONS.map(item => ({
   label: item.label,
@@ -154,12 +163,6 @@ const paramFields: ParamFieldDef[] = [
   },
 ];
 
-function handleModeChange(enabled: boolean | string) {
-  if (enabled !== true) {
-    draft.value.algorithm_params = {};
-    draft.value.algorithm_param_descriptions = {};
-  }
-}
 </script>
 
 <style lang="less" scoped>

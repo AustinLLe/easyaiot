@@ -39,7 +39,7 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <Button type="link" size="small" @click="openEdit(record as RegionTableRow)">
-              编辑
+              {{ readonly ? '查看' : '编辑' }}
             </Button>
           </template>
         </template>
@@ -69,10 +69,12 @@ import {
   saveRegionConfigForRow,
   syncFlattenRegionsFromConfigs,
 } from '../../../utils/paramUtils';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'RegionSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 const modelSearchText = ref('');
 const cameraSearchText = ref('');
@@ -167,13 +169,16 @@ function openEdit(row: RegionTableRow) {
   syncRegionConfigs();
   openRegionDrawer(true, {
     mode: 'draft',
+    viewOnly: readonly.value,
     draft: payload.value,
     row,
     config: getRegionConfigForRow(payload.value, row),
-    onSave: (config: RegionConfigDraft) => {
-      saveRegionConfigForRow(payload.value, row, config);
-      syncFlattenRegionsFromConfigs(payload.value);
-    },
+    onSave: readonly.value
+      ? undefined
+      : (config: RegionConfigDraft) => {
+          saveRegionConfigForRow(payload.value, row, config);
+          syncFlattenRegionsFromConfigs(payload.value);
+        },
   });
 }
 

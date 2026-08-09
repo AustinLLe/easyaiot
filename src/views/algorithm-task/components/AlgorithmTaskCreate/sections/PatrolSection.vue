@@ -40,8 +40,9 @@
       <div class="mode-options">
         <button
           type="button"
-          :class="['mode-card', { active: patrolConfig.group_mode === 'auto' }]"
-          @click="setGroupMode('auto')"
+          :class="['mode-card', { active: patrolConfig.group_mode === 'auto', disabled: readonly }]"
+          :disabled="readonly"
+          @click="!readonly && setGroupMode('auto')"
         >
           <span class="mode-radio" />
           <div>
@@ -51,8 +52,9 @@
         </button>
         <button
           type="button"
-          :class="['mode-card', { active: patrolConfig.group_mode === 'manual' }]"
-          @click="setGroupMode('manual')"
+          :class="['mode-card', { active: patrolConfig.group_mode === 'manual', disabled: readonly }]"
+          :disabled="readonly"
+          @click="!readonly && setGroupMode('manual')"
         >
           <span class="mode-radio" />
           <div>
@@ -72,6 +74,7 @@
             :min="1"
             :max="Math.max(stats.cameraCount, 1)"
             :precision="0"
+            :disabled="readonly"
             placeholder="请输入"
             class="auto-field"
             @change="handleAutoSettingsChange"
@@ -84,6 +87,7 @@
               :min="1"
               :max="3600"
               :precision="0"
+              :disabled="readonly"
               placeholder="请输入"
               class="auto-field"
               @change="handleAutoSettingsChange"
@@ -97,7 +101,7 @@
     <div v-else class="settings-block">
       <div class="settings-toolbar">
         <div class="settings-title">设置</div>
-        <div class="settings-actions">
+        <div v-if="!readonly" class="settings-actions">
           <a-button type="primary" @click="handleAddGroup">
             <template #icon>
               <PlusOutlined />
@@ -125,7 +129,7 @@
               </a-tag>
             </div>
           </div>
-          <div class="group-card-actions">
+          <div v-if="!readonly" class="group-card-actions">
             <a-button type="link" size="small" @click="handleEditGroup(group)">编辑</a-button>
             <a-button type="link" size="small" danger @click="handleRemoveGroup(index)">删除</a-button>
           </div>
@@ -168,10 +172,12 @@ import {
   syncAutoPatrolGroups,
 } from '../../../utils/patrolUtils';
 import PatrolGroupEditModal from './PatrolGroupEditModal.vue';
+import { useAlgorithmTaskReadonly } from '../useAlgorithmTaskReadonly';
 
 defineOptions({ name: 'PatrolSection' });
 
 const payload = defineModel<AlgorithmTaskDraft>('payload', { required: true });
+const readonly = useAlgorithmTaskReadonly();
 
 ensurePatrolDefaults(payload.value);
 
@@ -375,6 +381,12 @@ watch(
   &.active {
     border-color: #1677ff;
     background: #f0f7ff;
+  }
+
+  &.disabled,
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
   }
 }
 

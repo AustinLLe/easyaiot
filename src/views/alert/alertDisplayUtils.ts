@@ -193,26 +193,6 @@ export function getArchiveStatus(
   return { ...map[value], value };
 }
 
-/** 前端本地筛选：处理/归档已由后端筛选，这里只保留报警等级兜底筛选。 */
-export function filterAlertsClientSide(
-  list: Record<string, any>[],
-  filters: {
-    severity?: string | null;
-    process_status?: string | null;
-    archive_status?: string | null;
-  },
-  uiState: AlertUiState,
-) {
-  return list.filter((record) => {
-    if (filters.severity) {
-      const level = resolveSeverityLevel(record).label;
-      if (level !== filters.severity)
-        return false;
-    }
-    return true;
-  });
-}
-
 export function exportAlertsToCsv(rows: Record<string, any>[], uiState: AlertUiState) {
   const header = [
     '任务名称',

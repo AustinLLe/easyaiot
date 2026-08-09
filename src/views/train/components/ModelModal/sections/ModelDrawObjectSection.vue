@@ -180,12 +180,16 @@
       </div>
     </div>
 
-    <DrawObjectImportModal v-model:open="importVisible" @success="handleImportSuccess" />
+    <DrawObjectImportModal
+      v-model:open="importVisible"
+      :existing-class-keys="existingClassKeys"
+      @success="handleImportSuccess"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, h, reactive, ref } from 'vue';
 import { ImportOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import {
   Button,
@@ -200,10 +204,13 @@ import DrawObjectImportModal from '../../DrawObjectImportModal/index.vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
   createDrawObjectItem,
+  finalizeDrawObjectLabel,
   syncClassLabelsTextFromDrawObjects,
   syncClassWhitelistFromDrawObjects,
+  validateDrawObjectRowComplete,
+  validateDrawObjects,
+  validateImportDrawObjects,
 } from '../useDraft';
-import { translateClassLabel } from '../../../utils/classLabelUtils';
 import type { ModelDraft, ModelDrawObjectItem, ModelDrawRegion } from '../../../modelDraft.types';
 import {
   DEFAULT_DRAW_OBJECT_PRESETS,
@@ -239,6 +246,10 @@ const tableItems = computed({
   },
 });
 
+const existingClassKeys = computed(() =>
+  tableItems.value.map(item => item.class_key.trim()).filter(Boolean),
+);
+
 const previewImageUrl = DEFAULT_MODEL_PREVIEW;
 
 const detectionAreaEdges = computed(() =>
@@ -269,16 +280,40 @@ const previewItems = computed(() =>
     }),
 );
 
+function requiredColumnTitle(label: string) {
+  return () => h('span', [
+    h('span', { class: 'required-star' }, '*'),
+    ` ${label}`,
+  ]);
+}
+
 const columns: ColumnsType<ModelDrawObjectItem> = [
-  { title: '类别ID', key: 'class_key', width: 88 },
-  { title: '类别标签', key: 'class_label', width: 104, ellipsis: true },
+  { title: requiredColumnTitle('类别ID'), key: 'class_key', width: 88 },
+  { title: requiredColumnTitle('类别标签'), key: 'class_label', width: 104, ellipsis: true },
   { title: '描述文本', key: 'label', width: 112, ellipsis: true },
   { title: '颜色', key: 'color', width: 56, align: 'center' },
   { title: '是否绘制', key: 'enabled', width: 80, align: 'center' },
   { title: '操作', key: 'action', width: 72, align: 'center' },
 ];
 
+function validateSection(): boolean {
+  if (editingRowId.value) {
+    createMessage.warning('请先完成当前行的编辑');
+    return false;
+  }
+  const error = validateDrawObjects(tableItems.value);
+  if (error) {
+    createMessage.warning(error);
+    return false;
+  }
+  return true;
+}
+
+defineExpose({ validateSection });
+
 function handleSave() {
+  if (!validateSection())
+    return;
   syncDrawObjectDerivedState();
   createMessage.success('绘制对象已保存');
 }
@@ -348,12 +383,16 @@ function handleCancelEdit() {
 
 function handleFinishEdit(id: string) {
   const row = tableItems.value.find(item => item.id === id);
-  if (!row?.class_key?.trim()) {
-    createMessage.warning('类别ID不能为空');
+  if (!row)
+    return;
+
+  const error = validateDrawObjectRowComplete(row, tableItems.value);
+  if (error) {
+    createMessage.warning(error);
     return;
   }
-  if (!row.label?.trim() && row.class_label?.trim())
-    row.label = translateClassLabel(row.class_label);
+
+  finalizeDrawObjectLabel(row);
   clearEditingState();
   syncDrawObjectDerivedState();
 }
@@ -363,6 +402,11 @@ function handleImport() {
 }
 
 function handleImportSuccess(items: ModelDrawObjectItem[]) {
+  const error = validateImportDrawObjects(tableItems.value, items);
+  if (error) {
+    createMessage.warning(error);
+    return;
+  }
   tableItems.value = [...tableItems.value, ...items];
   syncDrawObjectDerivedState();
   createMessage.success(`成功导入 ${items.length} 条绘制对象`);
@@ -449,6 +493,11 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+.required-star {
+  color: #ff4d4f;
+  font-family: SimSun, sans-serif;
 }
 
 .draw-object-table {
