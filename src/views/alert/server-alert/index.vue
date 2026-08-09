@@ -460,7 +460,6 @@ onBeforeUnmount(() => {
           row-key="id"
           :columns="eventColumns"
           :data-source="events"
-          :columns="eventColumns"
           :pagination="{
             current: eventPage,
             pageSize: eventPageSize,

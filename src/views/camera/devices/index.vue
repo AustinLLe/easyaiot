@@ -144,7 +144,12 @@ const fetchDeviceList = async (params: Record<string, any> = {}) => {
     return { data: Array.isArray(data) ? data : [], total: total ?? 0 }
   }
 
-  return getDeviceList({ pageNo, pageSize, search })
+  return getDeviceList({
+    pageNo,
+    pageSize,
+    search,
+    online: params.online !== undefined && params.online !== '' ? params.online : undefined,
+  })
 }
 
 const handleDirectorySelect = (directory: DeviceDirectory | null) => {

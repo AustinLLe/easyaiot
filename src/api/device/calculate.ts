@@ -105,6 +105,11 @@ export const updateAlertArchiveStatus = async (params: {
   return parseVideoAlertResponse(res);
 };
 
+export const pushAlertEvents = async (ids: number[], push: Record<string, any>) => {
+  const res = await commonApi('post', Api.Alarm + '/push', { data: { ids, push } }, {}, false);
+  return parseVideoAlertResponse(res);
+};
+
 export const getAlertCount = async (params: {
   group?: 'date' | 'device' | 'object';
   begin_datetime?: string;

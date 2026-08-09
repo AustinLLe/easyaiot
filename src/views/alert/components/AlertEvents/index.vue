@@ -141,7 +141,7 @@ import { Badge, Dropdown, Menu, MenuItem, Tag } from 'ant-design-vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { extractAlertClientFilters, getBasicColumns, getFormConfig } from '../../Data';
-import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus, deleteAlarms } from '@/api/device/calculate';
+import { queryAlarmList, updateAlertArchiveStatus, updateAlertProcessStatus, deleteAlarms, pushAlertEvents } from '@/api/device/calculate';
 import AlertCards from './AlertCards/index.vue';
 import AlertEventPushModal from './AlertEventPushModal.vue';
 import AlertEventsRefreshControls from './AlertEventsRefreshControls.vue';
@@ -362,7 +362,7 @@ function handleBatchPush() {
   pushModalVisible.value = true;
 }
 
-function handlePushConfirm(payload: AlertPushDraft) {
+async function handlePushConfirm(payload: AlertPushDraft) {
   const count = pendingPushIds.value.length;
   let targetText = '';
   if (isUserPushMode(payload)) {
@@ -376,9 +376,23 @@ function handlePushConfirm(payload: AlertPushDraft) {
     );
     targetText = formatAddressProfileIds(payload.address_profile_ids, profileLabelMap);
   }
-  createMessage.success(
-    `已按「${getPushModeLabel(payload.push_mode)}」向 ${targetText} 推送 ${count} 条报警（仅前端，待后端接入）`,
-  );
+  try {
+    const result = await pushAlertEvents(pendingPushIds.value, payload);
+    if (result.failed > 0 || result.sent === 0) {
+      createMessage.warning(
+        `推送完成：成功 ${result.sent}，失败 ${result.failed}，跳过 ${result.skipped}`,
+      );
+    }
+    else {
+      createMessage.success(
+        `已按「${getPushModeLabel(payload.push_mode)}」向 ${targetText} 推送 ${count} 条报警`,
+      );
+    }
+  }
+  catch (error: any) {
+    createMessage.error(error?.message || '告警推送失败');
+    return;
+  }
   pendingPushIds.value = [];
   clearSelectedRowKeys?.();
   clearGridSelection();

@@ -72,6 +72,7 @@ export const getDeviceList = (params: {
   pageNo?: number;
   pageSize?: number;
   search?: string;
+  online?: boolean;
   enable_forward?: boolean;
 }) => {
   return commonApi('get', `${CAMERA_PREFIX}/list`, params);
