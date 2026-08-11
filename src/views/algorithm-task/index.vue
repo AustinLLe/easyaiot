@@ -337,8 +337,8 @@ const [registerTable, { reload }] = useTable({
   api: fetchAlgorithmTaskListMerged,
   beforeFetch: (params) => {
     return {
-      pageNo: params.pageNo,
-      pageSize: params.pageSize,
+      pageNo: params.pageNo ?? params.page ?? 1,
+      pageSize: params.pageSize ?? 10,
       search: params.search || undefined,
       task_type: params.task_type || undefined,
       is_enabled: normalizeIsEnabledFilter(params.is_enabled),

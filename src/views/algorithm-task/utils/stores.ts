@@ -225,17 +225,40 @@ export function filterMockAlgorithmTasks(
 }
 
 export async function fetchAlgorithmTaskListMerged(params: {
+  page?: number;
   pageNo?: number;
   pageSize?: number;
   search?: string;
   task_type?: 'realtime' | 'snap' | 'patrol';
   is_enabled?: number;
 }) {
+  const filter: MockTaskListFilter = {
+    search: params.search,
+    task_type: params.task_type ?? '',
+    is_enabled: params.is_enabled,
+  };
+  const mockItems = filterMockAlgorithmTasks(getMockAlgorithmTasks(), filter);
+  const pageNo = Number(params.pageNo ?? params.page ?? 1) || 1;
+  const pageSize = Number(params.pageSize ?? 10) || 10;
+
+  if (mockItems.length === 0) {
+    const response = await listAlgorithmTasks({
+      ...params,
+      pageNo,
+      pageSize,
+    });
+    if (response.code === 0) {
+      return {
+        ...response,
+        data: (response.data ?? []).map(item => enrichTaskWithMode(item)),
+        total: response.total ?? response.data?.length ?? 0,
+      };
+    }
+    return response;
+  }
+
   let apiItems: AlgorithmTask[] = [];
   let apiTotal = 0;
-  const pageNo = Number(params.pageNo || 1);
-  const pageSize = Number(params.pageSize || 10);
-
   try {
     const response = await listAlgorithmTasks({
       ...params,
@@ -251,12 +274,6 @@ export async function fetchAlgorithmTaskListMerged(params: {
     console.warn('[mockAlgorithmTaskStore] 后端列表加载失败，仅展示本地 mock 任务', error);
   }
 
-  const filter: MockTaskListFilter = {
-    search: params.search,
-    task_type: params.task_type ?? '',
-    is_enabled: params.is_enabled,
-  };
-  const mockItems = filterMockAlgorithmTasks(getMockAlgorithmTasks(), filter);
   const apiItemsFiltered = apiItems
     .filter(item => !isMockAlgorithmTask(item.id))
     .map(item => enrichTaskWithMode(item));
