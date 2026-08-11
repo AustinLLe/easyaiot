@@ -21,9 +21,9 @@
             </div>
           </template>
           <template #renderItem="{ item }">
-            <ListItem :class="item.online ? 'camera-item normal' : 'camera-item error'">
+            <ListItem :class="getStreamStatusClass(item)">
               <div class="camera-info">
-                <div class="status">{{ item.online ? '在线' : '离线' }}</div>
+                <div class="status">{{ getStreamStatusLabel(item) }}</div>
                 <div class="title o2">{{ item.name || item.id }}</div>
                 <div class="props">
                   <div class="flex" style="justify-content: space-between;">
@@ -145,13 +145,13 @@ const [registerForm, {validate}] = useForm({
     },
     {
       field: `online`,
-      label: `在线状态`,
+      label: `推流状态`,
       component: 'Select',
       componentProps: {
         options: [
           {value: '', label: '全部'},
-          {value: true, label: '在线'},
-          {value: false, label: '离线'},
+          {value: true, label: '推流中'},
+          {value: false, label: '未推流'},
         ]
       }
     },
@@ -185,6 +185,18 @@ const getCameraImage = (manufacturer: string) => {
   }
   return OTHER_IMAGE;
 };
+
+const getStreamStatusLabel = (item: DeviceInfo) => {
+  if (item.stream_status === 'unknown') return '状态未知';
+  return item.online ? '推流中' : '未推流';
+};
+
+const getStreamStatusClass = (item: DeviceInfo) => ({
+  'camera-item': true,
+  normal: item.stream_status !== 'unknown' && item.online,
+  error: item.stream_status !== 'unknown' && !item.online,
+  unknown: item.stream_status === 'unknown',
+});
 
 // 自动请求并暴露内部方法
 onMounted(() => {
@@ -361,6 +373,15 @@ defineExpose({
       .camera-info .status {
         background: #fad7d9;
         color: #d43030;
+      }
+    }
+
+    &.unknown {
+      background-image: url('@/assets/images/product/blue-bg.719b437a.png');
+
+      .camera-info .status {
+        background: #fff1b8;
+        color: #ad6800;
       }
     }
 

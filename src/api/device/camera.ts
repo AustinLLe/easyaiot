@@ -78,8 +78,8 @@ export const getDeviceList = (params: {
   return commonApi('get', `${CAMERA_PREFIX}/list`, params);
 };
 
-export const getDeviceStatus = () => {
-  return commonApi('get', `${CAMERA_PREFIX}/device/status`);
+export const getDeviceStatus = (refresh = false) => {
+  return commonApi('get', `${CAMERA_PREFIX}/device/status`, refresh ? { refresh: true } : {});
 };
 
 // ====================== PTZ控制接口 ======================
@@ -198,6 +198,11 @@ export interface DeviceInfo {
   cover_image_path?: string;
   created_at: string;
   updated_at: string;
+  online: boolean;
+  stream_status: 'pushing' | 'not_pushing' | 'unknown';
+  stream_app?: string | null;
+  stream_name?: string | null;
+  stream_status_checked_at?: string | null;
 }
 
 export interface DeviceListResponse {

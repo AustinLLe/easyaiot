@@ -20,12 +20,15 @@ export function getBasicColumns(): BasicColumn[] {
       width: 120,
     },
     {
-      title: '在线状态',
+      title: '推流状态',
       dataIndex: 'online',
       width: 60,
-      customRender: ({text}) => {
+      customRender: ({text, record}) => {
+        const status = record.stream_status || (text ? 'pushing' : 'not_pushing');
+        const label = status === 'pushing' ? '推流中' : status === 'unknown' ? '状态未知' : '未推流';
+        const color = status === 'pushing' ? 'green' : status === 'unknown' ? 'orange' : 'red';
         return <Tag
-          color={text ? 'green' : 'red'}>{text ? '在线' : '离线'}</Tag>;
+          color={color}>{label}</Tag>;
       },
     },
     {
@@ -79,13 +82,13 @@ export function getFormConfig(): Partial<FormProps> {
       },
       {
         field: `online`,
-        label: `在线状态`,
+        label: `推流状态`,
         component: 'Select',
         componentProps: {
           options: [
             {value: '', label: '全部'},
-            {value: true, label: '在线'},
-            {value: false, label: '离线'},
+            {value: true, label: '推流中'},
+            {value: false, label: '未推流'},
           ]
         }
       }

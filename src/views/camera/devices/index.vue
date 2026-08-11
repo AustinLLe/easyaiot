@@ -16,6 +16,10 @@
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
+                <template #icon><SyncOutlined /></template>
+                刷新全部推流状态
+              </a-button>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -63,6 +67,10 @@
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
+                <template #icon><SyncOutlined /></template>
+                刷新全部推流状态
+              </a-button>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -95,12 +103,14 @@ import VideoModal from '../components/VideoModal/index.vue'
 import {
   deleteDevice,
   getDeviceList,
+  getDeviceStatus,
   getDirectoryDevices,
   // refreshDevices,
   type DeviceDirectory,
 } from '@/api/device/camera'
 import {
   SwapOutlined,
+  SyncOutlined,
   VideoCameraAddOutlined,
   // ScanOutlined,
   // SyncOutlined,
@@ -124,6 +134,7 @@ const viewMode = ref<'table' | 'card'>('card')
 const directorySidebarRef = ref()
 const selectedDirectoryId = ref<number | null>(null)
 const videoCardListRef = ref()
+const refreshingStreamStatus = ref(false)
 
 const fetchDeviceList = async (params: Record<string, any> = {}) => {
   const pageNo = params.pageNo || params.page || 1
@@ -229,6 +240,26 @@ const handleSuccess = () => {
     reload()
   else if (videoCardListRef.value)
     videoCardListRef.value.fetch()
+}
+
+const handleRefreshStreamStatus = async () => {
+  if (refreshingStreamStatus.value)
+    return
+  refreshingStreamStatus.value = true
+  try {
+    await getDeviceStatus(true)
+    if (viewMode.value === 'table')
+      await reload()
+    else if (videoCardListRef.value)
+      await videoCardListRef.value.fetch()
+    createMessage.success('全部设备推流状态已刷新')
+  }
+  catch {
+    createMessage.error('推流状态刷新失败')
+  }
+  finally {
+    refreshingStreamStatus.value = false
+  }
 }
 
 const handleDelete = async (record) => {
