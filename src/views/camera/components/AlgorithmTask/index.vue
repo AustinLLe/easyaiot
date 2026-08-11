@@ -312,7 +312,7 @@ const [registerTable, { reload }] = useTable({
       is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
     }
     return {
-      pageNo: params.page,
+      pageNo: params.pageNo,
       pageSize: params.pageSize,
       search: params.search || undefined,
       task_type: params.task_type || undefined,
@@ -1138,4 +1138,3 @@ onMounted(() => {
   }
 }
 </style>
-
