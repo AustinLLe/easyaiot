@@ -228,14 +228,20 @@ export async function fetchAlgorithmTaskListMerged(params: {
   pageNo?: number;
   pageSize?: number;
   search?: string;
-  task_type?: 'realtime' | 'snap';
+  task_type?: 'realtime' | 'snap' | 'patrol';
   is_enabled?: number;
 }) {
   let apiItems: AlgorithmTask[] = [];
   let apiTotal = 0;
+  const pageNo = Number(params.pageNo || 1);
+  const pageSize = Number(params.pageSize || 10);
 
   try {
-    const response = await listAlgorithmTasks(params);
+    const response = await listAlgorithmTasks({
+      ...params,
+      pageNo: 1,
+      pageSize: 10000,
+    });
     if (response.code === 0) {
       apiItems = response.data ?? [];
       apiTotal = response.total ?? apiItems.length;
@@ -255,11 +261,13 @@ export async function fetchAlgorithmTaskListMerged(params: {
     .filter(item => !isMockAlgorithmTask(item.id))
     .map(item => enrichTaskWithMode(item));
   const merged = [...mockItems, ...apiItemsFiltered];
+  const offset = (pageNo - 1) * pageSize;
+  const paged = merged.slice(offset, offset + pageSize);
 
   return {
     code: 0,
     msg: 'ok',
-    data: merged,
+    data: paged,
     total: mockItems.length + apiTotal,
   };
 }
