@@ -221,7 +221,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import {
   PlusOutlined,
   EyeOutlined,
@@ -502,16 +502,16 @@ const handlePageSizeChange = (_current: number, size: number) => {
 };
 
 // 分页配置
-const paginationProp = ref({
+const paginationProp = computed(() => ({
   showSizeChanger: false,
   showQuickJumper: true,
-  pageSize,
-  current: page,
-  total,
+  pageSize: pageSize.value,
+  current: page.value,
+  total: total.value,
   showTotal: (total: number) => `总 ${total} 条`,
   onChange: handlePageChange,
   onShowSizeChange: handlePageSizeChange,
-});
+}));
 
 // 根据任务类型获取图片
 const getTaskImage = (taskType: string) => {
