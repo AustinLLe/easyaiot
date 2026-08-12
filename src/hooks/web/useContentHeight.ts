@@ -151,10 +151,7 @@ export function useContentHeight(
         height += getEl(unref(item))?.offsetHeight ?? 0
       })
     }
-    if (compensationHeight.useLayoutFooter && unref(layoutFooterHeightRef) > 0)
-      calcCompensationHeight()
-    else
-      calcCompensationHeight()
+    calcCompensationHeight()
 
     contentHeight.value = height
   }

@@ -17,13 +17,20 @@ export default defineComponent({
 
     return () => {
       return (
-        <div class="p-1" onClick={changeModal.bind(null, true)}>
-          <Tooltip>
-            {{
-              title: () => t('common.searchText'),
-              default: () => <SearchOutlined />,
-            }}
-          </Tooltip>
+        <div class="p-1">
+          <button
+            type="button"
+            class="border-0 bg-transparent cursor-pointer p-0"
+            aria-label={t('common.searchText')}
+            onClick={changeModal.bind(null, true)}
+          >
+            <Tooltip>
+              {{
+                title: () => t('common.searchText'),
+                default: () => <SearchOutlined />,
+              }}
+            </Tooltip>
+          </button>
           <AppSearchModal onClose={changeModal.bind(null, false)} open={unref(showModal)} />
         </div>
       )

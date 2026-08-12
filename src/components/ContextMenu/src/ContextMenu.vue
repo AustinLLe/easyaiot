@@ -31,7 +31,19 @@ const props = {
 const ItemContent: FunctionalComponent<ItemContentProps> = (props) => {
   const { item } = props
   return (
-    <span class="inline-block w-full px-4" onClick={props.handler.bind(null, item)}>
+    <span
+      class="inline-block w-full px-4"
+      role="button"
+      tabindex={item.disabled ? -1 : 0}
+      aria-disabled={item.disabled || undefined}
+      onClick={props.handler.bind(null, item)}
+      onKeydown={(event: KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          props.handler(item, event)
+        }
+      }}
+    >
       {props.showIcon && item.icon && <Icon class="mr-2" icon={item.icon} />}
       <span>{item.label}</span>
     </span>
@@ -73,7 +85,7 @@ export default defineComponent({
       el && document.body.removeChild(el)
     })
 
-    function handleAction(item: ContextMenuItem, e: MouseEvent) {
+function handleAction(item: ContextMenuItem, e?: Event) {
       const { handler, disabled } = item
       if (disabled)
         return

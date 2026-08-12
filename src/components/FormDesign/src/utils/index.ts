@@ -50,7 +50,7 @@ export function remove<T>(
     removeVal = array.splice(value, 1)
   }
   else {
-    const index = array.findIndex(value)
+    const index = array.findIndex((item, itemIndex, items) => value(item, itemIndex, items))
     if (index !== -1)
       removeVal = array.splice(index, 1)
   }

@@ -56,7 +56,7 @@ export class Memory<T = any, V = any> {
     }
 
     if (!expires)
-      return value
+      return
 
     const now = new Date().getTime()
     /**
@@ -72,7 +72,6 @@ export class Memory<T = any, V = any> {
       expires > now ? expires - now : expires,
     )
 
-    return value
   }
 
   remove<K extends keyof T>(key: K) {

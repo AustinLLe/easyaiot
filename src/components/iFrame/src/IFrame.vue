@@ -21,6 +21,6 @@ onMounted(() => {
 
 <template>
   <div v-loading="loading" :style="`height:${height}`">
-    <iframe ref="frameRef" :src="props.src" style="width: 100%; height: 100%" frameborder="no" scrolling="auto" />
+    <iframe ref="frameRef" :src="props.src" title="Embedded content" style="width: 100%; height: 100%" frameborder="no" scrolling="auto" />
   </div>
 </template>

@@ -14,7 +14,7 @@ export function useScroll(
 ) {
   const refX = ref(0)
   const refY = ref(0)
-  let handler = () => {
+  const updateScroll = () => {
     if (isWindow(refEl.value)) {
       refX.value = refEl.value.scrollX
       refY.value = refEl.value.scrollY
@@ -24,6 +24,7 @@ export function useScroll(
       refY.value = (refEl.value).scrollTop
     }
   }
+  let handler: () => void = updateScroll
 
   if (isObject(options)) {
     let wait = 0
@@ -32,7 +33,10 @@ export function useScroll(
       Reflect.deleteProperty(options, 'wait')
     }
 
-    handler = useThrottleFn(handler, wait)
+    const throttledHandler = useThrottleFn(updateScroll, wait)
+    handler = () => {
+      void throttledHandler()
+    }
   }
 
   let stopWatch: () => void

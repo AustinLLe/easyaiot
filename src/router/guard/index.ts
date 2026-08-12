@@ -51,19 +51,13 @@ function createPageLoadingGuard(router: Router) {
   const userStore = useUserStoreWithOut()
   const appStore = useAppStoreWithOut()
   const { getOpenPageLoading } = useTransitionSetting()
-  router.beforeEach(async (to) => {
-    if (!userStore.getAccessToken)
-      return true
-
-    if (to.meta.loaded)
-      return true
+  router.beforeEach((to) => {
+    if (!userStore.getAccessToken || to.meta.loaded)
+      return
 
     if (unref(getOpenPageLoading)) {
       appStore.setPageLoadingAction(true)
-      return true
     }
-
-    return true
   })
   router.afterEach(async () => {
     if (unref(getOpenPageLoading)) {
@@ -73,7 +67,6 @@ function createPageLoadingGuard(router: Router) {
         appStore.setPageLoading(false)
       }, 220)
     }
-    return true
   })
 }
 
@@ -133,16 +126,12 @@ export function createMessageGuard(router: Router) {
 
 export function createProgressGuard(router: Router) {
   const { getOpenNProgress } = useTransitionSetting()
-  router.beforeEach(async (to) => {
-    if (to.meta.loaded)
-      return true
-
-    unref(getOpenNProgress) && nProgress.start()
-    return true
+  router.beforeEach((to) => {
+    if (!to.meta.loaded)
+      unref(getOpenNProgress) && nProgress.start()
   })
 
-  router.afterEach(async () => {
+  router.afterEach(() => {
     unref(getOpenNProgress) && nProgress.done()
-    return true
   })
 }

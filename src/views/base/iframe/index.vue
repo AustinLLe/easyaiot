@@ -47,7 +47,7 @@ function hideLoading() {
 <template>
   <div :class="prefixCls" :style="getWrapStyle">
     <Spin :spinning="loading" size="large" :style="getWrapStyle">
-      <iframe ref="frameRef" :src="frameSrc" :class="`${prefixCls}__main`" @load="hideLoading" />
+      <iframe ref="frameRef" :src="frameSrc" title="Embedded page" :class="`${prefixCls}__main`" @load="hideLoading" />
     </Spin>
   </div>
 </template>

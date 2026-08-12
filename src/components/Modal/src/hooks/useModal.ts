@@ -69,7 +69,7 @@ export function useModal(): UseModalReturnType {
         return
       const id = unref(uid)
       if (openOnSet) {
-        dataTransfer[id] = null
+        Reflect.deleteProperty(dataTransfer, id)
         dataTransfer[id] = toRaw(data)
         return
       }

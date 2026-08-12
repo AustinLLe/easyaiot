@@ -397,13 +397,7 @@ const handleSubmit = async () => {
       }
     }
     
-    // 如果是查看模式，不关闭模态框
-    if (modalData.value.type === 'view') {
-      // 查看模式不关闭
-    } else {
-      // 编辑或创建模式，可以选择关闭或继续配置区域
-      // 这里不自动关闭，让用户决定
-    }
+    // 成功提交后保留模态框，允许用户继续配置区域。
   } catch (error) {
     console.error('提交失败', error);
     createMessage.error('提交失败');
@@ -501,4 +495,3 @@ const handleImageCaptured = (imageId: number, imagePath: string) => {
   initialImagePath.value = imagePath;
 };
 </script>
-

@@ -238,9 +238,18 @@ provide<SubMenuProvider>(`subMenu:${instance?.uid}`, {
 </script>
 
 <template>
-  <li :class="getClass">
+  <li :class="getClass" role="none">
     <template v-if="!getCollapse">
-      <div :class="`${prefixCls}-submenu-title`" :style="getItemStyle" @click.stop="handleClick">
+      <div
+        :class="`${prefixCls}-submenu-title`"
+        :style="getItemStyle"
+        role="menuitem"
+        tabindex="0"
+        :aria-expanded="state.opened"
+        @click.stop="handleClick"
+        @keydown.enter.stop.prevent="handleClick"
+        @keydown.space.stop.prevent="handleClick"
+      >
         <slot name="title" />
         <Icon icon="eva:arrow-ios-downward-outline" :size="14" :class="`${prefixCls}-submenu-title-icon`" />
       </div>

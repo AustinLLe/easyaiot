@@ -18,7 +18,7 @@ export function getBoundingClientRect(element: Element): DOMRect | number {
 }
 
 function trim(string: string) {
-  return (string || '').replace(/^[\s\uFEFF]+|[\s\uFEFF]+$/g, '')
+  return (string || '').trim()
 }
 
 /* istanbul ignore next */

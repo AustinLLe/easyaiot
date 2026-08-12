@@ -10,11 +10,12 @@ interface UseWindowSizeOptions {
 
 function useWindowSizeFn(fn: AnyFunction, options: UseWindowSizeOptions = {}) {
   const { wait = 150, immediate } = options
-  let handler = () => {
+  const handleSize = useDebounceFn(() => {
     fn()
+  }, wait)
+  const handler = () => {
+    void handleSize()
   }
-  const handleSize = useDebounceFn(handler, wait)
-  handler = handleSize
 
   const start = () => {
     if (immediate)

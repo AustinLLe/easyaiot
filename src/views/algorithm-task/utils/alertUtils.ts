@@ -475,7 +475,6 @@ export function normalizeDynamicAlertRuleBeforeSave(rule: AlertRuleDraft): Alert
       direction: normalized.dynamic_geometry?.direction ?? 'both',
     };
     normalized.dynamic_trigger = {
-      mode: 'cross',
       ...DEFAULT_DYNAMIC_TRIGGER,
       ...normalized.dynamic_trigger,
       mode: 'cross',

@@ -410,7 +410,15 @@ export default defineComponent({
         <div
           v-show={!this.isEdit}
           class={{ [`${this.prefixCls}__normal`]: true, 'ellipsis-cell': this.column.ellipsis }}
+          role="button"
+          tabindex={this.isEdit ? -1 : 0}
           onClick={this.handleEdit}
+          onKeydown={(event: KeyboardEvent) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              this.handleEdit()
+            }
+          }}
         >
           <div class="cell-content" title={this.column.ellipsis ? this.getValues ?? '' : ''}>
             {this.column.editRender

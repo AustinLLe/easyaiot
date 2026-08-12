@@ -373,7 +373,18 @@ export default defineComponent({
         const iconDom = icon ? (<TreeIcon icon={icon} />) : slots.icon ? (<span class="mr-1">{getSlot(slots, 'icon')}</span>) : null
 
         item[titleField] = (
-          <span class={`${bem('title')} pl-2`} onClick={handleClickNode.bind(null, item[keyField], item[childrenField])}>
+          <span
+            class={`${bem('title')} pl-2`}
+            role="treeitem"
+            tabindex="0"
+            onClick={handleClickNode.bind(null, item[keyField], item[childrenField])}
+            onKeydown={(event: KeyboardEvent) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                handleClickNode(item[keyField], item[childrenField])
+              }
+            }}
+          >
             {slots?.title
               ? (
                 <>

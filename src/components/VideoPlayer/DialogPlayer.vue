@@ -501,7 +501,6 @@ function handleCancel() {
               .ant-input {
                 float: left;
                 width: 100%;
-                margin-bottom: 0;
                 text-align: inherit;
                 box-sizing: border-box;
                 margin: 0;
@@ -510,7 +509,6 @@ function handleCancel() {
                 font-feature-settings: "tnum";
                 position: relative;
                 display: inline-block;
-                width: 100%;
                 min-width: 0;
                 padding: 4px 11px;
                 color: #000000d9;

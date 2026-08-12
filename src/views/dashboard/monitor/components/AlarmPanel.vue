@@ -201,7 +201,6 @@ const handleImageLoad = (alarm: any) => {
 .alarm-panel {
   width: 320px;
   height: 100%;
-  padding: 0;
   background: linear-gradient(135deg, rgba(15, 34, 73, 0.8), rgba(24, 46, 90, 0.6));
   display: flex;
   flex-direction: column;

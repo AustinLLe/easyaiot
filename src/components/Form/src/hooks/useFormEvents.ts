@@ -81,8 +81,7 @@ export function useFormEvents({
       const defaultValueObj = schema?.defaultValueObj
       const fieldKeys = Object.keys(defaultValueObj || {})
       if (fieldKeys.length) {
-        // eslint-disable-next-line array-callback-return
-        fieldKeys.map((field) => {
+        fieldKeys.forEach((field) => {
           formModel[field] = defaultValueObj![field]
         })
       }

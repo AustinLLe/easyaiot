@@ -270,13 +270,13 @@ async function fetch(p = {}) {
       const res = await api(requestParams);
 
       // 处理返回格式：后端返回 { code: 0, data: [...], total: ... }
-      if (res && res.data) {
-        data.value = Array.isArray(res.data) ? res.data : [];
-        total.value = res.total || 0;
-      } else if (res && res.success && res.data) {
+      if (res && res.success && res.data) {
         // 兼容其他可能的返回格式
         data.value = res.data.items || res.data.list || (Array.isArray(res.data) ? res.data : []);
         total.value = res.data.total || res.total || 0;
+      } else if (res && res.data) {
+        data.value = Array.isArray(res.data) ? res.data : [];
+        total.value = res.total || 0;
       } else {
         data.value = [];
         total.value = 0;

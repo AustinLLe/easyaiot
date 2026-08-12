@@ -223,9 +223,14 @@ export default defineComponent({
     }
 
     // 关闭
-    function handleClose(e: MouseEvent) {
-      e && e.stopPropagation()
+    function handleClose(e?: Event) {
+      e?.stopPropagation()
       close()
+    }
+
+    function handleMaskKeydown(e: KeyboardEvent) {
+      if (props.maskClosable && e.key === 'Escape')
+        handleClose(e)
     }
 
     function close() {
@@ -323,9 +328,9 @@ export default defineComponent({
 
     const renderClose = () => {
       return (
-        <div class={`${prefixCls}__close`} onClick={handleClose}>
+        <button type="button" class={`${prefixCls}__close`} aria-label="Close preview" onClick={handleClose}>
           <CloseOutlined class={`${prefixCls}__close-icon`} />
-        </div>
+        </button>
       )
     }
 
@@ -348,21 +353,21 @@ export default defineComponent({
     const renderController = () => {
       return (
         <div class={`${prefixCls}__controller`}>
-          <div class={`${prefixCls}__controller-item`} onClick={() => scaleFunc(-getScaleStep.value)}>
-            <img src={unScaleSvg} />
-          </div>
-          <div class={`${prefixCls}__controller-item`} onClick={() => scaleFunc(getScaleStep.value)}>
-            <img src={scaleSvg} />
-          </div>
-          <div class={`${prefixCls}__controller-item`} onClick={resume}>
-            <img src={resumeSvg} />
-          </div>
-          <div class={`${prefixCls}__controller-item`} onClick={() => rotateFunc(-90)}>
-            <img src={unRotateSvg} />
-          </div>
-          <div class={`${prefixCls}__controller-item`} onClick={() => rotateFunc(90)}>
-            <img src={rotateSvg} />
-          </div>
+          <button type="button" class={`${prefixCls}__controller-item`} aria-label="Zoom out" onClick={() => scaleFunc(-getScaleStep.value)}>
+            <img src={unScaleSvg} alt="" />
+          </button>
+          <button type="button" class={`${prefixCls}__controller-item`} aria-label="Zoom in" onClick={() => scaleFunc(getScaleStep.value)}>
+            <img src={scaleSvg} alt="" />
+          </button>
+          <button type="button" class={`${prefixCls}__controller-item`} aria-label="Reset preview" onClick={resume}>
+            <img src={resumeSvg} alt="" />
+          </button>
+          <button type="button" class={`${prefixCls}__controller-item`} aria-label="Rotate left" onClick={() => rotateFunc(-90)}>
+            <img src={unRotateSvg} alt="" />
+          </button>
+          <button type="button" class={`${prefixCls}__controller-item`} aria-label="Rotate right" onClick={() => rotateFunc(90)}>
+            <img src={rotateSvg} alt="" />
+          </button>
         </div>
       )
     }
@@ -372,16 +377,16 @@ export default defineComponent({
         return null
 
       return (
-        <div class={[`${prefixCls}__arrow`, direction]} onClick={() => handleChange(direction)}>
+        <button type="button" class={[`${prefixCls}__arrow`, direction]} aria-label={direction === 'left' ? 'Previous image' : 'Next image'} onClick={() => handleChange(direction)}>
           {direction === 'left' ? <LeftOutlined /> : <RightOutlined />}
-        </div>
+        </button>
       )
     }
 
     return () => {
       return (
         imgState.show && (
-          <div class={prefixCls} ref={wrapElRef} onMouseup={handleMouseUp} onClick={handleMaskClick}>
+          <div class={prefixCls} ref={wrapElRef} tabIndex={-1} role="dialog" aria-modal="true" onMouseup={handleMouseUp} onClick={handleMaskClick} onKeydown={handleMaskKeydown}>
             <div class={`${prefixCls}-content`}>
               {/* <Spin */}
               {/*  indicator={<LoadingOutlined style="font-size: 24px" spin />} */}
@@ -445,6 +450,8 @@ export default defineComponent({
     overflow: hidden;
     color: @white;
     cursor: pointer;
+    padding: 0;
+    border: 0;
     background-color: rgb(0 0 0 / 50%);
     border-radius: 50%;
     transition: all 0.2s;
@@ -491,6 +498,9 @@ export default defineComponent({
       padding: 0 9px;
       font-size: 24px;
       cursor: pointer;
+      color: inherit;
+      border: 0;
+      background: transparent;
       transition: all 0.2s;
 
       &:hover {
@@ -513,6 +523,9 @@ export default defineComponent({
     height: 50px;
     font-size: 28px;
     cursor: pointer;
+    padding: 0;
+    color: inherit;
+    border: 0;
     background-color: rgb(0 0 0 / 50%);
     border-radius: 50%;
     transition: all 0.2s;

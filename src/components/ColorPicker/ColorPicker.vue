@@ -322,7 +322,7 @@ onMounted(() => {
   margin-left: 8px;
 }
 
-// 颜色面板
+/* 颜色面板 */
 .saturation {
   position: relative;
   cursor: pointer;
@@ -340,7 +340,7 @@ onMounted(() => {
   }
 }
 
-// 颜色调节条
+/* 颜色调节条 */
 .hue {
   position: relative;
   margin-left: 8px;
@@ -384,7 +384,6 @@ onMounted(() => {
     border: 1px solid #42516c;
     color: #eff0f4;
     background: #2e3850;
-    box-sizing: border-box;
     width: 100px;
     caret-color: #49a4ff;
 
@@ -394,7 +393,7 @@ onMounted(() => {
   }
 }
 
-// 默认颜色
+/* 默认颜色 */
 .colors {
   display: flex;
   flex-wrap: wrap;

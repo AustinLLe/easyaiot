@@ -258,8 +258,6 @@ const loadModels = async () => {
     } else if (response && response.data && Array.isArray(response.data)) {
       // 如果响应有 data 字段且是数组
       allModels = response.data;
-    } else if (response && Array.isArray(response)) {
-      allModels = response;
     }
     
     models.value = allModels.filter(isPtModel);

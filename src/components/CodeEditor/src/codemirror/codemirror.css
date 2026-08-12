@@ -67,7 +67,7 @@
 /* FOLD GUTTER */
 
 .CodeMirror-foldmarker {
-  font-family: arial;
+  font-family: arial, sans-serif;
   line-height: 0.3;
   color: #414141;
   text-shadow:

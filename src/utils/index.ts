@@ -103,8 +103,7 @@ export function openWindow(
 export function getDynamicProps<T extends Record<string, unknown>, U>(props: T): Partial<U> {
   const ret: Recordable = {}
 
-  // eslint-disable-next-line array-callback-return
-  Object.keys(props).map((key) => {
+  Object.keys(props).forEach((key) => {
     ret[key] = unref((props as Recordable)[key])
   })
 
@@ -127,18 +126,14 @@ export function getRawRoute(route: RouteLocationNormalized): RouteLocationNormal
   }
 }
 
-// https://github.com/vant-ui/vant/issues/8302
-interface EventShim {
+export type WithInstall<T> = T & {
+  install(app: App): void
   new (...args: any[]): {
     $props: {
       onClick?: (...args: any[]) => void
     }
   }
 }
-
-export type WithInstall<T> = T & {
-  install(app: App): void
-} & EventShim
 
 export type CustomComponent = Component & { displayName?: string }
 

@@ -187,11 +187,7 @@ if (!pushModel.value.rule_ids)
 
 const alertRuleOptions = computed(() => buildAlertRuleSelectOptions(props.alertRules));
 
-const profilesVersion = ref(0);
-const addressProfileOptions = computed(() => {
-  profilesVersion.value;
-  return buildAddressProfileOptions(getPushProfiles());
-});
+const addressProfileOptions = ref(buildAddressProfileOptions());
 
 onMounted(async () => {
   await Promise.all([
@@ -200,7 +196,7 @@ onMounted(async () => {
   ]);
   if (!pushModel.value.content.platform_name?.trim())
     pushModel.value.content.platform_name = platformConfigStore.platformName;
-  profilesVersion.value++;
+  addressProfileOptions.value = buildAddressProfileOptions(getPushProfiles());
 });
 
 watch(

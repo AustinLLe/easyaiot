@@ -222,7 +222,6 @@ export default {
   padding: 30px 4px 10px 4px;
   /* border: 2px solid black; */
   width: auto;
-  position: relative;
   border-radius: 5px;
   box-shadow: 0 10px 20px;
 }

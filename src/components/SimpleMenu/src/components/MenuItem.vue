@@ -84,7 +84,15 @@ watch(
 </script>
 
 <template>
-  <li :class="getClass" :style="getCollapse ? {} : getItemStyle" @click.stop="handleClickItem">
+  <li
+    :class="getClass"
+    :style="getCollapse ? {} : getItemStyle"
+    role="menuitem"
+    tabindex="0"
+    @click.stop="handleClickItem"
+    @keydown.enter.stop.prevent="handleClickItem"
+    @keydown.space.stop.prevent="handleClickItem"
+  >
     <Tooltip v-if="showToptip" placement="right">
       <template #title>
         <slot name="title" />

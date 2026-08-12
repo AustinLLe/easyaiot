@@ -3,6 +3,7 @@
     <Spin :spinning="loading" size="large" :style="getWrapStyle">
       <iframe
         :src="_initPath"
+        title="Embedded system page"
         :class="`${prefixCls}__main`"
         ref="frameRef"
         @load="hideLoading"

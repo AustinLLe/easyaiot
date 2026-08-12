@@ -332,7 +332,7 @@ const transform: AxiosTransform = {
     // console.log(msg);
 
     if (axios.isCancel(error))
-      return Promise.reject(error)
+      throw error
 
     try {
       if (code === 'DEMO_DENY')
@@ -351,7 +351,7 @@ const transform: AxiosTransform = {
         else if (errorMessageMode === 'message')
           createMessage.error(errMessage)
 
-        return Promise.reject(error)
+        throw error
       }
     }
    catch (error) {
@@ -367,7 +367,7 @@ const transform: AxiosTransform = {
     config.method?.toUpperCase() === RequestEnum.GET
       && isOpenRetry
       && retryRequest.retry(axiosInstance, error)
-    return Promise.reject(error)
+    throw error
   },
 }
 

@@ -250,7 +250,7 @@ const ptzCamera = (command) => {
 
       .fa {
         display: inline-block;
-        font: normal normal normal 14px / 1 FontAwesome;
+        font: normal normal normal 14px / 1 FontAwesome, sans-serif;
         font-size: inherit;
         text-rendering: auto;
         -webkit-font-smoothing: antialiased;

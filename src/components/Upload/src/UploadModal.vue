@@ -71,7 +71,7 @@ function beforeUpload(file: File) {
   // 设置最大值，则判断
   if (maxSize && file.size / 1024 / 1024 >= maxSize) {
     createMessage.error(t('component.upload.maxSizeMultiple', [maxSize]))
-    return false
+    return Upload.LIST_IGNORE
   }
 
   const commonItem = {
@@ -116,7 +116,7 @@ async function uploadApiByItem(item: FileItem) {
 
   try {
     item.status = UploadResultStatus.UPLOADING
-    const { data } = await props.api?.(
+    const { data } = await api(
       {
         data: {
           ...(props.uploadParams || {}),
@@ -150,7 +150,7 @@ async function uploadApiByItem(item: FileItem) {
 // 点击开始上传
 async function handleStartUpload() {
   const { maxNumber } = props
-  if ((fileListRef.value.length + props.previewFileList?.length ?? 0) > maxNumber)
+  if (fileListRef.value.length + (props.previewFileList?.length ?? 0) > maxNumber)
     return createMessage.warning(t('component.upload.maxNumber', [maxNumber]))
 
   try {
