@@ -6171,7 +6171,7 @@ var ZLMRTCClient = (function (exports) {
 
 	  destObj = destObj || {};
 
-	  do {
+	  while (sourceObj) {
 	    props = Object.getOwnPropertyNames(sourceObj);
 	    i = props.length;
 	    while (i-- > 0) {
@@ -6182,7 +6182,13 @@ var ZLMRTCClient = (function (exports) {
 	      }
 	    }
 	    sourceObj = Object.getPrototypeOf(sourceObj);
-	  } while (sourceObj && (!filter || filter(sourceObj, destObj)) && sourceObj !== Object.prototype);
+	    if (sourceObj && filter && !filter(sourceObj, destObj)) {
+	      break;
+	    }
+	    if (!sourceObj || sourceObj === Object.prototype) {
+	      break;
+	    }
+	  }
 
 	  return destObj;
 	}
