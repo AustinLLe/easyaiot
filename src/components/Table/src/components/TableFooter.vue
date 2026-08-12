@@ -81,7 +81,8 @@ const getColumns = computed(() => {
 <template>
   <Table
     v-if="summaryFunc || summaryData"
-    :show-header="false"
+    class="basic-table-summary"
+    :show-header="true"
     :bordered="false"
     :pagination="false"
     :data-source="getDataSource"
@@ -91,3 +92,18 @@ const getColumns = computed(() => {
     :scroll="scroll"
   />
 </template>
+
+<style scoped lang="less">
+// Keep the summary footer visually compact while retaining column headers for assistive technology.
+.basic-table-summary :deep(.ant-table-thead) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
