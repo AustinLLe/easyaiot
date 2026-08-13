@@ -1,6 +1,7 @@
 // ---- from logicExpressionUtils.ts ----
 import type { AlertRuleConditionDraft, AlertRuleDraft, AlgorithmTaskDraft } from '../algorithmTaskDraft.types';
 import { getAlertClassOptionsForDraftModels } from './paramUtils';
+import { DEFAULT_DYNAMIC_TRIGGER } from './dynamicAlertDefaults';
 
 export type LogicExpressionToken =
   | { type: 'cond'; seq: number }
@@ -319,22 +320,6 @@ export function getClassOptionsFromDraft(draft: AlgorithmTaskDraft) {
 
 export const DEFAULT_CLIP_BEFORE_SEC = 10;
 export const DEFAULT_CLIP_AFTER_SEC = 10;
-
-const DEFAULT_DYNAMIC_TRIGGER = {
-  mode: 'enter' as const,
-  dwell_sec: 3,
-  extract_interval: 25,
-  lost_track_buffer: 25,
-  matching_threshold: 0.2,
-  same_track_suppress_sec: 300,
-  enter_confirm_frames: 2,
-  allow_leave_sec: 1,
-  crowd_count: 1,
-  max_speed_jump: 0,
-  smooth_alpha: 0.25,
-  lock_class: true,
-  predict_boxes: false,
-};
 
 export function ensureClipRecordDefaults(rule: AlertRuleDraft) {
   if (!rule.clip_record_enabled)

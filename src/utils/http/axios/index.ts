@@ -8,6 +8,7 @@ import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform'
 import { VAxios } from './Axios'
 import { checkStatus } from './checkStatus'
 import { formatRequestDate, joinTimestamp } from './helper'
+import { throwOriginalTransportError } from './transportError'
 import type { RequestOptions, Result } from '@/types/axios'
 import { useGlobSetting } from '@/hooks/setting'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -332,31 +333,25 @@ const transform: AxiosTransform = {
     // console.log(msg);
 
     if (axios.isCancel(error))
+      throwOriginalTransportError(error)
+
+    if (code === 'DEMO_DENY')
+      errMessage = t('sys.api.demoDeny')
+
+    if (code === 'ECONNABORTED' && message?.includes('timeout'))
+      errMessage = t('sys.api.apiTimeoutMessage')
+
+    if (err?.includes('Network Error'))
+      errMessage = t('sys.api.networkExceptionMsg')
+
+    if (errMessage) {
+      if (errorMessageMode === 'modal')
+        createErrorModal({ title: t('sys.api.errorTip'), content: errMessage })
+
+      else if (errorMessageMode === 'message')
+        createMessage.error(errMessage)
+
       throw error
-
-    try {
-      if (code === 'DEMO_DENY')
-        errMessage = t('sys.api.demoDeny')
-
-      if (code === 'ECONNABORTED' && message.includes('timeout'))
-        errMessage = t('sys.api.apiTimeoutMessage')
-
-      if (err?.includes('Network Error'))
-        errMessage = t('sys.api.networkExceptionMsg')
-
-      if (errMessage) {
-        if (errorMessageMode === 'modal')
-          createErrorModal({ title: t('sys.api.errorTip'), content: errMessage })
-
-        else if (errorMessageMode === 'message')
-          createMessage.error(errMessage)
-
-        throw error
-      }
-    }
-   catch (error) {
-    console.error(error)
-      throw new Error(error as unknown as string)
     }
 
     checkStatus(error?.response?.status, msg, errorMessageMode)
@@ -367,7 +362,7 @@ const transform: AxiosTransform = {
     config.method?.toUpperCase() === RequestEnum.GET
       && isOpenRetry
       && retryRequest.retry(axiosInstance, error)
-    throw error
+    throwOriginalTransportError(error)
   },
 }
 

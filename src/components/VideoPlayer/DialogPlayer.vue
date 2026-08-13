@@ -93,7 +93,7 @@
                 </div>
               </TabPane>
               <TabPane key="camera" tab="云台控制">
-                <Ptz @ptz-camera="handlePtzCamera" style="width: 100%"/>
+                <Ptz ref="ptzControl" @ptz-camera="handlePtzCamera" style="width: 100%"/>
               </TabPane>
             </Tabs>
           </div>
@@ -119,6 +119,7 @@ const {createMessage} = useMessage()
 
 let jessibuca = ref()
 const htmlVideo = ref<HTMLVideoElement | null>(null)
+const ptzControl = ref<{ stopMovement: () => boolean } | null>(null)
 //state.videoUrl
 const state = reactive({
   video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
@@ -149,6 +150,7 @@ const state = reactive({
 })
 
 const [register, {closeModal}] = useModalInner(async (record) => {
+  ptzControl.value?.stopMovement();
   state.currentUrl = '';
   state.iframeUrl = '';
   state.isFileVideo = false;
@@ -213,6 +215,7 @@ const handlePtzCamera = (command: string, speed: number) => {
 }
 
 function handleCancel() {
+  ptzControl.value?.stopMovement();
   state.currentUrl = '';
   state.isFileVideo = false;
   closeModal();

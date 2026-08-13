@@ -38,6 +38,8 @@ export function validateDefenseSchedule(draft: AlgorithmTaskDraft): string | nul
   if (draft.is_full_day_defense !== false)
     return null;
   const savedWeeks = draft.defense_week_schedules ?? [];
+  if (savedWeeks.length > 1)
+    return '后端仅支持一个每周循环布防模板，请重新确认并应用当前时段';
   if (savedWeeks.length) {
     const hasValidWeek = savedWeeks.some(entry =>
       entry.schedule.some(day => day.some(hour => hour === 1)),
@@ -177,6 +179,8 @@ export function resolvePrimaryDefenseSchedule(
   schedule: number[][],
   weekSchedules?: DefenseWeekScheduleEntry[],
 ): number[][] {
+  if (weekSchedules && weekSchedules.length > 1)
+    throw new Error('后端仅支持一个每周循环布防模板，不能保存多自然周配置');
   if (weekSchedules?.length)
     return cloneScheduleMatrix(weekSchedules[0].schedule);
   return cloneScheduleMatrix(schedule);
