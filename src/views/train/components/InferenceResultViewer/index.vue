@@ -178,11 +178,35 @@ const detectionColumns = computed(() => [
   }
 ]);
 
+const joinUrlPath = (base: string, path: string): string => {
+  const normalizedBase = (base || '').replace(/\/+$/, '');
+  const normalizedPath = (path || '').replace(/^\/+/, '');
+  if (!normalizedBase)
+    return `/${normalizedPath}`;
+  return `${normalizedBase}/${normalizedPath}`;
+};
+
 // 方法
 const getMediaUrl = (path: string) => {
   if (!path) return '';
+  if (path.startsWith('blob:') || path.startsWith('data:')) return path;
   if (path.startsWith('http')) return path;
-  return `/api/media/${encodeURIComponent(path)}`;
+  if (path.startsWith('//')) return `${window.location.protocol}${path}`;
+
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/+$/, '');
+  if (apiBase && !apiBase.startsWith('http://') && !apiBase.startsWith('https://')) {
+    if (path === apiBase || path.startsWith(`${apiBase}/`)) {
+      return `${window.location.origin}${path}`;
+    }
+  }
+
+  if (path.startsWith('/api/v1/buckets'))
+    return `${window.location.origin}${path}`;
+
+  const apiPath = `/api/media/${encodeURIComponent(path)}`;
+  if (apiBase.startsWith('http://') || apiBase.startsWith('https://'))
+    return joinUrlPath(apiBase, apiPath);
+  return `${window.location.origin}${joinUrlPath(apiBase, apiPath)}`;
 };
 
 const formatDateTime = (dateString: string) => {

@@ -669,7 +669,7 @@ const startDetection = async () => {
         }
         
         // 使用 getMediaUrl 处理路径，确保可以正确访问
-        state.detectionResult = imagePath ? getMediaUrl(imagePath) : null;
+        state.detectionResult = imagePath || null;
         
         // 设置检测数量
         state.detectionCount = result.detection_count || 0;
@@ -1047,19 +1047,52 @@ const formatFileSize = (bytes: number): string => {
   return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+const joinUrlPath = (base: string, path: string): string => {
+  const normalizedBase = (base || '').replace(/\/+$/, '');
+  const normalizedPath = (path || '').replace(/^\/+/, '');
+  if (!normalizedBase)
+    return `/${normalizedPath}`;
+  return `${normalizedBase}/${normalizedPath}`;
+};
+
+const getApiMediaUrl = (path: string): string => {
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/+$/, '');
+  const apiPath = `/api/media/${encodeURIComponent(path)}`;
+
+  if (apiBase.startsWith('http://') || apiBase.startsWith('https://'))
+    return joinUrlPath(apiBase, apiPath);
+
+  return `${window.location.origin}${joinUrlPath(apiBase, apiPath)}`;
+};
+
 // 获取媒体文件的访问URL
 const getMediaUrl = (path: string): string => {
   if (!path) return '';
+  if (path.startsWith('blob:') || path.startsWith('data:')) {
+    return path;
+  }
   // 如果已经是完整的HTTP/HTTPS URL，直接返回
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
+  if (path.startsWith('//')) {
+    return `${window.location.protocol}${path}`;
+  }
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/+$/, '');
+  if (apiBase && !apiBase.startsWith('http://') && !apiBase.startsWith('https://')) {
+    if (path === apiBase || path.startsWith(`${apiBase}/`)) {
+      return `${window.location.origin}${path}`;
+    }
+  }
+  if (path.startsWith('/api/v1/buckets')) {
+    return `${window.location.origin}${path}`;
+  }
   // 如果是相对路径（以 / 开头），直接返回（假设可以通过API服务器直接访问）
   if (path.startsWith('/')) {
-    return path;
+    return `${window.location.origin}${path}`;
   }
   // 其他情况，通过 /api/media/ 访问
-  return `/api/media/${encodeURIComponent(path)}`;
+  return getApiMediaUrl(path);
 };
 
 // 处理视频点击播放
