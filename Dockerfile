@@ -12,7 +12,7 @@ RUN pnpm config set registry https://registry.npmmirror.com/ && \
 WORKDIR /app
 RUN mkdir -p /tmp/web-build-logs
 
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 RUN set -o pipefail && \
     if [ -f pnpm-lock.yaml ]; then \
         pnpm install --frozen-lockfile 2>&1 | tee /tmp/web-build-logs/pnpm-install.log; \
