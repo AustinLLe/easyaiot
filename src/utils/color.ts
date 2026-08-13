@@ -53,7 +53,7 @@ export function colorIsDark(color: string) {
   if (!isHexColor(color))
     return
   const [r, g, b] = hexToRGB(color)
-    .replace(/(?:\(|\)|rgb|RGB)*/g, '')
+    .replaceAll(/(?:\(|\)|rgb|RGB)*/g, '')
     .split(',')
     .map(item => Number(item))
   return r * 0.299 + g * 0.578 + b * 0.114 < 192
@@ -119,7 +119,7 @@ function luminanace(r: number, g: number, b: number) {
  * @param {string} rgb2 rgb color 2
  */
 function contrast(rgb1: string[], rgb2: number[]) {
-  return (luminanace(~~rgb1[0], ~~rgb1[1], ~~rgb1[2]) + 0.05) / (luminanace(rgb2[0], rgb2[1], rgb2[2]) + 0.05)
+  return (luminanace(Math.trunc(rgb1[0]), Math.trunc(rgb1[1]), Math.trunc(rgb1[2])) + 0.05) / (luminanace(rgb2[0], rgb2[1], rgb2[2]) + 0.05)
 }
 
 /**

@@ -557,7 +557,7 @@ const formatDateTime = (dateString: string) => {
   if (!dateString) return '--';
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+if (Number.isNaN(date.getTime())) {
       return dateString;
     }
     const year = date.getFullYear();
@@ -1338,4 +1338,3 @@ const [register] = useModalInner(async (data) => {
   }
 }
 </style>
-

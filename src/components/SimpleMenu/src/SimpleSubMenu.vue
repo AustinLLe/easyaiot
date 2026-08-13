@@ -55,7 +55,7 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
 
 <template>
   <MenuItem v-if="!menuHasChildren(item) && getShowMenu" :name="item.path" v-bind="$props" :class="getLevelClass">
-    <img v-if="getImg" :src="getImg" class="h-16px w-16px align-top">
+    <img v-if="getImg" :src="getImg" alt="" class="h-16px w-16px align-top">
     <Icon v-if="getIcon" :icon="getIcon" :size="16" />
     <div v-if="collapsedShowTitle && getIsCollapseParent" class="collapse-title mt-1">
       {{ getI18nName }}
@@ -74,7 +74,7 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
     :collapsed-show-title="collapsedShowTitle"
   >
     <template #title>
-      <img v-if="getImg" :src="getImg" class="h-16px w-16px align-top">
+      <img v-if="getImg" :src="getImg" alt="" class="h-16px w-16px align-top">
       <Icon v-if="getIcon" :icon="getIcon" :size="16" />
 
       <div v-if="collapsedShowTitle && getIsCollapseParent" class="collapse-title mt-2">

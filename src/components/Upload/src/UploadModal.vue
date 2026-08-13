@@ -126,7 +126,7 @@ async function uploadApiByItem(item: FileItem) {
         filename: props.filename,
       },
       (progressEvent: ProgressEvent) => {
-        const complete = ((progressEvent.loaded / progressEvent.total) * 100) | 0
+  const complete = Math.trunc((progressEvent.loaded / progressEvent.total) * 100)
         item.percent = complete
       },
     )

@@ -238,7 +238,7 @@ provide<SubMenuProvider>(`subMenu:${instance?.uid}`, {
 </script>
 
 <template>
-  <li :class="getClass" role="none">
+  <li :class="getClass">
     <template v-if="!getCollapse">
       <div
         :class="`${prefixCls}-submenu-title`"

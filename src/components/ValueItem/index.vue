@@ -120,12 +120,12 @@
   import { FormOutlined } from '@ant-design/icons-vue';
   import { DefaultOptionType } from 'ant-design-vue/lib/select';
   //   import GeoComponent from '@/components/GeoComponent/EasyPlayer.vue';
-  import { ACCESS_TOKEN_KEY } from '/@/enums/cacheEnum';
-  import { LocalStore } from '/@/utils/comm';
+  import { ACCESS_TOKEN_KEY } from '@/enums/cacheEnum';
+  import { LocalStore } from '@/utils/comm';
   import { ItemData, ITypes } from './types';
   import { BasicUpload } from '../Upload';
-  import { BasicModal, useModal } from '/@/components/Modal/index';
-  import { CodeEditor } from '/@/components/CodeEditor';
+  import { BasicModal, useModal } from '@/components/Modal/index';
+  import { CodeEditor } from '@/components/CodeEditor';
 
   //   import { FILE_UPLOAD } from '@/api/comm';
   //   import { Upload } from 'jetlinks-ui-components';
@@ -199,7 +199,7 @@
 
   const objectValue = ref<string>('');
   const handleItemModalSubmit = () => {
-    myValue.value = objectValue.value.replace(/[\r\n]\s*/g, '');
+    myValue.value = objectValue.value.replaceAll(/[\r\n]\s*/g, '');
     closeModal();
     emit('update:modelValue', objectValue.value);
     emit('change', objectValue.value);

@@ -181,7 +181,7 @@ import { getExportModelColumns } from './data';
 import dayjs from 'dayjs';
 
 const route = useRoute();
-const modelId = ref(route.params.modelId ? parseInt(route.params.modelId as string) : 0);
+const modelId = ref(route.params.modelId ? Number.parseInt(route.params.modelId as string) : 0);
 
 // 导出格式选项
 const exportFormats = [
@@ -421,7 +421,7 @@ const formatFileSize = (bytes: number) => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // 日期格式化（优化）

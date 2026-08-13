@@ -116,7 +116,7 @@ export default defineComponent({
                   {() => btnText}
                 </Button>
               ),
-            icon: () => (icon ? <img src={icon} /> : null),
+            icon: () => (icon ? <img src={icon} alt="" /> : null),
           }}
         </Result>
       )

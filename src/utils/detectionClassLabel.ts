@@ -111,7 +111,7 @@ const ZH_CN_CLASS_LABELS: Record<string, string> = {
 }
 
 function normalizeClassLabel(label: string) {
-  return label.trim().toLowerCase().replace(/[\s-]+/g, '_')
+  return label.trim().toLowerCase().replaceAll(/[\s-]+/g, '_')
 }
 
 /**

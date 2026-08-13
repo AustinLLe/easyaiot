@@ -464,7 +464,7 @@ let lastVideoErrorMsg = '';
 const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl)
     return '';
-  const normalized = String(videoUrl).replace(/\\/g, '/').trim();
+  const normalized = String(videoUrl).replaceAll(/\\/g, '/').trim();
   const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {

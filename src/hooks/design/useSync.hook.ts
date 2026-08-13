@@ -165,7 +165,7 @@ export const useSync = () => {
         const listLength = projectData[key].length
         for (const comItem of projectData[key]) {
           // 设置加载数量
-          let percentage = parseInt((parseFloat(`${++loadIndex / listLength}`) * 100).toString())
+          let percentage = Number.parseInt((Number.parseFloat(`${++loadIndex / listLength}`) * 100).toString())
           chartLayoutStore.setItemUnHandle(ChartLayoutStoreEnum.PERCENTAGE, percentage)
           // 判断类型
           if (comItem.isGroup) {

@@ -19,7 +19,7 @@ const getImg = computed(() => props.item?.img)
 
 <template>
   <span :class="`${prefixCls}- flex items-center `">
-    <img v-if="getImg" :src="getImg" class="mr-2 h-18px w-18px align-top">
+    <img v-if="getImg" :src="getImg" alt="" class="mr-2 h-18px w-18px align-top">
     <Icon v-if="getIcon" :icon="getIcon" :size="18" :class="`${prefixCls}-wrapper__icon mr-2`" />
     {{ getI18nName }}
   </span>

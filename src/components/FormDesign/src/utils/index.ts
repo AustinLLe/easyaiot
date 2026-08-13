@@ -71,7 +71,7 @@ export function getType(value: any): string {
  */
 export function randomUUID(): string {
   function S4() {
-    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
+  return Math.trunc((1 + Math.random()) * 0x10000).toString(16).substring(1)
   }
   return `${S4() + S4()}-${S4()}-${S4()}-${S4()}-${S4() + S4() + S4()}`
 }
@@ -81,7 +81,7 @@ export function randomUUID(): string {
  * @param str
  */
 export function toLine(str: string) {
-  return str.replace(/([A-Z])/g, '_$1').toLowerCase()
+  return str.replaceAll(/([A-Z])/g, '_$1').toLowerCase()
 }
 
 /**

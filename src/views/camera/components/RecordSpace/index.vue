@@ -33,7 +33,8 @@
                           <a href="javascript:void(0)" @click="handleViewVideos(item)">
                             <img
                               class="project-icon-item_img"
-                              :src="recordSpaceIcon">
+                              :src="recordSpaceIcon"
+                              alt="录像空间">
                             <div class="project-icon-item_name">{{ item.space_name }}</div>
                           </a>
                         </div>
@@ -511,4 +512,3 @@ onUnmounted(() => {
 }
 
 </style>
-

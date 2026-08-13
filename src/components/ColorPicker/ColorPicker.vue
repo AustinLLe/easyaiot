@@ -176,8 +176,8 @@ const selectHue = (e: any) => {
     nextTick(() => {
       const canvas: any = canvasSaturationRef.value
       const ctx = canvas.getContext('2d')
-      const pointX = parseFloat(position.pointPosition.left)
-      const pointY = parseFloat(position.pointPosition.top)
+      const pointX = Number.parseFloat(position.pointPosition.left)
+      const pointY = Number.parseFloat(position.pointPosition.top)
       const pointRgb = ctx.getImageData(Math.max(0, pointX), Math.max(0, pointY), 1, 1)
       setRGBHSV(pointRgb.data)
       attr.modelHex = rgb2hex({ r: attr.r, g: attr.g, b: attr.b }, true)

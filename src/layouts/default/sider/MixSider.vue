@@ -265,6 +265,7 @@ onClickOutside(wrap, () => {
           <img
             v-if="item.img"
             :src="item.img"
+            alt=""
             :class="[`${prefixCls}-module__icon`, getCollapsed ? 'w-16px h-16px' : 'w-20px h-20px']"
           >
           <Icon

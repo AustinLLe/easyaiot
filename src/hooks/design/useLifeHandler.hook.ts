@@ -66,7 +66,7 @@ export const useLifeHandler = (chartConfig: CreateComponentType | CreateComponen
 function generateFunc(fnStr: string, e: any) {
   try {
     // npmPkgs 便于拷贝 echarts 示例时设置option 的formatter等相关内容
-    Function(`
+    new Function(`
       "use strict";
       return (
         async function(e, components, node_modules){

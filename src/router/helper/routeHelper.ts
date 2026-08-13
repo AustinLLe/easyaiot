@@ -204,7 +204,7 @@ function isMultipleRoute(routeModule: AppRouteModule) {
 
 function toCamelCase(str: string, upperCaseFirst: boolean) {
   str = (str || '')
-    .replace(/-(.)/g, (group1: string) => {
+    .replaceAll(/-(.)/g, (group1: string) => {
       return group1.toUpperCase()
     })
     .replaceAll('-', '')

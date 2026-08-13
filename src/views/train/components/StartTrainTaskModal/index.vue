@@ -10,22 +10,22 @@
       <div class="param-section">
         <h4 class="section-title">基础参数配置</h4>
         <div class="param-group">
-          <label>迭代次数 (epochs)</label>
-          <input type="number" v-model="params.epochs" min="10" max="1000"
+          <label for="train-epochs">迭代次数 (epochs)</label>
+          <input id="train-epochs" type="number" v-model="params.epochs" min="10" max="1000"
                  class="param-input"/>
           <span class="hint">推荐值: 100-300</span>
         </div>
 
         <div class="param-group">
-          <label>批量大小 (batch_size)</label>
-          <input type="number" v-model="params.batch_size" min="1" :max="maxBatchSize"
+          <label for="train-batch-size">批量大小 (batch_size)</label>
+          <input id="train-batch-size" type="number" v-model="params.batch_size" min="1" :max="maxBatchSize"
                  class="param-input"/>
           <span class="hint">根据显存调整</span>
         </div>
 
         <div class="param-group">
-          <label>图像尺寸 (imgsz)</label>
-          <input type="number" v-model="params.imgsz" class="param-input"/>
+          <label for="train-image-size">图像尺寸 (imgsz)</label>
+          <input id="train-image-size" type="number" v-model="params.imgsz" class="param-input"/>
           <span class="hint">默认640px</span>
         </div>
       </div>
@@ -34,8 +34,8 @@
         <h4 class="section-title">资源选择</h4>
 
         <div class="param-group">
-          <label>预训练模型</label>
-          <select v-model="selectedModel" class="resource-select">
+          <label for="train-pretrained-model">预训练模型</label>
+          <select id="train-pretrained-model" v-model="selectedModel" class="resource-select">
             <option value="">默认模型 (yolov8n.pt)</option>
             <option v-for="model in modelList"
                     :key="model.id"
@@ -45,8 +45,8 @@
           </select>
         </div>
         <div class="param-group">
-          <label>数据集配置</label>
-          <select v-model="selectedDataset" class="resource-select">
+          <label for="train-dataset">数据集配置</label>
+          <select id="train-dataset" v-model="selectedDataset" class="resource-select">
             <option v-for="dataset in datasetList"
                     :key="dataset.id"
                     :value="dataset.zipUrl">

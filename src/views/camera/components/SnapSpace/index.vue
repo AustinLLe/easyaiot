@@ -33,7 +33,8 @@
                           <a href="javascript:void(0)" @click="handleViewImages(item)">
                             <img
                               class="project-icon-item_img"
-                              :src="snapSpaceIcon">
+                              :src="snapSpaceIcon"
+                              alt="截图空间">
                             <div class="project-icon-item_name">{{ item.space_name }}</div>
                           </a>
                         </div>

@@ -83,7 +83,7 @@ function handleShowForm(show = false) {
       <div v-show="!showDate" :class="`${prefixCls}-entry`">
         <div :class="`${prefixCls}-entry-content`">
           <div :class="`${prefixCls}-entry__header enter-x`">
-            <img :src="userinfo.user.avatar || headerImg" :class="`${prefixCls}-entry__header-img`">
+            <img :src="userinfo.user.avatar || headerImg" alt="用户头像" :class="`${prefixCls}-entry__header-img`">
             <p :class="`${prefixCls}-entry__header-name`">
               {{ userinfo.user.nickname }}
             </p>

@@ -113,7 +113,7 @@ function formatDateTime(dateString: string): string {
     // 解析ISO格式时间字符串（可能包含时区信息）
     const date = new Date(dateString);
     // 检查日期是否有效
-    if (isNaN(date.getTime())) {
+if (Number.isNaN(date.getTime())) {
       return dateString;
     }
     return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour12: false});

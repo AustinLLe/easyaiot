@@ -43,10 +43,10 @@ function handleFullScreen(e: Event) {
   <div :class="getClass">
     <template v-if="canFullscreen">
       <Tooltip v-if="fullScreen" :title="t('component.modal.restore')" placement="bottom">
-        <FullscreenExitOutlined role="full" @click="handleFullScreen" />
+        <FullscreenExitOutlined :aria-label="t('component.modal.restore')" @click="handleFullScreen" />
       </Tooltip>
       <Tooltip v-else :title="t('component.modal.maximize')" placement="bottom">
-        <FullscreenOutlined role="close" @click="handleFullScreen" />
+        <FullscreenOutlined :aria-label="t('component.modal.maximize')" @click="handleFullScreen" />
       </Tooltip>
     </template>
     <Tooltip :title="t('component.modal.close')" placement="bottom">

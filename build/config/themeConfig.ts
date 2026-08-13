@@ -46,7 +46,7 @@ export function generateColors({ color = primaryColor, mixLighten, mixDarken, ti
       .toRgbString()
   })
 
-  const shortAlphaColors = alphaColors.map(item => item.replace(/\s/g, '').replace(/0\./g, '.'))
+  const shortAlphaColors = alphaColors.map(item => item.replaceAll(/\s/g, '').replaceAll(/0\./g, '.'))
 
   const tinycolorLightens = arr
     .map((_t, i) => {

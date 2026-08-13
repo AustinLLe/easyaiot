@@ -29,7 +29,7 @@ export function hex2rgb(hex: any) {
   if (hex.length === 3) {
     hex = '' + hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
   }
-  const change = (val: any) => parseInt(val, 16) || 0 // Avoid NaN situations
+  const change = (val: any) => Number.parseInt(val, 16) || 0 // Avoid NaN situations
   return {
     r: change(hex.slice(0, 2)),
     g: change(hex.slice(2, 4)),
@@ -60,8 +60,8 @@ export function rgb2hsv({ r, g, b }: any) {
     h = (60 * (r - g)) / delta + 240
   }
   h = Math.floor(h)
-  const s = parseFloat((max === 0 ? 0 : 1 - min / max).toFixed(2))
-  const v = parseFloat(max.toFixed(2))
+  const s = Number.parseFloat((max === 0 ? 0 : 1 - min / max).toFixed(2))
+  const v = Number.parseFloat(max.toFixed(2))
   return { h, s, v }
 }
 
@@ -75,9 +75,9 @@ export function isRgb(str: string) {
   const match = str.match(regex) // 使用match方法进行匹配
   if (match) {
     // 如果匹配成功
-    const r = parseInt(match[1]) // 获取红色值
-    const g = parseInt(match[2]) // 获取绿色值
-    const b = parseInt(match[3]) // 获取蓝色值
+    const r = Number.parseInt(match[1]) // 获取红色值
+    const g = Number.parseInt(match[2]) // 获取绿色值
+    const b = Number.parseInt(match[3]) // 获取蓝色值
     if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
       // 判断RGB值是否在合法范围内
       return true // 如果合法，返回true

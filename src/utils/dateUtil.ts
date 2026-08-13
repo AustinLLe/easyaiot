@@ -83,7 +83,7 @@ export function dateFormat(date, block) {
     q: Math.floor((date.getMonth() + 3) / 3), // 季度
     S: date.getMilliseconds(), // 毫秒
   }
-  format = format.replace(/([yMdhmsqS])+/g, (all, t) => {
+  format = format.replaceAll(/([yMdhmsqS])+/g, (all, t) => {
     let v = map[t]
     if (v !== undefined) {
       if (all.length > 1) {

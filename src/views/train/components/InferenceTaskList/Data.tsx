@@ -83,7 +83,7 @@ export function getInferenceColumns(): BasicColumn[] {
       dataIndex: 'processing_time',
       width: 100,
       customRender: ({ text }) =>
-        text ? `${parseFloat(text).toFixed(2)}秒` : '--'
+      text ? `${Number.parseFloat(text).toFixed(2)}秒` : '--'
     },
     {
       title: '操作',

@@ -123,8 +123,8 @@ const hours = computed(() => {
 // 当前小时（0-24）
 const currentHour = computed(() => {
   if (!props.currentTime) return 12
-  const hour = parseInt(props.currentTime.split(' ')[1]?.split(':')[0] || '12')
-  const minute = parseInt(props.currentTime.split(' ')[1]?.split(':')[1] || '0')
+  const hour = Number.parseInt(props.currentTime.split(' ')[1]?.split(':')[0] || '12')
+  const minute = Number.parseInt(props.currentTime.split(' ')[1]?.split(':')[1] || '0')
   return hour + minute / 60
 })
 

@@ -22,7 +22,7 @@ export function getBase64WithFile(file: File) {
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onload = () => resolve({ result: reader.result as string, file })
-    reader.onerror = error => reject(error)
+    reader.onerror = error => reject(error instanceof Error ? error : new Error('Failed to read file'))
   },
   )
 }

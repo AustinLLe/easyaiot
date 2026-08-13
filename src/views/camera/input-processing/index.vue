@@ -283,9 +283,10 @@ onMounted(loadProfiles)
           </div>
 
           <div class="form-row">
-            <label>启用模块</label>
+            <label :for="`input-processing-enabled-${profile.device_id}`">启用模块</label>
             <div class="switch-field">
               <ASwitch
+                :id="`input-processing-enabled-${profile.device_id}`"
                 v-model:checked="profile.enabled"
                 :loading="isSaving(profile.device_id)"
                 @change="toggleProfile(profile)"
@@ -295,8 +296,9 @@ onMounted(loadProfiles)
           </div>
 
           <div class="form-row">
-            <label>清晰度策略</label>
+            <label :for="`input-processing-resolution-${profile.device_id}`">清晰度策略</label>
             <ASelect
+              :id="`input-processing-resolution-${profile.device_id}`"
               v-model:value="profile.resolution"
               :disabled="!profile.enabled"
               :options="resolutionOptions"
@@ -304,13 +306,14 @@ onMounted(loadProfiles)
           </div>
 
           <div class="form-row">
-            <label>
+            <label :for="`input-processing-max-fps-${profile.device_id}`">
               帧率上限
             <ATooltip title="只对高于上限的输入降帧，低帧率输入保持不变">
               <QuestionCircleOutlined />
             </ATooltip>
             </label>
             <ASelect
+              :id="`input-processing-max-fps-${profile.device_id}`"
               v-model:value="profile.max_fps"
               :disabled="!profile.enabled"
               :options="fpsOptions.map(fps => ({ label: `${fps} fps`, value: fps }))"

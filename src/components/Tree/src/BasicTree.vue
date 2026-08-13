@@ -377,6 +377,7 @@ export default defineComponent({
             class={`${bem('title')} pl-2`}
             role="treeitem"
             tabindex="0"
+            aria-selected={state.selectedKeys.includes(item[keyField])}
             onClick={handleClickNode.bind(null, item[keyField], item[childrenField])}
             onKeydown={(event: KeyboardEvent) => {
               if (event.key === 'Enter' || event.key === ' ') {

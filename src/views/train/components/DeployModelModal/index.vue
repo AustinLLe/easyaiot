@@ -14,8 +14,9 @@
             <form @submit.prevent="submitForm">
               <!-- 模型ID -->
               <div class="form-group">
-                <label>模型ID *</label>
+                <label for="deploy-model-id">模型ID *</label>
                 <input
+                  id="deploy-model-id"
                   type="text"
                   v-model="form.model_id"
                   required
@@ -26,8 +27,9 @@
 
               <!-- 模型名称 -->
               <div class="form-group">
-                <label>模型名称 *</label>
+                <label for="deploy-model-name">模型名称 *</label>
                 <input
+                  id="deploy-model-name"
                   type="text"
                   v-model="form.model_name"
                   required
@@ -37,8 +39,9 @@
 
               <!-- 模型版本 -->
               <div class="form-group">
-                <label>模型版本 *</label>
+                <label for="deploy-model-version">模型版本 *</label>
                 <input
+                  id="deploy-model-version"
                   type="text"
                   v-model="form.model_version"
                   required
@@ -48,9 +51,10 @@
 
               <!-- 模型路径 -->
               <div class="form-group">
-                <label>MinIO模型路径 *</label>
+                <label for="deploy-model-path">MinIO模型路径 *</label>
                 <div class="path-selector">
                   <input
+                    id="deploy-model-path"
                     type="text"
                     v-model="form.minio_model_path"
                     required
@@ -64,11 +68,12 @@
 
               <!-- 资源配置 -->
               <div class="form-group">
-                <label>资源配置</label>
+                <div class="resource-label">资源配置</div>
                 <div class="resource-grid">
                   <div>
-                    <label>GPU数量</label>
+                    <label for="deploy-gpu-count">GPU数量</label>
                     <input
+                      id="deploy-gpu-count"
                       type="number"
                       v-model="form.gpu_count"
                       min="1"
@@ -77,8 +82,9 @@
                     />
                   </div>
                   <div>
-                    <label>内存(GB)</label>
+                    <label for="deploy-memory">内存(GB)</label>
                     <input
+                      id="deploy-memory"
                       type="number"
                       v-model="form.memory"
                       min="1"
@@ -97,8 +103,9 @@
                 </h4>
                 <div v-if="showAdvanced" class="advanced-options">
                   <div class="form-group">
-                    <label>推理超时(秒)</label>
+                    <label for="deploy-timeout">推理超时(秒)</label>
                     <input
+                      id="deploy-timeout"
                       type="number"
                       v-model="form.timeout"
                       min="10"
@@ -107,9 +114,9 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label>自动扩缩容</label>
-                    <label class="switch">
-                      <input type="checkbox" v-model="form.auto_scale">
+                    <label for="deploy-auto-scale">自动扩缩容</label>
+                    <label for="deploy-auto-scale" class="switch">
+                      <input id="deploy-auto-scale" type="checkbox" v-model="form.auto_scale">
                       <span class="slider"></span>
                     </label>
                   </div>

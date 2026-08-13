@@ -13,7 +13,7 @@ const scopeComplete = execSync('git status --porcelain || true')
   .trim()
   .split('\n')
   .find(r => ~r.indexOf('M  src'))
-  ?.replace(/(\/)/g, '%%')
+  ?.replaceAll(/(\/)/g, '%%')
   ?.match(/src%%((\w|-)*)/)?.[1]
   ?.replace(/s$/, '')
 

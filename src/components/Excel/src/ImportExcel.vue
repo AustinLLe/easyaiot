@@ -45,8 +45,8 @@ function shapeWorkSheel(sheet: XLSX.WorkSheet, range: XLSX.Range) {
   let r = 1
   while (c < range.e.c + 1) {
     while (r < range.e.r + 1) {
-      if (!sheet[String.fromCharCode(char) + r])
-        sheet[String.fromCharCode(char) + r] = customWorkSheet
+      if (!sheet[String.fromCodePoint(char) + r])
+        sheet[String.fromCodePoint(char) + r] = customWorkSheet
 
       r++
     }

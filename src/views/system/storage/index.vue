@@ -82,8 +82,9 @@
             <p>关闭“保存历史”后，已完成的录像分片会删除且不进入历史；时长为 0 仍表示永久保留。</p>
           </div>
           <div class="policy-picker">
-            <label>选择摄像头</label>
+            <label for="storage-policy-device-filter">选择摄像头</label>
             <ASelect
+              id="storage-policy-device-filter"
               v-model:value="policyDeviceFilter"
               show-search
               allow-clear
@@ -293,43 +294,43 @@
       @ok="saveCustomScheme"
     >
       <div class="custom-form">
-        <label><span>方案名称</span><AInput v-model:value="customSchemeForm.name" :maxlength="100" placeholder="例如：厂区重点摄像头保留 3 天" /></label>
-        <label><span>说明（可选）</span><ATextarea v-model:value="customSchemeForm.description" :rows="2" :maxlength="500" placeholder="说明适用场景，方便以后复用" /></label>
-        <label>
+        <label for="custom-scheme-name"><span>方案名称</span><AInput id="custom-scheme-name" v-model:value="customSchemeForm.name" :maxlength="100" placeholder="例如：厂区重点摄像头保留 3 天" /></label>
+        <label for="custom-scheme-description"><span>说明（可选）</span><ATextarea id="custom-scheme-description" v-model:value="customSchemeForm.description" :rows="2" :maxlength="500" placeholder="说明适用场景，方便以后复用" /></label>
+        <label for="custom-scheme-target">
           <span>应用范围</span>
-          <ASelect v-model:value="customSchemeForm.target">
+          <ASelect id="custom-scheme-target" v-model:value="customSchemeForm.target">
             <ASelectOption value="all">全部摄像头</ASelectOption>
             <ASelectOption value="active">最近活跃的摄像头</ASelectOption>
             <ASelectOption value="inactive">最近不活跃的摄像头</ASelectOption>
             <ASelectOption value="selected">指定摄像头</ASelectOption>
           </ASelect>
         </label>
-        <label v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'">
+        <label for="custom-scheme-active-within" v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'">
           <span>活跃判断窗口</span>
-          <div class="inline-field"><AInputNumber v-model:value="customSchemeForm.active_within_hours" :min="1" :max="8760" /><em>小时</em></div>
+          <div class="inline-field"><AInputNumber id="custom-scheme-active-within" v-model:value="customSchemeForm.active_within_hours" :min="1" :max="8760" /><em>小时</em></div>
         </label>
-        <label v-if="customSchemeForm.target === 'selected'">
+        <label for="custom-scheme-devices" v-if="customSchemeForm.target === 'selected'">
           <span>选择摄像头</span>
-          <ASelect v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像头">
+          <ASelect id="custom-scheme-devices" v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像头">
             <ASelectOption v-for="policy in recentPolicies" :key="policy.device_id" :value="policy.device_id" :label="`${policy.device_name} ${policy.device_id}`">
               {{ policy.device_name }}
             </ASelectOption>
           </ASelect>
         </label>
-        <label>
+        <label for="custom-scheme-recording-enabled">
           <span>保存历史录像</span>
-          <ASwitch v-model:checked="customSchemeForm.recording_enabled" checked-children="保存" un-checked-children="不保存" />
+          <ASwitch id="custom-scheme-recording-enabled" v-model:checked="customSchemeForm.recording_enabled" checked-children="保存" un-checked-children="不保存" />
         </label>
-        <label>
+        <label for="custom-scheme-retention-value">
           <span>保留时长</span>
           <div class="inline-field">
-            <AInputNumber v-model:value="customSchemeForm.value" :min="0" :max="retentionMax(customSchemeForm.unit)" :precision="0" />
+            <AInputNumber id="custom-scheme-retention-value" v-model:value="customSchemeForm.value" :min="0" :max="retentionMax(customSchemeForm.unit)" :precision="0" />
             <ASelect v-model:value="customSchemeForm.unit" style="width: 100px"><ASelectOption value="minute">分钟</ASelectOption><ASelectOption value="hour">小时</ASelectOption><ASelectOption value="day">天</ASelectOption></ASelect>
           </div>
         </label>
-        <label>
+        <label for="custom-scheme-save-mode">
           <span>到期处理</span>
-          <ASelect v-model:value="customSchemeForm.save_mode"><ASelectOption :value="0">到期删除</ASelectOption><ASelectOption :value="1">到期归档</ASelectOption></ASelect>
+          <ASelect id="custom-scheme-save-mode" v-model:value="customSchemeForm.save_mode"><ASelectOption :value="0">到期删除</ASelectOption><ASelectOption :value="1">到期归档</ASelectOption></ASelect>
         </label>
         <p class="form-tip">0 表示永久保留。保存后方案会出现在上方，可重复启用或删除。</p>
       </div>

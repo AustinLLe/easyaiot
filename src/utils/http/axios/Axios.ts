@@ -21,6 +21,13 @@ import { useUserStoreWithOut } from '@/store/modules/user'
 export * from './axiosTransform'
 
 const globSetting = useGlobSetting()
+
+function toError(reason: unknown): Error {
+  if (reason instanceof Error)
+    return reason
+  return new Error(typeof reason === 'string' ? reason : 'request error!')
+}
+
 // 请求队列
 let requestList: any[] = []
 // 是否正在刷新中
@@ -295,7 +302,10 @@ export class VAxios {
         })
         .catch((e: Error | AxiosError) => {
           if (requestCatchHook && isFunction(requestCatchHook)) {
-            reject(requestCatchHook(e, opt))
+            void Promise.resolve(requestCatchHook(e, opt)).then(
+              reason => reject(toError(reason)),
+              reason => reject(toError(reason)),
+            )
             return
           }
           if (axios.isAxiosError(e)) {
@@ -338,7 +348,10 @@ export class VAxios {
         })
         .catch((e: Error | AxiosError) => {
           if (requestCatchHook && isFunction(requestCatchHook)) {
-            reject(requestCatchHook(e, opt))
+            void Promise.resolve(requestCatchHook(e, opt)).then(
+              reason => reject(toError(reason)),
+              reason => reject(toError(reason)),
+            )
             return
           }
           if (axios.isAxiosError(e)) {
@@ -382,7 +395,7 @@ export class VAxios {
               resolve(ret)
             }
             catch (err) {
-              reject(err || new Error('request error!'))
+              reject(toError(err))
             }
             return
           }
@@ -390,7 +403,10 @@ export class VAxios {
         })
         .catch((e: Error | AxiosError) => {
           if (requestCatchHook && isFunction(requestCatchHook)) {
-            reject(requestCatchHook(e, opt))
+            void Promise.resolve(requestCatchHook(e, opt)).then(
+              reason => reject(toError(reason)),
+              reason => reject(toError(reason)),
+            )
             return
           }
           if (axios.isAxiosError(e)) {

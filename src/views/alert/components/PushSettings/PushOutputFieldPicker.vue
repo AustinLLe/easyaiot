@@ -8,8 +8,9 @@
     />
 
     <div class="field-list">
-      <label class="field-row select-all">
+      <label for="push-output-select-all" class="field-row select-all">
         <Checkbox
+          id="push-output-select-all"
           :checked="isAllSelected"
           :indeterminate="isIndeterminate"
           @change="handleToggleAll"
@@ -18,11 +19,13 @@
       </label>
 
       <label
+        :for="`push-output-field-${field.key}`"
         v-for="field in currentFields"
         :key="field.key"
         class="field-row"
       >
         <Checkbox
+          :id="`push-output-field-${field.key}`"
           :checked="selectedSet.has(field.key)"
           @change="(e) => handleToggleField(field.key, e.target.checked)"
         />

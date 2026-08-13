@@ -535,7 +535,7 @@ const getRules = () => {
             return Promise.reject('请输入摄像头端口');
           }
           const numValue = Number(value);
-          if (isNaN(numValue)) {
+if (Number.isNaN(numValue)) {
             return Promise.reject('端口必须是数字');
           }
           if (numValue < 1 || numValue > 65535) {
@@ -578,7 +578,7 @@ const getRules = () => {
             return Promise.resolve();
           }
           const numValue = Number(value);
-          if (isNaN(numValue)) {
+if (Number.isNaN(numValue)) {
             return Promise.reject('端口必须是数字');
           }
           if (numValue < 1 || numValue > 65535) {
@@ -878,7 +878,7 @@ function handleOk() {
         // 如果是海康、大华或宇视类型，需要传入IP、端口、用户名、密码
         if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
           registerData.ip = modelRef.ip;
-          registerData.port = parseInt(modelRef.port) || 554;
+          registerData.port = Number.parseInt(modelRef.port) || 554;
           registerData.username = modelRef.username;
           registerData.password = modelRef.password;
         }

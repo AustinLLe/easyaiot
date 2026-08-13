@@ -1,4 +1,4 @@
-import { defHttp } from '/@/utils/http/axios';
+import { defHttp } from '@/utils/http/axios';
 
 enum Api {
   // 推送历史列表查询（VIDEO 占位服务）

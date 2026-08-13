@@ -37,10 +37,10 @@ export const useScale = (localStorageInfo: ChartEditStorageType) => {
           }
 
           if (e.wheelDelta > 0) {
-            const resNum = parseFloat(Number(width).toFixed(2))
+            const resNum = Number.parseFloat(Number(width).toFixed(2))
             previewRef.value.style.transform = `scale(${resNum > 5 ? 5 : resNum + 0.1})`
           } else {
-            const resNum = parseFloat(Number(width).toFixed(2))
+            const resNum = Number.parseFloat(Number(width).toFixed(2))
             previewRef.value.style.transform = `scale(${resNum < 0.2 ? 0.2 : resNum - 0.1})`
           }
         }

@@ -109,7 +109,7 @@ export function normalizeClassLabelKey(value?: string | null) {
   return String(value ?? '')
     .trim()
     .toLowerCase()
-    .replace(/[\s-]+/g, '_');
+    .replaceAll(/[\s-]+/g, '_');
 }
 
 export function translateClassLabel(value?: string | null) {

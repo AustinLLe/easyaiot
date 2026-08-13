@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { computed, defineComponent, reactive, ref, unref, watchEffect } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref, unref, watchEffect } from 'vue'
 import { CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons-vue'
 import resumeSvg from '@/assets/svg/preview/resume.svg'
 import rotateSvg from '@/assets/svg/preview/p-rotate.svg'
@@ -228,10 +228,20 @@ export default defineComponent({
       close()
     }
 
-    function handleMaskKeydown(e: KeyboardEvent) {
-      if (props.maskClosable && e.key === 'Escape')
+    function handleDocumentKeydown(e: KeyboardEvent) {
+      if (imgState.show && props.maskClosable && e.key === 'Escape')
         handleClose(e)
     }
+
+    onMounted(() => {
+      document.addEventListener('keydown', handleDocumentKeydown)
+      document.addEventListener('pointerup', handleMouseUp)
+    })
+
+    onBeforeUnmount(() => {
+      document.removeEventListener('keydown', handleDocumentKeydown)
+      document.removeEventListener('pointerup', handleMouseUp)
+    })
 
     function close() {
       imgState.show = false
@@ -322,7 +332,7 @@ export default defineComponent({
     })
 
     const handleMaskClick = (e: MouseEvent) => {
-      if (props.maskClosable && e.target && (e.target as HTMLDivElement).classList.contains(`${prefixCls}-content`))
+      if (props.maskClosable)
         handleClose(e)
     }
 
@@ -386,7 +396,8 @@ export default defineComponent({
     return () => {
       return (
         imgState.show && (
-          <div class={prefixCls} ref={wrapElRef} tabIndex={-1} role="dialog" aria-modal="true" onMouseup={handleMouseUp} onClick={handleMaskClick} onKeydown={handleMaskKeydown}>
+          <div class={prefixCls} ref={wrapElRef} role="dialog" aria-modal="true">
+            <button type="button" class={`${prefixCls}__mask`} aria-label="Close preview" onClick={handleMaskClick} />
             <div class={`${prefixCls}-content`}>
               {/* <Spin */}
               {/*  indicator={<LoadingOutlined style="font-size: 24px" spin />} */}
@@ -398,13 +409,15 @@ export default defineComponent({
               {/*    }, */}
               {/*  ]} */}
               {/* /> */}
-              <img
-                style={unref(getImageStyle)}
-                class={[`${prefixCls}-image`, imgState.status === StatueEnum.DONE ? '' : 'hidden']}
-                ref={imgElRef}
-                src={imgState.currentUrl}
-                onMousedown={handleAddMoveListener}
-              />
+              <button type="button" class={`${prefixCls}__image-dragger`} aria-label="Drag preview" onPointerdown={handleAddMoveListener}>
+                <img
+                  style={unref(getImageStyle)}
+                  class={[`${prefixCls}-image`, imgState.status === StatueEnum.DONE ? '' : 'hidden']}
+                  ref={imgElRef}
+                  src={imgState.currentUrl}
+                  alt="Preview"
+                />
+              </button>
               {renderClose()}
               {renderIndex()}
               {renderController()}
@@ -428,6 +441,8 @@ export default defineComponent({
   background: rgb(0 0 0 / 50%);
 
   &-content {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -437,8 +452,30 @@ export default defineComponent({
   }
 
   &-image {
-    cursor: pointer;
+    cursor: inherit;
     transition: transform 0.3s;
+  }
+
+  &__mask {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    cursor: default;
+    background: transparent;
+    border: 0;
+  }
+
+  &__image-dragger {
+    padding: 0;
+    cursor: grab;
+    background: transparent;
+    border: 0;
+
+    &:active {
+      cursor: grabbing;
+    }
   }
 
   &__close {

@@ -53,7 +53,7 @@ const avatar = computed(() => {
   <BasicModal :footer="null" width="25%" :title="t('layout.header.lockScreen')" v-bind="$attrs" @register="register">
     <div class="relative rounded-10 px-8 pb-8 pt-30">
       <div class="absolute left-[calc(50%-45px)] top-0 w-auto text-center">
-        <img :src="avatar" class="w-18 rounded-50%">
+        <img :src="avatar" alt="用户头像" class="w-18 rounded-50%">
         <p class="mt-2">
           {{ getRealName }}
         </p>

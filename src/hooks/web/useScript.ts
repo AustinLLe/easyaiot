@@ -25,7 +25,7 @@ export function useScript(opts: ScriptOptions) {
         isLoading.value = false
         success.value = false
         error.value = true
-        reject(err)
+        reject(err instanceof Error ? err : new Error(String(err)))
       }
 
       script.src = opts.src

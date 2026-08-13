@@ -54,7 +54,7 @@ export const useChartHistoryStore = defineStore({
     },
     // * 推入后退栈
     pushBackStackItem(item: HistoryItemType | Array<HistoryItemType>, notClear = false): void {
-      if (item instanceof Array) this.backStack = [...this.backStack, ...item]
+    if (Array.isArray(item)) this.backStack = [...this.backStack, ...item]
       else this.backStack.push(item)
       this.backStack.splice(0, this.backStack.length - editHistoryMax)
       // 新动作需清空前进栈
@@ -63,7 +63,7 @@ export const useChartHistoryStore = defineStore({
     },
     // * 推入前进栈
     pushForwardStack(item: HistoryItemType | Array<HistoryItemType>): void {
-      if (item instanceof Array) this.forwardStack = [...this.forwardStack, ...item]
+    if (Array.isArray(item)) this.forwardStack = [...this.forwardStack, ...item]
       else this.forwardStack.push(item)
     },
     // * 移出后退栈

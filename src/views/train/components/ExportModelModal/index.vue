@@ -12,9 +12,10 @@
           <!-- 表单区域 -->
           <div class="modal-body">
             <div class="form-group">
-              <label>模型路径 *</label>
+              <label for="export-model-path">模型路径 *</label>
               <div class="path-selector">
                 <input
+                  id="export-model-path"
                   type="text"
                   v-model="form.model_path"
                   required
@@ -27,8 +28,8 @@
             </div>
 
             <div class="form-group">
-              <label>导出格式 *</label>
-              <select v-model="form.export_format">
+              <label for="export-format">导出格式 *</label>
+              <select id="export-format" v-model="form.export_format">
                 <option v-for="format in exportFormats" :key="format" :value="format">
                   {{ format.toUpperCase() }}
                 </option>
@@ -44,8 +45,9 @@
 
               <div v-if="showAdvanced" class="advanced-options">
                 <div class="form-group">
-                  <label>ONNX Opset版本</label>
+                  <label for="export-opset-version">ONNX Opset版本</label>
                   <input
+                    id="export-opset-version"
                     type="number"
                     v-model="form.opset_version"
                     min="7"
@@ -55,7 +57,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label>动态轴设置</label>
+                  <div class="field-label">动态轴设置</div>
                   <div class="dynamic-axes">
                     <div v-for="(axis, index) in form.dynamic_axes" :key="index" class="axis-item">
                       <input
@@ -75,9 +77,9 @@
                 </div>
 
                 <div class="form-group">
-                  <label>常量折叠优化</label>
-                  <label class="switch">
-                    <input type="checkbox" v-model="form.do_constant_folding">
+                  <label for="export-constant-folding">常量折叠优化</label>
+                  <label for="export-constant-folding" class="switch">
+                    <input id="export-constant-folding" type="checkbox" v-model="form.do_constant_folding">
                     <span class="slider"></span>
                   </label>
                 </div>

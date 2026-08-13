@@ -28,7 +28,7 @@ function createConfig(params: CreateConfigParams) {
         configurable: false,
         writable: false,
       });
-    `.replace(/\s/g, '')
+    `.replaceAll(/\s/g, '')
 
     fs.mkdirp(getRootPath(OUTPUT_DIR))
     writeFileSync(getRootPath(`${OUTPUT_DIR}/${configFileName}`), configStr)

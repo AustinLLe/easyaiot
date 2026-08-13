@@ -539,7 +539,7 @@ const resetVideoInferenceProgress = () => {
 const updateVideoInferenceProgress = (taskData: any = {}) => {
   const processedFrames = Math.max(0, Math.floor(toFiniteNumber(taskData.processed_frames, 0)));
   const totalFrames = Math.max(0, Math.floor(toFiniteNumber(taskData.total_frames, 0)));
-  const apiProgress = toFiniteNumber(taskData.progress_percent, NaN);
+  const apiProgress = toFiniteNumber(taskData.progress_percent, Number.NaN);
   let progressPercent = Number.isFinite(apiProgress) ? apiProgress : 0;
 
   if (!Number.isFinite(apiProgress) && totalFrames > 0) {
@@ -642,8 +642,8 @@ const startDetection = async () => {
     } else if (typeof state.selectedModelId === 'number') {
       modelId = state.selectedModelId;
     } else if (typeof state.selectedModelId === 'string' && state.selectedModelId !== '') {
-      const parsedId = parseInt(state.selectedModelId, 10);
-      modelId = isNaN(parsedId) ? 0 : parsedId;
+  const parsedId = Number.parseInt(state.selectedModelId, 10);
+  modelId = Number.isNaN(parsedId) ? 0 : parsedId;
     } else {
       modelId = 0;
     }
@@ -1044,7 +1044,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // 获取媒体文件的访问URL
@@ -1254,8 +1254,8 @@ const handleHistoryRecordChange = async () => {
     return;
   }
 
-  const recordId = parseInt(state.selectedHistoryRecordId, 10);
-  if (isNaN(recordId)) {
+  const recordId = Number.parseInt(state.selectedHistoryRecordId, 10);
+  if (Number.isNaN(recordId)) {
     return;
   }
 

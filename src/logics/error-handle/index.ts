@@ -19,13 +19,13 @@ function processStackMsg(error: Error) {
     return ''
 
   let stack = error.stack
-    .replace(/\n/gi, '') // Remove line breaks to save the size of the transmitted content
-    .replace(/\bat\b/gi, '@') // At in chrome, @ in ff
+    .replaceAll(/\n/gi, '') // Remove line breaks to save the size of the transmitted content
+    .replaceAll(/\bat\b/gi, '@') // At in chrome, @ in ff
     .split('@') // Split information with @
     .slice(0, 9) // The maximum stack length (Error.stackTraceLimit = 10), so only take the first 10
     .map(v => v.trim()) // Remove extra spaces
     .join('~') // Manually add separators for later display
-    .replace(/\?[^:]+/gi, '') // Remove redundant parameters of js file links (?x=1 and the like)
+    .replaceAll(/\?[^:]+/gi, '') // Remove redundant parameters of js file links (?x=1 and the like)
   const msg = error.toString()
   if (!stack.includes(msg))
     stack = `${msg}@${stack}`

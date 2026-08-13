@@ -116,7 +116,7 @@ function clearSchedule() {
 }
 
 function toggleDayEnabled(day: number, enabled: boolean) {
-  schedule.value[day] = enabled ? Array(24).fill(1) : Array(24).fill(0)
+  schedule.value[day] = enabled ? new Array(24).fill(1) : new Array(24).fill(0)
   markDirty()
 }
 
@@ -132,7 +132,7 @@ function copyDayToAll(sourceDay: number) {
 }
 
 function clearDay(day: number) {
-  schedule.value[day] = Array(24).fill(0)
+  schedule.value[day] = new Array(24).fill(0)
   markDirty()
 }
 

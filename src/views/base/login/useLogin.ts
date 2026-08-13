@@ -57,16 +57,16 @@ export function useFormRules(formData?: Recordable) {
   const getMobileFormRule = computed(() => createRule(t('sys.login.mobilePlaceholder')))
 
   const validatePolicy = async (_: RuleObject, value: boolean) => {
-    return !value ? Promise.reject(t('sys.login.policyPlaceholder')) : Promise.resolve()
+    return !value ? Promise.reject(new Error(t('sys.login.policyPlaceholder'))) : Promise.resolve()
   }
 
   const validateConfirmPassword = (password: string) => {
     return async (_: RuleObject, value: string) => {
       if (!value)
-        return Promise.reject(t('sys.login.passwordPlaceholder'))
+        return Promise.reject(new Error(t('sys.login.passwordPlaceholder')))
 
       if (value !== password)
-        return Promise.reject(t('sys.login.diffPwd'))
+        return Promise.reject(new Error(t('sys.login.diffPwd')))
 
       return Promise.resolve()
     }

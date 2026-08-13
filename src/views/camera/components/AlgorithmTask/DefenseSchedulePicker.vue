@@ -139,7 +139,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => ({ mode: 'full', schedule: Array(7).fill(null).map(() => Array(24).fill(1)) }),
+  modelValue: () => ({ mode: 'full', schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)) }),
   disabled: false,
 });
 
@@ -166,7 +166,7 @@ const modeOptions = [
 
 const defenseMode = ref<string>(props.modelValue?.mode || 'half');
 const schedule = ref<number[][]>(
-  props.modelValue?.schedule || Array(7).fill(null).map(() => Array(24).fill(0))
+  props.modelValue?.schedule || new Array(7).fill(null).map(() => new Array(24).fill(0))
 );
 
 // 拖拽状态
@@ -193,18 +193,18 @@ watch(
       } else {
         // 如果没有提供schedule，根据模式生成默认值
         if (newMode === 'full') {
-          schedule.value = Array(7).fill(null).map(() => Array(24).fill(1));
+          schedule.value = new Array(7).fill(null).map(() => new Array(24).fill(1));
         } else if (newMode === 'day') {
-          schedule.value = Array(7).fill(null).map(() =>
-            Array(24).fill(0).map((_, hour) => (hour >= 6 && hour < 21 ? 1 : 0))
+          schedule.value = new Array(7).fill(null).map(() =>
+            new Array(24).fill(0).map((_, hour) => (hour >= 6 && hour < 21 ? 1 : 0))
           );
         } else if (newMode === 'night') {
-          schedule.value = Array(7).fill(null).map(() =>
-            Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
+          schedule.value = new Array(7).fill(null).map(() =>
+            new Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
           );
         } else {
           // 半防模式：全部清空
-          schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
+          schedule.value = new Array(7).fill(null).map(() => new Array(24).fill(0));
         }
       }
     }
@@ -249,20 +249,20 @@ const handleModeChange = (value: string) => {
   
   if (mode === 'full') {
     // 全防模式：全部填充
-    schedule.value = Array(7).fill(null).map(() => Array(24).fill(1));
+    schedule.value = new Array(7).fill(null).map(() => new Array(24).fill(1));
   } else if (mode === 'day') {
     // 日间模式：6:00-21:00填充
-    schedule.value = Array(7).fill(null).map(() =>
-      Array(24).fill(0).map((_, hour) => (hour >= 6 && hour < 21 ? 1 : 0))
+    schedule.value = new Array(7).fill(null).map(() =>
+      new Array(24).fill(0).map((_, hour) => (hour >= 6 && hour < 21 ? 1 : 0))
     );
   } else if (mode === 'night') {
     // 夜间模式：21:00-6:00填充
-    schedule.value = Array(7).fill(null).map(() =>
-      Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
+    schedule.value = new Array(7).fill(null).map(() =>
+      new Array(24).fill(0).map((_, hour) => (hour >= 21 || hour < 6 ? 1 : 0))
     );
   } else if (mode === 'half') {
     // 半防模式：全部清空，让用户自己选
-    schedule.value = Array(7).fill(null).map(() => Array(24).fill(0));
+    schedule.value = new Array(7).fill(null).map(() => new Array(24).fill(0));
   }
   
   emitValue();
@@ -450,4 +450,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

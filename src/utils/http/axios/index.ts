@@ -44,7 +44,7 @@ let sessionInvalidLogoutScheduled = false
 function buildValidateSessionUrl(): string {
   const base = (globSetting.apiUrl || '').replace(/\/$/, '')
   const prefix = (urlPrefix || '').replace(/\/$/, '')
-  return `${base}${prefix}${SESSION_VALIDATE_PATH}`.replace(/([^:]\/)\/+/g, '$1')
+  return `${base}${prefix}${SESSION_VALIDATE_PATH}`.replaceAll(/([^:]\/)\/+/g, '$1')
 }
 
 function scheduleSessionInvalidLogout(): void {

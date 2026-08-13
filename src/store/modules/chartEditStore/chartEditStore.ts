@@ -310,7 +310,7 @@ export const useChartEditStore = defineStore({
             isHead = false,
             isHistory = false
         ): void {
-            if (componentInstance instanceof Array) {
+  if (Array.isArray(componentInstance)) {
                 componentInstance.forEach(item => {
                     this.addComponentList(item, isHead, isHistory)
                 })
@@ -956,16 +956,16 @@ export const useChartEditStore = defineStore({
                 const editCanvasHeight = this.editCanvasConfig.height
 
                 // 需保持的比例
-                const baseProportion = parseFloat((editCanvasWidth / editCanvasHeight).toFixed(5))
-                const currentRate = parseFloat((width / height).toFixed(5))
+                const baseProportion = Number.parseFloat((editCanvasWidth / editCanvasHeight).toFixed(5))
+                const currentRate = Number.parseFloat((width / height).toFixed(5))
 
                 if (currentRate > baseProportion) {
                     // 表示更宽
-                    const scaleWidth = parseFloat(((height * baseProportion) / editCanvasWidth).toFixed(5))
+                    const scaleWidth = Number.parseFloat(((height * baseProportion) / editCanvasWidth).toFixed(5))
                     this.setScale(scaleWidth > 1 ? 1 : scaleWidth)
                 } else {
                     // 表示更高
-                    const scaleHeight = parseFloat((width / baseProportion / editCanvasHeight).toFixed(5))
+                    const scaleHeight = Number.parseFloat((width / baseProportion / editCanvasHeight).toFixed(5))
                     this.setScale(scaleHeight > 1 ? 1 : scaleHeight)
                 }
             } else {

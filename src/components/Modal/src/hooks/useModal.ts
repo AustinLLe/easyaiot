@@ -53,7 +53,7 @@ export function useModal(): UseModalReturnType {
     },
 
     getOpen: computed((): boolean => {
-      return openData[~~unref(uid)]
+    return openData[Math.trunc(unref(uid))]
     }),
 
     redoModalHeight: () => {
@@ -126,7 +126,7 @@ export function useModalInner(callbackFn?: Fn): UseModalInnerReturnType {
         getInstance()?.setModalProps({ loading })
       },
       getOpen: computed((): boolean => {
-        return openData[~~unref(uidRef)]
+    return openData[Math.trunc(unref(uidRef))]
       }),
 
       changeOkLoading: (loading = true) => {

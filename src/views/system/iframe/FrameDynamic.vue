@@ -16,10 +16,10 @@
   import { ref, unref, computed } from 'vue';
   import { Spin } from 'ant-design-vue';
   import { useWindowSizeFn } from '@/hooks/event/useWindowSizeFn'
-  import { useDesign } from '/@/hooks/web/useDesign';
-  import { useLayoutHeight } from '/@/layouts/default/content/useContentViewHeight';
+  import { useDesign } from '@/hooks/web/useDesign';
+  import { useLayoutHeight } from '@/layouts/default/content/useContentViewHeight';
   import { useRoute } from 'vue-router';
-  import { useTabs } from '/@/hooks/web/useTabs';
+  import { useTabs } from '@/hooks/web/useTabs';
 
   const route = useRoute();
   const index = route.params?.id ?? '';

@@ -238,8 +238,8 @@ const videoListWithPlaceholder = computed(() => {
 
 // 获取当前布局需要的最大视频数量
 const getMaxVideoCount = (layout: string) => {
-  const count = parseInt(layout)
-  return isNaN(count) ? 1 : count
+  const count = Number.parseInt(layout)
+  return Number.isNaN(count) ? 1 : count
 }
 
 // 显示的视频列表

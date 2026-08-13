@@ -45,8 +45,8 @@ export function expressionToTokens(expression: string): LogicExpressionToken[] {
 
 export function formatLogicExpressionDisplay(expression: string): string {
   return expression
-    .replace(/\bAND\b/g, '且')
-    .replace(/\bOR\b/g, '或');
+    .replaceAll(/\bAND\b/g, '且')
+    .replaceAll(/\bOR\b/g, '或');
 }
 
 export function buildDefaultLogicExpression(conditions: AlertRuleConditionDraft[]): string {

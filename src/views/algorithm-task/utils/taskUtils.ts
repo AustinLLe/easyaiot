@@ -3,11 +3,11 @@ import type { AlgorithmTaskDraft, DefenseWeekScheduleEntry } from '../algorithmT
 import dayjs, { type Dayjs } from 'dayjs';
 
 export function createFullDefenseSchedule(): number[][] {
-  return Array.from({ length: 7 }, () => Array(24).fill(1));
+  return Array.from({ length: 7 }, () => new Array(24).fill(1));
 }
 
 export function createEmptyDefenseSchedule(): number[][] {
-  return Array.from({ length: 7 }, () => Array(24).fill(0));
+  return Array.from({ length: 7 }, () => new Array(24).fill(0));
 }
 
 export function isFullDefenseSchedule(schedule: number[][]): boolean {

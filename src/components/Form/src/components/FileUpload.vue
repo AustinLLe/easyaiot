@@ -265,7 +265,7 @@ function uidGenerator() {
 function getFileName(path) {
   if (path.lastIndexOf('\\') >= 0) {
     const reg = /\\/g
-    path = path.replace(reg, '/')
+    path = path.replaceAll(reg, '/')
   }
   return path.substring(path.lastIndexOf('/') + 1)
 }

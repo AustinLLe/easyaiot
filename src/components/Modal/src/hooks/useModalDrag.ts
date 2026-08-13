@@ -49,12 +49,12 @@ export function useModalDragMove(context: UseModalDragMoveContext) {
 
       // 注意在ie中 第一次获取到的值为组件自带50% 移动之后赋值为px
       if (domLeft.includes('%')) {
-        styL = +document.body.clientWidth * (+domLeft.replace(/%/g, '') / 100)
-        styT = +document.body.clientHeight * (+domTop.replace(/%/g, '') / 100)
+        styL = +document.body.clientWidth * (+domLeft.replaceAll(/%/g, '') / 100)
+        styT = +document.body.clientHeight * (+domTop.replaceAll(/%/g, '') / 100)
       }
       else {
-        styL = +domLeft.replace(/px/g, '')
-        styT = +domTop.replace(/px/g, '')
+        styL = +domLeft.replaceAll(/px/g, '')
+        styT = +domTop.replaceAll(/px/g, '')
       }
 
       document.onmousemove = function (e) {

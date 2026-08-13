@@ -87,24 +87,29 @@ watch(
   <li
     :class="getClass"
     :style="getCollapse ? {} : getItemStyle"
-    role="menuitem"
-    tabindex="0"
-    @click.stop="handleClickItem"
-    @keydown.enter.stop.prevent="handleClickItem"
-    @keydown.space.stop.prevent="handleClickItem"
   >
-    <Tooltip v-if="showToptip" placement="right">
-      <template #title>
+    <button
+      type="button"
+      :class="`${prefixCls}-item-trigger`"
+      role="menuitem"
+      :disabled="disabled"
+      @click.stop="handleClickItem"
+      @keydown.enter.stop.prevent="handleClickItem"
+      @keydown.space.stop.prevent="handleClickItem"
+    >
+      <Tooltip v-if="showToptip" placement="right">
+        <template #title>
+          <slot name="title" />
+        </template>
+        <div :class="`${prefixCls}-tooltip`">
+          <slot />
+        </div>
+      </Tooltip>
+
+      <template v-else>
+        <slot />
         <slot name="title" />
       </template>
-      <div :class="`${prefixCls}-tooltip`">
-        <slot />
-      </div>
-    </Tooltip>
-
-    <template v-else>
-      <slot />
-      <slot name="title" />
-    </template>
+    </button>
   </li>
 </template>

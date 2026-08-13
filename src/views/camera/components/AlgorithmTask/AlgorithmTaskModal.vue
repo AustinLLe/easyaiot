@@ -54,7 +54,7 @@ const confirmLoading = ref(false);
 const isFullDayDefense = ref<boolean>(true);
 const defenseSchedule = ref<{ mode: string; schedule: number[][] }>({
   mode: 'full',
-  schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
+  schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)),
 });
 
 const deviceOptions = ref<Array<{ label: string; value: string }>>([]);
@@ -459,7 +459,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
       // 全天布防：设置为全防模式
       defenseSchedule.value = {
         mode: 'full',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)),
       };
     } else if (record.defense_mode && record.defense_schedule) {
       // 非全天布防：恢复保存的配置
@@ -476,14 +476,14 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
         // 解析失败时，使用半防模式并清空
         defenseSchedule.value = {
           mode: 'half',
-          schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
+          schedule: new Array(7).fill(null).map(() => new Array(24).fill(0)),
         };
       }
     } else {
       // 没有配置时，使用半防模式并清空
       defenseSchedule.value = {
         mode: 'half',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(0)),
       };
     }
 
@@ -577,7 +577,7 @@ const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) 
     // 重置布防时段为默认值（全天布防）
     defenseSchedule.value = {
       mode: 'full', // 默认全防模式
-      schedule: Array(7).fill(null).map(() => Array(24).fill(1)), // 默认全部填充
+      schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)), // 默认全部填充
     };
     setDrawerProps({ showOkBtn: true });
   }
@@ -592,13 +592,13 @@ const handleFieldValueChange = async (key: string, value: any) => {
       // 半防模式：全部清空，让用户自己选择
       defenseSchedule.value = {
         mode: 'half',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(0)),
       };
     } else {
       // 如果切换到全天布防，设置为全防模式
       defenseSchedule.value = {
         mode: 'full',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)),
       };
     }
   } else if (key === 'alert_event_enabled') {
@@ -628,7 +628,7 @@ const handleSubmit = async () => {
     if (fullDayDefense) {
       // 全天布防：设置为全防模式
       values.defense_mode = 'full';
-      values.defense_schedule = JSON.stringify(Array(7).fill(null).map(() => Array(24).fill(1)));
+        values.defense_schedule = JSON.stringify(new Array(7).fill(null).map(() => new Array(24).fill(1)));
     } else {
       // 非全天布防：使用布防时段配置
       values.defense_mode = defenseSchedule.value.mode;
@@ -730,7 +730,7 @@ const handleReset = () => {
     // 重置布防时段为默认值（全天布防）
     defenseSchedule.value = {
       mode: 'full', // 默认全防模式
-      schedule: Array(7).fill(null).map(() => Array(24).fill(1)), // 默认全部填充
+      schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)), // 默认全部填充
     };
   } else {
     // 如果是编辑模式，恢复到原始值
@@ -775,7 +775,7 @@ const handleReset = () => {
       // 全天布防：设置为全防模式
       defenseSchedule.value = {
         mode: 'full',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(1)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(1)),
       };
     } else if (record.defense_mode && record.defense_schedule) {
       // 非全天布防：恢复保存的配置
@@ -792,14 +792,14 @@ const handleReset = () => {
         // 解析失败时，使用半防模式并清空
         defenseSchedule.value = {
           mode: 'half',
-          schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
+          schedule: new Array(7).fill(null).map(() => new Array(24).fill(0)),
         };
       }
     } else {
       // 没有配置时，使用半防模式并清空
       defenseSchedule.value = {
         mode: 'half',
-        schedule: Array(7).fill(null).map(() => Array(24).fill(0)),
+        schedule: new Array(7).fill(null).map(() => new Array(24).fill(0)),
       };
     }
   }

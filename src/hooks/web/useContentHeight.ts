@@ -53,7 +53,7 @@ export function useContentHeight(
 
   function calcSubtractSpace(element: Element | null | undefined, direction: 'all' | 'top' | 'bottom' = 'all'): number {
     function numberPx(px: string) {
-      return Number(px.replace(/[^\d]/g, ''))
+      return Number(px.replaceAll(/[^\d]/g, ''))
     }
     let subtractHeight = 0
     const ZERO_PX = '0px'
