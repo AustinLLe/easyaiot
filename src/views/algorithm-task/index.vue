@@ -217,7 +217,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import {
   PlusOutlined,
   SwapOutlined,
@@ -238,6 +238,7 @@ import {
   updateAlgorithmTask,
   listAlgorithmTasks,
   getTaskStreams,
+  watchTaskStream,
   getAlgorithmTaskMemoryAdmission,
   type AlgorithmTask,
   type AlgorithmTaskMemoryAdmission,
@@ -315,6 +316,7 @@ const cameraSelectVisible = ref(false);
 const cameraStreams = ref<CameraStreamInfo[]>([]);
 const selectedCameraIndex = ref<number>(0);
 const currentTask = ref<AlgorithmTask | null>(null);
+let aiStreamWatchTimer: ReturnType<typeof window.setInterval> | null = null;
 
 // 分页相关
 const page = ref(1);
@@ -988,8 +990,33 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
   }
 };
 
+const stopAiStreamWatch = () => {
+  if (aiStreamWatchTimer) {
+    window.clearInterval(aiStreamWatchTimer);
+    aiStreamWatchTimer = null;
+  }
+};
+
+const renewAiStreamWatch = async (stream: CameraStreamInfo) => {
+  if (!currentTask.value || !stream.ai_http_stream)
+    return;
+  await watchTaskStream(currentTask.value.id, stream.device_id, stream.ai_stream_watch_ttl || 30);
+};
+
+const startAiStreamWatch = async (stream: CameraStreamInfo) => {
+  stopAiStreamWatch();
+  if (!stream.ai_http_stream || !currentTask.value)
+    return;
+  await renewAiStreamWatch(stream);
+  aiStreamWatchTimer = window.setInterval(() => {
+    renewAiStreamWatch(stream).catch((error) => {
+      console.warn('AI输出流续租失败:', error);
+    });
+  }, 10000);
+};
+
 // 播放摄像头推流
-const playCameraStream = (stream: CameraStreamInfo) => {
+const playCameraStream = async (stream: CameraStreamInfo) => {
   // 优先使用AI HTTP流地址
   // 其次使用推送器的HTTP地址
   // 再次使用推送器的RTMP地址，转换为HTTP地址
@@ -1000,6 +1027,11 @@ const playCameraStream = (stream: CameraStreamInfo) => {
   // 1. 优先使用AI HTTP流地址
   if (stream.ai_http_stream) {
     httpStream = stream.ai_http_stream;
+    try {
+      await startAiStreamWatch(stream);
+    } catch (error) {
+      console.warn('AI输出流启动续租失败:', error);
+    }
   }
   
   // 2. 如果没有，使用推送器的HTTP地址
@@ -1026,11 +1058,15 @@ const playCameraStream = (stream: CameraStreamInfo) => {
     createMessage.warning(`摄像头 ${stream.device_name} 暂无推流地址`);
     return;
   }
+  if (httpStream !== stream.ai_http_stream) {
+    stopAiStreamWatch();
+  }
   
   // 打开播放器
   openPlayerModal(true, {
     id: stream.device_id,
     http_stream: httpStream,
+    onClose: stopAiStreamWatch,
   });
 };
 
@@ -1039,6 +1075,10 @@ onMounted(() => {
   if (viewMode.value === 'card') {
     loadTasks();
   }
+});
+
+onUnmounted(() => {
+  stopAiStreamWatch();
 });
 </script>
 
