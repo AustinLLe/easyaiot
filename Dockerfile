@@ -2,7 +2,7 @@
 FROM docker.m.daocloud.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
 
 RUN npm config set registry https://registry.npmmirror.com/
-RUN npm install -g pnpm@9.0.4
+RUN npm install -g pnpm@11.19.0
 RUN pnpm config set registry https://registry.npmmirror.com/ && \
     pnpm config set network-timeout 600000 && \
     pnpm config set fetch-retries 5 && \
@@ -13,7 +13,8 @@ WORKDIR /app
 RUN mkdir -p /tmp/web-build-logs
 
 COPY package.json pnpm-lock.yaml* ./
-RUN if [ -f pnpm-lock.yaml ]; then \
+RUN set -o pipefail && \
+    if [ -f pnpm-lock.yaml ]; then \
         pnpm install --frozen-lockfile 2>&1 | tee /tmp/web-build-logs/pnpm-install.log; \
     else \
         pnpm install 2>&1 | tee /tmp/web-build-logs/pnpm-install.log; \
