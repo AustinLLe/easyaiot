@@ -1,7 +1,8 @@
 const antfu = require('@antfu/eslint-config').default
 const unocss = require('@unocss/eslint-plugin')
 
-module.exports = antfu(
+module.exports = [
+  ...antfu(
   {
     rules: {
       'no-console': 'off',
@@ -12,4 +13,16 @@ module.exports = antfu(
     },
   },
   unocss.configs.flat,
-)
+  ),
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/.vite/**',
+      '**/.cache/**',
+      '**/public/**',
+      '**/build/generated/**',
+    ],
+  },
+]

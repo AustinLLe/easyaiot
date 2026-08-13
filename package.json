@@ -1,7 +1,7 @@
 {
   "name": "边缘智能算法应用平台",
   "version": "2.1.0-snapshot",
-  "packageManager": "pnpm@9.0.4",
+  "packageManager": "pnpm@11.19.0",
   "author": {
     "name": "basiclab",
     "email": "basiclab@qq.com",
@@ -36,8 +36,9 @@
     "preview:dist": "vite preview",
     "clean:cache": "rimraf node_modules/.cache/ && rimraf node_modules/.vite",
     "clean:lib": "rimraf node_modules",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint src --ignore-pattern src/core/** --ignore-pattern src/**/vendor/**",
+    "test:unit": "vitest run --coverage",
+    "lint:fix": "eslint src --ignore-pattern src/core/** --ignore-pattern src/**/vendor/** --fix",
     "lint:stylelint": "stylelint \"**/*.{vue,css,less,scss}\" --fix --cache --cache-location node_modules/.cache/stylelint/",
     "lint:lint-staged": "lint-staged",
     "reinstall": "rimraf pnpm-lock.yaml && rimraf node_modules && npm run bootstrap",
@@ -132,6 +133,7 @@
     "@unocss/eslint-config": "^0.57.3",
     "@vitejs/plugin-vue": "4.4.1",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
+    "@vitest/coverage-v8": "^0.34.6",
     "@vue/compiler-sfc": "^3.3.8",
     "cross-env": "^7.0.3",
     "cz-git": "^1.7.1",
@@ -170,6 +172,7 @@
     "vite-plugin-pwa": "^0.16.7",
     "vite-plugin-svg-icons": "^2.0.1",
     "vite-vue-plugin-html": "^1.0.5",
+    "vitest": "^0.34.6",
     "vue-tsc": "1.8.27"
   },
   "lint-staged": {

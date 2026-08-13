@@ -6,6 +6,9 @@ node_modules
 .vscode
 .idea
 dist
+coverage
+.vite
+.cache
 /public
 /static
 /docs
