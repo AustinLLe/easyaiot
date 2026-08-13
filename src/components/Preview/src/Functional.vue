@@ -396,8 +396,8 @@ export default defineComponent({
     return () => {
       return (
         imgState.show && (
-          <div class={prefixCls} ref={wrapElRef} role="dialog" aria-modal="true">
-            <button type="button" class={`${prefixCls}__mask`} aria-label="Close preview" onClick={handleMaskClick} />
+          <div class={prefixCls} ref={wrapElRef} tabIndex={-1} role="dialog" aria-modal="true">
+            {props.maskClosable && <button type="button" class={`${prefixCls}__mask`} aria-label="Close preview" onClick={handleMaskClick} />}
             <div class={`${prefixCls}-content`}>
               {/* <Spin */}
               {/*  indicator={<LoadingOutlined style="font-size: 24px" spin />} */}
@@ -449,6 +449,7 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     color: @white;
+    pointer-events: none;
   }
 
   &-image {
@@ -469,6 +470,7 @@ export default defineComponent({
 
   &__image-dragger {
     padding: 0;
+    pointer-events: auto;
     cursor: grab;
     background: transparent;
     border: 0;
@@ -484,12 +486,13 @@ export default defineComponent({
     right: -40px;
     width: 80px;
     height: 80px;
+    padding: 0;
     overflow: hidden;
     color: @white;
+    pointer-events: auto;
     cursor: pointer;
-    padding: 0;
-    border: 0;
     background-color: rgb(0 0 0 / 50%);
+    border: 0;
     border-radius: 50%;
     transition: all 0.2s;
 
@@ -526,6 +529,7 @@ export default defineComponent({
     height: 44px;
     padding: 0 22px;
     margin-left: -139px;
+    pointer-events: auto;
     background: rgb(109 109 109 / 60%);
     border-radius: 22px;
 
@@ -534,10 +538,10 @@ export default defineComponent({
       height: 100%;
       padding: 0 9px;
       font-size: 24px;
-      cursor: pointer;
       color: inherit;
-      border: 0;
+      cursor: pointer;
       background: transparent;
+      border: 0;
       transition: all 0.2s;
 
       &:hover {
@@ -558,12 +562,13 @@ export default defineComponent({
     justify-content: center;
     width: 50px;
     height: 50px;
-    font-size: 28px;
-    cursor: pointer;
     padding: 0;
+    font-size: 28px;
     color: inherit;
-    border: 0;
+    pointer-events: auto;
+    cursor: pointer;
     background-color: rgb(0 0 0 / 50%);
+    border: 0;
     border-radius: 50%;
     transition: all 0.2s;
 

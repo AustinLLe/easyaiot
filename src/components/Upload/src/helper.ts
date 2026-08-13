@@ -14,6 +14,13 @@ export function isImgTypeByName(name: string) {
   return /\.(jpg|jpeg|png|gif|webp)$/i.test(name)
 }
 
+export function calculateUploadProgress(loaded: number, total: number) {
+  if (!Number.isFinite(loaded) || !Number.isFinite(total) || total <= 0)
+    return 0
+
+  return Math.trunc((loaded / total) * 100)
+}
+
 export function getBase64WithFile(file: File) {
   return new Promise<{
     result: string

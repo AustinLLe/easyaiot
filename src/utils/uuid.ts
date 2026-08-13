@@ -12,7 +12,7 @@ export function buildUUID(): string {
     else if (i === 20)
       uuid += hexList[(Math.random() * 4) | 8]
     else
-    uuid += hexList[Math.trunc(Math.random() * 16)]
+      uuid += hexList[Math.trunc(Math.random() * 16)]
   }
   return uuid.replaceAll(/-/g, '')
 }

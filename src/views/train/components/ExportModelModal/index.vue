@@ -57,7 +57,9 @@
                 </div>
 
                 <div class="form-group">
-                  <div class="field-label">动态轴设置</div>
+                  <div class="field-label">
+                    动态轴设置
+                  </div>
                   <div class="dynamic-axes">
                     <div v-for="(axis, index) in form.dynamic_axes" :key="index" class="axis-item">
                       <input
@@ -79,7 +81,7 @@
                 <div class="form-group">
                   <label for="export-constant-folding">常量折叠优化</label>
                   <label for="export-constant-folding" class="switch">
-                    <input id="export-constant-folding" type="checkbox" v-model="form.do_constant_folding">
+                    <input id="export-constant-folding" v-model="form.do_constant_folding" type="checkbox">
                     <span class="slider"></span>
                   </label>
                 </div>

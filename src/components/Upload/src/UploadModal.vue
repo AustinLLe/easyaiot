@@ -6,7 +6,7 @@ import type { FileItem } from './typing'
 import { UploadResultStatus } from './typing'
 import { basicProps } from './props'
 import { createActionColumn, createTableColumns } from './data'
-import { checkImgType, getBase64WithFile } from './helper'
+import { calculateUploadProgress, checkImgType, getBase64WithFile } from './helper'
 import FileList from './FileList.vue'
 import { buildUUID } from '@/utils/uuid'
 import { isFunction } from '@/utils/is'
@@ -126,7 +126,7 @@ async function uploadApiByItem(item: FileItem) {
         filename: props.filename,
       },
       (progressEvent: ProgressEvent) => {
-  const complete = Math.trunc((progressEvent.loaded / progressEvent.total) * 100)
+        const complete = calculateUploadProgress(progressEvent.loaded, progressEvent.total)
         item.percent = complete
       },
     )

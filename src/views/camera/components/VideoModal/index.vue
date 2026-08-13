@@ -878,7 +878,7 @@ function handleOk() {
         // 如果是海康、大华或宇视类型，需要传入IP、端口、用户名、密码
         if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
           registerData.ip = modelRef.ip;
-          registerData.port = Number.parseInt(modelRef.port) || 554;
+          registerData.port = Number.parseInt(String(modelRef.port), 10) || 554;
           registerData.username = modelRef.username;
           registerData.password = modelRef.password;
         }

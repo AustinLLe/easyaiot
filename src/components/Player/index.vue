@@ -580,8 +580,8 @@
   }
 
   const formatAliveSecond = () => {
-    const h = Number.parseInt(aliveSecond.value / 3600)
-    const minute = Number.parseInt((aliveSecond.value / 60) % 60)
+    const h = Math.trunc(aliveSecond.value / 3600)
+    const minute = Math.trunc((aliveSecond.value / 60) % 60)
     const second = Math.ceil(aliveSecond.value % 60)
 
     const hours = h < 10 ? '0' + h : h

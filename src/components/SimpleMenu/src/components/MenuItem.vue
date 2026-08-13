@@ -87,6 +87,7 @@ watch(
   <li
     :class="getClass"
     :style="getCollapse ? {} : getItemStyle"
+    role="none"
   >
     <button
       type="button"

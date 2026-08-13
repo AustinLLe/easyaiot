@@ -305,11 +305,11 @@
             <ASelectOption value="selected">指定摄像头</ASelectOption>
           </ASelect>
         </label>
-        <label for="custom-scheme-active-within" v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'">
+        <label v-if="customSchemeForm.target === 'active' || customSchemeForm.target === 'inactive'" for="custom-scheme-active-within">
           <span>活跃判断窗口</span>
           <div class="inline-field"><AInputNumber id="custom-scheme-active-within" v-model:value="customSchemeForm.active_within_hours" :min="1" :max="8760" /><em>小时</em></div>
         </label>
-        <label for="custom-scheme-devices" v-if="customSchemeForm.target === 'selected'">
+        <label v-if="customSchemeForm.target === 'selected'" for="custom-scheme-devices">
           <span>选择摄像头</span>
           <ASelect id="custom-scheme-devices" v-model:value="customSchemeForm.device_ids" mode="multiple" show-search option-filter-prop="label" placeholder="可选择多个摄像头">
             <ASelectOption v-for="policy in recentPolicies" :key="policy.device_id" :value="policy.device_id" :label="`${policy.device_name} ${policy.device_id}`">

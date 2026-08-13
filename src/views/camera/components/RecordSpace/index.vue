@@ -34,7 +34,8 @@
                             <img
                               class="project-icon-item_img"
                               :src="recordSpaceIcon"
-                              alt="录像空间">
+                              alt="录像空间"
+                            >
                             <div class="project-icon-item_name">{{ item.space_name }}</div>
                           </a>
                         </div>

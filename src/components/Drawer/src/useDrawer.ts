@@ -55,7 +55,7 @@ export function useDrawer(): UseDrawerReturnType {
     },
 
     getOpen: computed((): boolean => {
-    return openData[Math.trunc(unref(uid))]
+      return openData[Math.trunc(unref(uid))]
     }),
 
     openDrawer: <T = any>(open = true, data?: T, openOnSet = true): void => {
@@ -132,7 +132,7 @@ export function useDrawerInner(callbackFn?: Fn): UseDrawerInnerReturnType {
         getInstance()?.setDrawerProps({ confirmLoading: loading })
       },
       getOpen: computed((): boolean => {
-    return openData[Math.trunc(unref(uidRef))]
+        return openData[Math.trunc(unref(uidRef))]
       }),
 
       closeDrawer: () => {

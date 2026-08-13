@@ -11,21 +11,33 @@
         <h4 class="section-title">基础参数配置</h4>
         <div class="param-group">
           <label for="train-epochs">迭代次数 (epochs)</label>
-          <input id="train-epochs" type="number" v-model="params.epochs" min="10" max="1000"
-                 class="param-input"/>
+          <input
+            id="train-epochs"
+            v-model="params.epochs"
+            type="number"
+            min="10"
+            max="1000"
+            class="param-input"
+          >
           <span class="hint">推荐值: 100-300</span>
         </div>
 
         <div class="param-group">
           <label for="train-batch-size">批量大小 (batch_size)</label>
-          <input id="train-batch-size" type="number" v-model="params.batch_size" min="1" :max="maxBatchSize"
-                 class="param-input"/>
+          <input
+            id="train-batch-size"
+            v-model="params.batch_size"
+            type="number"
+            min="1"
+            :max="maxBatchSize"
+            class="param-input"
+          >
           <span class="hint">根据显存调整</span>
         </div>
 
         <div class="param-group">
           <label for="train-image-size">图像尺寸 (imgsz)</label>
-          <input id="train-image-size" type="number" v-model="params.imgsz" class="param-input"/>
+          <input id="train-image-size" v-model="params.imgsz" type="number" class="param-input">
           <span class="hint">默认640px</span>
         </div>
       </div>

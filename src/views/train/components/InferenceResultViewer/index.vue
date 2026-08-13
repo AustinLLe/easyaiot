@@ -158,7 +158,7 @@ const classificationData = computed(() => {
   return Object.entries(props.record.classification_results)
     .map(([className, confidence]) => ({
       class: className,
-      confidence: Number.parseFloat(confidence)
+      confidence: Number.parseFloat(String(confidence)),
     }))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, 5);

@@ -68,7 +68,9 @@
 
               <!-- 资源配置 -->
               <div class="form-group">
-                <div class="resource-label">资源配置</div>
+                <div class="resource-label">
+                  资源配置
+                </div>
                 <div class="resource-grid">
                   <div>
                     <label for="deploy-gpu-count">GPU数量</label>
@@ -116,7 +118,7 @@
                   <div class="form-group">
                     <label for="deploy-auto-scale">自动扩缩容</label>
                     <label for="deploy-auto-scale" class="switch">
-                      <input id="deploy-auto-scale" type="checkbox" v-model="form.auto_scale">
+                      <input id="deploy-auto-scale" v-model="form.auto_scale" type="checkbox">
                       <span class="slider"></span>
                     </label>
                   </div>
