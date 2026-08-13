@@ -177,8 +177,13 @@ export interface DeviceInfo {
   id: string;
   name: string;
   source: string;
+  effective_source?: string;
   rtmp_stream: string;
   http_stream: string;
+  effective_rtmp_stream?: string;
+  effective_http_stream?: string;
+  original_rtmp_stream?: string;
+  original_http_stream?: string;
   ai_rtmp_stream?: string;
   ai_http_stream?: string;
   stream: number;

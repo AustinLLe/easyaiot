@@ -166,18 +166,19 @@ const [register, {closeModal}] = useModalInner(async (record) => {
     }
   }
 
-  if (!playbackRecord?.['http_stream']) {
+  const playbackUrl = playbackRecord?.['original_http_stream'] || playbackRecord?.['http_stream'];
+  if (!playbackUrl) {
     createMessage.warn('缺少播放地址，无法播放');
     state.deviceId = playbackRecord?.['id'] ?? '';
     return;
   }
 
   state.deviceId = playbackRecord['id'];
-  state.currentUrl = playbackRecord['http_stream'] ?? '';
+  state.currentUrl = playbackUrl ?? '';
   state.isFileVideo = /\.mp4($|\?)/i.test(state.currentUrl) || /\/alert\/record/i.test(state.currentUrl);
-  state.iframeUrl = playbackRecord['http_stream'] ? '<iframe src="' + playbackRecord['http_stream'] + '"></iframe>' : '';
-  state.videoUrlList = playbackRecord['http_stream']
-    ? [{ label: 'HTTP 播放流', value: playbackRecord['http_stream'] }]
+  state.iframeUrl = playbackUrl ? '<iframe src="' + playbackUrl + '"></iframe>' : '';
+  state.videoUrlList = playbackUrl
+    ? [{ label: 'HTTP 播放流', value: playbackUrl }]
     : [{ label: 'FLV 直播流', value: '1' }];
   if (state.isFileVideo) {
     await nextTick();
