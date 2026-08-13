@@ -4,7 +4,7 @@ FROM docker.m.daocloud.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c28
 RUN npm config set registry https://registry.npmmirror.com/
 RUN npm install -g pnpm@11.19.0
 RUN pnpm config set registry https://registry.npmmirror.com/ && \
-    pnpm config set network-timeout 600000 && \
+    pnpm config set fetch-timeout 600000 && \
     pnpm config set fetch-retries 5 && \
     pnpm config set fetch-retry-mintimeout 20000 && \
     pnpm config set fetch-retry-maxtimeout 120000
