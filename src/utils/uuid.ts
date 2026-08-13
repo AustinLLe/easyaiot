@@ -14,7 +14,7 @@ export function buildUUID(): string {
     else
       uuid += hexList[Math.trunc(Math.random() * 16)]
   }
-  return uuid.replaceAll(/-/g, '')
+  return uuid.replaceAll('-', '')
 }
 
 let unique = 0

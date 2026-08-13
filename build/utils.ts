@@ -38,7 +38,7 @@ export function wrapperEnv(envConf: Recordable): ViteEnv {
   const ret: any = {}
 
   for (const envName of Object.keys(envConf)) {
-    let realName = envConf[envName].replaceAll(/\\n/g, '\n')
+    let realName = envConf[envName].replaceAll('\\n', '\n')
     realName = realName === 'true' ? true : realName === 'false' ? false : realName
 
     if (envName === 'VITE_PORT')
@@ -46,7 +46,7 @@ export function wrapperEnv(envConf: Recordable): ViteEnv {
 
     if (envName === 'VITE_PROXY' && realName) {
       try {
-        realName = JSON.parse(realName.replaceAll(/'/g, '"'))
+        realName = JSON.parse(realName.replaceAll("'", '"'))
       }
       catch (error) {
         console.error(error)

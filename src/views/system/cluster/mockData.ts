@@ -207,7 +207,7 @@ export const MOCK_EDGE_NODES: EdgeNode[] = [
 ]
 
 export function formatRelativeHeartbeat(value: string) {
-    const parsed = new Date(value.replaceAll(/-/g, '/'))
+  const parsed = new Date(value.replaceAll('-', '/'))
   const diffMs = Date.now() - parsed.getTime()
   if (Number.isNaN(diffMs))
     return value

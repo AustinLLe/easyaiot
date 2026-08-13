@@ -122,7 +122,7 @@ function resolveAlertStorageUrl(path: unknown): string {
   if (!path)
     return '';
 
-  const normalized = String(path).replaceAll(/\\/g, '/');
+  const normalized = String(path).replaceAll('\\', '/');
   if (normalized.startsWith('http://') || normalized.startsWith('https://'))
     return normalized;
   if (normalized.startsWith('/api/v1/buckets'))
@@ -215,7 +215,7 @@ export function exportAlertsToCsv(rows: Record<string, any>[], uiState: AlertUiS
       getProcessStatus(record, uiState).label,
       getArchiveStatus(record, uiState).label,
     ];
-    return cols.map(v => `"${String(v).replaceAll(/"/g, '""')}"`).join(',');
+    return cols.map(v => `"${String(v).replaceAll('"', '""')}"`).join(',');
   });
   const blob = new Blob([`\uFEFF${header.join(',')}\n${lines.join('\n')}`], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

@@ -80,7 +80,7 @@
 
                 <div class="form-group">
                   <label for="export-constant-folding">常量折叠优化</label>
-                  <label for="export-constant-folding" class="switch">
+                  <label for="export-constant-folding" class="switch" aria-label="切换常量折叠优化">
                     <input id="export-constant-folding" v-model="form.do_constant_folding" type="checkbox">
                     <span class="slider"></span>
                   </label>

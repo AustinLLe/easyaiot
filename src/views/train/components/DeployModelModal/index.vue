@@ -117,7 +117,7 @@
                   </div>
                   <div class="form-group">
                     <label for="deploy-auto-scale">自动扩缩容</label>
-                    <label for="deploy-auto-scale" class="switch">
+                    <label for="deploy-auto-scale" class="switch" aria-label="切换自动扩缩容">
                       <input id="deploy-auto-scale" v-model="form.auto_scale" type="checkbox">
                       <span class="slider"></span>
                     </label>
