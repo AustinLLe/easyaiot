@@ -92,8 +92,8 @@
             <span class="panel-kicker">中间视频</span>
             <h2>任务实时画面</h2>
           </div>
-          <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-            {{ currentStreamUrl ? '流已就绪' : hasRunningTasks ? '等待选择' : '暂无运行中任务' }}
+          <span :class="['stream-status', { online: Boolean(currentPlayableStreamUrl) }]">
+            {{ currentPlayableStreamUrl ? '流已就绪' : hasRunningTasks ? '等待选择' : '暂无运行中任务' }}
           </span>
         </div>
 
@@ -124,9 +124,9 @@
             />
           </div>
           <Jessibuca
-            v-if="currentStreamUrl"
-            :key="currentStreamUrl"
-            :playUrl="currentStreamUrl"
+            v-if="currentPlayableStreamUrl"
+            :key="currentPlayableStreamUrl"
+            :playUrl="currentPlayableStreamUrl"
             :has-audio="false"
             class="video-player"
           />
@@ -404,6 +404,7 @@ const taskStreams = ref<CameraStreamInfo[]>([])
 const selectedTaskId = ref<number>()
 const selectedCameraId = ref<string>()
 const selectedAlgorithm = ref<string>()
+const aiStreamWatchReady = ref(false)
 
 const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.value] || emptyPeriod('当前'))
 const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
@@ -565,11 +566,18 @@ const currentStreamUrl = computed(() => {
   return resolveVideoStreamUrl(camera)
 })
 
+const currentPlayableStreamUrl = computed(() => {
+  if (selectedAlgorithm.value && !aiStreamWatchReady.value)
+    return ''
+  return currentStreamUrl.value
+})
+
 function stopAiStreamWatch() {
   if (aiStreamWatchTimer) {
     window.clearInterval(aiStreamWatchTimer)
     aiStreamWatchTimer = undefined
   }
+  aiStreamWatchReady.value = false
 }
 
 async function renewAiStreamWatch(camera: CameraStreamInfo) {
@@ -584,6 +592,10 @@ async function startAiStreamWatch(camera: CameraStreamInfo) {
   if (!selectedTaskId.value || !selectedAlgorithm.value || !camera.ai_http_stream)
     return
   await renewAiStreamWatch(camera)
+  window.setTimeout(() => {
+    if (selectedCamera.value?.device_id === camera.device_id && selectedAlgorithm.value)
+      aiStreamWatchReady.value = true
+  }, 1500)
   aiStreamWatchTimer = window.setInterval(() => {
     renewAiStreamWatch(camera).catch((error) => {
       console.warn('AI输出流续租失败:', error)
