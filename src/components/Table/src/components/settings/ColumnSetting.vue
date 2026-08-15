@@ -305,17 +305,13 @@ function updateSortOption(column: BasicColumn) {
 </script>
 
 <template>
-  <Tooltip placement="top">
-    <template #title>
-      <span>{{ t('component.table.settingColumn') }}</span>
-    </template>
-    <Popover
-      placement="bottomLeft"
-      trigger="click"
-      :overlay-class-name="`${prefixCls}__cloumn-list`"
-      :get-popup-container="getPopupContainer"
-      @open-change="handleOpenChange"
-    >
+  <Popover
+    placement="bottomLeft"
+    trigger="click"
+    :overlay-class-name="`${prefixCls}__cloumn-list`"
+    :get-popup-container="getPopupContainer"
+    @open-change="handleOpenChange"
+  >
       <template #title>
         <div :class="`${prefixCls}__popover-title`">
           <Checkbox v-model:checked="state.checkAll" :indeterminate="indeterminate" @change="onCheckAllChange">
@@ -384,9 +380,11 @@ function updateSortOption(column: BasicColumn) {
           </CheckboxGroup>
         </ScrollContainer>
       </template>
-      <SettingOutlined />
+      <a-button type="text" :class="`${prefixCls}__trigger`">
+        <SettingOutlined />
+        <span>{{ t('component.table.settingColumn') }}</span>
+      </a-button>
     </Popover>
-  </Tooltip>
 </template>
 
 <style lang="less">
@@ -398,6 +396,25 @@ function updateSortOption(column: BasicColumn) {
 }
 
 .@{prefix-cls} {
+  &__trigger {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    height: 32px;
+    padding: 0 10px;
+    color: rgb(0 0 0 / 65%);
+    border-radius: 6px;
+
+    .anticon {
+      font-size: 14px;
+    }
+
+    &:hover {
+      color: @primary-color;
+      background: rgb(36 87 167 / 6%);
+    }
+  }
+
   &__popover-title {
     position: relative;
     display: flex;

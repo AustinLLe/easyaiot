@@ -344,16 +344,26 @@ emit('register', tableAction, formActions)
 .@{prefix-cls} {
   max-width: 100%;
   height: 100%;
+  background: transparent;
 
   &-form-container {
-    padding: 12px;
+    padding: 0 0 8px;
 
     .ant-form {
       width: 100%;
-      padding: 12px 10px 6px;
-      margin-bottom: 12px;
-      background-color: var(--component-background);
-      border-radius: 6px;
+      padding: 0 0 4px;
+      margin-bottom: 8px;
+      background: transparent !important;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .ant-input,
+    .ant-input-affix-wrapper,
+    .ant-input-number,
+    .ant-select-selector,
+    .ant-picker {
+      background-color: #fff !important;
     }
   }
 
@@ -363,14 +373,22 @@ emit('register', tableAction, formActions)
     }
   }
 
+  .ant-spin-nested-loading,
+  .ant-spin-container {
+    background: transparent;
+  }
+
   .ant-table-wrapper {
-    padding: 6px;
-    background-color: var(--component-background);
-    border-radius: 6px;
+    overflow: visible;
+    padding: 0;
+    background-color: transparent !important;
+    border: none;
+    border-radius: 0;
 
     .ant-table-title {
       min-height: 40px;
       padding: 0 0 8px !important;
+      background: transparent !important;
     }
 
     .ant-table.ant-table-bordered .ant-table-title {
@@ -378,15 +396,24 @@ emit('register', tableAction, formActions)
     }
   }
 
+  .ant-table-container {
+    overflow: hidden;
+    background-color: #fff;
+    border: 1px solid #e7e7e7;
+    border-radius: 10px;
+  }
+
   .ant-table {
     width: 100%;
     overflow-x: hidden;
+    background: transparent !important;
 
     &-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 8px 6px;
+      background: transparent !important;
       border-bottom: none;
     }
 

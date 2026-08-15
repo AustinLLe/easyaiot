@@ -51,6 +51,7 @@ const getHeaderClass = computed(() => {
       [`${prefixCls}--fixed`]: props.fixed,
       [`${prefixCls}--mobile`]: unref(getIsMobile),
       [`${prefixCls}--${theme}`]: theme,
+      [`${prefixCls}--mix-top`]: unref(getIsMixSidebar),
     },
   ]
 })
@@ -82,23 +83,30 @@ const getSplitType = computed(() => {
 const getMenuMode = computed(() => {
   return unref(getSplit) ? MenuModeEnum.HORIZONTAL : null
 })
+
+const getHeaderLogoTheme = computed(() => {
+  return unref(getHeaderTheme)
+})
 </script>
 
 <template>
-  <Header :class="getHeaderClass">
+  <Header v-if="getShowHeader" :class="getHeaderClass">
     <!-- left start -->
     <div :class="`${prefixCls}-left`">
       <!-- logo -->
       <AppLogo
-        v-if="getShowHeaderLogo || getIsMobile" :class="`${prefixCls}-logo`" :theme="getHeaderTheme"
-        :style="getLogoWidth"
+        v-if="getShowHeaderLogo || getIsMobile || getIsMixSidebar"
+        :class="`${prefixCls}-logo`"
+        :theme="getHeaderLogoTheme"
+        :always-show-title="getIsMixSidebar"
+        :compact="getIsMixSidebar"
       />
       <LayoutTrigger
         v-if="(getShowContent && getShowHeaderTrigger && !getSplit && !getIsMixSidebar) || getIsMobile"
         :theme="getHeaderTheme" :sider="false"
       />
       <div
-        v-if="!getShowHeaderLogo && !getIsMobile"
+        v-if="!getShowHeaderLogo && !getIsMobile && !getIsMixSidebar"
         :class="`${prefixCls}-platform-name`"
         :title="platformConfigStore.platformName"
       >
@@ -114,7 +122,7 @@ const getMenuMode = computed(() => {
     </div>
     <!-- menu-end -->
 
-    <!-- action  -->
+    <!-- action start -->
     <div :class="`${prefixCls}-action`">
       <AppSearch v-if="getShowSearch" :class="`${prefixCls}-action__item search-item`" />
 
@@ -131,7 +139,7 @@ const getMenuMode = computed(() => {
         :class="`${prefixCls}-action__item locale-item`"
       />
 
-      <UserDropDown :theme="getHeaderTheme" />
+      <UserDropDown :theme="getHeaderLogoTheme" />
 
       <SettingDrawer v-if="getShowSetting" :class="`${prefixCls}-action__item`" />
     </div>

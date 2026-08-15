@@ -136,7 +136,7 @@ const getDeviceColumns = () => {
 
 // 设备表格配置
 const [registerTable, { reload: reloadDeviceTable }] = useTable({
-  title: '设备列表',
+  title: '',
   api: async (params) => {
     // 如果没有选择目录，返回空数据
     if (!selectedDirectoryId.value) {
@@ -237,7 +237,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
   showTableSetting: true,
   pagination: true,
   rowKey: 'id',
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
 });
 
@@ -359,7 +359,7 @@ defineExpose({
 
 .device-content {
   flex: 1;
-  background: #fff;
+  background: transparent;
   border-radius: 4px;
   padding: 16px;
   overflow: hidden;

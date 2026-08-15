@@ -46,12 +46,21 @@ const getCaches = computed((): string[] => {
         mode="out-in"
         appear
       >
-        <keep-alive v-if="openCache" :include="getCaches">
-          <component :is="Component" :key="route.fullPath" />
-        </keep-alive>
-        <component :is="Component" v-else :key="route.fullPath" />
+        <div v-if="Component" :key="route.fullPath" class="page-layout-view">
+          <keep-alive v-if="openCache" :include="getCaches">
+            <component :is="Component" />
+          </keep-alive>
+          <component :is="Component" v-else />
+        </div>
       </transition>
     </template>
   </RouterView>
   <FrameLayout v-if="getCanEmbedIFramePage" />
 </template>
+
+<style lang="less">
+.page-layout-view {
+  height: auto;
+  min-height: 0;
+}
+</style>

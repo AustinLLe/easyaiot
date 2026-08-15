@@ -32,7 +32,7 @@
           />
         </FormItem>
       </div>
-      <FormItem v-if="showExtractInterval" label="抽帧间隔" required>
+      <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required>
         <InputNumber
           v-model:value="payload.detection_config.extract_interval"
           :min="1"
@@ -119,11 +119,6 @@ const snapIntervalMax = computed(() => {
   return 23;
 });
 
-const showExtractInterval = computed(() =>
-  payload.value.task_type === 'patrol'
-  || (payload.value.task_type === 'realtime' && payload.value.analysis_mode !== 'dynamic'),
-);
-
 const defenseConfig = computed({
   get: (): DefenseSchedulePickerValue => ({
     is_full_day_defense: payload.value.is_full_day_defense !== false,
@@ -148,7 +143,7 @@ const defenseConfig = computed({
 watch(
   () => payload.value.task_type,
 	  (type) => {
-	    if ((type === 'realtime' || type === 'patrol') && !payload.value.detection_config.extract_interval)
+	    if (type === 'realtime' && !payload.value.detection_config.extract_interval)
 	      payload.value.detection_config.extract_interval = 25;
 	    if (type === 'realtime' && !payload.value.analysis_mode)
 	      payload.value.analysis_mode = 'static';
@@ -205,14 +200,26 @@ watch(
   margin-bottom: 20px;
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   p {
     margin: 0;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.section-form {
+  :deep(.ant-form-item-label > label) {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 15px;
+    font-weight: 500;
   }
 }
 

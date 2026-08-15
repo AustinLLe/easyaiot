@@ -9,6 +9,7 @@ import { useModal } from '@/components/Modal'
 import { IconEnum } from '@/enums/appEnum'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { deleteDictType, getDictTypePage } from '@/api/system/dict/type'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemDict' })
 
@@ -18,7 +19,7 @@ const [registerModal, { openModal }] = useModal()
 const searchInfo = reactive<Recordable>({})
 
 const [registerTable, { reload }] = useTable({
-  title: '字典分类列表',
+  title: '',
   api: getDictTypePage,
   columns: typeColumns,
   formConfig: {
@@ -56,7 +57,8 @@ async function handleDelete(record: Recordable) {
 </script>
 
 <template>
-  <div class="flex">
+  <PageIntro eyebrow="DICTIONARY" title="字典管理" desc="维护系统字典类型与字典数据。">
+    <div class="flex">
     <BasicTable class="w-1/2" @register="registerTable" @row-click="handleRowClick">
       <template #toolbar>
         <a-button v-auth="['system:dict:create']" type="primary" :pre-icon="IconEnum.ADD" @click="handleCreate">
@@ -86,5 +88,6 @@ async function handleDelete(record: Recordable) {
     </BasicTable>
     <DictData class="w-1/2" :search-info="searchInfo" />
     <DictTypeModal @register="registerModal" @success="reload()" />
-  </div>
+    </div>
+  </PageIntro>
 </template>

@@ -24,13 +24,15 @@ const { setHeaderHeight } = useLayoutHeight()
 const tabStore = useMultipleTabStore()
 const { prefixCls } = useDesign('layout-multiple-header')
 
-const { getCalcContentWidth, getSplit, getShowMenu } = useMenuSetting()
+const { getCalcContentWidth, getSplit, getShowMenu, getIsMixSidebar } = useMenuSetting()
 const { getIsMobile } = useAppInject()
 const { getFixed, getShowInsetHeaderRef, getShowFullHeaderRef, getHeaderTheme, getShowHeader } = useHeaderSetting()
 
 const { getFullContent } = useFullContent()
 
 const { getShowMultipleTab, getAutoCollapse } = useMultipleTabSetting()
+
+const getShowInsetHeader = computed(() => unref(getShowInsetHeaderRef) && !unref(getIsMixSidebar))
 
 const getShowTabs = computed(() => {
   return unref(getShowMultipleTab) && !unref(getFullContent)
@@ -61,8 +63,7 @@ const getPlaceholderDomStyle = computed((): CSSProperties => {
   let height = 0
   if (!(unref(getAutoCollapse) && unref(getIsUnFold))) {
     if (
-      (unref(getShowFullHeaderRef) || !unref(getSplit))
-            && unref(getShowHeader)
+      unref(getShowInsetHeader)
             && !unref(getFullContent)
     )
       height += HEADER_HEIGHT
@@ -89,7 +90,7 @@ const getClass = computed(() => {
     :style="getPlaceholderDomStyle"
   />
   <div :style="getWrapStyle" :class="getClass">
-    <LayoutHeader v-if="getShowInsetHeaderRef" />
+    <LayoutHeader v-if="getShowInsetHeader" />
     <MultipleTabs v-if="getShowTabs" :key="tabStore.getLastDragEndIndex" />
   </div>
 </template>

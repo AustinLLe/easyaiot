@@ -8,6 +8,7 @@ import { IconEnum } from '@/enums/appEnum'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import type { PostExportReqVO } from '@/api/system/post'
 import { deletePost, exportPost, getPostPage } from '@/api/system/post'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemPost' })
 
@@ -16,10 +17,15 @@ const { createConfirm, createMessage } = useMessage()
 const [registerModal, { openModal }] = useModal()
 
 const [registerTable, { getForm, reload }] = useTable({
-  title: '岗位列表',
+  title: '',
   api: getPostPage,
   columns,
-  formConfig: { labelWidth: 120, schemas: searchFormSchema },
+  formConfig: {
+    labelWidth: 72,
+    schemas: searchFormSchema,
+    showAdvancedButton: false,
+    actionColOptions: { span: 6, style: { textAlign: 'right' } },
+  },
   useSearchForm: true,
   showTableSetting: true,
   actionColumn: {
@@ -58,7 +64,7 @@ async function handleDelete(record: Recordable) {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="POSTS" title="岗位管理" desc="维护岗位信息，供用户档案引用。">
     <BasicTable @register="registerTable">
       <template #toolbar>
         <a-button v-auth="['system:post:create']" type="primary" :pre-icon="IconEnum.ADD" @click="handleCreate">
@@ -90,5 +96,5 @@ async function handleDelete(record: Recordable) {
       </template>
     </BasicTable>
     <PostModal @register="registerModal" @success="reload()" />
-  </div>
+  </PageIntro>
 </template>

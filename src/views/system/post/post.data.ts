@@ -51,13 +51,13 @@ export const searchFormSchema: FormSchema[] = [
     label: '岗位名称',
     field: 'name',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
   {
     label: '岗位编码',
     field: 'code',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
   {
     label: '状态',
@@ -66,7 +66,7 @@ export const searchFormSchema: FormSchema[] = [
     componentProps: {
       options: getDictOptions(DICT_TYPE.COMMON_STATUS),
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
 ]
 

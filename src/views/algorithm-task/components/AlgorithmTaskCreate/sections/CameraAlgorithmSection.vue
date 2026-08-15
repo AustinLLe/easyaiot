@@ -28,7 +28,7 @@
         </div>
 
         <div ref="taskModelPickerAnchorRef" class="picker-anchor">
-          <a-button @click="toggleModelPicker">
+          <a-button type="primary" @click="toggleModelPicker">
             <template #icon>
               <PlusOutlined />
             </template>
@@ -336,15 +336,18 @@ onMounted(() => {
   margin-bottom: 16px;
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 16px;
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   p {
     margin: 0;
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
@@ -491,7 +494,7 @@ onMounted(() => {
 
 .camera-icon {
   font-size: 22px;
-  color: #1677ff;
+  color: @mix-brand-color;
 }
 
 .camera-name {

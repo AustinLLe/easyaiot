@@ -27,10 +27,10 @@
 
     <!-- 卡片模式 -->
     <div v-else class="algorithm-task-card-list-wrapper p-2">
-      <div class="p-4 bg-white" style="margin-bottom: 10px">
+      <div class="p-4" style="margin-bottom: 10px">
         <BasicForm @register="registerForm" @reset="handleSubmit"/>
       </div>
-      <div class="p-2 bg-white">
+      <div class="p-2">
         <Spin :spinning="loading">
           <List
             :grid="{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }"
@@ -39,8 +39,7 @@
           >
             <template #header>
               <div
-                style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-                <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">算法任务列表</span>
+                style="display: flex;align-items: center;justify-content: flex-end;flex-direction: row;">
                 <div style="display: flex; gap: 8px;">
                   <a-button type="primary" @click="handleCreate">
                     <template #icon>
@@ -221,7 +220,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import {
   PlusOutlined,
   EyeOutlined,
@@ -299,10 +298,10 @@ const searchParams = ref<{
 
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '算法任务列表',
+  title: '',
   api: listAlgorithmTasks,
   beforeFetch: (params) => {
     // 转换参数格式
@@ -312,8 +311,8 @@ const [registerTable, { reload }] = useTable({
       is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
     }
     return {
-      pageNo: params.pageNo ?? params.page ?? 1,
-      pageSize: params.pageSize ?? 10,
+      pageNo: params.page,
+      pageSize: params.pageSize,
       search: params.search || undefined,
       task_type: params.task_type || undefined,
       is_enabled: is_enabled,
@@ -321,7 +320,6 @@ const [registerTable, { reload }] = useTable({
   },
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   fetchSetting: {
@@ -502,16 +500,16 @@ const handlePageSizeChange = (_current: number, size: number) => {
 };
 
 // 分页配置
-const paginationProp = computed(() => ({
+const paginationProp = ref({
   showSizeChanger: false,
   showQuickJumper: true,
-  pageSize: pageSize.value,
-  current: page.value,
-  total: total.value,
+  pageSize,
+  current: page,
+  total,
   showTotal: (total: number) => `总 ${total} 条`,
   onChange: handlePageChange,
   onShowSizeChange: handlePageSizeChange,
-}));
+});
 
 // 根据任务类型获取图片
 const getTaskImage = (taskType: string) => {
@@ -913,14 +911,14 @@ onMounted(() => {
 
 .algorithm-task-card-list-wrapper {
   :deep(.ant-list-header) {
-    border-block-end: 0;
-  }
-  :deep(.ant-list-header) {
     padding-top: 0;
     padding-bottom: 8px;
+    background: transparent;
+    border-block-end: 0;
   }
   :deep(.ant-list) {
     padding: 6px;
+    background: transparent;
   }
   :deep(.ant-list-item) {
     margin: 6px;
@@ -1138,3 +1136,4 @@ onMounted(() => {
   }
 }
 </style>
+

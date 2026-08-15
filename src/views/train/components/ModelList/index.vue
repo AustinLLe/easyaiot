@@ -150,14 +150,13 @@ function handleSuccess() {
 }
 
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '算法管理',
+  title: '',
   api: queryModelList,
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   fetchSetting: {

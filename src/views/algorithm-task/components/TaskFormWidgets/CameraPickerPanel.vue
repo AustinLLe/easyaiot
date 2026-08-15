@@ -564,24 +564,30 @@ onClickOutside(panelRef, () => {
 
   &:not(.embedded) {
     .camera-body {
-      min-height: 340px;
+      height: auto;
+      align-items: stretch;
+      background: #fafafa;
     }
 
     .group-panel {
-      max-height: none;
-      height: 340px;
+      min-height: 320px;
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #fafafa;
     }
 
     .device-panel {
-      display: flex;
-      flex-direction: column;
-      min-height: 340px;
+      height: auto;
+      overflow: visible;
+      background: #fff;
     }
 
     .device-list {
-      max-height: none;
-      flex: 1;
-      min-height: 0;
+      height: auto;
+      max-height: 280px;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
   }
 
@@ -715,8 +721,9 @@ onClickOutside(panelRef, () => {
   }
 
   &.active {
-    background: #e6f4ff;
-    color: #1677ff;
+    background: #eaf0fb;
+    color: @mix-brand-color;
+    font-weight: 500;
   }
 }
 
@@ -776,14 +783,14 @@ onClickOutside(panelRef, () => {
   transition: all 0.2s;
 
   &.checked {
-    border-color: #1677ff;
-    background: #1677ff;
+    border-color: @mix-brand-color;
+    background: @mix-brand-color;
     color: #fff;
   }
 
   &.indeterminate {
-    border-color: #1677ff;
-    background: #1677ff;
+    border-color: @mix-brand-color;
+    background: @mix-brand-color;
   }
 }
 
@@ -828,7 +835,7 @@ onClickOutside(panelRef, () => {
   }
 
   &.selected {
-    background: #e6f4ff;
+    background: #eaf0fb;
   }
 
   &.locked {
@@ -846,9 +853,9 @@ onClickOutside(panelRef, () => {
 
 .device-locked-tag {
   padding: 0 6px;
-  color: #1677ff;
+  color: @mix-brand-color;
   font-size: 11px;
-  background: #e6f4ff;
+  background: #eaf0fb;
   border-radius: 4px;
   flex-shrink: 0;
 }

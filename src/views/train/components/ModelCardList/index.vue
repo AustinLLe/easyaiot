@@ -1,90 +1,70 @@
 <template>
   <div class="model-card-list-wrapper">
-    <div class="model-card-list-form p-4 bg-white">
-      <BasicForm @register="registerForm" @reset="handleSubmit"/>
+    <div class="model-card-list-form p-4">
+      <BasicForm @register="registerForm" @reset="handleSubmit" />
     </div>
-    <div class="model-card-list-body bg-white">
+    <div class="model-card-list-body">
       <Spin :spinning="state.loading">
         <List
-          :grid="{ gutter: 12, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }"
+          :split="false"
+          :grid="{ gutter: 15, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }"
           :data-source="data"
           :pagination="paginationProp"
         >
           <template #header>
-            <div
-              style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">算法列表</span>
-              <div class="space-x-2">
-                <slot name="header"></slot>
+            <div class="list-header">
+              <div class="list-header__actions">
+                <slot name="header" />
               </div>
             </div>
           </template>
           <template #renderItem="{ item }">
-            <ListItem class="model-list-item">
-              <div class="model-card-box">
-                <div class="model-card-body">
-                  <div class="model-image-container" @click="onView(item)">
+            <ListItem class="model-card-item">
+              <article class="model-capability-card">
+                <div class="card-top">
+                  <div class="card-image" @click="onView(item)">
                     <img
-                      :src="item.imageUrl || '/images/model-preview.jpg'"
+                      :src="getPreviewUrl(item)"
                       alt="算法图片"
-                      class="model-image"
                     />
                   </div>
-
-                  <div class="model-card-info">
-                    <h6 class="model-card-title">
-                      <a @click.prevent="onView(item)">{{ item.name }}</a>
-                    </h6>
-
-                    <div class="model-tags">
-                      <Tag color="#1890ff">ID: {{ item.id }}</Tag>
-                      <Tag color="#52c41a">版本: {{ item.version || '未指定' }}</Tag>
-                      <Tag color="#8c8c8c">{{ formatDate(item.created_at) }}</Tag>
+                  <div class="card-head">
+                    <div class="card-title-row">
+                      <h3 class="card-title" :title="item.name">
+                        <a @click.prevent="onView(item)">{{ item.name || '--' }}</a>
+                      </h3>
+                      <i class="card-format">{{ getFormatText(item) }}</i>
                     </div>
-
-                    <div class="model-description">
-                      {{ item.description || '暂无描述' }}
-                    </div>
-
-                    <div class="btns">
-                      <div class="btn-group">
-                        <Button
-                          type="text"
-                          shape="circle"
-                          class="card-action-btn"
-                          title="查看详情"
-                          @click.stop="onView(item)"
-                        >
-                          <template #icon><EyeOutlined /></template>
-                        </Button>
-                        <Button
-                          type="text"
-                          shape="circle"
-                          class="card-action-btn"
-                          title="编辑算法"
-                          @click.stop="onEdit(item)"
-                        >
-                          <template #icon><EditOutlined /></template>
-                        </Button>
-                        <Popconfirm
-                          title="是否确认删除？"
-                          @confirm="onDelete(item)"
-                        >
-                          <Button
-                            type="text"
-                            shape="circle"
-                            class="card-action-btn"
-                            title="删除"
-                            @click.stop
-                          >
-                            <template #icon><DeleteOutlined /></template>
-                          </Button>
-                        </Popconfirm>
+                    <div class="model-meta">
+                      <div class="model-meta__line">
+                        <span class="model-meta__label">版本</span>
+                        <span class="model-meta__text">{{ item.version || '--' }}</span>
+                      </div>
+                      <div class="model-meta__line">
+                        <span class="model-meta__label">基础模型</span>
+                        <span class="model-meta__text">{{ item.base_model || '--' }}</span>
+                      </div>
+                      <div class="model-meta__line">
+                        <span class="model-meta__label">描述</span>
+                        <span class="model-meta__text">{{ item.description || '--' }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+                <div class="card-action-row">
+                  <button type="button" class="card-action-btn" @click.stop="onView(item)">
+                    查看
+                  </button>
+                  <button type="button" class="card-action-btn" @click.stop="onEdit(item)">
+                    编辑
+                  </button>
+                  <Popconfirm title="是否确认删除？" ok-text="是" cancel-text="否" @confirm="onDelete(item)">
+                    <button type="button" class="card-action-btn" @click.stop>
+                      删除
+                    </button>
+                  </Popconfirm>
+                </div>
+              </article>
             </ListItem>
           </template>
         </List>
@@ -94,16 +74,16 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue';
-import {usePermission} from '@/hooks/web/usePermission';
-import {Button, List, Popconfirm, Spin, Tag} from 'ant-design-vue';
-import {BasicForm, useForm} from '@/components/Form';
-import {propTypes} from '@/utils/propTypes';
-import {isFunction} from '@/utils/is';
-import {DeleteOutlined, EditOutlined, EyeOutlined} from '@ant-design/icons-vue';
-import {getFormConfig} from './Data';
+import { onMounted, reactive, ref } from 'vue';
+import { usePermission } from '@/hooks/web/usePermission';
+import { List, Popconfirm, Spin } from 'ant-design-vue';
+import { BasicForm, useForm } from '@/components/Form';
+import { propTypes } from '@/utils/propTypes';
+import { isFunction } from '@/utils/is';
+import { getFormConfig } from './Data';
+import { resolveModelPreviewUrl } from '../../utils/drawUtils';
 
-defineOptions({name: 'ModelCardList'})
+defineOptions({ name: 'ModelCardList' })
 
 const ListItem = List.Item;
 
@@ -124,11 +104,12 @@ const state = reactive({
   loading: true,
 });
 
-const [registerForm, {validate}] = useForm({
+const [registerForm, { validate }] = useForm({
   schemas: getFormConfig(),
   labelWidth: 80,
-  baseColProps: {span: 6},
-  actionColOptions: {span: 12},
+  baseColProps: { span: 6 },
+  actionColOptions: { span: 6, style: { textAlign: 'right' } },
+  showAdvancedButton: false,
   autoSubmitOnEnter: true,
   submitFunc: handleSubmit,
 });
@@ -144,9 +125,9 @@ async function handleSubmit() {
 }
 
 async function fetch(p = {}) {
-  const {api, params} = props;
+  const { api, params } = props;
   if (api && isFunction(api)) {
-    const requestParams: Record<string, any> = {...params, pageNo: page.value, pageSize: pageSize.value, ...p};
+    const requestParams: Record<string, any> = { ...params, pageNo: page.value, pageSize: pageSize.value, ...p };
     const res = await api(requestParams);
     data.value = res.data;
     total.value = res.total;
@@ -159,7 +140,7 @@ function hideLoading() {
 }
 
 const page = ref(1);
-const pageSize = ref(12);
+const pageSize = ref(9);
 const total = ref(0);
 const paginationProp = ref({
   showSizeChanger: false,
@@ -167,7 +148,7 @@ const paginationProp = ref({
   pageSize,
   current: page,
   total,
-  showTotal: (total: number) => `总 ${total} 条`,
+  showTotal: (count: number) => `总 ${count} 条`,
   onChange: pageChange,
   onShowSizeChange: pageSizeChange,
 });
@@ -183,60 +164,30 @@ function pageSizeChange(_current: number, size: number) {
   fetch();
 }
 
-function getStatusColor(status: number) {
-  switch (status) {
-    case 0:
-      return '#8c8c8c';
-    case 1:
-      return '#52c41a';
-    case 3:
-      return '#ff4d4f';
-    default:
-      return '#d9d9d9';
-  }
-}
-
-function getStatusText(status: number) {
-  switch (status) {
-    case 0:
-      return '未部署';
-    case 1:
-      return '已部署';
-    case 3:
-      return '已下线';
-    default:
-      return '未知';
-  }
-}
-
-function formatDate(dateString: string) {
-  return dateString ? new Date(dateString).toLocaleDateString() : '--';
+function getPreviewUrl(item: any): string {
+  return resolveModelPreviewUrl(item?.imageUrl || item?.image_url);
 }
 
 function getFormatText(item: any): string {
-  // 根据模型路径判断格式
-  if (item.onnx_model_path) {
+  const format = String(item?.model_format || '').trim();
+  if (format)
+    return format.toUpperCase();
+  if (item?.onnx_model_path)
     return 'ONNX';
-  }
-  if (item.model_path) {
-    const path = item.model_path.toLowerCase();
-    if (path.endsWith('.onnx')) {
+  if (item?.model_path) {
+    const path = String(item.model_path).toLowerCase();
+    if (path.endsWith('.onnx'))
       return 'ONNX';
-    }
-    if (path.endsWith('.pt') || path.endsWith('.pth')) {
-      return 'PyTorch';
-    }
-    if (path.includes('openvino')) {
-      return 'OpenVINO';
-    }
-    if (path.endsWith('.tflite')) {
-      return 'TensorFlow Lite';
-    }
-    // 默认返回 PyTorch（因为大多数模型是 PyTorch 格式）
-    return 'PyTorch';
+    if (path.endsWith('.pt') || path.endsWith('.pth'))
+      return 'PT';
+    if (path.includes('openvino'))
+      return 'OPENVINO';
+    if (path.endsWith('.rknn'))
+      return 'RKNN';
+    if (path.endsWith('.tflite'))
+      return 'TFLITE';
   }
-  // 如果没有路径信息，返回空字符串
-  return '';
+  return '--';
 }
 
 function handleDelete(record: object) {
@@ -253,24 +204,65 @@ function handleEdit(record: object) {
 </script>
 
 <style lang="less" scoped>
+@card-brand: #2457a7;
+@card-border: #e1e7f0;
+@card-muted: #778397;
+
 .model-card-list-wrapper {
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overflow-x: hidden;
+
+  :deep(.ant-form) {
+    background: transparent;
+  }
+
+  :deep(.ant-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.ant-row) {
+    align-items: center;
+  }
+
+  :deep(.ant-input),
+  :deep(.ant-input-affix-wrapper),
+  :deep(.ant-select-selector),
+  :deep(.ant-picker) {
+    background-color: #fff !important;
+  }
 
   :deep(.ant-list-header) {
-    border: 0;
+    padding-top: 0;
+    padding-bottom: 12px;
+    background: transparent;
+    border-block-end: 0;
   }
 
   :deep(.ant-list) {
-    padding: 6px;
+    padding: 0;
+    background: transparent;
+    overflow-x: hidden;
   }
 
-  :deep(.ant-list-item) {
-    margin: 6px;
-    padding: 0 !important;
+  :deep(.ant-list-grid .ant-row) {
+    row-gap: 15px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  :deep(.ant-list-grid .ant-col) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  :deep(.model-card-item) {
+    margin: 0;
+    padding: 0;
+    border-block-end: none !important;
   }
 
   :deep(.ant-list-pagination) {
@@ -287,49 +279,91 @@ function handleEdit(record: object) {
 .model-card-list-body {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.model-list-item {
-  padding: 0 !important;
+.list-header {
   display: flex;
-}
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 
-.model-card-box {
-  background: #fff;
-  box-shadow: 0 0 4px rgba(24, 24, 24, 0.1);
-  width: 100%;
-  transition: all 0.3s;
-  border-radius: 8px;
-  overflow: hidden;
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(24, 24, 24, 0.12);
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
 
-.model-card-body {
+.model-capability-card {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 12px;
-  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 19px;
+  background: #fff;
+  border: 1px solid @card-border;
+  border-radius: 15px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    border-color: #cfd8e6;
+    box-shadow: 0 6px 18px rgb(36 87 167 / 6%);
+  }
 }
 
-.model-card-info {
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.card-image {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f5f7fb;
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.card-head {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-.model-card-title {
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.4;
-  color: #181818;
-  margin: 0 0 8px;
-  flex-shrink: 0;
-  overflow: hidden;
+  line-height: 1.35;
+  color: #26354e;
   text-overflow: ellipsis;
   white-space: nowrap;
 
@@ -338,122 +372,80 @@ function handleEdit(record: object) {
     cursor: pointer;
 
     &:hover {
-      color: #1890ff;
+      color: @card-brand;
     }
   }
 }
 
-.model-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
+.card-format {
   flex-shrink: 0;
-  align-items: center;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: rgb(36 87 167 / 8%);
+  color: @card-brand;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.model-description {
-  font-size: 13px;
-  color: #8c8c8c;
+.model-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.model-meta__line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.model-meta__label {
+  flex-shrink: 0;
+  color: @card-muted;
+  font-size: 12px;
   line-height: 1.5;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+}
+
+.model-meta__text {
+  min-width: 0;
   overflow: hidden;
+  color: #435169;
+  font-size: 12px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.btns {
+.card-action-row {
   display: flex;
-  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px 12px;
   align-items: center;
-  padding-top: 0;
-  flex-shrink: 0;
-  margin-top: 0;
-}
-
-.btn-group {
-  display: flex;
-  gap: 4px;
-  align-items: center;
+  justify-content: flex-end;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid #edf0f5;
 }
 
 .card-action-btn {
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
+  display: inline-flex;
+  align-items: center;
   padding: 0;
-  transition: background-color 0.2s;
-
-  :deep(.anticon) {
-    color: #266cfb;
-    font-size: 16px;
-  }
-
-  &:hover :deep(.anticon) {
-    color: #1890ff;
-  }
-}
-
-.model-image-container {
-  position: relative;
-  width: 120px;
-  min-width: 120px;
-  height: 120px;
-  overflow: hidden;
-  border-radius: 6px;
-  background-color: #f5f5f5;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.model-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-badges {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 10;
-}
-
-.badge {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(4px);
-  color: #fff;
-
-  &.badge-format {
-    background: rgba(24, 144, 255, 0.85);
-  }
-
-  &.badge-version {
-    background: rgba(82, 196, 26, 0.85);
-  }
-}
-
-:deep(.ant-tag) {
-  border-radius: 4px;
+  color: @card-brand;
   font-size: 12px;
-  padding: 0 8px;
-  height: 24px;
-  line-height: 22px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 1;
-  max-width: 100%;
-  margin: 0;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: 0;
+
+  &:hover {
+    opacity: 0.82;
+  }
+}
+
+:deep(.ant-popconfirm) {
+  display: inline-flex;
 }
 </style>

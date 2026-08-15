@@ -21,6 +21,7 @@ const props = defineProps({
   collapsedShowTitle: propTypes.bool,
   collapse: propTypes.bool,
   theme: propTypes.oneOf(['dark', 'light']),
+  iconSize: propTypes.number.def(16),
 })
 
 const SimpleMenuTag = createAsyncComponent(() => import('./SimpleMenuTag.vue'))
@@ -55,8 +56,13 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
 
 <template>
   <MenuItem v-if="!menuHasChildren(item) && getShowMenu" :name="item.path" v-bind="$props" :class="getLevelClass">
-    <img v-if="getImg" :src="getImg" alt="" class="h-16px w-16px align-top">
-    <Icon v-if="getIcon" :icon="getIcon" :size="16" />
+    <img
+      v-if="getImg"
+      :src="getImg"
+      class="align-top"
+      :style="{ width: `${iconSize}px`, height: `${iconSize}px` }"
+    >
+    <Icon v-if="getIcon" :icon="getIcon" :size="iconSize" />
     <div v-if="collapsedShowTitle && getIsCollapseParent" class="collapse-title mt-1">
       {{ getI18nName }}
     </div>
@@ -74,8 +80,13 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
     :collapsed-show-title="collapsedShowTitle"
   >
     <template #title>
-      <img v-if="getImg" :src="getImg" alt="" class="h-16px w-16px align-top">
-      <Icon v-if="getIcon" :icon="getIcon" :size="16" />
+      <img
+        v-if="getImg"
+        :src="getImg"
+        class="align-top"
+        :style="{ width: `${iconSize}px`, height: `${iconSize}px` }"
+      >
+      <Icon v-if="getIcon" :icon="getIcon" :size="iconSize" />
 
       <div v-if="collapsedShowTitle && getIsCollapseParent" class="collapse-title mt-2">
         {{ getI18nName }}

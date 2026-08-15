@@ -1,553 +1,312 @@
-<!-- eslint-disable vue/no-side-effects-in-computed-properties -->
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
-import { computed, onMounted, ref, unref, watch } from 'vue'
-import type { RouteLocationNormalized } from 'vue-router'
-import { onClickOutside } from '@vueuse/core'
-import LayoutTrigger from '../trigger/index.vue'
-import { useDragLine } from './useLayoutSider'
-import type { Menu } from '@/router/types'
+import { computed, ref, unref, watch } from 'vue'
+import { AppLogo } from '@/components/Application'
 import { ScrollContainer } from '@/components/Container'
 import { SimpleMenu } from '@/components/SimpleMenu'
-import { Icon } from '@/components/Icon'
-import { AppLogo } from '@/components/Application'
 import { useMenuSetting } from '@/hooks/setting/useMenuSetting'
 import { usePermissionStore } from '@/store/modules/permission'
-import { useGlobSetting } from '@/hooks/setting'
 import { useDesign } from '@/hooks/web/useDesign'
-import { useI18n } from '@/hooks/web/useI18n'
 import { useGo } from '@/hooks/web/usePage'
 import { SIDE_BAR_MINI_WIDTH, SIDE_BAR_SHOW_TIT_MINI_WIDTH } from '@/enums/appEnum'
-import { getChildrenMenus, getCurrentParentPath, getShallowMenus } from '@/router/menus'
-import { listenerRouteChange } from '@/logics/mitt/routeChange'
-import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
+import { getMenus } from '@/router/menus'
+import type { Menu } from '@/router/types'
+import { UserDropDown } from '@/layouts/default/header/components'
 
-const SimpleMenuTag = createAsyncComponent(() => import('@/components/SimpleMenu/src/SimpleMenuTag.vue'))
-
-const wrap = ref(null)
-const menuModules = ref<Menu[]>([])
-const activePath = ref('')
-const childrenMenus = ref<Menu[]>([])
-const openMenu = ref(false)
-const dragBarRef = ref<ElRef>(null)
-const sideRef = ref<ElRef>(null)
-const currentRoute = ref<Nullable<RouteLocationNormalized>>(null)
+const menus = ref<Menu[]>([])
 
 const { prefixCls } = useDesign('layout-mix-sider')
 const go = useGo()
-const { t } = useI18n()
 const {
-  getMenuWidth,
-  getCanDrag,
-  getCloseMixSidebarOnChange,
   getMenuTheme,
-  getMixSideTrigger,
-  getRealWidth,
-  getMixSideFixed,
-  mixSideHasChildren,
-  setMenuSetting,
-  getIsMixSidebar,
+  getAccordion,
   getCollapsed,
+  toggleCollapsed,
 } = useMenuSetting()
 
-const { title } = useGlobSetting()
 const permissionStore = usePermissionStore()
 
-useDragLine(sideRef, dragBarRef, true)
-
-const getMixSideWidth = computed(() => {
+const sidebarWidth = computed(() => {
   return unref(getCollapsed) ? SIDE_BAR_MINI_WIDTH : SIDE_BAR_SHOW_TIT_MINI_WIDTH
 })
 
-const getMenuStyle = computed((): CSSProperties => {
-  return {
-    width: unref(openMenu) ? `${unref(getMenuWidth)}px` : 0,
-    left: `${unref(getMixSideWidth)}px`,
-  }
-})
-
-const getIsFixed = computed(() => {
-  mixSideHasChildren.value = unref(childrenMenus).length > 0
-  const isFixed = unref(getMixSideFixed) && unref(mixSideHasChildren)
-  if (isFixed)
-    openMenu.value = true
-
-  return isFixed
-})
-
-const getDomStyle = computed((): CSSProperties => {
-  const fixedWidth = unref(getIsFixed) ? unref(getRealWidth) : 0
-  const width = `${unref(getMixSideWidth) + fixedWidth}px`
-  return getWrapCommonStyle(width)
-})
-
-const getWrapStyle = computed((): CSSProperties => {
-  const width = `${unref(getMixSideWidth)}px`
-  return getWrapCommonStyle(width)
-})
-
-const getMenuEvents = computed(() => {
-  return !unref(getMixSideFixed)
-    ? {
-        onMouseleave: () => {
-          setActive(true)
-          closeMenu()
-        },
-      }
-    : {}
-})
-
-const getShowDragBar = computed(() => unref(getCanDrag))
-
-onMounted(async () => {
-  menuModules.value = await getShallowMenus()
-})
-
-// Menu changes
-watch(
-  [() => permissionStore.getLastBuildMenuTime, () => permissionStore.getBackMenuList],
-  async () => {
-    menuModules.value = await getShallowMenus()
-  },
-  {
-    immediate: true,
-  },
-)
-
-listenerRouteChange((route) => {
-  currentRoute.value = route
-  setActive(true)
-  if (unref(getCloseMixSidebarOnChange))
-    closeMenu()
-})
-
-function getWrapCommonStyle(width: string): CSSProperties {
+const rootStyle = computed((): CSSProperties => {
+  const width = `${unref(sidebarWidth)}px`
   return {
     width,
     maxWidth: width,
     minWidth: width,
     flex: `0 0 ${width}`,
   }
+})
+
+async function loadMenus() {
+  menus.value = await getMenus()
 }
 
-// Process module menu click
-async function handleModuleClick(path: string, hover = false) {
-  const children = await getChildrenMenus(path)
-  if (unref(activePath) === path) {
-    if (!hover) {
-      if (!unref(openMenu))
-        openMenu.value = true
-      else
-        closeMenu()
-    }
-    else {
-      if (!unref(openMenu))
-        openMenu.value = true
-    }
-    if (!unref(openMenu))
-      setActive()
-  }
-  else {
-    openMenu.value = true
-    activePath.value = path
-  }
-
-  if (!children || children.length === 0) {
-    if (!hover)
-      go(path)
-    childrenMenus.value = []
-    forceCloseMenu()
-    return
-  }
-  childrenMenus.value = children
-}
-
-// Set the currently active menu and submenu
-async function setActive(setChildren = false) {
-  const path = currentRoute.value?.path
-  if (!path)
-    return
-  activePath.value = await getCurrentParentPath(path)
-  // hanldeModuleClick(parentPath);
-  if (unref(getIsMixSidebar)) {
-    const activeMenu = unref(menuModules).find(item => item.path === unref(activePath))
-    const p = activeMenu?.path
-    if (p) {
-      const children = await getChildrenMenus(p)
-      if (setChildren) {
-        childrenMenus.value = children
-
-        if (unref(getMixSideFixed))
-          openMenu.value = children.length > 0
-      }
-      if (children.length === 0) {
-        childrenMenus.value = []
-        forceCloseMenu()
-      }
-    }
-  }
-}
+watch(
+  [() => permissionStore.getLastBuildMenuTime, () => permissionStore.getBackMenuList],
+  () => {
+    loadMenus()
+  },
+  { immediate: true },
+)
 
 function handleMenuClick(path: string) {
   go(path)
 }
-
-function forceCloseMenu() {
-  openMenu.value = false
-  mixSideHasChildren.value = false
-}
-
-function handleClickOutside() {
-  setActive(true)
-  closeMenu()
-}
-
-function getItemEvents(item: Menu) {
-  if (unref(getMixSideTrigger) === 'hover') {
-    return {
-      onMouseenter: () => handleModuleClick(item.path, true),
-      onClick: async () => {
-        const children = await getChildrenMenus(item.path)
-        if (item.path && (!children || children.length === 0))
-          go(item.path)
-      },
-    }
-  }
-  return {
-    onClick: () => handleModuleClick(item.path),
-  }
-}
-
-function handleFixedMenu() {
-  setMenuSetting({
-    mixSideFixed: !unref(getIsFixed),
-  })
-}
-
-// Close menu
-function closeMenu() {
-  if (!unref(getIsFixed))
-    openMenu.value = false
-}
-
-onClickOutside(wrap, () => {
-  handleClickOutside()
-})
 </script>
 
 <template>
-  <div :class="`${prefixCls}-dom`" :style="getDomStyle" />
-  <div
-    ref="wrap" :style="getWrapStyle" :class="[
+  <aside
+    :class="[
       prefixCls,
+      `${prefixCls}--rank`,
       getMenuTheme,
-      {
-        open: openMenu,
-        mini: getCollapsed,
-      },
-    ]" v-bind="getMenuEvents"
+      { [`${prefixCls}--collapsed`]: getCollapsed },
+    ]"
+    :style="rootStyle"
   >
-    <AppLogo :show-title="false" :class="`${prefixCls}-logo`" />
-
-    <LayoutTrigger :class="`${prefixCls}-trigger`" />
-
-    <ScrollContainer>
-      <ul :class="`${prefixCls}-module`">
-        <li
-          v-for="item in menuModules" v-bind="getItemEvents(item)" :key="item.path" :class="[
-            `${prefixCls}-module__item `,
-            {
-              [`${prefixCls}-module__item--active`]: item.path === activePath,
-            },
-          ]"
-        >
-          <SimpleMenuTag :item="item" collapse-parent dot />
-          <img
-            v-if="item.img"
-            :src="item.img"
-            alt=""
-            :class="[`${prefixCls}-module__icon`, getCollapsed ? 'w-16px h-16px' : 'w-20px h-20px']"
-          >
-          <Icon
-            v-else
-            :class="`${prefixCls}-module__icon`" :size="getCollapsed ? 16 : 20"
-            :icon="item.icon || (item.meta && item.meta.icon)"
-          />
-          <p :class="`${prefixCls}-module__name`">
-            {{ t(item.name) }}
-          </p>
-        </li>
-      </ul>
-    </ScrollContainer>
-
-    <div ref="sideRef" :class="`${prefixCls}-menu-list`" :style="getMenuStyle">
-      <div
-        v-show="openMenu" :class="[
-          `${prefixCls}-menu-list__title`,
-          {
-            show: openMenu,
-          },
-        ]"
+    <div v-if="!getCollapsed" :class="`${prefixCls}__head`">
+      <AppLogo
+        :class="`${prefixCls}__logo`"
+        theme="light"
+        :compact="true"
+        :always-show-title="true"
+      />
+      <button
+        type="button"
+        :class="`${prefixCls}__collapse-btn`"
+        aria-label="收起侧栏"
+        @click="toggleCollapsed"
       >
-        <span class="text"> {{ title }}</span>
-        <Icon
-          :size="16" :icon="getMixSideFixed ? 'ri:pushpin-2-fill' : 'ri:pushpin-2-line'" class="pushpin"
-          @click="handleFixedMenu"
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="1.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.2" />
+          <line x1="7.5" y1="1.5" x2="7.5" y2="18.5" stroke="currentColor" stroke-width="1.2" />
+          <line x1="4" y1="7.5" x2="4" y2="12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <button
+      v-else
+      type="button"
+      :class="[`${prefixCls}__expand-btn`, `${prefixCls}__menu-hit`]"
+      aria-label="展开侧栏"
+      @click="toggleCollapsed"
+    >
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="1.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.2" />
+        <line x1="7.5" y1="1.5" x2="7.5" y2="18.5" stroke="currentColor" stroke-width="1.2" />
+        <line x1="5" y1="10" x2="3" y2="8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        <line x1="5" y1="10" x2="3" y2="12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <ScrollContainer :class="`${prefixCls}__menu-scroll`">
+      <div :class="`${prefixCls}__menu-body`">
+        <SimpleMenu
+          :items="menus"
+          :theme="getMenuTheme"
+          :collapse="getCollapsed"
+          :accordion="getAccordion"
+          :icon-size="18"
+          @menu-click="handleMenuClick"
         />
       </div>
-      <ScrollContainer :class="`${prefixCls}-menu-list__content`">
-        <SimpleMenu :items="childrenMenus" :theme="getMenuTheme" mix-sider @menu-click="handleMenuClick" />
-      </ScrollContainer>
-      <div v-show="getShowDragBar && openMenu" ref="dragBarRef" :class="`${prefixCls}-drag-bar`" />
+    </ScrollContainer>
+
+    <div :class="`${prefixCls}__foot`">
+      <UserDropDown theme="light" />
     </div>
-  </div>
+  </aside>
 </template>
 
 <style lang="less">
 @prefix-cls: ~'@{namespace}-layout-mix-sider';
-@width: 80px;
+@menu-prefix-cls: ~'@{namespace}-menu';
+@simple-prefix-cls: ~'@{namespace}-simple-menu';
 
-.@{prefix-cls} {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: @layout-mix-sider-fixed-z-index;
+.@{prefix-cls}--rank {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   height: 100%;
+  min-height: inherit;
+  padding: 8px 6px 6px;
   overflow: hidden;
-  background-color: @sider-dark-bg-color;
-  transition: all 0.2s ease 0s;
+  background-color: @mix-rail-sidebar-bg;
+  border-right: 1px solid @mix-stroke-color;
+  box-shadow: 1px 0 0 rgb(0 0 0 / 2%);
+  box-sizing: border-box;
+  transition: width 0.25s ease, min-width 0.25s ease;
 
-  &-dom {
-    height: 100%;
-    overflow: hidden;
-    transition: all 0.2s ease 0s;
+  &.@{prefix-cls}--collapsed {
+    padding: 8px 3px 6px;
   }
 
-  &-logo {
+  .@{prefix-cls}__head {
     display: flex;
-    justify-content: center;
-    height: @header-height;
-    padding-left: 0 !important;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 44px;
+    margin-bottom: 4px;
+    padding: 0 4px 0 2px;
+  }
 
-    img {
-      width: @logo-width;
-      height: @logo-width;
+  .@{prefix-cls}__logo {
+    flex: 1;
+    min-width: 0;
+    padding-left: 0 !important;
+  }
+
+  .@{prefix-cls}__collapse-btn,
+  .@{prefix-cls}__expand-btn {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: @mix-rail-text-secondary;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    transition: color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      color: @mix-rail-text;
+      background: @mix-highlight-bg;
     }
   }
 
-  &.light {
-    .@{prefix-cls}-logo {
-      border-bottom: 1px solid rgb(238 238 238);
+  .@{prefix-cls}__expand-btn {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .@{prefix-cls}__menu-scroll {
+    flex: 1;
+    min-height: 0;
+
+    .scrollbar__wrap {
+      overflow-x: hidden;
+    }
+  }
+
+  .@{prefix-cls}__menu-body {
+    padding: 4px 0 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+    .@{simple-prefix-cls} {
+      width: 100%;
     }
 
-    &.open {
-      >.scrollbar {
-        border-right: 1px solid rgb(238 238 238);
-      }
+    .@{simple-prefix-cls}-sub-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
     }
 
-    .@{prefix-cls}-module {
-      &__item {
-        font-weight: normal;
-        color: rgb(@primary-color / 65%);
+    .@{menu-prefix-cls}-light.@{menu-prefix-cls}-vertical {
+      background-color: transparent !important;
+      border-right: none !important;
+      font-family: inherit;
 
-        &--active {
-          background-color: unset;
+      .@{menu-prefix-cls}-item,
+      .@{menu-prefix-cls}-submenu-title {
+        min-height: 38px;
+        margin: 0 @mix-rail-item-inset 2px;
+        padding: 8px 10px 8px 14px !important;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        color: @mix-rail-text;
+        border-radius: @mix-menu-radius;
+
+        .anticon,
+        .app-iconify {
+          color: @mix-rail-text-secondary;
         }
-      }
-    }
 
-    .@{prefix-cls}-menu-list {
-      &__content {
-        box-shadow: 0 0 4px 0 rgb(0 0 0 / 10%);
-      }
+        &:hover {
+          color: @mix-rail-text !important;
+          background-color: @mix-highlight-bg !important;
 
-      &__title {
-        .pushpin {
-          color: rgb(0 0 0 / 35%);
-
-          &:hover {
-            color: rgb(0 0 0 / 85%);
+          .anticon,
+          .app-iconify {
+            color: @mix-rail-text !important;
           }
         }
       }
-    }
-  }
 
-  &.dark {
-    &.open {
-      .@{prefix-cls}-logo {
-        border-bottom: 1px solid var(--sider-dark-lighten-bg-color);
+      .@{menu-prefix-cls}-submenu .@{menu-prefix-cls}-item {
+        padding-left: 24px !important;
       }
 
-      >.scrollbar {
-        border-right: 1px solid var(--sider-dark-lighten-bg-color);
+      .@{menu-prefix-cls}-item-selected,
+      .@{menu-prefix-cls}-item-active:not(.@{menu-prefix-cls}-submenu),
+      .@{menu-prefix-cls}-item-selected:hover,
+      .@{menu-prefix-cls}-submenu-active > .@{menu-prefix-cls}-submenu-title {
+        color: @mix-brand-color !important;
+        background-color: @mix-highlight-bg !important;
+
+        .anticon,
+        .app-iconify,
+        span {
+          color: @mix-brand-color !important;
+        }
+
+        &::after {
+          display: none !important;
+        }
+      }
+
+      .@{menu-prefix-cls}-submenu .@{menu-prefix-cls}-item-selected,
+      .@{menu-prefix-cls}-submenu .@{menu-prefix-cls}-item-active {
+        color: @mix-brand-color !important;
+        background-color: @mix-highlight-bg !important;
+
+        .anticon,
+        .app-iconify,
+        span {
+          color: @mix-brand-color !important;
+        }
       }
     }
 
-    .@{prefix-cls}-menu-list {
-      background-color: var(--sider-dark-bg-color);
+    .@{menu-prefix-cls}-collapse {
+      width: 100%;
 
-      &__title {
-        color: @white;
-        border-bottom: none;
-        border-bottom: 1px solid var(--sider-dark-lighten-bg-color);
+      .@{menu-prefix-cls}-submenu-title,
+      .@{menu-prefix-cls}-item {
+        display: flex;
+        justify-content: center;
+        padding: 9px 0 !important;
+        margin: 0 0 2px !important;
       }
     }
   }
 
-  >.scrollbar {
-    height: calc(100% - @header-height - 38px);
-  }
+  .@{prefix-cls}__foot {
+    flex-shrink: 0;
+    padding: 8px 4px 4px;
+    border-top: 1px solid @mix-stroke-color;
 
-  &.mini &-module {
-    &__name {
-      display: none;
-    }
-
-    &__icon {
-      margin-bottom: 0;
-    }
-  }
-
-  &-module {
-    position: relative;
-    padding-top: 1px;
-
-    &__item {
-      position: relative;
-      padding: 12px 0;
-      color: rgb(@primary-color / 65%);
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .@{namespace}-header-user-dropdown {
+      width: 100%;
+      height: auto;
+      padding: 6px 8px;
+      border-radius: @mix-menu-radius;
 
       &:hover {
-        color: @primary-color;
-      }
-
-      // &:hover,
-      &--active {
-        font-weight: 700;
-        color: @primary-color;
-        background-color: @sider-dark-darken-bg-color;
-
-        &::before {
-          background-color: #266CFBFF;
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 3px;
-          height: 100%;
-          content: '';
-        }
+        background: @mix-highlight-bg;
       }
     }
-
-    &__icon {
-      margin-bottom: 8px;
-      font-size: 24px;
-      transition: all 0.2s;
-    }
-
-    &__name {
-      margin-bottom: 0;
-      font-size: 12px;
-      transition: all 0.2s;
-    }
-  }
-
-  &-trigger {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 36px;
-    font-size: 14px;
-    line-height: 36px;
-    color: rgb(255 255 255 / 65%);
-    text-align: center;
-    cursor: pointer;
-    background-color: @trigger-dark-bg-color;
-  }
-
-  &.light &-trigger {
-    color: rgb(0 0 0 / 65%);
-    background-color: #fff;
-    border-top: 1px solid #eee;
-  }
-
-  &-menu-list {
-    position: fixed;
-    top: 0;
-    width: 200px;
-    height: calc(100%);
-    background-color: #fff;
-    transition: all 0.2s;
-
-    &__title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: @header-height;
-      // margin-left: -6px;
-      font-size: 18px;
-      border-bottom: 1px solid rgb(238 238 238);
-      opacity: 0;
-      transition: unset;
-
-      &.show {
-        min-width: 130px;
-        opacity: 1;
-        transition: all 0.5s ease;
-      }
-
-      .pushpin {
-        margin-right: 6px;
-        color: rgb(255 255 255 / 65%);
-        cursor: pointer;
-
-        &:hover {
-          color: #fff;
-        }
-      }
-    }
-
-    &__content {
-      height: calc(100% - @header-height) !important;
-
-      .scrollbar__wrap {
-        height: 100%;
-        overflow-x: hidden;
-      }
-
-      .scrollbar__bar.is-horizontal {
-        display: none;
-      }
-
-      .ant-menu {
-        height: 100%;
-      }
-
-      .ant-menu-inline,
-      .ant-menu-vertical,
-      .ant-menu-vertical-left {
-        border-right: 1px solid transparent;
-      }
-    }
-  }
-
-  &-drag-bar {
-    position: absolute;
-    top: 50px;
-    right: -1px;
-    width: 1px;
-    height: calc(100% - 50px);
-    cursor: ew-resize;
-    background-color: #f8f8f9;
-    border-top: none;
-    border-bottom: none;
-    box-shadow: 0 0 4px 0 rgb(28 36 56 / 15%);
   }
 }
 </style>

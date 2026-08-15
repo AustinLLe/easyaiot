@@ -26,8 +26,19 @@ onMounted(() => {
 })
 </script>
 
+<style lang="less" scoped>
+.user-dept-tree {
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e1e7f0;
+  border-radius: 15px;
+}
+</style>
+
 <template>
-  <div class="m-4 mr-0 overflow-hidden" v-bind="$attrs">
+  <div class="user-dept-tree overflow-hidden" v-bind="$attrs">
     <BasicTree
       ref="treeRef"
       title="部门列表"

@@ -2,10 +2,10 @@
   <div class="playback-list-wrapper">
     <!-- 表格模式 -->
     <template v-if="viewMode === 'table'">
-      <div class="p-4 bg-white" style="margin-bottom: 10px">
+      <div class="p-4" style="margin-bottom: 10px">
         <BasicForm @register="registerForm" />
       </div>
-      <div class="p-2 bg-white">
+      <div class="p-2">
         <BasicTable @register="registerTable">
           <template #toolbar>
             <a-button type="default" @click="handleClickSwap" preIcon="ant-design:swap-outlined">
@@ -222,14 +222,13 @@ let formGetFieldsValue: (() => Recordable) | null = null;
 
 // 表格配置（先定义，因为表单需要引用reload方法）
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '录像回放列表',
+  title: '',
   api: getPlaybackList,
   columns: getColumns(),
   useSearchForm: false,
-  showTableSetting: false,
   pagination: true,
   beforeFetch: (params) => {
     // 合并表单搜索参数

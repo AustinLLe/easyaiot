@@ -27,9 +27,9 @@ export const basicProps = {
     type: Function as PropType<(data: Partial<Recordable<string[]>>) => any>,
     default: DEFAULT_FILTER_FN,
   },
-  showTableSetting: Boolean,
+  showTableSetting: { type: Boolean, default: true },
   autoCreateKey: { type: Boolean, default: true },
-  striped: { type: Boolean, default: true },
+  striped: { type: Boolean, default: false },
   showSummary: Boolean,
   summaryFunc: {
     type: [Function, Array] as PropType<(...arg: any[]) => any[]>,
@@ -98,7 +98,7 @@ export const basicProps = {
   },
   ellipsis: { type: Boolean, default: true },
   isCanResizeParent: { type: Boolean, default: false },
-  canResize: { type: Boolean, default: true },
+  canResize: { type: Boolean, default: false },
   clearSelectOnPageChange: propTypes.bool,
   resizeHeightOffset: propTypes.number.def(0),
   rowSelection: {

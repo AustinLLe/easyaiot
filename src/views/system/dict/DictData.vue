@@ -23,7 +23,7 @@ const { createMessage } = useMessage()
 const [registerModal, { openModal }] = useModal()
 
 const [registerTable, { reload }] = useTable({
-  title: '字典数据列表',
+  title: '',
   api: getDictDataPage,
   columns: dataColumns,
   formConfig: {

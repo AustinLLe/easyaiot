@@ -267,36 +267,36 @@ function handleEditClose() {
   margin-bottom: 20px;
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   p {
     margin: 0;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
 .alert-rule-panel {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dynamic-mode-notice {
   padding: 10px 16px;
-  color: #0958d9;
-  background: #e6f4ff;
-  border-bottom: 1px solid #bae0ff;
+  color: @mix-brand-color;
+  background: #eaf0fb;
+  border-bottom: 1px solid #b8d2f1;
 }
 
 .table-toolbar {
   display: flex;
   justify-content: flex-start;
-  padding: 12px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
 }
 
 .alert-rule-table {

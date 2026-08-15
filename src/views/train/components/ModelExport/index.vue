@@ -405,10 +405,10 @@ const getExportListApi = async (params: any) => {
 
 // 表格配置
 const [registerTable, { reload, getForm }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '模型导出记录',
+  title: '',
   api: async (params) => {
     try {
       // 从表单中获取搜索条件
@@ -441,7 +441,6 @@ const [registerTable, { reload, getForm }] = useTable({
   },
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   fetchSetting: {

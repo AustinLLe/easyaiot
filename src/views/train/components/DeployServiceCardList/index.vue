@@ -1,10 +1,10 @@
 <template>
   <div class="deploy-service-card-list-wrapper">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
+    <div class="p-4" style="margin-bottom: 10px">
       <BasicForm @register="registerForm" @reset="handleSubmit"
                  @field-value-change="handleFieldValueChange"/>
     </div>
-    <div class="bg-white">
+    <div>
       <Spin :spinning="state.loading">
         <List
           :grid="{ gutter: 2, xs: 1, sm: 2, md: 4, lg: 5, xl: 6, xxl: 6 }"
@@ -13,8 +13,7 @@
         >
           <template #header>
             <div
-              style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">部署服务列表</span>
+              style="display: flex;align-items: center;justify-content: flex-end;flex-direction: row;">
               <div class="space-x-2">
                 <slot name="header"></slot>
               </div>
@@ -322,7 +321,7 @@ function formatDateTime(dateString: string) {
     // 解析ISO格式时间字符串（可能包含时区信息）
     const date = new Date(dateString);
     // 检查日期是否有效
-if (Number.isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return dateString;
     }
     const year = date.getFullYear();

@@ -37,10 +37,10 @@ defineOptions({ name: 'AlertPushHistory' });
 const [registerDetailDrawer, { openDrawer: openDetailDrawer }] = useDrawer();
 
 const [registerTable] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '推送历史',
+  title: '',
   api: historyQuery,
   columns: [
     ...getColumns(),

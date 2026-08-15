@@ -1,16 +1,18 @@
 <template>
   <BasicModal
     @register="register"
-    :title="modalTitle"
+    :title="isEditLayout ? '' : modalTitle"
     @cancel="handleCancel"
-    :width="isEditLayout ? 1200 : 720"
+    :width="isEditLayout ? 1100 : 720"
     :height="isEditLayout ? undefined : 520"
-    :minHeight="isEditLayout ? 600 : 200"
-    :canFullscreen="isEditLayout"
+    :minHeight="isEditLayout ? 0 : 200"
+    :centered="isEditLayout"
+    :canFullscreen="false"
+    :defaultFullscreen="false"
     :showOkBtn="!isEditLayout"
     :showCancelBtn="!isEditLayout"
     :useWrapper="isEditLayout ? false : undefined"
-    :wrapClassName="isEditLayout ? undefined : 'model-upload-modal'"
+    :wrapClassName="isEditLayout ? 'model-edit-wrap' : 'model-upload-modal'"
     @ok="handleUploadOk"
   >
     <template v-if="!isEditLayout">
@@ -29,24 +31,27 @@
 
     <template v-else>
       <div class="model-edit-modal">
-        <div class="edit-body">
-          <aside class="edit-nav">
-            <div class="nav-title">配置项</div>
-            <button
+        <aside class="create-nav">
+          <div class="sidebar-header">
+            <h2 class="sidebar-title">{{ modalTitle }}</h2>
+          </div>
+          <div class="settings-nav">
+            <div
               v-for="item in sectionList"
               :key="item.key"
-              type="button"
-              :class="['step-item', { active: activeSection === item.key }]"
+              :class="['nav-item', { active: activeSection === item.key }]"
               @click="activeSection = item.key"
             >
-              <span class="step-icon">
+              <span class="nav-icon">
                 <component :is="item.icon" />
               </span>
-              <span class="step-label">{{ item.label }}</span>
-            </button>
-          </aside>
+              <span class="nav-label">{{ item.label }}</span>
+            </div>
+          </div>
+        </aside>
 
-          <section class="edit-content">
+        <div class="create-main">
+          <section class="create-content">
             <Spin :spinning="state.editLoading">
               <component
                 :is="currentSectionComponent"
@@ -58,21 +63,17 @@
               />
             </Spin>
           </section>
-        </div>
 
-        <div class="edit-footer">
-          <a-button type="link" size="small" @click="handleCancel">取消</a-button>
-          <div class="footer-actions">
+          <div class="create-footer">
             <a-button
               v-if="!state.isView"
-              size="small"
               type="primary"
               :loading="state.editLoading"
               @click="handleEditSave"
             >
               保存
             </a-button>
-            <a-button v-else size="small" @click="handleCancel">关闭</a-button>
+            <a-button v-else @click="handleCancel">关闭</a-button>
           </div>
         </div>
       </div>
@@ -293,90 +294,260 @@ function handleEditSave() {
 
 .model-edit-modal {
   display: flex;
-  flex-direction: column;
-  height: 560px;
-  max-height: calc(100vh - 120px);
+  overflow: hidden;
+  height: 100%;
 }
 
-.edit-body {
+.create-nav {
   display: flex;
+  width: 208px;
+  flex-shrink: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: @mix-rail-sidebar-bg;
+  border-right: 1px solid @mix-stroke-color;
+}
+
+.sidebar-header {
+  flex-shrink: 0;
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid @mix-stroke-color;
+}
+
+.sidebar-title {
+  margin: 0;
+  color: @mix-rail-text;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-nav {
   flex: 1;
   min-height: 0;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
+  padding: 8px 8px 12px;
+  overflow-y: auto;
 }
 
-.edit-nav {
-  width: 200px;
-  flex-shrink: 0;
-  padding: 16px 10px;
-  background: #fafafa;
-  border-right: 1px solid #f0f0f0;
-}
-
-.nav-title {
-  margin-bottom: 12px;
-  padding: 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.step-item {
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 4px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
+  padding: 6px 12px;
+  margin-bottom: 2px;
+  border-radius: 6px;
+  color: @mix-rail-text;
+  font-size: 14px;
+  line-height: 22px;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.65);
-  text-align: left;
-  transition: all 0.2s;
+  user-select: none;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: @mix-highlight-bg;
+    color: @mix-rail-text;
   }
 
   &.active {
-    background: #e6f4ff;
-    color: #1677ff;
-    font-weight: 600;
+    background: @mix-highlight-bg;
+    color: @mix-brand-color;
+    font-weight: 500;
   }
 }
 
-.step-icon {
-  display: inline-flex;
+.nav-icon {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #d9d9d9;
-  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  margin-right: 9px;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+
+  :deep(.anticon) {
+    font-size: 16px;
+  }
 }
 
-.edit-content {
+.nav-label {
+  flex: 1;
+  line-height: 22px;
+}
+
+.create-main {
+  display: flex;
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 20px;
-  overflow: auto;
+  flex-direction: column;
   background: #fff;
 }
 
-.edit-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
+.create-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px 0 24px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #fff;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #c5c5c5 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #fff;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c5c5c5;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  :deep(.ant-spin-nested-loading),
+  :deep(.ant-spin-container) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  :deep(.section-header) {
+    h3 {
+      margin: 0 0 6px;
+      color: rgba(0, 0, 0, 0.9);
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+
+  :deep(.ant-form-item-label > label) {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  :deep(.ant-btn-link) {
+    color: @mix-brand-color;
+
+    &:hover,
+    &:focus {
+      color: #1d4a8f;
+    }
+
+    &:disabled,
+    &.ant-btn-disabled {
+      color: rgba(0, 0, 0, 0.25);
+    }
+
+    &.ant-btn-dangerous {
+      color: @mix-brand-color;
+
+      &:hover,
+      &:focus {
+        color: #1d4a8f;
+      }
+    }
+  }
 }
 
-.footer-actions {
+.create-footer {
   display: flex;
-  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 40px;
+  background: #fff;
+  border-top: 1px solid @mix-stroke-color;
+
+  :deep(.ant-btn) {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+}
+</style>
+
+<style lang="less">
+.model-edit-wrap {
+  .ant-modal {
+    width: min(90vw, 1100px) !important;
+    max-width: 1100px;
+    padding-bottom: 0;
+  }
+
+  .ant-modal-content {
+    height: min(85vh, 750px);
+    overflow: hidden;
+    padding: 0 !important;
+    border-radius: 12px;
+  }
+
+  .ant-modal-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: auto;
+    z-index: 2;
+    width: auto;
+    padding: 12px 16px;
+    background: transparent;
+    border-bottom: none;
+  }
+
+  .ant-modal-title {
+    display: none;
+  }
+
+  .ant-modal-body {
+    height: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+
+    > .scrollbar,
+    > .scroll-container {
+      padding: 0 !important;
+    }
+
+    .scroll-container,
+    .scrollbar__wrap,
+    .scrollbar__view {
+      height: 100% !important;
+      max-height: none !important;
+      overflow: hidden !important;
+    }
+
+    .scroll-container .scrollbar__wrap {
+      margin-bottom: 0 !important;
+    }
+
+    .scrollbar__view > div {
+      max-height: none !important;
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+  }
+
+  .ant-modal-footer {
+    display: none;
+  }
 }
 </style>

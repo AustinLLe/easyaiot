@@ -26,6 +26,7 @@ const dashboard: AppRouteModule = {
         hideMenu: false,
         hideBreadcrumb: true,
         hideTab: true,
+        fullContent: true,
       },
     },
     {

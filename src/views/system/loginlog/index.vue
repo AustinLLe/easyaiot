@@ -8,6 +8,7 @@ import { exportLoginLog, getLoginLogPage } from '@/api/system/loginLog'
 import { BasicModal, useModal } from '@/components/Modal'
 import { IconEnum } from '@/enums/appEnum'
 import { ref } from 'vue'
+import { PageIntro } from '@/components/Page'
 
 
 defineOptions({ name: 'SystemLoginLog' })
@@ -15,7 +16,7 @@ defineOptions({ name: 'SystemLoginLog' })
 const { t } = useI18n()
 const { createConfirm, createMessage } = useMessage()
 const [registerTable, { getForm }] = useTable({
-  title: '登录日志列表',
+  title: '',
   api: getLoginLogPage,
   columns,
   formConfig: { labelWidth: 120, schemas: searchFormSchema },
@@ -52,7 +53,7 @@ async function handleExport() {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="LOGIN LOGS" title="登录日志" desc="查看用户登录记录，支持导出与详情。">
     <BasicTable @register="registerTable">
       <template #toolbar>
         <a-button v-auth="['system:login-log:export']" @click="handleExport">
@@ -78,5 +79,5 @@ async function handleExport() {
         <a-descriptions-item label="登录时间">{{ detail?.createTime }}</a-descriptions-item>
       </a-descriptions>
     </BasicModal>
-  </div>
+  </PageIntro>
 </template>

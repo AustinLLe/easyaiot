@@ -293,14 +293,18 @@ watch(
   margin-bottom: 20px;
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   p {
     margin: 0;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
@@ -332,13 +336,13 @@ watch(
   &.camera,
   &.algorithm,
   &.group {
-    color: #1677ff;
-    background: #e6f4ff;
+    color: @mix-brand-color;
+    background: #eaf0fb;
   }
 }
 
 .stat-label {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, 0.4);
   font-size: 12px;
 }
 
@@ -356,8 +360,9 @@ watch(
 .block-title,
 .settings-title {
   margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .mode-options {
@@ -379,8 +384,8 @@ watch(
   transition: all 0.2s;
 
   &.active {
-    border-color: #1677ff;
-    background: #f0f7ff;
+    border-color: @mix-brand-color;
+    background: #eaf0fb;
   }
 
   &.disabled,
@@ -399,8 +404,8 @@ watch(
   flex-shrink: 0;
 
   .mode-card.active & {
-    border-color: #1677ff;
-    box-shadow: inset 0 0 0 3px #1677ff;
+    border-color: @mix-brand-color;
+    box-shadow: inset 0 0 0 3px @mix-brand-color;
   }
 }
 
@@ -418,6 +423,12 @@ watch(
 
 .auto-form {
   max-width: 360px;
+
+  :deep(.ant-form-item-label > label) {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+  }
 }
 
 .auto-field {

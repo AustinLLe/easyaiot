@@ -90,13 +90,13 @@ export const searchFormSchema: FormSchema[] = [
     label: '用户名称',
     field: 'username',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 5 },
   },
   {
     label: '手机号码',
     field: 'mobile',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 5 },
   },
   {
     label: '状态',
@@ -105,7 +105,7 @@ export const searchFormSchema: FormSchema[] = [
     componentProps: {
       options: getDictOptions(DICT_TYPE.COMMON_STATUS),
     },
-    colProps: { span: 8 },
+    colProps: { span: 4 },
   },
   {
     label: '创建时间',
@@ -116,7 +116,7 @@ export const searchFormSchema: FormSchema[] = [
         defaultValue: [dayjs('00:00:00', 'HH:mm:ss'), dayjs('23:59:59', 'HH:mm:ss')],
       },
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
 ]
 

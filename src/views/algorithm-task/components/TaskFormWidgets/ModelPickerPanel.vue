@@ -312,14 +312,14 @@ onClickOutside(panelRef, () => {
   transition: all 0.2s;
 
   &.checked {
-    border-color: #1677ff;
-    background: #1677ff;
+    border-color: @mix-brand-color;
+    background: @mix-brand-color;
     color: #fff;
   }
 
   &.indeterminate {
-    border-color: #1677ff;
-    background: #1677ff;
+    border-color: @mix-brand-color;
+    background: @mix-brand-color;
   }
 }
 
@@ -360,7 +360,7 @@ onClickOutside(panelRef, () => {
   }
 
   &.selected {
-    background: #e6f4ff;
+    background: #eaf0fb;
   }
 }
 

@@ -8,13 +8,14 @@ import { BasicTable, TableAction, useTable } from '@/components/Table'
 import type { OperateLogPageReqVO } from '@/api/system/operatelog'
 import { exportOperateLog, getOperateLogPage } from '@/api/system/operatelog'
 import { useModal } from '@/components/Modal'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemOperateLog' })
 
 const { t } = useI18n()
 const { createConfirm, createMessage } = useMessage()
 const [registerTable, { getForm }] = useTable({
-  title: '操作日志列表',
+  title: '',
   api: getOperateLogPage,
   columns,
   formConfig: { labelWidth: 120, schemas: searchFormSchema },
@@ -48,7 +49,7 @@ function handleShowInfo(record: Recordable) {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="OPERATE LOGS" title="日志管理" desc="查看系统操作记录，支持导出与详情。">
     <BasicTable @register="registerTable">
       <template #toolbar>
         <a-button :pre-icon="IconEnum.EXPORT" @click="handleExport">
@@ -70,5 +71,5 @@ function handleShowInfo(record: Recordable) {
       </template>
     </BasicTable>
     <OperLogInfoModal @register="registerModal" />
-  </div>
+  </PageIntro>
 </template>

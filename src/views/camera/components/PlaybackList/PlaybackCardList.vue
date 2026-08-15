@@ -1,9 +1,9 @@
 <template>
   <div class="playback-card-list-wrapper p-2">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
+    <div class="p-4" style="margin-bottom: 10px">
       <BasicForm @register="registerForm" />
     </div>
-    <div class="p-2 bg-white">
+    <div class="p-2">
       <Spin :spinning="state.loading">
         <List
           :grid="{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }"
@@ -11,8 +11,7 @@
           :pagination="paginationProp"
         >
           <template #header>
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-direction: row;">
-              <span style="padding-left: 7px; font-size: 16px; font-weight: 500; line-height: 24px;">录像回放列表</span>
+            <div style="display: flex; align-items: center; justify-content: flex-end; flex-direction: row;">
               <div class="space-x-2">
                 <slot name="header"></slot>
               </div>
@@ -324,14 +323,14 @@ defineExpose({
 <style lang="less" scoped>
 .playback-card-list-wrapper {
   :deep(.ant-list-header) {
-    border-block-end: 0;
-  }
-  :deep(.ant-list-header) {
     padding-top: 0;
     padding-bottom: 8px;
+    background: transparent;
+    border-block-end: 0;
   }
   :deep(.ant-list) {
     padding: 6px;
+    background: transparent;
   }
   :deep(.ant-list-item) {
     margin: 6px;

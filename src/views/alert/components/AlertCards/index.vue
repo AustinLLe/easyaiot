@@ -1,10 +1,10 @@
 <template>
   <div class="alert-card-list-wrapper p-2">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
+    <div class="p-4" style="margin-bottom: 10px">
       <BasicForm @register="registerForm" />
     </div>
 
-    <div class="p-2 bg-white">
+    <div class="p-2">
       <Spin :spinning="state.loading">
         <List
           :grid="{ gutter: 2, xs: 1, sm: 2, md: 4, lg: 4, xl: 4, xxl: 4 }"
@@ -13,11 +13,8 @@
         >
           <template #header>
             <div
-              style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;"
+              style="display: flex;align-items: center;justify-content: flex-end;flex-direction: row;"
             >
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;"
-                >告警事件列表</span
-              >
               <div class="space-x-2">
                 <slot name="header"></slot>
               </div>
@@ -442,14 +439,14 @@ function getImageUrl(imageUrl: string | null | undefined, imagePath: string | nu
 <style lang="less" scoped>
 .alert-card-list-wrapper {
   :deep(.ant-list-header) {
-    border-block-end: 0;
-  }
-  :deep(.ant-list-header) {
     padding-top: 0;
     padding-bottom: 8px;
+    background: transparent;
+    border-block-end: 0;
   }
   :deep(.ant-list) {
     padding: 8px;
+    background: transparent;
   }
   :deep(.ant-list-item) {
     margin: 8px;

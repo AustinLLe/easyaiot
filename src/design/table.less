@@ -1,0 +1,88 @@
+// ranknora 列表风格：灰底表头 + #e7e7e7 描边 + 圆角外壳
+@table-divider-color: @mix-stroke-color;
+@table-header-bg: @mix-table-header-bg;
+
+.ant-table-wrapper {
+  .ant-table-thead > tr > th {
+    font-weight: 600;
+    font-size: 13px;
+    color: rgb(0 0 0 / 88%);
+    background: @table-header-bg !important;
+    border-bottom: 1px solid @table-divider-color !important;
+
+    &::before {
+      background-color: transparent !important;
+    }
+  }
+
+  .ant-table-tbody > tr > td {
+    border-bottom: 1px solid @table-divider-color;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: @mix-highlight-bg !important;
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: rgb(36 87 167 / 6%) !important;
+  }
+
+  .ant-btn-link {
+    color: @mix-brand-color !important;
+
+    &:hover,
+    &:focus {
+      color: #1d4a8f !important;
+    }
+
+    &.ant-btn-dangerous {
+      color: @mix-brand-color !important;
+
+      &:hover,
+      &:focus {
+        color: #1d4a8f !important;
+      }
+    }
+
+    &:disabled,
+    &.ant-btn-disabled {
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+}
+
+.@{namespace}-basic-table-row__striped > td {
+  background: #fff !important;
+}
+
+.@{namespace}-basic-table {
+  background: transparent;
+
+  .ant-spin-nested-loading,
+  .ant-spin-container {
+    background: transparent;
+  }
+
+  .ant-table-wrapper {
+    overflow: visible;
+    padding: 0;
+    background-color: transparent !important;
+    border: none;
+    border-radius: 0;
+  }
+
+  .ant-table {
+    background: transparent !important;
+  }
+
+  .ant-table-title {
+    background: transparent !important;
+  }
+
+  .ant-table-container {
+    overflow: hidden;
+    background-color: #fff;
+    border: 1px solid @table-divider-color;
+    border-radius: @mix-table-shell-radius;
+  }
+}

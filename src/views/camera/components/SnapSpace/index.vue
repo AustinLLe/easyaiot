@@ -5,12 +5,11 @@
         <div style="display: flex;">
           <div class="ant-card resource-card" style="width: 100%;">
             <div class="device-card-list-wrapper p-2">
-              <div class="p-4 bg-white">
+              <div class="p-4">
                 <BasicForm @register="registerForm" @reset="handleSubmit"/>
               </div>
-              <div class="p-2 bg-white">
+              <div class="p-2">
                 <div class="list-header">
-                  <span class="list-title">抓拍空间列表</span>
                   <a-button v-auth="['camera:snap-space:sync']" type="primary" @click="handleSyncMinio" :loading="syncing">
                     <template #icon>
                       <SyncOutlined />
@@ -34,8 +33,7 @@
                             <img
                               class="project-icon-item_img"
                               :src="snapSpaceIcon"
-                              alt="截图空间"
-                            >
+                              alt="截图空间">
                             <div class="project-icon-item_name">{{ item.space_name }}</div>
                           </a>
                         </div>
@@ -342,6 +340,9 @@ onUnmounted(() => {
 
   .resource-card {
     border-radius: 2px;
+    background: transparent;
+    box-shadow: none;
+    border: none;
 
     .device-item {
       padding: 0;
@@ -499,7 +500,7 @@ onUnmounted(() => {
 .list-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 16px 24px;
   margin-bottom: 16px;
   border-bottom: 1px solid #f0f0f0;

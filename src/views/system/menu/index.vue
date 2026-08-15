@@ -9,6 +9,7 @@ import { IconEnum } from '@/enums/appEnum'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { deleteMenu, getMenuList } from '@/api/system/menu'
 import { usePermission } from '@/hooks/web/usePermission'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemMenu' })
 
@@ -17,7 +18,7 @@ const { createMessage, createConfirm } = useMessage()
 const [registerModal, { openModal }] = useModal()
 
 const [register, { expandAll, collapseAll, getForm, reload }] = useTable({
-  title: '菜单列表',
+  title: '',
   api: getList,
   columns,
   rowKey: 'id',
@@ -73,7 +74,7 @@ function refreshMenu() {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="MENUS" title="菜单管理" desc="维护系统菜单、按钮权限与路由结构。">
     <BasicTable @register="register">
       <template #toolbar>
         <a-button v-auth="['system:menu:create']" type="primary" :pre-icon="IconEnum.ADD" @click="handleCreate">
@@ -111,5 +112,5 @@ function refreshMenu() {
       </template>
     </BasicTable>
     <MenuModal @register="registerModal" @success="reload()" />
-  </div>
+  </PageIntro>
 </template>

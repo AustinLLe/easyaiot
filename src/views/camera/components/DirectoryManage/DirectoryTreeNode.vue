@@ -14,7 +14,7 @@
         >
           <Icon
             :icon="isExpanded ? 'ant-design:down-outlined' : 'ant-design:right-outlined'"
-            :style="{ fontSize: '12px', color: '#666' }"
+            class="expand-icon-svg"
           />
         </span>
         <span v-else class="expand-placeholder"></span>
@@ -22,7 +22,7 @@
         <!-- 文件夹图标 -->
         <Icon
           icon="ant-design:folder-outlined"
-          :style="{ fontSize: '16px', color: '#1890ff', marginRight: '8px' }"
+          class="folder-icon"
         />
         
         <!-- 目录名称 -->
@@ -39,7 +39,7 @@
           title="编辑"
         >
           <template #icon>
-            <Icon icon="ant-design:edit-filled" :style="{ color: '#1890ff' }" />
+            <Icon icon="ant-design:edit-filled" class="action-icon" />
           </template>
         </a-button>
         <a-popconfirm
@@ -136,6 +136,7 @@ const handleDelete = () => {
 <style lang="less" scoped>
 .directory-tree-node {
   user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 .node-content {
@@ -144,12 +145,16 @@ const handleDelete = () => {
   justify-content: space-between;
   padding: 8px 12px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+  border-radius: @mix-menu-radius;
   margin: 2px 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: @mix-rail-text;
   
   &:hover {
-    background-color: #f5f5f5;
+    background-color: @mix-highlight-bg;
     
     .node-actions {
       opacity: 1;
@@ -157,23 +162,30 @@ const handleDelete = () => {
   }
   
   &.node-selected {
-    background-color: #e6f7ff;
-    border-left: 3px solid #1890ff;
-  }
-  
-  &.node-level-0 {
-    font-weight: 500;
+    color: @mix-brand-color;
+    background-color: @mix-highlight-bg;
+
+    .folder-icon {
+      color: @mix-brand-color !important;
+    }
+
+    .action-icon {
+      color: @mix-brand-color !important;
+    }
   }
   
   &.node-level-1 {
     padding-left: 32px;
-    font-size: 14px;
   }
   
   &.node-level-2 {
     padding-left: 56px;
-    font-size: 13px;
-    color: #666;
+    font-weight: 600;
+    color: @mix-rail-text-secondary;
+  }
+
+  &.node-selected.node-level-2 {
+    color: @mix-brand-color;
   }
 }
 
@@ -192,11 +204,21 @@ const handleDelete = () => {
   height: 20px;
   margin-right: 4px;
   cursor: pointer;
-  transition: transform 0.2s;
   
-  &:hover {
-    color: #1890ff !important;
+  &:hover .expand-icon-svg {
+    color: @mix-brand-color !important;
   }
+}
+
+.expand-icon-svg {
+  font-size: 12px;
+  color: @mix-rail-text-secondary;
+}
+
+.folder-icon {
+  margin-right: 8px;
+  font-size: 16px;
+  color: @mix-rail-text-secondary;
 }
 
 .expand-placeholder {
@@ -217,6 +239,10 @@ const handleDelete = () => {
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
+
+  .action-icon {
+    color: @mix-brand-color;
+  }
   
   :deep(.ant-btn) {
     padding: 0 4px;
@@ -224,11 +250,11 @@ const handleDelete = () => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: @mix-menu-radius;
     transition: all 0.2s;
     
     &:hover {
-      background-color: #f0f0f0;
+      background-color: @mix-highlight-bg;
       transform: scale(1.1);
     }
     

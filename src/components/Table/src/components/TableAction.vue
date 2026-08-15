@@ -7,7 +7,6 @@ import { Divider, Tooltip } from 'ant-design-vue'
 import { useTableContext } from '../hooks/useTableContext'
 import { ACTION_COLUMN_FLAG } from '../const'
 import { useI18n } from '@/hooks/web/useI18n'
-import { Icon } from '@/components/Icon'
 import type { ActionItem, TableActionType } from '@/components/Table'
 import { PopConfirmButton } from '@/components/Button'
 import { Dropdown } from '@/components/Dropdown'
@@ -79,6 +78,8 @@ const getActions = computed(() => {
         type: 'link',
         ...wrapped,
         ...(popConfirm || {}),
+        label: resolveActionLabel(wrapped),
+        icon: undefined,
         onConfirm: popConfirm?.confirm,
         onCancel: popConfirm?.cancel,
         enable: !!popConfirm,
@@ -91,13 +92,13 @@ const getDropdownList = computed((): any[] => {
     .filter(action => isIfShow(action) && hasPermission(action.auth))
   return list.map((action, index) => {
     const wrapped = wrapAction(action)
-    const { label, popConfirm } = wrapped
+    const { popConfirm } = wrapped
     return {
       ...wrapped,
       ...popConfirm,
       onConfirm: popConfirm?.confirm,
       onCancel: popConfirm?.cancel,
-      text: label,
+      text: resolveActionLabel(wrapped),
       divider: index < list.length - 1 ? props.divider : false,
     }
   })
@@ -108,6 +109,20 @@ const getAlign = computed(() => {
   const actionColumn = columns.find(item => item.flag === ACTION_COLUMN_FLAG)
   return actionColumn?.align ?? 'left'
 })
+
+const ACTION_LABEL_ALIASES: Record<string, string> = {
+  详情: '查看',
+  播放RTMP流: '播放',
+}
+
+function resolveActionLabel(action: ActionItem): string {
+  if (action.label)
+    return ACTION_LABEL_ALIASES[action.label] || action.label
+  const tip = isString(action.tooltip) ? action.tooltip : action.tooltip?.title
+  if (!isString(tip) || !tip)
+    return ''
+  return ACTION_LABEL_ALIASES[tip] || tip
+}
 
 function getTooltip(data: string | TooltipProps): TooltipProps {
   return {
@@ -133,14 +148,12 @@ function onCellClick(e: MouseEvent) {
     <template v-for="(action, index) in getActions" :key="`${index}-${action.label}`">
       <Tooltip v-if="action.tooltip" v-bind="getTooltip(action.tooltip)">
         <PopConfirmButton v-bind="action">
-          <Icon v-if="action.icon" :icon="action.icon" :class="{ 'mr-1': !!action.label }" />
           <template v-if="action.label">
             {{ action.label }}
           </template>
         </PopConfirmButton>
       </Tooltip>
       <PopConfirmButton v-else v-bind="action">
-        <Icon v-if="action.icon" :icon="action.icon" :class="{ 'mr-1': !!action.label }" />
         <template v-if="action.label">
           {{ action.label }}
         </template>
@@ -206,6 +219,44 @@ function onCellClick(e: MouseEvent) {
   .ant-btn-link {
     padding: 8px 4px;
     margin-left: 0;
+    color: #2457a7 !important;
+
+    &:hover,
+    &:focus {
+      color: #1d4a8f !important;
+    }
+
+    &:disabled,
+    &.ant-btn-disabled,
+    &.is-disabled {
+      color: rgba(0, 0, 0, 0.25) !important;
+      cursor: not-allowed;
+
+      &:hover,
+      &:focus {
+        color: rgba(0, 0, 0, 0.25) !important;
+      }
+    }
+
+    &.ant-btn-dangerous {
+      color: #2457a7 !important;
+
+      &:hover,
+      &:focus {
+        color: #1d4a8f !important;
+      }
+
+      &:disabled,
+      &.ant-btn-disabled,
+      &.is-disabled {
+        color: rgba(0, 0, 0, 0.25) !important;
+
+        &:hover,
+        &:focus {
+          color: rgba(0, 0, 0, 0.25) !important;
+        }
+      }
+    }
   }
 
   .ant-divider,

@@ -10,6 +10,7 @@ import { IconEnum } from '@/enums/appEnum'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import type { RoleExportReqVO } from '@/api/system/role'
 import { deleteRole, exportRole, getRolePage } from '@/api/system/role'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemRole' })
 
@@ -19,10 +20,15 @@ const [registerModal, { openModal }] = useModal()
 const [registerMenuModal, { openModal: openMenuModal }] = useModal()
 const [registerScopeModal, { openModal: openScopeModal }] = useModal()
 const [registerTable, { getForm, reload }] = useTable({
-  title: '角色列表',
+  title: '',
   api: getRolePage,
   columns,
-  formConfig: { labelWidth: 120, schemas: searchFormSchema },
+  formConfig: {
+    labelWidth: 72,
+    schemas: searchFormSchema,
+    showAdvancedButton: false,
+    actionColOptions: { span: 4, style: { textAlign: 'right' } },
+  },
   useSearchForm: true,
   showTableSetting: true,
   showIndexColumn: false,
@@ -70,7 +76,7 @@ async function handleDelete(record: Recordable) {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="ROLES" title="角色管理" desc="配置角色权限，分配菜单与数据范围。">
     <BasicTable @register="registerTable">
       <template #toolbar>
         <a-button v-auth="['system:role:create']" type="primary" :pre-icon="IconEnum.ADD" @click="handleCreate">
@@ -118,5 +124,5 @@ async function handleDelete(record: Recordable) {
     <RoleModal @register="registerModal" @success="reload()" />
     <RoleMenuModal @register="registerMenuModal" @success="reload()" />
     <RoleScopeModal @register="registerScopeModal" @success="reload()" />
-  </div>
+  </PageIntro>
 </template>

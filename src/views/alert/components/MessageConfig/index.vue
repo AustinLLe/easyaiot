@@ -37,14 +37,13 @@ const [registerConfigModal, { openModal: openConfigModal }] = useModal();
 const { createMessage } = useMessage();
 
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '消息配置',
+  title: '',
   api: messageConfigQuery,
   columns: getTableColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   rowKey: 'id',
@@ -71,7 +70,7 @@ function getTableActions(record) {
   ];
   if (+record.msgType === 3 && !record.isDefault) {
     actions.push({
-      tooltip: { title: '设为默认发件账号', placement: 'top' },
+      tooltip: { title: '设为默认', placement: 'top' },
       icon: 'ant-design:star-outlined',
       auth: 'notice:message-config:update',
       popConfirm: {

@@ -1,5 +1,6 @@
-export const SIDE_BAR_MINI_WIDTH = 48
-export const SIDE_BAR_SHOW_TIT_MINI_WIDTH = 80
+export const SIDE_BAR_MINI_WIDTH = 60
+/** 混合侧栏一级目录展开宽度 */
+export const SIDE_BAR_SHOW_TIT_MINI_WIDTH = 260
 
 export enum ContentEnum {
   // auto width

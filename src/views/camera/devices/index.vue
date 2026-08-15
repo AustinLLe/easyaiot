@@ -3,6 +3,13 @@
     <div class="device-list-layout">
       <DirectorySidebar ref="directorySidebarRef" @select="handleDirectorySelect" />
       <div class="device-list-main">
+        <header class="page-header">
+          <div>
+            <span class="eyebrow">CAMERAS</span>
+            <h1>设备列表</h1>
+            <p>按分组管理直连摄像头，支持宫格与表格两种视图。</p>
+          </div>
+        </header>
         <BasicTable v-if="viewMode === 'table'" @register="registerTable">
           <template #toolbar>
             <div class="toolbar-buttons">
@@ -15,10 +22,6 @@
               <a-button v-auth="['camera:devices:create']" @click="openAddModal('source')">
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
-              </a-button>
-              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
-                <template #icon><SyncOutlined /></template>
-                刷新全部推流状态
               </a-button>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
@@ -33,12 +36,7 @@
             </div>
           </template>
           <template #bodyCell="{ column, record }">
-            <template v-if="['id', 'name', 'model', 'source', 'rtmp_stream'].includes(column.key)">
-              <span style="cursor: pointer" @click="handleCopy(record[column.key])">
-                <Icon icon="tdesign:copy-filled" color="#4287FCFF" /> {{ record[column.key] }}
-              </span>
-            </template>
-            <template v-else-if="column.dataIndex === 'action'">
+            <template v-if="column.dataIndex === 'action'">
               <div class="camera-table-action">
                 <TableAction :actions="getTableActions(record)" />
               </div>
@@ -67,10 +65,6 @@
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
-              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
-                <template #icon><SyncOutlined /></template>
-                刷新全部推流状态
-              </a-button>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -95,7 +89,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
-import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
 import { getBasicColumns, getFormConfig } from '../Data'
 import { useModal } from '@/components/Modal'
@@ -103,14 +96,12 @@ import VideoModal from '../components/VideoModal/index.vue'
 import {
   deleteDevice,
   getDeviceList,
-  getDeviceStatus,
   getDirectoryDevices,
   // refreshDevices,
   type DeviceDirectory,
 } from '@/api/device/camera'
 import {
   SwapOutlined,
-  SyncOutlined,
   VideoCameraAddOutlined,
   // ScanOutlined,
   // SyncOutlined,
@@ -134,7 +125,6 @@ const viewMode = ref<'table' | 'card'>('card')
 const directorySidebarRef = ref()
 const selectedDirectoryId = ref<number | null>(null)
 const videoCardListRef = ref()
-const refreshingStreamStatus = ref(false)
 
 const fetchDeviceList = async (params: Record<string, any> = {}) => {
   const pageNo = params.pageNo || params.page || 1
@@ -175,14 +165,13 @@ const handleToggleViewMode = () => {
 }
 
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '摄像头列表',
+  title: '',
   api: fetchDeviceList,
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   fetchSetting: { listField: 'data', totalField: 'total' },
@@ -190,31 +179,17 @@ const [registerTable, { reload }] = useTable({
 })
 
 const getTableActions = (record) => {
-  const actions = [{ icon: 'octicon:play-16', tooltip: '播放RTMP流', auth: 'camera:devices:play', onClick: () => handlePlay(record) }]
+  const actions = [{ label: '播放', auth: 'camera:devices:play', onClick: () => handlePlay(record) }]
   actions.push(
-    { icon: 'ant-design:eye-filled', tooltip: '详情', auth: 'camera:devices:view', onClick: () => openAddModal('view', record) },
-    { icon: 'ant-design:edit-filled', tooltip: '编辑', auth: 'camera:devices:update', onClick: () => openAddModal('edit', record) },
-    { icon: 'material-symbols:delete-outline-rounded', tooltip: '删除', auth: 'camera:devices:delete', popConfirm: { title: '确定删除此设备？', confirm: () => handleDelete(record) } },
+    { label: '查看', auth: 'camera:devices:view', onClick: () => openAddModal('view', record) },
+    { label: '编辑', auth: 'camera:devices:update', onClick: () => openAddModal('edit', record) },
+    { label: '删除', auth: 'camera:devices:delete', popConfirm: { title: '确定删除此设备？', confirm: () => handleDelete(record) } },
   )
   return actions
 }
 
 function handlePlayerSuccess() {}
 function handlePlay(record) { openPlayerAddModel(true, record) }
-
-async function handleCopy(text: string) {
-  if (navigator.clipboard)
-    await navigator.clipboard.writeText(text)
-  else {
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    document.body.appendChild(textarea)
-    textarea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textarea)
-  }
-  createMessage.success('复制成功')
-}
 
 const openAddModal = (type, record = null) => {
   openModal(true, { type, record, isEdit: type === 'edit', isView: type === 'view', defaultDirectoryId: selectedDirectoryId.value })
@@ -242,26 +217,6 @@ const handleSuccess = () => {
     videoCardListRef.value.fetch()
 }
 
-const handleRefreshStreamStatus = async () => {
-  if (refreshingStreamStatus.value)
-    return
-  refreshingStreamStatus.value = true
-  try {
-    await getDeviceStatus(true)
-    if (viewMode.value === 'table')
-      await reload()
-    else if (videoCardListRef.value)
-      await videoCardListRef.value.fetch()
-    createMessage.success('全部设备推流状态已刷新')
-  }
-  catch {
-    createMessage.error('推流状态刷新失败')
-  }
-  finally {
-    refreshingStreamStatus.value = false
-  }
-}
-
 const handleDelete = async (record) => {
   const canDelete = await confirmDeleteDevice(record.id, record.name)
   if (!canDelete)
@@ -284,13 +239,12 @@ const handleCardPlay = (record) => handlePlay(record)
 
 <style lang="less" scoped>
 .camera-devices-page {
-  height: calc(100vh - 96px);
-  padding: 16px 19px 16px 15px;
-  background: #fff;
-  overflow: hidden;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 0;
+  background: transparent;
 
   :deep(.ant-form-item) {
     margin-bottom: 10px;
@@ -304,17 +258,41 @@ const handleCardPlay = (record) => handlePlay(record)
 
   .device-list-layout {
     display: flex;
+    flex: 1;
     gap: 0;
     align-items: stretch;
-    height: 100%;
-    min-height: 0;
-    background: #fff;
+    min-height: 100vh;
+    background: transparent;
 
     .device-list-main {
       flex: 1;
       min-width: 0;
-      overflow: hidden;
-      padding: 0 16px 16px;
+      overflow: auto;
+      padding: 28px 24px 24px;
+
+      .page-header {
+        margin-bottom: 22px;
+      }
+
+      .eyebrow {
+        color: #2457a7;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+      }
+
+      .page-header h1 {
+        margin: 7px 0 6px;
+        color: #17233d;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .page-header p {
+        margin: 0;
+        color: #7d889a;
+        font-size: 14px;
+      }
 
       .camera-table-action {
         display: flex;

@@ -1,5 +1,10 @@
 <template>
   <div class="draw-object-section">
+    <div class="section-header">
+      <h3>绘制对象</h3>
+      <p>配置检测类别、标签与绘制颜色，创建算法任务时会自动带入。</p>
+    </div>
+
     <div class="draw-object-layout">
       <div class="draw-object-left">
         <div class="table-toolbar">
@@ -24,6 +29,7 @@
           size="small"
           bordered
           class="draw-object-table"
+          table-layout="fixed"
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'class_key'">
@@ -288,12 +294,12 @@ function requiredColumnTitle(label: string) {
 }
 
 const columns: ColumnsType<ModelDrawObjectItem> = [
-  { title: requiredColumnTitle('类别ID'), key: 'class_key', width: 88 },
-  { title: requiredColumnTitle('类别标签'), key: 'class_label', width: 104, ellipsis: true },
-  { title: '描述文本', key: 'label', width: 112, ellipsis: true },
-  { title: '颜色', key: 'color', width: 56, align: 'center' },
-  { title: '是否绘制', key: 'enabled', width: 80, align: 'center' },
-  { title: '操作', key: 'action', width: 72, align: 'center' },
+  { title: requiredColumnTitle('类别ID'), key: 'class_key', width: 72 },
+  { title: requiredColumnTitle('类别标签'), key: 'class_label', width: 80, ellipsis: true },
+  { title: '描述文本', key: 'label', width: 80, ellipsis: true },
+  { title: '颜色', key: 'color', width: 48, align: 'center' },
+  { title: '是否绘制', key: 'enabled', width: 72, align: 'center' },
+  { title: '操作', key: 'action', width: 88, align: 'center' },
 ];
 
 function validateSection(): boolean {
@@ -463,36 +469,41 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
 
 <style lang="less" scoped>
 .draw-object-section {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: none;
-  height: 100%;
-  min-height: 0;
+  min-width: 0;
+  min-height: 100%;
+}
+
+.section-header {
+  flex-shrink: 0;
+  margin-bottom: 20px;
 }
 
 .draw-object-layout {
   display: flex;
+  align-items: stretch;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .draw-object-left {
-  flex: 0 0 520px;
-  width: 520px;
-  max-width: 520px;
+  flex: 1 1 50%;
   min-width: 0;
 }
 
 .draw-object-right {
-  flex: 1;
-  min-width: 360px;
-  min-height: 0;
-  height: 100%;
+  flex: 1 1 50%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  padding-right: 16px;
+  box-sizing: border-box;
 }
 
 .required-star {
@@ -501,16 +512,41 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
 }
 
 .draw-object-table {
+  :deep(.ant-table-wrapper) {
+    overflow: visible !important;
+  }
+
+  :deep(.ant-table-wrapper),
+  :deep(.ant-table) {
+    width: 100%;
+  }
+
   :deep(.ant-table) {
     font-size: 12px;
+    table-layout: fixed;
+  }
+
+  :deep(.ant-table-container),
+  :deep(.ant-table-content),
+  :deep(.ant-table-body) {
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-table table) {
+    table-layout: fixed;
+    width: 100% !important;
   }
 
   :deep(.ant-table-thead > tr > th),
   :deep(.ant-table-tbody > tr > td) {
-    padding: 8px 6px;
+    padding: 8px 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   :deep(.cell-input) {
+    width: 100%;
     font-size: 12px;
   }
 }
@@ -540,7 +576,7 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
   }
 
   .action-done {
-    color: #1677ff;
+    color: @mix-brand-color;
   }
 }
 
@@ -617,6 +653,7 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
 }
 
 .preview-btn {
+  align-self: center;
   margin-top: 12px;
 }
 </style>

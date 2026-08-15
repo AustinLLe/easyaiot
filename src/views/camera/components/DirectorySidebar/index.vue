@@ -39,12 +39,12 @@
               >
                 <Icon
                   :icon="isAllExpanded ? 'ant-design:down-outlined' : 'ant-design:right-outlined'"
-                  :style="{ fontSize: '12px', color: '#666' }"
+                  class="expand-icon-svg"
                 />
               </span>
               <Icon
                 icon="ant-design:folder-outlined"
-                :style="{ fontSize: '16px', color: '#1890ff', marginRight: '8px' }"
+                class="folder-icon"
               />
               <span class="node-name">全部</span>
             </div>
@@ -371,20 +371,21 @@ onMounted(async () => {
   width: 260px;
   flex-shrink: 0;
   align-self: stretch;
-  min-height: 100%;
+  min-height: 100vh;
   background: #fff;
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid @mix-stroke-color;
   border-radius: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
   .sidebar-tree {
     flex: 1;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 16px 12px;
+    padding: 20px 12px 16px;
 
     .tree-header {
       margin-bottom: 8px;
@@ -399,7 +400,8 @@ onMounted(async () => {
       .tree-header-title {
         font-size: 14px;
         font-weight: 600;
-        color: #050708;
+        line-height: 20px;
+        color: @mix-rail-text;
         margin-bottom: 0;
       }
 
@@ -410,11 +412,11 @@ onMounted(async () => {
         width: 28px;
         height: 28px;
         padding: 0;
-        color: #1677ff;
+        color: @mix-brand-color;
 
         &:hover {
-          color: #4096ff;
-          background: rgba(22, 119, 255, 0.08);
+          color: @mix-brand-color;
+          background: @mix-highlight-bg;
         }
       }
     }
@@ -435,17 +437,24 @@ onMounted(async () => {
         padding: 8px 12px;
         margin-bottom: 2px;
         cursor: pointer;
-        border-radius: 4px;
-        font-weight: 500;
-        transition: background-color 0.2s;
+        border-radius: @mix-menu-radius;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        color: @mix-rail-text;
+        transition: background-color 0.2s, color 0.2s;
 
         &:hover {
-          background-color: #f5f5f5;
+          background-color: @mix-highlight-bg;
         }
 
         &.node-selected {
-          background-color: #e6f7ff;
-          border-left: 3px solid #1890ff;
+          color: @mix-brand-color;
+          background-color: @mix-highlight-bg;
+
+          .folder-icon {
+            color: @mix-brand-color !important;
+          }
         }
 
         .node-left {
@@ -464,9 +473,24 @@ onMounted(async () => {
           margin-right: 4px;
           cursor: pointer;
 
-          &:hover {
-            color: #1890ff !important;
+          &:hover .expand-icon-svg {
+            color: @mix-brand-color !important;
           }
+        }
+
+        .expand-icon-svg {
+          font-size: 12px;
+          color: @mix-rail-text-secondary;
+        }
+
+        .folder-icon {
+          margin-right: 8px;
+          font-size: 16px;
+          color: @mix-rail-text-secondary;
+        }
+
+        &.node-selected .folder-icon {
+          color: @mix-brand-color !important;
         }
 
         .node-name {

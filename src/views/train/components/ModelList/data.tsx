@@ -37,12 +37,6 @@ export function getBasicColumns(): BasicColumn[] {
       customRender: ({ text }) => text || '--',
     },
     {
-      title: '创建时间',
-      dataIndex: 'created_at',
-      width: 150,
-      customRender: ({ text }) => formatDateTime(text),
-    },
-    {
       title: '更新时间',
       dataIndex: 'updated_at',
       width: 150,

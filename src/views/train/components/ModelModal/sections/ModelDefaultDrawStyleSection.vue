@@ -1,5 +1,10 @@
 <template>
   <div class="draw-style-section">
+    <div class="section-header">
+      <h3>绘制样式</h3>
+      <p>配置检测区域、对象框和标题的默认绘制样式，创建算法任务时会自动带入。</p>
+    </div>
+
     <div class="draw-style-layout">
       <div class="draw-style-left">
         <div class="section-toolbar">
@@ -182,38 +187,43 @@ function handlePreview() {
 
 <style lang="less" scoped>
 .draw-style-section {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: none;
-  height: 100%;
-  min-height: 0;
+  min-width: 0;
+  min-height: 100%;
+}
+
+.section-header {
+  flex-shrink: 0;
+  margin-bottom: 20px;
 }
 
 .draw-style-layout {
   display: flex;
+  align-items: stretch;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .draw-style-left {
-  flex: 0 0 420px;
-  width: 420px;
-  max-width: 420px;
-  min-height: 0;
+  flex: 1 1 50%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .draw-style-right {
-  flex: 1;
-  min-width: 280px;
-  min-height: 0;
+  flex: 1 1 50%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  padding-right: 16px;
+  box-sizing: border-box;
 }
 
 .section-toolbar {
@@ -224,13 +234,9 @@ function handlePreview() {
 }
 
 .style-card-list {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 .preview-wrap {
@@ -285,6 +291,7 @@ function handlePreview() {
 }
 
 .preview-btn {
+  align-self: center;
   margin-top: 12px;
 }
 </style>

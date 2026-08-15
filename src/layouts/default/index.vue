@@ -7,7 +7,7 @@ import LayoutContent from './content/index.vue'
 import LayoutSideBar from './sider/index.vue'
 import LayoutMultipleHeader from './header/MultipleHeader.vue'
 import ResourceProtectionNotice from './ResourceProtectionNotice.vue'
-import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
+import LayoutFooter from './footer/index.vue'
 
 import { useHeaderSetting } from '@/hooks/setting/useHeaderSetting'
 import { useMenuSetting } from '@/hooks/setting/useMenuSetting'
@@ -17,19 +17,18 @@ import { useLockPage } from '@/hooks/web/useLockPage'
 import { useAppInject } from '@/hooks/web/useAppInject'
 
 import { useMultipleTabSetting } from '@/hooks/setting/useMultipleTabSetting'
+import { useFullContent } from '@/hooks/web/useFullContent'
 
 defineOptions({ name: 'DefaultLayout' })
-
-const LayoutFeatures = createAsyncComponent(() => import('@/layouts/default/feature/index.vue'))
-const LayoutFooter = createAsyncComponent(() => import('@/layouts/default/footer/index.vue'))
 
 const { prefixCls } = useDesign('default-layout')
 const { getIsMobile } = useAppInject()
 const { getShowFullHeaderRef } = useHeaderSetting()
 const { getShowSidebar, getIsMixSidebar, getShowMenu } = useMenuSetting()
+const { getFullContent } = useFullContent()
+
 const { getAutoCollapse } = useMultipleTabSetting()
 
-// Create a lock screen monitor
 const lockEvents = useLockPage()
 
 const layoutClass = computed(() => {
@@ -45,11 +44,22 @@ const layoutClass = computed(() => {
 </script>
 
 <template>
-  <Layout :class="prefixCls" v-bind="lockEvents">
+  <Layout :class="[prefixCls, { [`${prefixCls}--mix-shell`]: getIsMixSidebar, [`${prefixCls}--mix-full`]: getIsMixSidebar && getFullContent }]" v-bind="lockEvents">
     <ResourceProtectionNotice />
-<!--    <LayoutFeatures />-->
-    <LayoutHeader v-if="getShowFullHeaderRef" fixed />
-    <Layout :class="[layoutClass, `${prefixCls}-out`]">
+    <LayoutHeader v-if="!getIsMixSidebar && getShowFullHeaderRef" fixed />
+    <div v-if="getIsMixSidebar" :class="[`${prefixCls}-shell`, { [`${prefixCls}-shell--full`]: getFullContent }]">
+      <div :class="`${prefixCls}-shell-row`">
+        <div v-show="!getFullContent" :class="`${prefixCls}-sidebar-slot`">
+          <LayoutSideBar v-if="getShowSidebar || getIsMobile" />
+        </div>
+        <Layout :class="`${prefixCls}-main`">
+          <LayoutMultipleHeader v-show="!getFullContent" />
+          <LayoutContent />
+          <LayoutFooter v-show="!getFullContent" />
+        </Layout>
+      </div>
+    </div>
+    <Layout v-else :class="[layoutClass, `${prefixCls}-out`]">
       <LayoutSideBar v-if="getShowSidebar || getIsMobile" />
       <Layout :class="`${prefixCls}-main`">
         <LayoutMultipleHeader />
@@ -68,7 +78,7 @@ const layoutClass = computed(() => {
     flex-direction: column;
     width: 100%;
     min-height: 100%;
-    background-color: @content-bg;
+    background-color: @mix-page-bg;
 
     > .ant-layout {
       min-height: 100%;
@@ -76,7 +86,68 @@ const layoutClass = computed(() => {
 
     &-main {
       width: 100%;
-      margin-left: 1px;
+      margin-left: 0;
+    }
+  }
+
+  .@{prefix-cls}--mix-full {
+    min-height: 100vh;
+    background-color: #070b16;
+
+    .@{prefix-cls}-shell,
+    .@{prefix-cls}-shell-row {
+      min-height: 100vh;
+    }
+
+    .@{prefix-cls}-main {
+      background: transparent;
+    }
+
+    .@{namespace}-layout-content {
+      min-height: 100vh;
+      padding: 0;
+    }
+  }
+
+  .@{prefix-cls}--mix-shell {
+    min-height: 100vh;
+    background-color: @mix-page-bg;
+
+    .@{prefix-cls}-shell {
+      min-height: 100vh;
+      padding: 0;
+      background-color: @mix-page-bg;
+    }
+
+    .@{prefix-cls}-shell-row {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      min-height: 100vh;
+      background-color: @mix-page-bg;
+    }
+
+    .@{prefix-cls}-sidebar-slot {
+      flex-shrink: 0;
+      order: 0;
+      height: 100vh;
+      background-color: @mix-rail-sidebar-bg;
+    }
+
+    .@{prefix-cls}-main {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      order: 1;
+      min-width: 0;
+      background: @mix-page-bg;
+    }
+
+    .@{namespace}-layout-multiple-header--fixed {
+      position: sticky;
+      top: 0;
+      z-index: @layout-header-fixed-z-index;
+      width: 100% !important;
     }
   }
 

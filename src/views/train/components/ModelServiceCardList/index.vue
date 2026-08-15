@@ -1,9 +1,9 @@
 <template>
   <div class="model-card-list-wrapper p-2">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
+    <div class="p-4" style="margin-bottom: 10px">
       <BasicForm @register="registerForm" @reset="handleSubmit"/>
     </div>
-    <div class="p-2 bg-white">
+    <div class="p-2">
       <Spin :spinning="state.loading">
         <List
           :grid="{ gutter: 2, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 6 }"
@@ -12,11 +12,8 @@
         >
           <template #header>
             <div
-              style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;"
+              style="display: flex;align-items: center;justify-content: flex-end;flex-direction: row;"
             >
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">
-                模型服务列表
-              </span>
               <div class="space-x-2">
                 <slot name="header"></slot>
               </div>

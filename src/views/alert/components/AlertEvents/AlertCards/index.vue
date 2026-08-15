@@ -1,127 +1,125 @@
 <template>
-  <div class="alert-card-list-wrapper p-2">
-    <div class="p-4 bg-white" style="margin-bottom: 10px">
-      <BasicForm @register="registerForm" />
+  <div class="alert-card-list-wrapper">
+    <div class="alert-card-list-form p-4">
+      <BasicForm @register="registerForm" @reset="handleSubmit" />
     </div>
 
-    <div class="p-2 bg-white">
+    <div class="alert-card-list-body">
       <Spin :spinning="state.loading">
         <List
           :split="false"
-          :grid="{ gutter: 2, xs: 1, sm: 2, md: 4, lg: 4, xl: 4, xxl: 4 }"
+          :grid="{ gutter: 15, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }"
           :data-source="data"
           :pagination="paginationProp"
         >
           <template #header>
-            <div
-              style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;"
-            >
-              <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;"
-                >报警记录</span
-              >
-              <div class="space-x-2">
-                <slot name="header"></slot>
+            <div class="list-header">
+              <div class="list-header__actions">
+                <slot name="header" />
               </div>
             </div>
           </template>
 
           <template #renderItem="{ item }">
-            <ListItem class="alert-item normal">
-              <Checkbox
-                class="card-select"
-                :checked="isSelected(item.id)"
-                @change="(e) => toggleSelect(item, e.target.checked)"
-              />
-
-              <div class="card-inner">
-                <div class="alert-img-left" @click="handleViewImage(item)">
-                  <img
-                    v-if="isSnapshotVisible(item)"
-                    :src="getSnapshotUrl(item)"
-                    alt="报警截图"
-                    class="img"
-                    @error="() => markSnapshotBroken(item.id)"
-                  />
-                  <span v-else class="snapshot-empty">无截图</span>
+            <ListItem class="alert-card-item">
+              <article class="alert-capability-card">
+                <Checkbox
+                  class="card-select"
+                  :checked="isSelected(item.id)"
+                  @change="(e) => toggleSelect(item, e.target.checked)"
+                />
+                <div class="card-top">
+                  <div class="card-image" @click="handleViewImage(item)">
+                    <img
+                      v-if="isSnapshotVisible(item)"
+                      :src="getSnapshotUrl(item)"
+                      alt="报警截图"
+                      @error="() => markSnapshotBroken(item.id)"
+                    />
+                    <span v-else class="snapshot-empty">无截图</span>
+                  </div>
+                  <div class="card-head">
+                    <div class="card-title-row">
+                      <h3 class="card-title" :title="item.event || '未知事件'">
+                        {{ item.event || '未知事件' }}
+                      </h3>
+                      <i
+                        class="card-severity"
+                        :class="`card-severity--${resolveSeverityLevel(item).color}`"
+                      >
+                        {{ resolveSeverityLevel(item).label }}
+                      </i>
+                    </div>
+                    <div class="alert-meta">
+                      <div class="alert-meta__line">
+                        <span class="alert-meta__label">摄像头</span>
+                        <span class="alert-meta__text">{{ item.device_name || '--' }}</span>
+                      </div>
+                      <div class="alert-meta__line">
+                        <span class="alert-meta__label">报警规则</span>
+                        <span class="alert-meta__text">{{ resolveRuleName(item) }}</span>
+                      </div>
+                      <div class="alert-meta__line">
+                        <span class="alert-meta__label">报警描述</span>
+                        <span class="alert-meta__text">{{ resolveAlertDescription(item) }}</span>
+                      </div>
+                      <div class="alert-meta__line">
+                        <span class="alert-meta__label">报警时间</span>
+                        <span class="alert-meta__text">{{ formatTime(item.time) }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <div class="alert-info-main">
-                  <div class="title-row">
-                    <div class="title o2">{{ item.event || '未知事件' }}</div>
-                    <Tag :color="resolveSeverityLevel(item).color" class="severity-tag">
-                      {{ resolveSeverityLevel(item).label }}
-                    </Tag>
+                <div class="card-action-row">
+                  <div class="card-status-row">
+                    <div class="alert-meta__line">
+                      <span class="alert-meta__label">处理状态</span>
+                      <Select
+                        size="small"
+                        :bordered="false"
+                        class="status-select"
+                        :value="getProcessStatus(item, uiState).value"
+                        :options="PROCESS_STATUS_OPTIONS"
+                        :get-popup-container="getPopupContainer"
+                        @click.stop
+                        @change="(val) => onProcessChange(item, val as UiProcessStatus)"
+                      />
+                    </div>
+                    <div class="alert-meta__line">
+                      <span class="alert-meta__label">归档状态</span>
+                      <Select
+                        size="small"
+                        :bordered="false"
+                        class="status-select"
+                        :value="getArchiveStatus(item, uiState).value"
+                        :options="ARCHIVE_STATUS_OPTIONS"
+                        :get-popup-container="getPopupContainer"
+                        @click.stop
+                        @change="(val) => onArchiveChange(item, val as UiArchiveStatus)"
+                      />
+                    </div>
                   </div>
-                  <div class="meta-line">
-                    <span class="meta-label">摄像头：</span>
-                    <span class="meta-value">{{ item.device_name || '-' }}</span>
-                  </div>
-                  <div class="meta-line">
-                    <span class="meta-label">报警规则：</span>
-                    <span class="meta-value">{{ resolveRuleName(item) }}</span>
-                  </div>
-                  <div class="meta-line">
-                    <span class="meta-label">报警描述：</span>
-                    <span class="meta-value meta-desc">{{ resolveAlertDescription(item) }}</span>
-                  </div>
-                  <div class="meta-line">
-                    <span class="meta-label">报警时间：</span>
-                    <span class="meta-value">{{ formatTime(item.time) }}</span>
-                  </div>
-                  <div class="meta-line meta-status">
-                    <span class="meta-label">处理状态：</span>
-                    <Select
-                      size="small"
-                      :bordered="false"
-                      class="status-select"
-                      :value="getProcessStatus(item, uiState).value"
-                      :options="PROCESS_STATUS_OPTIONS"
-                      :get-popup-container="getPopupContainer"
-                      @click.stop
-                      @change="(val) => onProcessChange(item, val as UiProcessStatus)"
-                    />
-                  </div>
-                  <div class="meta-line meta-status">
-                    <span class="meta-label">归档状态：</span>
-                    <Select
-                      size="small"
-                      :bordered="false"
-                      class="status-select"
-                      :value="getArchiveStatus(item, uiState).value"
-                      :options="ARCHIVE_STATUS_OPTIONS"
-                      :get-popup-container="getPopupContainer"
-                      @click.stop
-                      @change="(val) => onArchiveChange(item, val as UiArchiveStatus)"
-                    />
-                  </div>
-
-                  <div class="card-actions-wrap">
-                    <div class="btns">
-                    <div
-                      class="btn"
-                      :class="{ disabled: !canViewVideo(item) }"
+                  <div class="card-action-btns">
+                    <button
+                      type="button"
+                      class="card-action-btn"
+                      :class="{ 'card-action-btn--disabled': !canViewVideo(item) }"
                       :title="getVideoButtonTitle(item)"
                       @click="handleViewVideo(item)"
                     >
-                      <Icon icon="ant-design:play-circle-outlined" :size="15" color="#3B82F6" />
-                    </div>
-                    <div class="btn" title="推送" @click="onPush(item)">
-                      <Icon icon="ant-design:send-outlined" :size="15" color="#3B82F6" />
-                    </div>
-                    <Popconfirm
-                      title="是否确认删除？"
-                      ok-text="是"
-                      cancel-text="否"
-                      @confirm="onDelete(item)"
-                    >
-                      <div class="btn" title="删除">
-                        <Icon icon="material-symbols:delete-outline-rounded" :size="15" color="#DC2626" />
-                      </div>
+                      播放
+                    </button>
+                    <button type="button" class="card-action-btn" @click="onPush(item)">
+                      推送
+                    </button>
+                    <Popconfirm title="是否确认删除？" ok-text="是" cancel-text="否" @confirm="onDelete(item)">
+                      <button type="button" class="card-action-btn" @click.stop>
+                        删除
+                      </button>
                     </Popconfirm>
-                    </div>
                   </div>
                 </div>
-              </div>
+              </article>
             </ListItem>
           </template>
         </List>
@@ -133,9 +131,8 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref, watch } from 'vue';
 import { usePermission } from '@/hooks/web/usePermission';
-import { Checkbox, List, Popconfirm, Select, Spin, Tag } from 'ant-design-vue';
+import { Checkbox, List, Popconfirm, Select, Spin } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
-import { Icon } from '@/components/Icon';
 import { propTypes } from '@/utils/propTypes';
 import { isFunction } from '@/utils/is';
 import { useMessage } from '@/hooks/web/useMessage';
@@ -210,6 +207,7 @@ const brokenSnapshotIds = ref<Set<number>>(new Set());
 
 const [registerForm, { validate }] = useForm({
   ...getFormConfig(),
+  showAdvancedButton: false,
   autoSubmitOnEnter: true,
   submitFunc: handleSubmit,
 });
@@ -287,7 +285,7 @@ function hideLoading() {
 }
 
 const page = ref(1);
-const pageSize = ref(7);
+const pageSize = ref(9);
 const total = ref(0);
 const paginationProp = ref({
   showSizeChanger: false,
@@ -394,177 +392,241 @@ function isSnapshotVisible(item: Record<string, any>) {
 </script>
 
 <style lang="less" scoped>
+@card-brand: #2457a7;
+@card-border: #e1e7f0;
+@card-muted: #778397;
+
 .alert-card-list-wrapper {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overflow-x: hidden;
+
+  :deep(.ant-form) {
+    background: transparent;
+  }
+
+  :deep(.ant-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.ant-row) {
+    align-items: center;
+  }
+
+  :deep(.ant-input),
+  :deep(.ant-input-affix-wrapper),
+  :deep(.ant-select-selector),
+  :deep(.ant-picker) {
+    background-color: #fff !important;
+  }
+
   :deep(.ant-list-header) {
-    border-block-end: 0;
     padding-top: 0;
-    padding-bottom: 8px;
+    padding-bottom: 12px;
+    background: transparent;
+    border-block-end: 0;
   }
 
   :deep(.ant-list) {
-    padding: 8px;
+    padding: 0;
+    background: transparent;
+    overflow-x: hidden;
   }
 
-  :deep(.ant-list-item) {
-    margin: 8px;
+  :deep(.ant-list-grid .ant-row) {
+    row-gap: 15px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  :deep(.ant-list-grid .ant-col) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  :deep(.alert-card-item) {
+    margin: 0;
+    padding: 0;
     border-block-end: none !important;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-4px);
-    }
   }
 
-  :deep(.alert-item) {
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    padding: 12px 16px;
-    position: relative;
-    background-color: #fff;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 104% 104%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 200px;
-    height: 100%;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+  :deep(.ant-list-pagination) {
+    margin: 12px 16px 16px;
+    text-align: right;
+  }
+}
 
-    &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      transform: translateY(-2px);
-      border-color: rgba(59, 130, 246, 0.2);
-    }
+.alert-card-list-form {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
 
-    &.normal {
-      background-image: url('@/assets/images/product/blue-bg.719b437a.png');
-    }
+.alert-card-list-body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 
-    &.error {
-      background-image: url('@/assets/images/product/red-bg.101af5ac.png');
-    }
+.list-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  &__actions {
+    width: 100%;
+  }
+}
+
+.alert-capability-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 19px 19px 19px 42px;
+  background: #fff;
+  border: 1px solid @card-border;
+  border-radius: 15px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    border-color: #cfd8e6;
+    box-shadow: 0 6px 18px rgb(36 87 167 / 6%);
   }
 }
 
 .card-select {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 19px;
+  left: 12px;
   z-index: 2;
 }
 
-.card-inner {
+.card-top {
   display: flex;
-  gap: 16px;
   align-items: stretch;
-  height: 100%;
-  padding-left: 22px;
-  min-height: 100px;
+  gap: 16px;
+  min-width: 0;
 }
 
-.alert-img-left {
+.card-image {
   flex-shrink: 0;
-  align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  height: 100px;
-  border-radius: 8px;
+  width: 168px;
+  min-height: 128px;
   overflow: hidden;
-  background: #f5f5f5;
+  border-radius: 12px;
+  background: #f5f7fb;
   cursor: pointer;
 
-  .img {
+  img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
   .snapshot-empty {
+    color: @card-muted;
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
   }
 }
 
-.alert-info-main {
+.card-head {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding-top: 2px;
-  padding-bottom: 0;
-  min-height: 100px;
+  gap: 10px;
 }
 
-.title-row {
+.card-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  min-width: 0;
 }
 
-.title {
+.card-title {
   flex: 1;
   min-width: 0;
+  margin: 0;
+  overflow: hidden;
   font-size: 16px;
   font-weight: 600;
-  color: #050708;
-  line-height: 20px;
-  overflow: hidden;
+  line-height: 1.35;
+  color: #26354e;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.severity-tag {
+.card-severity {
   flex-shrink: 0;
-  margin: 0;
-  font-size: 12px;
-  line-height: 20px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.meta-line {
+.card-severity--red {
+  background: rgb(220 38 38 / 8%);
+  color: #dc2626;
+}
+
+.card-severity--orange {
+  background: rgb(234 88 12 / 8%);
+  color: #ea580c;
+}
+
+.card-severity--gold {
+  background: rgb(36 87 167 / 8%);
+  color: @card-brand;
+}
+
+.alert-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.alert-meta__line {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  line-height: 18px;
-  margin-bottom: 5px;
-}
-
-.meta-label {
-  flex-shrink: 0;
-  color: #8b8b8b;
-}
-
-.meta-value {
+  gap: 8px;
   min-width: 0;
-  color: #4b5563;
+}
+
+.alert-meta__label {
+  flex-shrink: 0;
+  color: @card-muted;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.alert-meta__text {
+  min-width: 0;
   overflow: hidden;
+  color: #435169;
+  font-size: 12px;
+  line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.meta-status {
-  justify-content: space-between;
-}
-
-.meta-status:last-of-type {
-  margin-bottom: 4px;
-}
-
-.card-actions-wrap {
-  margin-top: auto;
-  align-self: flex-start;
-  padding-top: 10px;
-  background: #fff;
-  border-radius: 0 0 8px 8px;
 }
 
 .status-select {
   flex: 1;
+  min-width: 0;
   max-width: 120px;
-  margin-left: auto;
 
   :deep(.ant-select-selector) {
     border: none !important;
@@ -577,56 +639,71 @@ function isSnapshotVisible(item: Record<string, any>) {
 
   :deep(.ant-select-selection-item) {
     padding-inline-end: 14px !important;
-    color: #4b5563;
-    font-size: 13px;
+    color: #435169;
+    font-size: 12px;
     line-height: 18px;
   }
 
   :deep(.ant-select-arrow) {
     right: 0;
     font-size: 10px;
-    color: #666;
+    color: @card-muted;
   }
 }
 
-.btns {
+.card-action-row {
   display: flex;
-  width: fit-content;
-  height: 28px;
-  box-sizing: border-box;
-  border-radius: 45px;
-  justify-content: space-around;
-  padding: 0 10px;
+  flex-wrap: nowrap;
+  gap: 12px;
   align-items: center;
-  overflow: hidden;
-  border: 2px solid #266cfbff;
+  justify-content: space-between;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid #edf0f5;
+}
 
-  :deep(.ant-popconfirm) {
-    display: inline-flex;
-    align-items: center;
-    line-height: 1;
+.card-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  min-width: 0;
+}
+
+.card-action-btns {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  color: @card-brand;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: 0;
+
+  &:hover {
+    opacity: 0.82;
   }
 
-  .btn {
-    width: 28px;
-    height: 100%;
-    text-align: center;
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
+  &--disabled {
+    color: #9aa6b8;
+    cursor: not-allowed;
 
-    & + .btn {
-      border-left: 1px solid #e2e2e2;
-    }
-
-    &.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      pointer-events: none;
+    &:hover {
+      opacity: 1;
     }
   }
+}
+
+:deep(.ant-popconfirm) {
+  display: inline-flex;
 }
 </style>

@@ -116,7 +116,7 @@ function clearSchedule() {
 }
 
 function toggleDayEnabled(day: number, enabled: boolean) {
-  schedule.value[day] = enabled ? new Array(24).fill(1) : new Array(24).fill(0)
+  schedule.value[day] = Array.from({ length: 24 }, () => enabled ? 1 : 0)
   markDirty()
 }
 
@@ -132,7 +132,7 @@ function copyDayToAll(sourceDay: number) {
 }
 
 function clearDay(day: number) {
-  schedule.value[day] = new Array(24).fill(0)
+  schedule.value[day] = Array.from({ length: 24 }, () => 0)
   markDirty()
 }
 
@@ -211,12 +211,12 @@ onUnmounted(() => {
 
     <template v-if="!fullDayDefense">
       <Alert
-        type="info"
         show-icon
-        message="该布防模板按周一至周日循环生效；后端当前不支持按自然周保存不同模板。"
+        type="warning"
+        message="该布防模板按周一至周日循环生效"
         class="schedule-contract-tip"
       />
-      <div class="toolbar toolbar-under-full-day">
+      <div class="toolbar">
         <Button type="primary" size="small" :disabled="disabled" @click="saveSchedule">
           应用布防时段
         </Button>
@@ -315,12 +315,24 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
-.toolbar-under-full-day {
-  margin-top: -8px;
-  margin-bottom: 16px;
+.schedule-contract-tip {
+  margin: 0 0 12px;
+  background: #eaf0fb !important;
+  border: 1px solid #b8d2f1 !important;
+
+  :deep(.ant-alert-icon),
+  :deep(.ant-alert-message) {
+    color: @mix-brand-color;
+  }
+}
+
+.dirty-tip {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
 }
 
 .saved-weeks {
@@ -391,15 +403,15 @@ onUnmounted(() => {
   }
 
   &.active {
-    background: #1677ff;
+    background: @mix-brand-color;
   }
 
   &:hover {
-    background: #69b1ff;
+    background: #6f9bd2;
   }
 
   &.active:hover {
-    background: #0958d9;
+    background: #1d478c;
   }
 }
 
@@ -423,7 +435,7 @@ onUnmounted(() => {
 
   .action-icon {
     font-size: 15px;
-    color: #1677ff;
+    color: @mix-brand-color;
     cursor: pointer;
 
     &.disabled {
@@ -432,7 +444,7 @@ onUnmounted(() => {
     }
 
     &:hover:not(.disabled) {
-      color: #0958d9;
+      color: #1d478c;
     }
   }
 }

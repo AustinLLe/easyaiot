@@ -17,9 +17,9 @@ onMounted(() => recordSpaceRef.value?.refresh?.())
 
 <style lang="less" scoped>
 .camera-sub-page {
-  height: calc(100vh - 96px);
+  height: 100vh;
   padding: 16px 19px 16px 15px;
-  background: #fff;
+  background: transparent;
   overflow: hidden;
   box-sizing: border-box;
   display: flex;

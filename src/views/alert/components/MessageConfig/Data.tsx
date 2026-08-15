@@ -24,7 +24,7 @@ export const getTableColumns = () => {
       customRender: ({record}) => record?.configurationMap?.mailFrom || '-',
     },
     {
-      width: 90,
+      width: 64,
       title: '默认',
       dataIndex: 'isDefault',
       align: 'center',
@@ -33,7 +33,7 @@ export const getTableColumns = () => {
         : '-',
     },
     {
-      width: 180,
+      width: 260,
       title: '操作',
       dataIndex: 'action',
       align: 'center',

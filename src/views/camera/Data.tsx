@@ -20,15 +20,12 @@ export function getBasicColumns(): BasicColumn[] {
       width: 120,
     },
     {
-      title: '推流状态',
+      title: '在线状态',
       dataIndex: 'online',
       width: 60,
-      customRender: ({text, record}) => {
-        const status = record.stream_status || (text ? 'pushing' : 'not_pushing');
-        const label = status === 'pushing' ? '推流中' : status === 'unknown' ? '状态未知' : '未推流';
-        const color = status === 'pushing' ? 'green' : status === 'unknown' ? 'orange' : 'red';
+      customRender: ({text}) => {
         return <Tag
-          color={color}>{label}</Tag>;
+          color={text ? 'green' : 'red'}>{text ? '在线' : '离线'}</Tag>;
       },
     },
     {
@@ -46,18 +43,19 @@ export function getBasicColumns(): BasicColumn[] {
       dataIndex: 'port',
       width: 60,
     },
+    // 暂时隐藏拉流/推流地址列
+    // {
+    //   title: '拉流地址',
+    //   dataIndex: 'source',
+    //   width: 70,
+    // },
+    // {
+    //   title: '推流地址',
+    //   dataIndex: 'rtmp_stream',
+    //   width: 70,
+    // },
     {
-      title: '拉流地址',
-      dataIndex: 'source',
-      width: 70,
-    },
-    {
-      title: '推流地址',
-      dataIndex: 'rtmp_stream',
-      width: 70,
-    },
-    {
-      width: 180,
+      width: 240,
       title: '操作',
       dataIndex: 'action',
       align: 'center',
@@ -82,13 +80,13 @@ export function getFormConfig(): Partial<FormProps> {
       },
       {
         field: `online`,
-        label: `推流状态`,
+        label: `在线状态`,
         component: 'Select',
         componentProps: {
           options: [
             {value: '', label: '全部'},
-            {value: true, label: '推流中'},
-            {value: false, label: '未推流'},
+            {value: true, label: '在线'},
+            {value: false, label: '离线'},
           ]
         }
       }

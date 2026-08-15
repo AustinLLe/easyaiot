@@ -1,5 +1,5 @@
 <template>
-  <div class="deploy-service-container bg-white p-6 rounded-xl shadow-lg transition-all duration-300">
+  <div class="deploy-service-container p-6 transition-all duration-300">
     <BasicTable
       v-if="state.isTableMode"
       @register="registerTable"
@@ -417,7 +417,7 @@ const scheduleActionRefresh = (attempts = 30) => {
 };
 
 const [registerTable, {reload, getForm}] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
   title: '',

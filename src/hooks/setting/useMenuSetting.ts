@@ -87,7 +87,7 @@ export function useMenuSetting() {
 
   const getRealWidth = computed(() => {
     if (unref(getIsMixSidebar))
-      return unref(getCollapsed) && !unref(getMixSideFixed) ? unref(getMiniWidthNumber) : unref(getMenuWidth)
+      return unref(getCollapsed) ? unref(getMiniWidthNumber) : unref(getMenuWidth)
 
     return unref(getCollapsed) ? unref(getMiniWidthNumber) : unref(getMenuWidth)
   })
@@ -98,7 +98,6 @@ export function useMenuSetting() {
         ? 0
         : unref(getIsMixSidebar)
           ? (unref(getCollapsed) ? SIDE_BAR_MINI_WIDTH : SIDE_BAR_SHOW_TIT_MINI_WIDTH)
-          + (unref(getMixSideFixed) && unref(mixSideHasChildren) ? unref(getRealWidth) : 0)
           : unref(getRealWidth)
 
     return `calc(100% - ${unref(width)}px)`

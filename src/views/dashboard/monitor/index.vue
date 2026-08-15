@@ -1,6 +1,10 @@
 <template>
-  <div class="overview-dashboard datav-dashboard">
+  <div class="overview-dashboard overview-dashboard--fullscreen datav-dashboard">
     <header class="dashboard-heading">
+      <button type="button" class="back-menu-button" @click="goBackToMenu">
+        <Icon icon="ant-design:arrow-left-outlined" :size="16" />
+        返回菜单
+      </button>
       <div class="heading-title-center">
         <div class="heading-eyebrow">EASYAIOT EDGE</div>
         <h1 class="heading-title">边缘智能算法应用平台</h1>
@@ -276,6 +280,7 @@
 
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Select } from 'ant-design-vue'
 import { BorderBox13, Decoration5 } from '@kjgl77/datav-vue3'
 import { Icon } from '@/components/Icon'
@@ -327,7 +332,13 @@ const emptyPeriod = (label: string): PeriodStatistics => ({
 
 const DECORATION_ANIM_DUR = 2
 
+const router = useRouter()
 const { createMessage } = useMessage()
+
+function goBackToMenu() {
+  router.push('/camera/devices')
+}
+
 const [registerImageModal, { openModal: openImageModal }] = useModal()
 const decorationRef = ref<InstanceType<typeof Decoration5> | null>(null)
 const currentDate = ref('')
@@ -756,6 +767,11 @@ onUnmounted(() => {
   background: #070b16;
   flex-direction: column;
 
+  &--fullscreen {
+    height: 100vh;
+    min-height: 100vh;
+  }
+
   &::before {
     position: absolute;
     inset: 0;
@@ -820,6 +836,31 @@ onUnmounted(() => {
   position: relative;
   margin-bottom: 14px;
   flex-shrink: 0;
+}
+
+.back-menu-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  color: #dce8ff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: rgb(59 130 246 / 12%);
+  border: 1px solid rgb(96 165 250 / 28%);
+  border-radius: 8px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    background: rgb(59 130 246 / 22%);
+    border-color: rgb(96 165 250 / 45%);
+  }
 }
 
 .heading-title-center {
@@ -1473,6 +1514,10 @@ onUnmounted(() => {
     height: auto;
     min-height: calc(100vh - 112px);
     overflow: auto;
+
+    &--fullscreen {
+      min-height: 100vh;
+    }
   }
 
   .dashboard-body {

@@ -10,6 +10,7 @@ import { IconEnum } from '@/enums/appEnum'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { getListSimpleUsers } from '@/api/system/user'
 import { deleteDept, getDeptPage } from '@/api/system/dept'
+import { PageIntro } from '@/components/Page'
 
 defineOptions({ name: 'SystemDept' })
 
@@ -18,7 +19,7 @@ const { createMessage } = useMessage()
 const [registerModal, { openModal }] = useModal()
 
 const [register, { expandAll, collapseAll, getForm, reload }] = useTable({
-  title: '部门列表',
+  title: '',
   api: getList,
   columns,
   rowKey: 'id',
@@ -83,7 +84,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <PageIntro eyebrow="DEPARTMENTS" title="部门管理" desc="维护组织架构与部门负责人。">
     <BasicTable @register="register" @fetch-success="onFetchSuccess">
       <template #toolbar>
         <a-button v-auth="['system:dept:create']" type="primary" :pre-icon="IconEnum.ADD" @click="handleCreate">
@@ -121,5 +122,5 @@ onMounted(async () => {
       </template>
     </BasicTable>
     <DeptModal @register="registerModal" @success="reload()" />
-  </div>
+  </PageIntro>
 </template>

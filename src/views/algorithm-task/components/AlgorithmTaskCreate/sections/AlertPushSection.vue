@@ -51,12 +51,14 @@
             />
           </template>
           <template v-else-if="column.key === 'action'">
-            <Button type="link" size="small" @click="openEdit(index)">
-              {{ readonly ? '查看' : '编辑' }}
-            </Button>
-            <Button v-if="!readonly" type="link" size="small" danger @click="handleDelete(index)">
-              删除
-            </Button>
+            <div class="action-cell">
+              <Button type="link" size="small" @click="openEdit(index)">
+                {{ readonly ? '查看' : '编辑' }}
+              </Button>
+              <Button v-if="!readonly" type="link" size="small" danger @click="handleDelete(index)">
+                删除
+              </Button>
+            </div>
           </template>
         </template>
       </Table>
@@ -113,13 +115,13 @@ const userLabelMap = ref(new Map<number, string>());
 const profileLabelMap = ref(new Map<string, string>());
 
 const tableColumns = computed<ColumnsType<AlertPushDraft>>(() => [
-  { title: '关联规则', key: 'rule_ids', width: '14%', ellipsis: true },
-  { title: '推送名称', dataIndex: 'push_name', key: 'push_name', ellipsis: true },
-  { title: '推送模式', key: 'push_mode', width: '11%', ellipsis: true },
-  { title: '推送渠道/地址', key: 'channels', width: '13%', ellipsis: true },
-  { title: '推送用户', key: 'recipient_user_ids', width: '13%', ellipsis: true },
+  { title: '关联规则', key: 'rule_ids', width: '16%', ellipsis: true },
+  { title: '推送名称', dataIndex: 'push_name', key: 'push_name', width: '14%', ellipsis: true },
+  { title: '推送模式', key: 'push_mode', width: '12%', ellipsis: true },
+  { title: '推送渠道/地址', key: 'channels', width: '14%', ellipsis: true },
+  { title: '推送用户', key: 'recipient_user_ids', width: '14%', ellipsis: true },
   { title: '是否启用', key: 'enabled', width: '10%', align: 'center' },
-  { title: '操作', key: 'action', width: '12%', align: 'center' },
+  { title: '操作', key: 'action', width: 120, align: 'center' },
 ]);
 
 onMounted(async () => {
@@ -211,29 +213,29 @@ function handleEditClose() {
   margin-bottom: 20px;
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   p {
     margin: 0;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
 .alert-push-panel {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .table-toolbar {
   display: flex;
   justify-content: flex-start;
-  padding: 12px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
 }
 
 .alert-push-table {
@@ -246,6 +248,19 @@ function handleEditClose() {
   :deep(.ant-table-cell-ellipsis) {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+.action-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 0;
+
+  :deep(.ant-btn) {
+    padding: 0 4px;
   }
 }
 </style>

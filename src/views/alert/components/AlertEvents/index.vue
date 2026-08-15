@@ -78,7 +78,7 @@
       </template>
     </BasicTable>
 
-    <div v-else>
+    <div v-else class="alert-card-mode">
       <AlertCards
         v-model:selected-ids="gridSelectedIds"
         :api="queryAlarmList"
@@ -215,13 +215,13 @@ const [
   },
 ] = useTable({
   canResize: true,
-  resizeHeightOffset: 36,
+  isCanResizeParent: true,
+  resizeHeightOffset: 8,
   showIndexColumn: false,
   title: '',
   api: queryAlarmList,
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   formConfig: getFormConfig(),
   rowSelection: { type: 'checkbox' },
   pagination: {
@@ -464,7 +464,7 @@ let lastVideoErrorMsg = '';
 const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl)
     return '';
-  const normalized = String(videoUrl).replaceAll('\\', '/').trim();
+  const normalized = String(videoUrl).replaceAll(/\\/g, '/').trim();
   const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {
@@ -557,20 +557,39 @@ async function handleCardDelete(record: Record<string, any>) {
 
 <style lang="less" scoped>
 .alert-log-page {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
   padding: 0 4px;
+
+  > :deep([class*='-basic-table']) {
+    flex: 1;
+    min-height: 0;
+  }
 
   :deep(.ant-table) {
     table-layout: fixed;
     width: 100%;
   }
 
+  :deep(.ant-table-body) {
+    overflow-y: auto !important;
+  }
+
   :deep(.ant-table-cell-ellipsis) {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+}
+
+.alert-card-mode {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .alert-toolbar {

@@ -1,26 +1,30 @@
+<script lang="ts" setup>
+defineOptions({ name: 'PageIntro' })
+
+defineProps({
+  eyebrow: { type: String, required: true },
+  title: { type: String, required: true },
+  desc: { type: String, default: '' },
+})
+</script>
+
 <template>
-  <div class="alert-sub-page">
+  <div class="page-intro">
     <header class="page-header">
       <div>
-        <span class="eyebrow">PUSH HISTORY</span>
-        <h1>推送历史</h1>
-        <p>查看告警推送记录与发送结果。</p>
+        <span class="eyebrow">{{ eyebrow }}</span>
+        <h1>{{ title }}</h1>
+        <p v-if="desc">{{ desc }}</p>
       </div>
     </header>
-    <div class="alert-sub-page__body">
-      <PushHistory />
+    <div class="page-intro__body">
+      <slot />
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import PushHistory from '../components/PushHistory/index.vue'
-
-defineOptions({ name: 'AlertPushHistoryPage' })
-</script>
-
 <style lang="less" scoped>
-.alert-sub-page {
+.page-intro {
   height: 100vh;
   padding: 28px 24px 24px;
   background: transparent;
@@ -54,14 +58,14 @@ defineOptions({ name: 'AlertPushHistoryPage' })
     font-size: 14px;
   }
 
-  .alert-sub-page__body {
+  .page-intro__body {
     flex: 1;
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 
-    > :deep(*) {
+    > :deep(*:first-child) {
       flex: 1;
       min-height: 0;
       overflow: hidden;

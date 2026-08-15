@@ -1,5 +1,12 @@
 <template>
   <div class="algorithm-task-wrapper">
+    <header class="page-header">
+      <div>
+        <span class="eyebrow">ALGORITHM TASKS</span>
+        <h1>算法任务</h1>
+        <p>创建并管理实时、抓拍与轮巡检测任务。</p>
+      </div>
+    </header>
 <div id="algorithm-task">
     <!-- 表格模式 -->
     <BasicTable v-if="viewMode === 'table'" @register="registerTable">
@@ -26,22 +33,20 @@
 
     <!-- 卡片模式 -->
     <div v-else class="algorithm-task-card-list-wrapper p-2">
-      <div class="p-4 bg-white" style="margin-bottom: 10px">
+      <div class="p-4" style="margin-bottom: 10px">
         <BasicForm @register="registerForm" @reset="handleSubmit"/>
       </div>
-      <div class="p-2 bg-white">
+      <div class="p-2">
         <Spin :spinning="loading">
           <List
             :split="false"
-            :grid="{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }"
+            :grid="{ gutter: 15, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }"
             :data-source="taskList"
             :pagination="paginationProp"
           >
             <template #header>
-              <div
-                style="display: flex;align-items: center;justify-content: space-between;flex-direction: row;">
-                <span style="padding-left: 7px;font-size: 16px;font-weight: 500;line-height: 24px;">算法任务列表</span>
-                <div style="display: flex; gap: 8px;">
+              <div class="list-header">
+                <div class="list-header__actions">
                   <a-button v-auth="['algorithm:task:create']" type="primary" @click="handleCreateTask">
                     <PlusOutlined />
                     新建算法任务
@@ -56,67 +61,106 @@
               </div>
             </template>
             <template #renderItem="{ item }">
-              <ListItem :class="item.is_enabled ? 'task-item normal' : 'task-item error'">
-                <div class="task-info">
-                  <div class="status">{{ item.is_enabled ? '运行中' : '已停止' }}</div>
-                  <div class="title o2">{{ item.task_name || item.id }}</div>
-                  <div class="props">
-                    <div class="flex" style="justify-content: space-between;">
-                      <div class="prop">
-                        <div class="label">任务类型</div>
-                        <div class="value">{{ getTaskTypeLabel(item.task_type) }}</div>
+              <ListItem class="task-card-item">
+                <article class="task-capability-card">
+                  <div class="card-top">
+                    <span
+                      class="card-type-badge"
+                      :class="`card-type-badge--${item.task_type || 'realtime'}`"
+                    >
+                      {{ getTaskTypeShortLabel(item.task_type) }}
+                    </span>
+                    <div class="card-head">
+                      <div class="card-title-row">
+                        <h3 class="card-title" :title="item.task_name || item.id">
+                          {{ item.task_name || item.id }}
+                        </h3>
+                        <i class="card-status" :class="{ enabled: item.is_enabled }">
+                          {{ item.is_enabled ? '运行中' : '已停止' }}
+                        </i>
                       </div>
-                    </div>
-                    <div class="flex" style="justify-content: space-between;">
-                      <div class="prop" v-if="item.device_names && item.device_names.length > 0">
-                        <div class="label">关联摄像头</div>
-                        <div class="value" style="display: flex; align-items: center; gap: 4px;">
-                          <span>{{ item.device_names.length > 1 ? item.device_names[0] + '...' : item.device_names[0] }}</span>
-                          <CopyOutlined
-                            :size="14"
-                            color="#666"
-                            style="cursor: pointer; flex-shrink: 0;"
+                      <div class="task-meta">
+                        <div
+                          v-if="item.device_names && item.device_names.length > 0"
+                          class="task-meta__line"
+                        >
+                          <span class="task-meta__label">关联摄像头</span>
+                          <button
+                            type="button"
+                            class="task-meta__value"
                             @click.stop="handleCopyDeviceNames(item)"
-                            :title="'复制所有摄像头名称'"
-                          />
+                          >
+                            <span>{{ getDeviceNamesDisplay(item) }}</span>
+                            <Icon icon="tdesign:copy-filled" :size="13" />
+                          </button>
                         </div>
-                      </div>
-                      <div class="prop">
-                        <div class="label">关联模型</div>
-                        <div class="value">{{ item.model_names || '--' }}</div>
-                      </div>
-                      <div class="prop">
-                        <div class="label">预计内存占用</div>
-                        <div class="value">{{ Number(item.estimated_memory_mib || 0).toFixed(2) }} MiB</div>
-                      </div>
-                      <div class="prop" v-if="item.algorithm_services && item.algorithm_services.length > 0 && !item.model_names">
-                        <div class="label">关联算法服务</div>
-                        <div class="value">{{ item.algorithm_services.map(s => s.service_name).join(', ') }}</div>
+                        <div class="task-meta__line">
+                          <span class="task-meta__label">关联模型</span>
+                          <span class="task-meta__text">{{ item.model_names || '--' }}</span>
+                        </div>
+                        <div class="task-meta__line">
+                          <span class="task-meta__label">预计内存</span>
+                          <span class="task-meta__text">
+                            {{ Number(item.estimated_memory_mib || 0).toFixed(2) }} MiB
+                          </span>
+                        </div>
+                        <div
+                          v-if="item.algorithm_services && item.algorithm_services.length > 0 && !item.model_names"
+                          class="task-meta__line"
+                        >
+                          <span class="task-meta__label">关联算法服务</span>
+                          <span class="task-meta__text">
+                            {{ item.algorithm_services.map(s => s.service_name).join(', ') }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="card-actions-wrap">
-                  <div class="btns">
-                    <div
+                  <div class="card-action-row">
+                    <button
                       v-auth="[item.is_enabled ? 'algorithm:task:stop' : 'algorithm:task:start']"
-                      class="btn"
-                      @click="onCardToggleTask(item)"
+                      type="button"
+                      class="card-action-btn"
                       :title="item.is_enabled ? '停止' : '启动'"
+                      @click="onCardToggleTask(item)"
                     >
-                      <Icon :icon="item.is_enabled ? 'ant-design:pause-circle-outlined' : 'ant-design:play-circle-outlined'" :size="15" color="#3B82F6" />
-                    </div>
-                    <div
+                      <Icon
+                        :icon="item.is_enabled ? 'ant-design:pause-circle-outlined' : 'ant-design:play-circle-outlined'"
+                        :size="15"
+                      />
+                      <span>{{ item.is_enabled ? '停止' : '启动' }}</span>
+                    </button>
+                    <button
+                      v-auth="['algorithm:task:view']"
+                      type="button"
+                      class="card-action-btn"
+                      title="详情"
+                      @click="onCardView(item)"
+                    >
+                      <Icon icon="ant-design:eye-outlined" :size="15" />
+                      <span>详情</span>
+                    </button>
+                    <button
                       v-auth="['algorithm:task:update']"
-                      class="btn"
-                      :class="{ disabled: item.is_enabled }"
-                      @click="onCardEdit(item)"
+                      type="button"
+                      class="card-action-btn"
+                      :class="{ 'card-action-btn--disabled': item.is_enabled }"
                       :title="item.is_enabled ? '任务运行中，无法编辑' : '编辑'"
+                      @click="onCardEdit(item)"
                     >
-                      <Icon icon="ant-design:edit-filled" :size="15" color="#3B82F6" />
-                    </div>
-                    <div class="btn" @click="onCardHeartbeat(item)" title="心跳信息">
-                      <Icon icon="ant-design:heart-outlined" :size="15" color="#3B82F6" />
-                    </div>
+                      <Icon icon="ant-design:edit-outlined" :size="15" />
+                      <span>编辑</span>
+                    </button>
+                    <button
+                      v-auth="['algorithm:task:heartbeat']"
+                      type="button"
+                      class="card-action-btn"
+                      title="心跳"
+                      @click="onCardHeartbeat(item)"
+                    >
+                      <Icon icon="ant-design:heart-outlined" :size="15" />
+                      <span>心跳</span>
+                    </button>
                     <Popconfirm
                       title="是否确认删除？"
                       ok-text="是"
@@ -124,25 +168,19 @@
                       :disabled="item.is_enabled"
                       @confirm="onCardDelete(item)"
                     >
-                      <div
+                      <button
                         v-auth="['algorithm:task:delete']"
-                        class="btn"
-                        :class="{ disabled: item.is_enabled }"
+                        type="button"
+                        class="card-action-btn card-action-btn--danger"
+                        :class="{ 'card-action-btn--disabled': item.is_enabled }"
                         :title="item.is_enabled ? '任务运行中，无法删除' : '删除'"
                       >
-                        <Icon icon="material-symbols:delete-outline-rounded" :size="15" color="#3B82F6" />
-                      </div>
+                        <Icon icon="material-symbols:delete-outline-rounded" :size="15" />
+                        <span>删除</span>
+                      </button>
                     </Popconfirm>
                   </div>
-                  </div>
-                </div>
-                <div class="task-img">
-                  <img
-                    :src="getTaskImage(item.task_type)"
-                    alt="" 
-                    class="img" 
-                    @click="onCardView(item)">
-                </div>
+                </article>
               </ListItem>
             </template>
           </List>
@@ -217,11 +255,10 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import {
   PlusOutlined,
   SwapOutlined,
-  CopyOutlined,
 } from '@ant-design/icons-vue';
 import { List, Popconfirm, Spin, Empty, RadioGroup, Radio, Modal } from 'ant-design-vue';
 import { BasicModal, useModal } from '@/components/Modal';
@@ -267,8 +304,6 @@ import DeviceRegionDetectionDrawer from './components/DeviceRegion/index.vue';
 import SnapSpaceDrawer from './components/SnapSpaceDrawer/index.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 import { getBasicColumns, getFormConfig, normalizeIsEnabledFilter } from './Data';
-import AI_TASK_IMAGE from '@/assets/images/video/ai-task.png';
-import SNAP_TASK_IMAGE from '@/assets/images/video/snap-task.png';
 
 const ListItem = List.Item;
 
@@ -330,15 +365,15 @@ const searchParams = ref<{
 
 // 表格模式配置
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '算法任务列表',
+  title: '',
   api: fetchAlgorithmTaskListMerged,
   beforeFetch: (params) => {
     return {
-      pageNo: params.pageNo ?? params.page ?? 1,
-      pageSize: params.pageSize ?? 10,
+      pageNo: params.page,
+      pageSize: params.pageSize,
       search: params.search || undefined,
       task_type: params.task_type || undefined,
       is_enabled: normalizeIsEnabledFilter(params.is_enabled),
@@ -346,7 +381,6 @@ const [registerTable, { reload }] = useTable({
   },
   columns: getBasicColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   formConfig: getFormConfig(),
   fetchSetting: {
@@ -495,29 +529,33 @@ const handlePageSizeChange = (_current: number, size: number) => {
 };
 
 // 分页配置
-const paginationProp = computed(() => ({
+const paginationProp = ref({
   showSizeChanger: false,
   showQuickJumper: true,
-  pageSize: pageSize.value,
-  current: page.value,
-  total: total.value,
+  pageSize,
+  current: page,
+  total,
   showTotal: (total: number) => `总 ${total} 条`,
   onChange: handlePageChange,
   onShowSizeChange: handlePageSizeChange,
-}));
+});
 
 // 根据任务类型获取图片
-const getTaskImage = (taskType: string) => {
-  return taskType === 'snap' ? SNAP_TASK_IMAGE : AI_TASK_IMAGE;
-};
-
-function getTaskTypeLabel(taskType?: string) {
+function getTaskTypeShortLabel(taskType?: string) {
   const map: Record<string, string> = {
-    realtime: '实时算法任务',
-    snap: '抓拍算法任务',
-    patrol: '轮巡算法任务',
+    realtime: '实时',
+    snap: '抓拍',
+    patrol: '轮巡',
   };
-  return map[taskType ?? ''] ?? '未知任务类型';
+  return map[taskType ?? ''] ?? '未知';
+}
+
+function getDeviceNamesDisplay(item: AlgorithmTask) {
+  if (!item.device_names || item.device_names.length === 0)
+    return '-';
+  if (item.device_names.length > 1)
+    return `${item.device_names[0]}...`;
+  return item.device_names[0];
 }
 
 // 表单提交
@@ -1059,239 +1097,298 @@ onMounted(() => {
   overflow: auto;
   box-sizing: border-box;
 
-  :deep(.ant-list-header) {
-    border-block-end: 0;
+  :deep(.ant-form) {
+    background: transparent;
   }
+
+  :deep(.ant-input),
+  :deep(.ant-input-affix-wrapper),
+  :deep(.ant-select-selector),
+  :deep(.ant-picker) {
+    background-color: #fff !important;
+  }
+
+  @card-brand: #2457a7;
+  @card-border: #e1e7f0;
+  @card-muted: #778397;
+
   :deep(.ant-list-header) {
     padding-top: 0;
-    padding-bottom: 8px;
+    padding-bottom: 12px;
+    background: transparent;
+    border-block-end: 0;
   }
+
   :deep(.ant-list) {
-    padding: 6px;
+    padding: 0;
+    background: transparent;
   }
-  :deep(.ant-list-item) {
-    margin: 6px;
+
+  :deep(.ant-list-grid .ant-row) {
+    row-gap: 15px;
+  }
+
+  :deep(.task-card-item) {
+    margin: 0;
+    padding: 0;
     border-block-end: none !important;
   }
-  :deep(.task-item) {
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+
+    &__title {
+      padding-left: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
+      color: rgb(0 0 0 / 88%);
+    }
+
+    &__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  }
+
+  .task-capability-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    min-height: 0;
+    padding: 19px;
+    background: #fff;
+    border: 1px solid @card-border;
+    border-radius: 15px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      border-color: #cfd8e6;
+      box-shadow: 0 6px 18px rgb(36 87 167 / 6%);
+    }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .card-type-badge {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: @card-brand;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    background: rgb(36 87 167 / 7%);
+
+    &--snap {
+      color: #14845c;
+      background: rgb(20 132 92 / 8%);
+    }
+
+    &--patrol {
+      color: #6b4fbb;
+      background: rgb(107 79 187 / 8%);
+    }
+  }
+
+  .card-head {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .card-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
     overflow: hidden;
-    box-shadow: 0 0 4px #00000026;
-    border-radius: 8px;
-    padding: 16px 0;
-    position: relative;
-    background-color: #fff;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 104% 104%;
-    transition: all 0.5s;
-    min-height: 208px;
-    height: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #26354e;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    &.normal {
-      background-image: url('@/assets/images/product/blue-bg.719b437a.png');
+  .card-status {
+    flex-shrink: 0;
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: #f1f3f7;
+    color: #7e899a;
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1.4;
 
-      .task-info .status {
-        background: #d9dffd;
-        color: #266CFBFF;
-      }
+    &.enabled {
+      background: #e9f7f0;
+      color: #14845c;
     }
 
-    &.error {
-      background-image: url('@/assets/images/product/red-bg.101af5ac.png');
+    &:not(.enabled) {
+      background: #fdeeee;
+      color: #c94b55;
+    }
+  }
 
-      .task-info .status {
-        background: #fad7d9;
-        color: #d43030;
-      }
+  .task-meta {
+    display: grid;
+    gap: 8px;
+  }
+
+  .task-meta__line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .task-meta__label {
+    flex-shrink: 0;
+    color: @card-muted;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .task-meta__text {
+    min-width: 0;
+    overflow: hidden;
+    color: #435169;
+    font-size: 12px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .task-meta__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    color: #435169;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    border: 0;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .task-info {
-      flex-direction: column;
-      max-width: calc(100% - 128px);
-      padding-left: 16px;
-
-      .status {
-        min-width: 90px;
-        height: 25px;
-        border-radius: 6px 0 0 6px;
-        font-size: 12px;
-        font-weight: 500;
-        line-height: 25px;
-        text-align: center;
-        position: absolute;
-        right: 0;
-        top: 16px;
-        padding: 0 8px;
-        white-space: nowrap;
-      }
-
-      .title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #050708;
-        line-height: 20px;
-        height: 40px;
-        padding-right: 90px;
-      }
-
-      .props {
-        margin-top: 10px;
-
-        .prop {
-          flex: 1;
-          margin-bottom: 10px;
-
-          .label {
-            font-size: 12px;
-            font-weight: 400;
-            color: #666;
-            line-height: 14px;
-          }
-
-          .value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #050708;
-            line-height: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 6px;
-          }
-        }
-      }
-
-      .card-actions-wrap {
-        position: absolute;
-        left: 16px;
-        bottom: 16px;
-        padding-top: 6px;
-        background: #fff;
-        border-radius: 8px;
-      }
-
-      .btns {
-        display: flex;
-        width: 220px;
-        height: 28px;
-        box-sizing: border-box;
-        border-radius: 45px;
-        justify-content: space-around;
-        padding: 0 10px;
-        align-items: center;
-        overflow: hidden;
-        border: 2px solid #266cfbff;
-
-        :deep(.ant-popconfirm) {
-          display: inline-flex;
-          align-items: center;
-          line-height: 1;
-        }
-
-        .btn {
-          width: 28px;
-          height: 100%;
-          text-align: center;
-          position: relative;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 1;
-
-          & + .btn {
-            border-left: 1px solid #e2e2e2;
-          }
-
-          :deep(.anticon) {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3B82F6;
-            transition: color 0.3s;
-          }
-
-          &:hover :deep(.anticon) {
-            color: #5BA3F5;
-          }
-
-          &.disabled {
-            cursor: not-allowed;
-            opacity: 0.4;
-
-            :deep(.anticon) {
-              color: #ccc;
-            }
-
-            &:hover :deep(.anticon) {
-              color: #ccc;
-            }
-          }
-
-          &.snap-space-btn {
-            position: relative;
-            
-            :deep(.anticon) {
-              color: #10B981;
-              transition: all 0.3s ease;
-            }
-
-            &:hover:not(.disabled) :deep(.anticon) {
-              color: #059669;
-              transform: scale(1.1);
-            }
-
-            &.disabled {
-              :deep(.anticon) {
-                color: #ccc;
-              }
-            }
-
-            // 添加一个小的背景高亮效果
-            &::after {
-              content: '';
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: rgba(16, 185, 129, 0.1);
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-
-            &:hover:not(.disabled)::after {
-              opacity: 1;
-            }
-          }
-        }
-      }
+    :deep(.app-iconify) {
+      flex-shrink: 0;
+      color: @card-brand;
     }
 
-    .task-img {
-      position: absolute;
-      right: 20px;
-      top: 50px;
-
-      img {
-        cursor: pointer;
-        width: 120px;
-      }
+    &:hover {
+      color: @card-brand;
     }
+  }
+
+  .card-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+    justify-content: flex-end;
+    padding-top: 12px;
+    margin-top: 4px;
+    border-top: 1px solid #edf0f5;
+  }
+
+  .card-action-btn {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0;
+    color: @card-brand;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    background: none;
+    border: 0;
+
+    &:hover:not(.card-action-btn--disabled) {
+      opacity: 0.82;
+    }
+
+    &--danger {
+      color: @card-brand;
+    }
+
+    &--disabled {
+      color: rgba(0, 0, 0, 0.25);
+      cursor: not-allowed;
+      opacity: 1;
+    }
+  }
+
+  :deep(.ant-popconfirm) {
+    display: inline-flex;
   }
 }
 </style>
 
 <style lang="less" scoped>
 .algorithm-task-wrapper {
-  height: calc(100vh - 96px);
-  padding: 16px 19px 0 15px;
+  height: 100vh;
+  padding: 28px 24px 24px;
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+
+  .page-header {
+    flex-shrink: 0;
+    margin-bottom: 22px;
+  }
+
+  .eyebrow {
+    color: #2457a7;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  .page-header h1 {
+    margin: 7px 0 6px;
+    color: #17233d;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .page-header p {
+    margin: 0;
+    color: #7d889a;
+    font-size: 14px;
+  }
 
   #algorithm-task {
     flex: 1;

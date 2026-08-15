@@ -22,9 +22,9 @@ const table = useTableContext()
 
 const getSetting = computed((): TableSetting => {
   return {
-    redo: true,
-    form: true,
-    size: true,
+    redo: false,
+    form: false,
+    size: false,
     setting: true,
     fullScreen: false,
     ...props.setting,

@@ -19,7 +19,7 @@ const modelId = query.modelId
 
 <style lang="less" scoped>
 .train-wrapper {
-  height: calc(100vh - 96px);
+  height: 100vh;
   overflow: hidden;
   box-sizing: border-box;
 

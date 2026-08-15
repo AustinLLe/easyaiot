@@ -1,7 +1,6 @@
 <template>
   <div class="push-settings-page">
     <div class="page-header">
-      <span class="page-title">报警推送</span>
       <div class="header-actions">
         <Button v-auth="['alert:push-settings:create']" type="primary" @click="openCreate">
           <PlusOutlined />
@@ -302,14 +301,14 @@ onMounted(async () => {
 
 <style lang="less" scoped>
 .push-settings-page {
-  padding: 12px 16px 16px;
-  background: #fff;
+  padding: 0 0 16px;
+  background: transparent;
 }
 
 .page-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   margin-bottom: 12px;
 }
@@ -361,9 +360,5 @@ onMounted(async () => {
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   overflow: hidden;
-}
-
-:deep(.ant-table-thead > tr > th) {
-  background: #fafafa;
 }
 </style>

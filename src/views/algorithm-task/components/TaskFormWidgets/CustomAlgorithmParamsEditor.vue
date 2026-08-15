@@ -371,6 +371,12 @@ onBeforeUnmount(() => {
   gap: 4px;
   padding: 0;
   height: auto;
+  color: @mix-brand-color;
+
+  &:hover,
+  &:focus {
+    color: #1d4a8f;
+  }
 }
 
 .param-table {
@@ -450,10 +456,16 @@ onBeforeUnmount(() => {
 .action-link {
   padding: 0 4px;
   height: auto;
+  color: @mix-brand-color;
+
+  &:hover,
+  &:focus {
+    color: #1d4a8f;
+  }
 }
 
 .action-save {
-  color: #1677ff;
+  color: @mix-brand-color;
 }
 
 @media (max-width: 720px) {

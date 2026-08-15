@@ -55,13 +55,13 @@ export const searchFormSchema: FormSchema[] = [
     label: '角色名称',
     field: 'name',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 5 },
   },
   {
     label: '角色标识',
     field: 'code',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 5 },
   },
   {
     label: '状态',
@@ -70,13 +70,13 @@ export const searchFormSchema: FormSchema[] = [
     componentProps: {
       options: getDictOptions(DICT_TYPE.COMMON_STATUS),
     },
-    colProps: { span: 8 },
+    colProps: { span: 4 },
   },
   {
     label: '创建时间',
     field: 'createTime',
     component: 'RangePicker',
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
 ]
 

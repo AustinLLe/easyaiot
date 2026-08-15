@@ -18,6 +18,21 @@ import type { GetUserInfoModel, LoginParams, SmsLoginParams } from '@/api/base/m
 
 import { isArray } from '@/utils/is'
 
+function sanitizeUserInfo(info: GetUserInfoModel | null): GetUserInfoModel | null {
+  if (!info?.user)
+    return info
+  const avatar = String(info.user.avatar || '')
+  if (!avatar.includes('yudao.iocoder.cn'))
+    return info
+  return {
+    ...info,
+    user: {
+      ...info.user,
+      avatar: '',
+    },
+  }
+}
+
 interface UserState {
   userInfo: Nullable<GetUserInfoModel>
   accessToken?: string
@@ -43,7 +58,7 @@ export const useUserStore = defineStore('app-user', {
   }),
   getters: {
     getUserInfo(state): GetUserInfoModel {
-      return state.userInfo || getAuthCache<GetUserInfoModel>(USER_INFO_KEY) || {}
+      return sanitizeUserInfo(state.userInfo || getAuthCache<GetUserInfoModel>(USER_INFO_KEY) || {}) || {}
     },
     getAccessToken(state): string {
       return state.accessToken || getAuthCache<string>(ACCESS_TOKEN_KEY)
@@ -75,9 +90,10 @@ export const useUserStore = defineStore('app-user', {
       setAuthCache(ROLES_KEY, roleList)
     },
     setUserInfo(info: GetUserInfoModel | null) {
-      this.userInfo = info
+      const sanitized = sanitizeUserInfo(info)
+      this.userInfo = sanitized
       this.lastUpdateTime = new Date().getTime()
-      setAuthCache(USER_INFO_KEY, info)
+      setAuthCache(USER_INFO_KEY, sanitized)
     },
     setSessionTimeout(flag: boolean) {
       this.sessionTimeout = flag

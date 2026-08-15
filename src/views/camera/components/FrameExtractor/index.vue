@@ -163,14 +163,13 @@ const getColumns = () => [
 ];
 
 const [registerTable, { reload }] = useTable({
-  canResize: true,
+  canResize: false,
   resizeHeightOffset: 36,
   showIndexColumn: false,
-  title: '抽帧器列表',
+  title: '',
   api: listFrameExtractors,
   columns: getColumns(),
   useSearchForm: true,
-  showTableSetting: false,
   pagination: true,
   fetchSetting: {
     listField: 'data',

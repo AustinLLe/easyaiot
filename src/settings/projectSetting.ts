@@ -1,5 +1,5 @@
 import { primaryColor } from '../../build/config/themeConfig'
-import { HEADER_PRESET_BG_COLOR_LIST, SIDE_BAR_BG_COLOR_LIST } from './designSetting'
+import { SIDE_BAR_BG_COLOR_LIST } from './designSetting'
 import type { ProjectConfig } from '@/types/config'
 import { MenuModeEnum, MenuTypeEnum, MixSidebarTriggerEnum, TriggerEnum } from '@/enums/menuEnum'
 import { CacheTypeEnum } from '@/enums/cacheEnum'
@@ -64,7 +64,7 @@ const setting: ProjectConfig = {
   // Header configuration
   headerSetting: {
     // header bg color
-    bgColor: HEADER_PRESET_BG_COLOR_LIST[0],
+    bgColor: '#F9F9FA',
     // Fixed at the top
     fixed: true,
     // Whether to show top
@@ -80,7 +80,7 @@ const setting: ProjectConfig = {
     // Whether to show the notification button
     showNotice: true,
     // Whether to display the menu search
-    showSearch: true,
+    showSearch: false,
   },
 
   // Menu configuration
@@ -103,19 +103,19 @@ const setting: ProjectConfig = {
     // Whether to show dom
     hidden: false,
     // Menu width
-    menuWidth: 210,
+    menuWidth: 260,
     // Menu mode
     mode: MenuModeEnum.INLINE,
     // Menu type
     type: MenuTypeEnum.MIX_SIDEBAR,
     // Menu theme
-    theme: ThemeEnum.DARK,
+    theme: ThemeEnum.LIGHT,
     // Split menu
     split: false,
     // Top menu layout
     topMenuAlign: 'center',
     // Fold trigger position
-    trigger: TriggerEnum.HEADER,
+    trigger: TriggerEnum.FOOTER,
     // Turn on accordion mode, only show a menu
     accordion: true,
     // Switch page to close menu
@@ -123,14 +123,14 @@ const setting: ProjectConfig = {
     // Module opening method ‘click’ |'hover'
     mixSideTrigger: MixSidebarTriggerEnum.CLICK,
     // Fixed expanded menu
-    mixSideFixed: false,
+    mixSideFixed: true,
   },
 
   // Multi-label
   multiTabsSetting: {
     cache: false,
     // Turn on
-    show: true,
+    show: false,
     // Is it possible to drag and drop sorting tabs
     canDrag: true,
     // Turn on quick actions
@@ -168,7 +168,7 @@ const setting: ProjectConfig = {
   lockTime: 0,
 
   // Whether to show breadcrumbs
-  showBreadCrumb: true,
+  showBreadCrumb: false,
 
   // Whether to show the breadcrumb icon
   showBreadCrumbIcon: false,

@@ -1,34 +1,40 @@
 <template>
   <BasicModal
     v-model:open="open"
-    :title="modalTitle"
-    :width="1200"
+    title=""
+    wrapClassName="algorithm-task-create-wrap"
+    :width="1100"
     :centered="true"
-    :canFullscreen="true"
+    :canFullscreen="false"
     :defaultFullscreen="false"
     :showOkBtn="false"
     :showCancelBtn="false"
     :useWrapper="false"
+    :minHeight="0"
     :destroyOnClose="false"
     :closeFunc="confirmUnsavedExit"
   >
     <div class="algorithm-task-create-modal">
-      <div class="create-body">
-        <aside class="create-nav">
-          <div class="nav-title">配置步骤</div>
+      <aside class="create-nav">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">{{ modalTitle }}</h2>
+        </div>
+        <div class="settings-nav">
           <div
-            v-for="(item, index) in sectionList"
+            v-for="item in sectionList"
             :key="item.key"
-            :class="getStepClass(item.key, index)"
+            :class="['nav-item', { active: activeSection === item.key }]"
             @click="handleStepClick(item.key)"
           >
-            <span class="step-icon">
+            <span class="nav-icon">
               <component :is="item.icon" />
             </span>
-            <span class="step-label">{{ item.label }}</span>
+            <span class="nav-label">{{ item.label }}</span>
           </div>
-        </aside>
+        </div>
+      </aside>
 
+      <div class="create-main">
         <section class="create-content">
           <component
             :is="currentSectionComponent"
@@ -37,16 +43,12 @@
             v-model:payload="taskPayload"
           />
         </section>
-      </div>
 
-      <div class="create-footer">
-        <a-button type="link" size="small" @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</a-button>
-        <div class="footer-actions">
-          <a-button v-if="!isFirstSection" size="small" @click="handlePrev">上一步</a-button>
-          <a-button v-if="!isLastSection" size="small" type="primary" @click="handleNext">下一步</a-button>
+        <div class="create-footer">
+          <a-button v-if="!isFirstSection" @click="handlePrev">上一步</a-button>
+          <a-button v-if="!isLastSection" type="primary" @click="handleNext">下一步</a-button>
           <a-button
             v-else-if="!readonly"
-            size="small"
             type="primary"
             :loading="submitting"
             @click="handleSave"
@@ -207,14 +209,6 @@ function normalizeInitialDraft(draft: AlgorithmTaskDraft): AlgorithmTaskDraft {
 
 function validateSection(section: AlgorithmTaskSectionKey) {
   return validateSectionDraft(section, taskPayload.value);
-}
-
-function getStepClass(key: AlgorithmTaskSectionKey, index: number) {
-  return {
-    'step-item': true,
-    active: activeSection.value === key,
-    pending: index > sectionIndex.value,
-  };
 }
 
 function handleStepClick(targetKey: AlgorithmTaskSectionKey) {
@@ -388,132 +382,232 @@ async function confirmUnsavedExit(): Promise<boolean> {
     return true;
   return confirmUnsavedAlgorithmTaskExit();
 }
-
-async function handleCancel() {
-  if (await confirmUnsavedExit())
-    open.value = false;
-}
 </script>
 
 <style lang="less" scoped>
 .algorithm-task-create-modal {
   display: flex;
-  flex-direction: column;
-  height: 560px;
-  max-height: calc(100vh - 120px);
-}
-
-.create-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
   overflow: hidden;
+  height: 100%;
 }
 
 .create-nav {
-  width: 200px;
+  display: flex;
+  width: 208px;
   flex-shrink: 0;
-  padding: 16px 10px;
-  background: #fafafa;
-  border-right: 1px solid #f0f0f0;
+  flex-direction: column;
+  overflow: hidden;
+  background: @mix-rail-sidebar-bg;
+  border-right: 1px solid @mix-stroke-color;
 }
 
-.nav-title {
-  margin-bottom: 12px;
-  padding: 0 8px;
-  font-size: 12px;
+.sidebar-header {
+  flex-shrink: 0;
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid @mix-stroke-color;
+}
+
+.sidebar-title {
+  margin: 0;
+  color: @mix-rail-text;
+  font-size: 16px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.45);
-  letter-spacing: 0.5px;
 }
 
-.step-item {
+.settings-nav {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 8px 12px;
+  overflow-y: auto;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 4px;
-  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom: 2px;
+  border-radius: 6px;
+  color: @mix-rail-text;
+  font-size: 14px;
+  line-height: 22px;
   cursor: pointer;
-  transition: all 0.2s;
-  color: rgba(0, 0, 0, 0.65);
+  user-select: none;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: @mix-highlight-bg;
+    color: @mix-rail-text;
   }
 
   &.active {
-    background: #e6f4ff;
-    color: #1677ff;
-    font-weight: 600;
-
-    .step-icon {
-      border-color: #1677ff;
-      background: #1677ff;
-      color: #fff;
-    }
-  }
-
-  &.pending {
-    color: rgba(0, 0, 0, 0.45);
+    background: @mix-highlight-bg;
+    color: @mix-brand-color;
+    font-weight: 500;
   }
 }
 
-.step-icon {
-  display: inline-flex;
+.nav-icon {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  border: 1px solid #d9d9d9;
-  border-radius: 50%;
-  font-size: 14px;
-  background: #fff;
-  transition: all 0.2s;
+  width: 16px;
+  height: 16px;
+  margin-right: 9px;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+
+  :deep(.anticon) {
+    font-size: 16px;
+  }
 }
 
-.step-label {
+.nav-label {
   flex: 1;
-  line-height: 1.4;
-  font-size: 13px;
+  line-height: 22px;
+}
+
+.create-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: #fff;
 }
 
 .create-content {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 16px 20px;
+  padding: 28px 40px 48px;
   overflow: auto;
   background: #fff;
+
+  :deep(.section-header) {
+    h3 {
+      margin: 0 0 6px;
+      color: rgba(0, 0, 0, 0.9);
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+
+  :deep(.ant-form-item-label > label) {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  :deep(.ant-btn-link) {
+    color: @mix-brand-color;
+
+    &:hover,
+    &:focus {
+      color: #1d4a8f;
+    }
+
+    &.ant-btn-dangerous {
+      color: @mix-brand-color;
+
+      &:hover,
+      &:focus {
+        color: #1d4a8f;
+      }
+    }
+  }
 }
 
 .create-footer {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  justify-content: space-between;
-  min-height: 28px;
-  margin: 4px -12px -12px;
-  padding: 4px 12px 0;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 40px;
+  background: #fff;
+  border-top: 1px solid @mix-stroke-color;
 
-  :deep(.ant-btn-link) {
-    height: 24px;
-    padding: 0 4px;
-    font-size: 13px;
+  :deep(.ant-btn) {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 14px;
   }
 }
+</style>
 
-.footer-actions {
-  display: flex;
-  gap: 6px;
+<style lang="less">
+.algorithm-task-create-wrap {
+  .ant-modal {
+    width: min(90vw, 1100px) !important;
+    max-width: 1100px;
+    padding-bottom: 0;
+  }
 
-  :deep(.ant-btn-sm) {
-    height: 24px;
-    padding: 0 10px;
-    font-size: 13px;
+  .ant-modal-content {
+    height: min(85vh, 750px);
+    overflow: hidden;
+    padding: 0 !important;
+    border-radius: 12px;
+  }
+
+  .ant-modal-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: auto;
+    z-index: 2;
+    width: auto;
+    padding: 12px 16px;
+    background: transparent;
+    border-bottom: none;
+  }
+
+  .ant-modal-title {
+    display: none;
+  }
+
+  .ant-modal-body {
+    height: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+
+    > .scrollbar,
+    > .scroll-container {
+      padding: 0 !important;
+    }
+
+    .scroll-container,
+    .scrollbar__wrap,
+    .scrollbar__view {
+      height: 100% !important;
+      max-height: none !important;
+      overflow: hidden !important;
+    }
+
+    .scroll-container .scrollbar__wrap {
+      margin-bottom: 0 !important;
+    }
+
+    .scrollbar__view > div {
+      max-height: none !important;
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+  }
+
+  .ant-modal-footer {
+    display: none;
   }
 }
 </style>

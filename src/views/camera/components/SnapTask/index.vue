@@ -185,7 +185,7 @@ const getBasicColumns = () => [
 
 // 表格配置
 const [registerTable, { reload }] = useTable({
-  title: '算法任务列表',
+  title: '',
   api: async (params) => {
     const response = await getSnapTaskList(params);
     // 后端返回格式: { code: 0, data: [...], total: ... }

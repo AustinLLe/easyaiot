@@ -30,6 +30,7 @@ const props = defineProps({
     type: Function as PropType<(key: string) => Promise<boolean>>,
   },
   isSplitMenu: propTypes.bool,
+  iconSize: propTypes.number.def(16),
 })
 const emit = defineEmits(['menuClick'])
 const attrs = useAttrs()
@@ -128,7 +129,13 @@ async function handleSelect(key: string) {
     @select="handleSelect"
   >
     <template v-for="item in items" :key="item.path">
-      <SimpleSubMenu :item="item" :parent="true" :collapsed-show-title="collapsedShowTitle" :collapse="collapse" />
+      <SimpleSubMenu
+        :item="item"
+        :parent="true"
+        :collapsed-show-title="collapsedShowTitle"
+        :collapse="collapse"
+        :icon-size="iconSize"
+      />
     </template>
   </Menu>
 </template>
