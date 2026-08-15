@@ -106,7 +106,6 @@ import HAIKANG_IMAGE from "@/assets/images/video/haikang.png";
 import DAHUA_IMAGE from "@/assets/images/video/dahua.png";
 import HUAWEI_IMAGE from "@/assets/images/video/huawei.png";
 import OTHER_IMAGE from "@/assets/images/video/other.png";
-import { getDeviceStatus } from '@/api/device/camera';
 import type { DeviceInfo } from '@/api/device/camera';
 
 const ListItem = List.Item;
@@ -245,7 +244,6 @@ async function fetch(p = {}) {
         data.value = [];
         total.value = 0;
       }
-      await refreshVisibleStreamStatus();
     } catch (error) {
       console.error('获取数据失败:', error);
       data.value = [];
@@ -254,17 +252,6 @@ async function fetch(p = {}) {
       hideLoading();
     }
   }
-}
-
-async function refreshVisibleStreamStatus() {
-  if (!data.value.length)
-    return;
-  const response: any = await getDeviceStatus(true).catch(() => undefined);
-  const statuses = response?.code !== undefined ? response.data : response?.data;
-  if (!Array.isArray(statuses))
-    return;
-  const visibleIds = new Set(data.value.map((item) => item.id));
-  patchDeviceStatuses(statuses.filter((status) => status?.id && visibleIds.has(status.id)));
 }
 
 function hideLoading() {
