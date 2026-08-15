@@ -164,7 +164,7 @@ export default {
       return /\/(live|ai)\/.+\.flv($|\?)/i.test(url || "");
     },
     useEasyWasmPlayer() {
-      return this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+      return this.fitMode !== "contain" && this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
     },
     destroyEasyPlayer() {
       if (this.easyPlayer) {
