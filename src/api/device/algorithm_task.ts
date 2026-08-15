@@ -572,6 +572,8 @@ export interface CameraStreamInfo {
   pusher_http_url?: string;
   ai_http_stream?: string;  // AI HTTP流地址
   ai_rtmp_stream?: string;  // AI RTMP流地址
+  ai_stream_watch_url?: string;
+  ai_stream_watch_ttl?: number;
   cover_image_path?: string;  // 设备封面图路径
 }
 
@@ -585,5 +587,13 @@ export const getTaskStreams = (task_id: number) => {
   return commonApi<TaskStreamsResponse>(
     'get',
     `${ALGORITHM_PREFIX}/task/${task_id}/streams`
+  );
+};
+
+export const watchTaskStream = (task_id: number, device_id: string, ttl = 30) => {
+  return commonApi(
+    'post',
+    `${ALGORITHM_PREFIX}/task/${task_id}/streams/watch`,
+    { data: { device_id, ttl } }
   );
 };

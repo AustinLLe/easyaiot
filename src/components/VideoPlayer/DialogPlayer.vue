@@ -120,6 +120,7 @@ const {createMessage} = useMessage()
 let jessibuca = ref()
 const htmlVideo = ref<HTMLVideoElement | null>(null)
 const ptzControl = ref<{ stopMovement: () => boolean } | null>(null)
+let onCloseCallback: (() => void) | undefined
 //state.videoUrl
 const state = reactive({
   video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
@@ -151,6 +152,7 @@ const state = reactive({
 
 const [register, {closeModal}] = useModalInner(async (record) => {
   ptzControl.value?.stopMovement();
+  onCloseCallback = typeof record?.onClose === 'function' ? record.onClose : undefined;
   state.currentUrl = '';
   state.iframeUrl = '';
   state.isFileVideo = false;
@@ -166,18 +168,19 @@ const [register, {closeModal}] = useModalInner(async (record) => {
     }
   }
 
-  if (!playbackRecord?.['http_stream']) {
+  const playbackUrl = playbackRecord?.['original_http_stream'] || playbackRecord?.['http_stream'];
+  if (!playbackUrl) {
     createMessage.warn('缺少播放地址，无法播放');
     state.deviceId = playbackRecord?.['id'] ?? '';
     return;
   }
 
   state.deviceId = playbackRecord['id'];
-  state.currentUrl = playbackRecord['http_stream'] ?? '';
+  state.currentUrl = playbackUrl ?? '';
   state.isFileVideo = /\.mp4($|\?)/i.test(state.currentUrl) || /\/alert\/record/i.test(state.currentUrl);
-  state.iframeUrl = playbackRecord['http_stream'] ? '<iframe src="' + playbackRecord['http_stream'] + '"></iframe>' : '';
-  state.videoUrlList = playbackRecord['http_stream']
-    ? [{ label: 'HTTP 播放流', value: playbackRecord['http_stream'] }]
+  state.iframeUrl = playbackUrl ? '<iframe src="' + playbackUrl + '"></iframe>' : '';
+  state.videoUrlList = playbackUrl
+    ? [{ label: 'HTTP 播放流', value: playbackUrl }]
     : [{ label: 'FLV 直播流', value: '1' }];
   if (state.isFileVideo) {
     await nextTick();
@@ -218,6 +221,8 @@ function handleCancel() {
   ptzControl.value?.stopMovement();
   state.currentUrl = '';
   state.isFileVideo = false;
+  onCloseCallback?.();
+  onCloseCallback = undefined;
   closeModal();
 }
 </script>

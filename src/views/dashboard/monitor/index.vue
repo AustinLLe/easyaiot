@@ -96,8 +96,8 @@
             <span class="panel-kicker">中间视频</span>
             <h2>任务实时画面</h2>
           </div>
-          <span :class="['stream-status', { online: Boolean(currentStreamUrl) }]">
-            {{ currentStreamUrl ? '流已就绪' : hasRunningTasks ? '等待选择' : '暂无运行中任务' }}
+          <span :class="['stream-status', { online: Boolean(currentPlayableStreamUrl) }]">
+            {{ currentPlayableStreamUrl ? '流已就绪' : hasRunningTasks ? '等待选择' : '暂无运行中任务' }}
           </span>
         </div>
 
@@ -128,9 +128,9 @@
             />
           </div>
           <Jessibuca
-            v-if="currentStreamUrl"
-            :key="currentStreamUrl"
-            :playUrl="currentStreamUrl"
+            v-if="currentPlayableStreamUrl"
+            :key="currentPlayableStreamUrl"
+            :playUrl="currentPlayableStreamUrl"
             :has-audio="false"
             class="video-player"
           />
@@ -290,9 +290,9 @@ import { getDashboardStatistics, queryAlarmList } from '@/api/device/calculate'
 import {
   getTaskStreams,
   listAlgorithmTasks,
-  type AlgorithmTask,
-  type CameraStreamInfo,
+  watchTaskStream,
 } from '@/api/device/algorithm_task'
+import type { AlgorithmTask, CameraStreamInfo } from '@/api/device/algorithm_task'
 import { useMessage } from '@/hooks/web/useMessage'
 import { resolveAlertImageUrl } from '@/views/alert/alertDisplayUtils'
 import ImageModal from '@/views/alert/components/ImageModal/index.vue'
@@ -351,6 +351,7 @@ const displayMetricValues = ref<number[]>([0, 0, 0, 0])
 let alarmRefreshTimer: number | undefined
 let clockTimer: number | undefined
 let metricAnimFrame: number | undefined
+let aiStreamWatchTimer: number | undefined
 
 function animateMetricValues(targets: number[]) {
   if (metricAnimFrame)
@@ -414,6 +415,7 @@ const taskStreams = ref<CameraStreamInfo[]>([])
 const selectedTaskId = ref<number>()
 const selectedCameraId = ref<string>()
 const selectedAlgorithm = ref<string>()
+const aiStreamWatchReady = ref(false)
 
 const currentPeriod = computed(() => statistics.value.periods[selectedPeriod.value] || emptyPeriod('当前'))
 const algorithmRanking = computed(() => currentPeriod.value.algorithm_ranking || [])
@@ -575,6 +577,63 @@ const currentStreamUrl = computed(() => {
   return resolveVideoStreamUrl(camera)
 })
 
+const currentPlayableStreamUrl = computed(() => {
+  if (selectedAlgorithm.value && !aiStreamWatchReady.value)
+    return ''
+  return currentStreamUrl.value
+})
+
+function stopAiStreamWatch() {
+  if (aiStreamWatchTimer) {
+    window.clearInterval(aiStreamWatchTimer)
+    aiStreamWatchTimer = undefined
+  }
+  aiStreamWatchReady.value = false
+}
+
+async function renewAiStreamWatch(camera: CameraStreamInfo) {
+  const taskId = selectedTaskId.value
+  if (!taskId || !selectedAlgorithm.value || !camera.ai_http_stream)
+    return
+  await watchTaskStream(taskId, camera.device_id, camera.ai_stream_watch_ttl || 30)
+}
+
+async function startAiStreamWatch(camera: CameraStreamInfo) {
+  stopAiStreamWatch()
+  if (!selectedTaskId.value || !selectedAlgorithm.value || !camera.ai_http_stream)
+    return
+  await renewAiStreamWatch(camera)
+  window.setTimeout(() => {
+    if (selectedCamera.value?.device_id === camera.device_id && selectedAlgorithm.value)
+      aiStreamWatchReady.value = true
+  }, 1500)
+  aiStreamWatchTimer = window.setInterval(() => {
+    renewAiStreamWatch(camera).catch((error) => {
+      console.warn('AI输出流续租失败:', error)
+    })
+  }, 10000)
+}
+
+watch(
+  () => ({
+    taskId: selectedTaskId.value,
+    cameraId: selectedCameraId.value,
+    algorithm: selectedAlgorithm.value,
+    aiStream: selectedCamera.value?.ai_http_stream,
+  }),
+  () => {
+    const camera = selectedCamera.value
+    if (!camera || !selectedAlgorithm.value || !camera.ai_http_stream) {
+      stopAiStreamWatch()
+      return
+    }
+    startAiStreamWatch(camera).catch((error) => {
+      console.warn('AI输出流启动续租失败:', error)
+    })
+  },
+  { immediate: true },
+)
+
 const videoPlaceholderTitle = computed(() => {
   if (!hasRunningTasks.value)
     return '当前没有运行中的算法任务'
@@ -703,6 +762,7 @@ async function loadTasks() {
 }
 
 async function handleTaskChange(taskId?: number) {
+  stopAiStreamWatch()
   taskStreams.value = []
   selectedCameraId.value = undefined
   selectedAlgorithm.value = undefined
@@ -751,6 +811,7 @@ onUnmounted(() => {
     window.clearInterval(clockTimer)
   if (metricAnimFrame)
     cancelAnimationFrame(metricAnimFrame)
+  stopAiStreamWatch()
 })
 </script>
 
