@@ -536,6 +536,8 @@ export default {
 
 .player-container.fit-contain video,
 .player-container.fit-contain canvas {
-  object-fit: contain;
+  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>
