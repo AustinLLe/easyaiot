@@ -1,12 +1,21 @@
 import {defHttp} from '@/utils/http/axios';
 
 const CAMERA_PREFIX = '/video/camera';
+const CAMERA_STATUS_TIMEOUT = 30 * 1000;
 
 // 通用请求封装
-const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url: string, params = {}, headers = {}, isTransformResponse = true) => {
+const commonApi = (
+  method: 'get' | 'post' | 'delete' | 'put',
+  url: string,
+  params = {},
+  headers = {},
+  isTransformResponse = true,
+  config = {},
+) => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
 
   return defHttp[method]({
+    ...config,
     url,
     headers: { ...headers },
     ...(method === 'get' ? { params } : { data: params })
@@ -75,15 +84,15 @@ export const getDeviceList = (params: {
   online?: boolean;
   enable_forward?: boolean;
 }) => {
-  return commonApi('get', `${CAMERA_PREFIX}/list`, params);
+  return commonApi('get', `${CAMERA_PREFIX}/list`, params, {}, true, { timeout: CAMERA_STATUS_TIMEOUT });
 };
 
 export const getDeviceStatus = (refresh = false) => {
-  return commonApi('get', `${CAMERA_PREFIX}/device/status`, refresh ? { refresh: true } : {});
+  return commonApi('get', `${CAMERA_PREFIX}/device/status`, refresh ? { refresh: true } : {}, {}, true, { timeout: CAMERA_STATUS_TIMEOUT });
 };
 
 export const startDeviceStream = (device_id: string) => {
-  return commonApi('post', `${CAMERA_PREFIX}/device/${encodeURIComponent(device_id)}/stream/start`);
+  return commonApi('post', `${CAMERA_PREFIX}/device/${encodeURIComponent(device_id)}/stream/start`, {}, {}, true, { timeout: CAMERA_STATUS_TIMEOUT });
 };
 
 export const stopDeviceStream = (device_id: string) => {
