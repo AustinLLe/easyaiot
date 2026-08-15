@@ -4,7 +4,7 @@
       ref="container"
       :id="playerId"
       class="player-container"
-      :class="{ 'easy-wasm-active': !!easyPlayer }"
+      :class="[{ 'easy-wasm-active': !!easyPlayer }, `fit-${fitMode}`]"
       @dblclick="fullscreen"
       @mousemove="mouseenter"
     >
@@ -104,6 +104,11 @@ export default {
       type: Boolean,
       required: true,
     },
+    fitMode: {
+      type: String,
+      default: "cover",
+      validator: (value) => ["cover", "contain"].includes(value),
+    },
   },
   data() {
     return {
@@ -189,9 +194,9 @@ export default {
             container: this.$refs.container,
             decoder: "/static/js/jessibuca/decoder.js",
             videoBuffer: 0.2, // 缓存时长
-            // 等比放大并裁切溢出区域，让画面填满播放器且不产生黑边。
+            // 等比缩放，具体是填满裁切还是完整显示由 fitMode 控制。
             isResize: true,
-            isFullResize: true,
+            isFullResize: this.fitMode === "cover",
             useWCS: this.useWCS,
             useMSE: this.useMSE,
             text: "",
@@ -257,8 +262,8 @@ export default {
       // });
       this.jessibuca.on("videoInfo", function (info) {
         console.log("videoInfo", info);
-        // 视频尺寸可用后再次应用 cover 模式。
-        _this.jessibuca.setScaleMode(2);
+        // 视频尺寸可用后再次应用显示模式：cover 填满，contain 保持完整比例。
+        _this.jessibuca.setScaleMode(_this.fitMode === "cover" ? 2 : 1);
       });
       this.jessibuca.on("error", function (error) {
         console.log("error", error);
@@ -527,5 +532,10 @@ export default {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
+}
+
+.player-container.fit-contain video,
+.player-container.fit-contain canvas {
+  object-fit: contain;
 }
 </style>

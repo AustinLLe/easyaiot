@@ -128,6 +128,7 @@
             :key="currentPlayableStreamUrl"
             :playUrl="currentPlayableStreamUrl"
             :has-audio="false"
+            fit-mode="contain"
             class="video-player"
           />
           <div v-else class="video-placeholder">
