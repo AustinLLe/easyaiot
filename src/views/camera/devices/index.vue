@@ -200,7 +200,24 @@ const getTableActions = (record) => {
 }
 
 function handlePlayerSuccess() {}
-function handlePlay(record) { openPlayerAddModel(true, record) }
+async function refreshCurrentView(forceStreamStatus = false) {
+  if (forceStreamStatus)
+    await getDeviceStatus(true).catch(() => undefined)
+  if (viewMode.value === 'table')
+    await reload()
+  else if (videoCardListRef.value)
+    await videoCardListRef.value.fetch()
+}
+
+function handlePlay(record) {
+  openPlayerAddModel(true, {
+    ...record,
+    onClose: () => {
+      setTimeout(() => refreshCurrentView(true), 300)
+    },
+  })
+  setTimeout(() => refreshCurrentView(true), 1500)
+}
 
 async function handleCopy(text: string) {
   if (navigator.clipboard)
@@ -236,10 +253,7 @@ const openAddModal = (type, record = null) => {
 
 const handleSuccess = () => {
   directorySidebarRef.value?.refresh()
-  if (viewMode.value === 'table')
-    reload()
-  else if (videoCardListRef.value)
-    videoCardListRef.value.fetch()
+  refreshCurrentView()
 }
 
 const handleRefreshStreamStatus = async () => {
