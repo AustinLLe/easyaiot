@@ -82,6 +82,18 @@ export const getDeviceStatus = (refresh = false) => {
   return commonApi('get', `${CAMERA_PREFIX}/device/status`, refresh ? { refresh: true } : {});
 };
 
+export const startDeviceStream = (device_id: string) => {
+  return commonApi('post', `${CAMERA_PREFIX}/device/${encodeURIComponent(device_id)}/stream/start`);
+};
+
+export const stopDeviceStream = (device_id: string) => {
+  return commonApi('post', `${CAMERA_PREFIX}/device/${encodeURIComponent(device_id)}/stream/stop`);
+};
+
+export const getDeviceStreamStatus = (device_id: string, refresh = false) => {
+  return commonApi('get', `${CAMERA_PREFIX}/device/${encodeURIComponent(device_id)}/stream/status`, refresh ? { refresh: true } : {});
+};
+
 // ====================== PTZ控制接口 ======================
 export const controlPTZ = (device_id: string, data: {
   x: number;

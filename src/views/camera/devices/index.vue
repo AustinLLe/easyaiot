@@ -189,7 +189,31 @@ const getTableActions = (record) => {
 }
 
 function handlePlayerSuccess() {}
-function handlePlay(record) { openPlayerAddModel(true, record) }
+async function refreshCurrentView(forceStreamStatus = false) {
+  if (forceStreamStatus) {
+    const response: any = await getDeviceStatus(true).catch(() => undefined)
+    const statuses = response?.code !== undefined ? response.data : response?.data
+    if (Array.isArray(statuses) && videoCardListRef.value?.patchDeviceStatuses)
+      videoCardListRef.value.patchDeviceStatuses(statuses)
+  }
+  if (viewMode.value === 'table')
+    await reload()
+  else if (videoCardListRef.value)
+    await videoCardListRef.value.fetch()
+}
+
+function handlePlay(record) {
+  openPlayerAddModel(true, {
+    ...record,
+    onStreamStatus: (device) => {
+      videoCardListRef.value?.patchDeviceStatus?.(device)
+    },
+    onClose: () => {
+      setTimeout(() => refreshCurrentView(true), 300)
+    },
+  })
+  setTimeout(() => refreshCurrentView(true), 1500)
+}
 
 const openAddModal = (type, record = null) => {
   openModal(true, { type, record, isEdit: type === 'edit', isView: type === 'view', defaultDirectoryId: selectedDirectoryId.value })
@@ -211,10 +235,30 @@ const openAddModal = (type, record = null) => {
 
 const handleSuccess = () => {
   directorySidebarRef.value?.refresh()
-  if (viewMode.value === 'table')
-    reload()
-  else if (videoCardListRef.value)
-    videoCardListRef.value.fetch()
+  refreshCurrentView()
+}
+
+const handleRefreshStreamStatus = async () => {
+  if (refreshingStreamStatus.value)
+    return
+  refreshingStreamStatus.value = true
+  try {
+    const response: any = await getDeviceStatus(true)
+    const statuses = response?.code !== undefined ? response.data : response?.data
+    if (Array.isArray(statuses) && videoCardListRef.value?.patchDeviceStatuses)
+      videoCardListRef.value.patchDeviceStatuses(statuses)
+    if (viewMode.value === 'table')
+      await reload()
+    else if (videoCardListRef.value)
+      await videoCardListRef.value.fetch()
+    createMessage.success('全部设备推流状态已刷新')
+  }
+  catch {
+    createMessage.error('推流状态刷新失败')
+  }
+  finally {
+    refreshingStreamStatus.value = false
+  }
 }
 
 const handleDelete = async (record) => {

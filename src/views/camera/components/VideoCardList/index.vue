@@ -249,9 +249,51 @@ async function handlePlay(record: DeviceInfo) {
   emit('play', record)
 }
 
+function patchDeviceStatus(status: Partial<DeviceInfo> & { id?: string }) {
+  if (!status?.id)
+    return;
+  const index = data.value.findIndex((item) => item.id === status.id);
+  if (index < 0)
+    return;
+  data.value[index] = {
+    ...data.value[index],
+    ...status,
+  };
+}
+
+function patchDeviceStatuses(statuses: Array<Partial<DeviceInfo> & { id?: string }> = []) {
+  statuses.forEach((status) => patchDeviceStatus(status));
+}
+
+// 复制功能
+async function handleCopy(text: string) {
+  if (!text || text === '-') {
+    return;
+  }
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    createMessage.success('复制成功');
+  } catch (error) {
+    console.error('复制失败', error);
+    createMessage.error('复制失败');
+  }
+}
+
+// 仅暴露仍然存在的刷新方法；推流转发状态检查已随功能删除。
 defineExpose({
   fetch,
-})
+  patchDeviceStatus,
+  patchDeviceStatuses,
+});
 </script>
 
 <style lang="less" scoped>

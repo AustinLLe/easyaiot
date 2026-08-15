@@ -113,7 +113,7 @@ import Jessibuca from "@/components/Player/module/jessibuca.vue";
 import Ptz from "@/components/Player/module/ptz.vue";
 import {copyText} from "@/utils/copyTextToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
-import {controlPTZ, getDeviceInfo} from "@/api/device/camera";
+import {controlPTZ, getDeviceInfo, startDeviceStream, stopDeviceStream} from "@/api/device/camera";
 
 const {createMessage} = useMessage()
 
@@ -140,6 +140,7 @@ const state = reactive({
   mediaType: 'flv',
   videoUrlList: [{label: 'FLV 直播流', value: "1"}],
   deviceId: '',
+  playbackForwardStarted: false,
   activeKey: 'info',
   playerOptions: {
     aspectRatio: '16:5',
@@ -156,6 +157,7 @@ const [register, {closeModal}] = useModalInner(async (record) => {
   state.currentUrl = '';
   state.iframeUrl = '';
   state.isFileVideo = false;
+  state.playbackForwardStarted = false;
 
   let playbackRecord = record;
   if (record?.['id'] && (record?.['video_input_profile'] || 'original_http_stream' in record)) {
@@ -165,6 +167,23 @@ const [register, {closeModal}] = useModalInner(async (record) => {
     }
     catch {
       playbackRecord = record;
+    }
+  }
+
+  if (playbackRecord?.['id'] && !state.isFileVideo) {
+    try {
+      const response: any = await startDeviceStream(String(playbackRecord['id']));
+      const payload = response?.code !== undefined ? response.data : (response?.data ?? response);
+      if (payload?.device) {
+        playbackRecord = payload.device;
+        if (typeof record?.onStreamStatus === 'function')
+          record.onStreamStatus(payload.device);
+      }
+      state.playbackForwardStarted = Boolean(payload?.started && !payload?.already_pushing);
+    }
+    catch (error: any) {
+      const message = error?.response?.data?.msg || error?.message || '原始流启动失败';
+      createMessage.warning(message);
     }
   }
 
@@ -219,8 +238,13 @@ const handlePtzCamera = (command: string, speed: number) => {
 
 function handleCancel() {
   ptzControl.value?.stopMovement();
+  const shouldStopForward = state.playbackForwardStarted && !!state.deviceId;
+  const deviceId = state.deviceId;
   state.currentUrl = '';
   state.isFileVideo = false;
+  state.playbackForwardStarted = false;
+  if (shouldStopForward)
+    stopDeviceStream(deviceId).catch(() => undefined);
   onCloseCallback?.();
   onCloseCallback = undefined;
   closeModal();
