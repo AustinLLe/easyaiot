@@ -174,8 +174,11 @@ const [register, {closeModal}] = useModalInner(async (record) => {
     try {
       const response: any = await startDeviceStream(String(playbackRecord['id']));
       const payload = response?.code !== undefined ? response.data : (response?.data ?? response);
-      if (payload?.device)
+      if (payload?.device) {
         playbackRecord = payload.device;
+        if (typeof record?.onStreamStatus === 'function')
+          record.onStreamStatus(payload.device);
+      }
       state.playbackForwardStarted = Boolean(payload?.started && !payload?.already_pushing);
     }
     catch (error: any) {

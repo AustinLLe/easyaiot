@@ -106,6 +106,7 @@ import HAIKANG_IMAGE from "@/assets/images/video/haikang.png";
 import DAHUA_IMAGE from "@/assets/images/video/dahua.png";
 import HUAWEI_IMAGE from "@/assets/images/video/huawei.png";
 import OTHER_IMAGE from "@/assets/images/video/other.png";
+import { getDeviceStatus } from '@/api/device/camera';
 import type { DeviceInfo } from '@/api/device/camera';
 
 const ListItem = List.Item;
@@ -244,6 +245,7 @@ async function fetch(p = {}) {
         data.value = [];
         total.value = 0;
       }
+      await refreshVisibleStreamStatus();
     } catch (error) {
       console.error('获取数据失败:', error);
       data.value = [];
@@ -252,6 +254,17 @@ async function fetch(p = {}) {
       hideLoading();
     }
   }
+}
+
+async function refreshVisibleStreamStatus() {
+  if (!data.value.length)
+    return;
+  const response: any = await getDeviceStatus(true).catch(() => undefined);
+  const statuses = response?.code !== undefined ? response.data : response?.data;
+  if (!Array.isArray(statuses))
+    return;
+  const visibleIds = new Set(data.value.map((item) => item.id));
+  patchDeviceStatuses(statuses.filter((status) => status?.id && visibleIds.has(status.id)));
 }
 
 function hideLoading() {
@@ -300,6 +313,22 @@ async function handlePlay(record: DeviceInfo) {
   emit('play', record);
 }
 
+function patchDeviceStatus(status: Partial<DeviceInfo> & { id?: string }) {
+  if (!status?.id)
+    return;
+  const index = data.value.findIndex((item) => item.id === status.id);
+  if (index < 0)
+    return;
+  data.value[index] = {
+    ...data.value[index],
+    ...status,
+  };
+}
+
+function patchDeviceStatuses(statuses: Array<Partial<DeviceInfo> & { id?: string }> = []) {
+  statuses.forEach((status) => patchDeviceStatus(status));
+}
+
 // 复制功能
 async function handleCopy(text: string) {
   if (!text || text === '-') {
@@ -326,6 +355,8 @@ async function handleCopy(text: string) {
 // 仅暴露仍然存在的刷新方法；推流转发状态检查已随功能删除。
 defineExpose({
   fetch,
+  patchDeviceStatus,
+  patchDeviceStatuses,
 });
 </script>
 <style lang="less" scoped>

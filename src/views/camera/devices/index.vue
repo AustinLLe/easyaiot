@@ -201,8 +201,12 @@ const getTableActions = (record) => {
 
 function handlePlayerSuccess() {}
 async function refreshCurrentView(forceStreamStatus = false) {
-  if (forceStreamStatus)
-    await getDeviceStatus(true).catch(() => undefined)
+  if (forceStreamStatus) {
+    const response: any = await getDeviceStatus(true).catch(() => undefined)
+    const statuses = response?.code !== undefined ? response.data : response?.data
+    if (Array.isArray(statuses) && videoCardListRef.value?.patchDeviceStatuses)
+      videoCardListRef.value.patchDeviceStatuses(statuses)
+  }
   if (viewMode.value === 'table')
     await reload()
   else if (videoCardListRef.value)
@@ -212,6 +216,9 @@ async function refreshCurrentView(forceStreamStatus = false) {
 function handlePlay(record) {
   openPlayerAddModel(true, {
     ...record,
+    onStreamStatus: (device) => {
+      videoCardListRef.value?.patchDeviceStatus?.(device)
+    },
     onClose: () => {
       setTimeout(() => refreshCurrentView(true), 300)
     },
@@ -261,7 +268,10 @@ const handleRefreshStreamStatus = async () => {
     return
   refreshingStreamStatus.value = true
   try {
-    await getDeviceStatus(true)
+    const response: any = await getDeviceStatus(true)
+    const statuses = response?.code !== undefined ? response.data : response?.data
+    if (Array.isArray(statuses) && videoCardListRef.value?.patchDeviceStatuses)
+      videoCardListRef.value.patchDeviceStatuses(statuses)
     if (viewMode.value === 'table')
       await reload()
     else if (videoCardListRef.value)
