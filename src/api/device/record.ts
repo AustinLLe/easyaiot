@@ -165,6 +165,9 @@ export interface StorageOverview {
   recording_usage: {
     total_bytes: number;
     srs_bytes: number;
+    live_bytes: number;
+    ai_bytes: number;
+    other_srs_bytes: number;
     object_bytes: number;
     archive_bytes: number;
   };
@@ -220,6 +223,7 @@ export interface RetentionSchemeState {
 export interface RecordingHistory {
   id: string;
   source: 'srs' | 'object' | 'archive';
+  recording_kind: 'live' | 'ai' | 'other' | 'object' | 'archive';
   device_id: string;
   device_name: string;
   filename: string;
@@ -228,6 +232,8 @@ export interface RecordingHistory {
   event_time: string;
   url: string;
   playback_url: string;
+  stream_name?: string;
+  task_id?: string;
 }
 
 export const getStorageOverview = () => commonApi('get', `${RECORD_PREFIX}/storage/overview`);
@@ -252,6 +258,7 @@ export const getRecordingHistory = (params: {
   pageNo?: number;
   pageSize?: number;
   device_id?: string;
+  recording_kind?: RecordingHistory['recording_kind'];
   search?: string;
   start_time?: string;
   end_time?: string;

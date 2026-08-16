@@ -23,6 +23,14 @@
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
+                <template #icon><SyncOutlined /></template>
+                刷新全部推流状态
+              </a-button>
+              <span class="auto-refresh-note" title="进入页面立即刷新一次，之后每 30 秒自动刷新；手动刷新按钮继续保留">
+                <span class="auto-refresh-dot"></span>
+                自动刷新已开启 · 每 30 秒
+              </span>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -36,7 +44,17 @@
             </div>
           </template>
           <template #bodyCell="{ column, record }">
-            <template v-if="column.dataIndex === 'action'">
+            <template v-if="['id', 'name', 'model', 'source', 'rtmp_stream'].includes(column.key)">
+              <span
+                class="device-copy-cell"
+                :class="{ 'device-name-cell': column.key === 'name' }"
+                :title="record[column.key] || ''"
+                @click="handleCopy(record[column.key])"
+              >
+                <Icon icon="tdesign:copy-filled" color="#4287FCFF" /> {{ record[column.key] }}
+              </span>
+            </template>
+            <template v-else-if="column.dataIndex === 'action'">
               <div class="camera-table-action">
                 <TableAction :actions="getTableActions(record)" />
               </div>
@@ -65,6 +83,14 @@
                 <template #icon><VideoCameraAddOutlined /></template>
                 新增直连设备
               </a-button>
+              <a-button :loading="refreshingStreamStatus" @click="handleRefreshStreamStatus">
+                <template #icon><SyncOutlined /></template>
+                刷新全部推流状态
+              </a-button>
+              <span class="auto-refresh-note" title="进入页面立即刷新一次，之后每 30 秒自动刷新；手动刷新按钮继续保留">
+                <span class="auto-refresh-dot"></span>
+                自动刷新已开启 · 每 30 秒
+              </span>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -87,7 +113,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { useMessage } from '@/hooks/web/useMessage'
 import { getBasicColumns, getFormConfig } from '../Data'
@@ -96,15 +122,16 @@ import VideoModal from '../components/VideoModal/index.vue'
 import {
   deleteDevice,
   getDeviceList,
+  getDeviceStatus,
   getDirectoryDevices,
   // refreshDevices,
   type DeviceDirectory,
 } from '@/api/device/camera'
 import {
   SwapOutlined,
+  SyncOutlined,
   VideoCameraAddOutlined,
   // ScanOutlined,
-  // SyncOutlined,
 } from '@ant-design/icons-vue'
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
 import DirectorySidebar from '../components/DirectorySidebar/index.vue'
@@ -112,10 +139,6 @@ import VideoCardList from '../components/VideoCardList/index.vue'
 import { confirmDeleteDevice, preloadAlgorithmTaskUsageCache } from '@/views/algorithm-task/utils/algorithmTaskUsageUtils'
 
 defineOptions({ name: 'CameraDevices' })
-
-onMounted(() => {
-  preloadAlgorithmTaskUsageCache().catch(() => {});
-});
 
 const { createMessage } = useMessage()
 const [registerAddModel, { openModal }] = useModal()
@@ -125,6 +148,8 @@ const viewMode = ref<'table' | 'card'>('card')
 const directorySidebarRef = ref()
 const selectedDirectoryId = ref<number | null>(null)
 const videoCardListRef = ref()
+const refreshingStreamStatus = ref(false)
+let streamStatusTimer: ReturnType<typeof setInterval> | undefined
 
 const fetchDeviceList = async (params: Record<string, any> = {}) => {
   const pageNo = params.pageNo || params.page || 1
@@ -238,7 +263,7 @@ const handleSuccess = () => {
   refreshCurrentView()
 }
 
-const handleRefreshStreamStatus = async () => {
+const handleRefreshStreamStatus = async (showMessage = true) => {
   if (refreshingStreamStatus.value)
     return
   refreshingStreamStatus.value = true
@@ -251,15 +276,33 @@ const handleRefreshStreamStatus = async () => {
       await reload()
     else if (videoCardListRef.value)
       await videoCardListRef.value.fetch()
-    createMessage.success('全部设备推流状态已刷新')
+    if (showMessage)
+      createMessage.success('全部设备推流状态已刷新')
   }
   catch {
-    createMessage.error('推流状态刷新失败')
+    if (showMessage)
+      createMessage.error('推流状态刷新失败')
   }
   finally {
     refreshingStreamStatus.value = false
   }
 }
+
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {})
+  // 进入设备列表立即从 SRS 获取一次全量状态，之后静默轮询。
+  void handleRefreshStreamStatus(false)
+  streamStatusTimer = setInterval(() => {
+    void handleRefreshStreamStatus(false)
+  }, 30_000)
+})
+
+onBeforeUnmount(() => {
+  if (streamStatusTimer) {
+    clearInterval(streamStatusTimer)
+    streamStatusTimer = undefined
+  }
+})
 
 const handleDelete = async (record) => {
   const canDelete = await confirmDeleteDevice(record.id, record.name)
@@ -298,6 +341,44 @@ const handleCardPlay = (record) => handlePlay(record)
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .auto-refresh-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    color: #4d6859;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+    background: #f1f8f4;
+    border: 1px solid #d5eadc;
+    border-radius: 12px;
+  }
+
+  .auto-refresh-dot {
+    width: 7px;
+    height: 7px;
+    background: #39a96b;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgb(57 169 107 / 12%);
+  }
+
+  .device-copy-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .device-name-cell {
+    min-width: 0;
   }
 
   .device-list-layout {

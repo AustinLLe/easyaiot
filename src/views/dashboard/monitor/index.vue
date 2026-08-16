@@ -139,6 +139,7 @@
             :key="currentPlayableStreamUrl"
             :playUrl="currentPlayableStreamUrl"
             :has-audio="false"
+            fit-mode="stretch"
             class="video-player"
           />
           <div v-else class="video-placeholder">
@@ -1069,7 +1070,7 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1;
   grid-template-columns: minmax(250px, 0.9fr) minmax(200px, 0.75fr) minmax(200px, 0.75fr) minmax(270px, 1fr);
-  grid-template-rows: minmax(132px, auto) 1fr minmax(200px, 0.85fr);
+  grid-template-rows: minmax(132px, auto) minmax(470px, 1fr) minmax(200px, 0.85fr);
   grid-template-areas:
     "time    video video  alarms"
     "metrics video video  alarms"
@@ -1078,7 +1079,7 @@ onUnmounted(() => {
 
 .time-panel { grid-area: time; min-height: 132px; }
 .metrics-panel { grid-area: metrics; min-height: 0; }
-.video-panel-wrap { grid-area: video; min-height: 0; }
+.panel-border.video-panel-wrap { grid-area: video; min-height: 620px; }
 .alarm-panel-wrap { grid-area: alarms; min-height: 0; }
 .rankings-bottom-row { display: contents; }
 
@@ -1351,7 +1352,7 @@ onUnmounted(() => {
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 .legend-name { overflow: hidden; color: #b6c7e4; text-overflow: ellipsis; white-space: nowrap; }
 
-.video-panel { padding-bottom: 16px; }
+.video-panel { justify-content: flex-start; padding-bottom: 16px; }
 .video-title-row { margin-bottom: 14px; }
 .stream-status { padding: 5px 9px; color: #8ea3c7; font-size: 11px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; }
 .stream-status.online { color: #86efac; background: rgba(34, 197, 94, 0.14); }
@@ -1400,7 +1401,7 @@ onUnmounted(() => {
 }
 
 .filter-select { width: 100%; }
-.video-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #09111f; border: 1px solid #25324a; border-radius: 12px; }
+.video-stage { position: relative; width: 100%; height: auto; overflow: hidden; background: #09111f; border: 1px solid #25324a; border-radius: 12px; aspect-ratio: 16 / 9; flex: 0 0 auto; }
 .video-player { width: 100%; height: 100%; }
 .video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #dce8ff; background: radial-gradient(circle at 50% 42%, #192a48, #080f1c 64%); flex-direction: column; }
 .video-placeholder strong { margin: 18px 0 5px; font-size: 16px; }

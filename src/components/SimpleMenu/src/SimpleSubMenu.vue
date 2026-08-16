@@ -59,6 +59,7 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
     <img
       v-if="getImg"
       :src="getImg"
+      :alt="getI18nName"
       class="align-top"
       :style="{ width: `${iconSize}px`, height: `${iconSize}px` }"
     >
@@ -83,6 +84,7 @@ function menuHasChildren(menuTreeItem: Menu): boolean {
       <img
         v-if="getImg"
         :src="getImg"
+        :alt="getI18nName"
         class="align-top"
         :style="{ width: `${iconSize}px`, height: `${iconSize}px` }"
       >

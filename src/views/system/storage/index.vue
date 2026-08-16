@@ -3,7 +3,7 @@
     <div class="page-heading">
       <div>
         <h1>录像存储中心</h1>
-        <p>查看运行节点磁盘、配置摄像头留存方式，并翻阅已保存录像</p>
+        <p>统一管理摄像头原始流、AI 分析回放、平台录像对象与到期归档</p>
       </div>
       <div class="heading-actions">
         <AButton v-auth="['storage:storage:scan']" :loading="refreshing" @click="refreshAll(true)">
@@ -67,7 +67,8 @@
 
         <div class="usage-summary">
           <div><span>录像总占用</span><b>{{ formatBytes(overview?.recording_usage.total_bytes) }}</b></div>
-          <div><span>SRS 连续录像</span><b>{{ formatBytes(overview?.recording_usage.srs_bytes) }}</b></div>
+          <div class="live-usage"><span>原始流录像</span><b>{{ formatBytes(overview?.recording_usage.live_bytes) }}</b></div>
+          <div class="ai-usage"><span>AI 分析回放</span><b>{{ formatBytes(overview?.recording_usage.ai_bytes) }}</b></div>
           <div><span>平台录像对象</span><b>{{ formatBytes(overview?.recording_usage.object_bytes) }}</b></div>
           <div><span>到期归档</span><b>{{ formatBytes(overview?.recording_usage.archive_bytes) }}</b></div>
         </div>
@@ -79,7 +80,7 @@
         <div class="tab-toolbar">
           <div>
             <h2>按摄像头配置</h2>
-            <p>关闭“保存历史”后，已完成的录像分片会删除且不进入历史；时长为 0 仍表示永久保留。</p>
+            <p>每台摄像头的规则同时作用于原始流录像和该摄像头产生的 AI 分析回放；时长为 0 表示永久保留。</p>
           </div>
           <div class="policy-picker">
             <label for="storage-policy-device-filter">选择摄像头</label>
@@ -247,6 +248,18 @@
               {{ policy.device_name }}
             </ASelectOption>
           </ASelect>
+          <ASelect
+            v-model:value="historyFilters.recording_kind"
+            allow-clear
+            placeholder="全部录像类型"
+            @change="loadHistory(true)"
+          >
+            <ASelectOption value="live">原始流录像</ASelectOption>
+            <ASelectOption value="ai">AI 分析回放</ASelectOption>
+            <ASelectOption value="object">平台录像</ASelectOption>
+            <ASelectOption value="archive">归档录像</ASelectOption>
+            <ASelectOption value="other">其他 SRS 录像</ASelectOption>
+          </ASelect>
           <ARangePicker v-model:value="historyRange" show-time @change="loadHistory(true)" />
           <AButton type="primary" @click="loadHistory(true)">查询</AButton>
         </div>
@@ -254,17 +267,18 @@
         <ASpin :spinning="historyLoading">
           <div v-if="history.length" class="history-grid">
             <article v-for="item in history" :key="item.id" class="history-card" @click="onPlayHistory(item)">
-              <div class="history-preview">
+              <div class="history-preview" :class="{ 'ai-preview': item.recording_kind === 'ai' }">
                 <VideoCameraOutlined />
                 <span class="play-button"><CaretRightFilled /></span>
-                <ATag class="source-tag" :color="item.source === 'srs' ? 'cyan' : item.source === 'archive' ? 'orange' : 'purple'">
-                  {{ sourceLabel(item.source) }}
+                <ATag class="source-tag" :color="recordingKindColor(item.recording_kind)">
+                  {{ sourceLabel(item.recording_kind) }}
                 </ATag>
               </div>
               <div class="history-info">
                 <b :title="item.filename">{{ item.device_name }}</b>
                 <span>{{ formatDateTime(item.event_time) }}</span>
-                <span>{{ formatBytes(item.size) }} · {{ item.filename }}</span>
+                <span v-if="item.task_id">任务 {{ item.task_id }} · {{ formatBytes(item.size) }} · {{ item.filename }}</span>
+                <span v-else>{{ formatBytes(item.size) }} · {{ item.filename }}</span>
               </div>
             </article>
           </div>
@@ -404,7 +418,11 @@ const historyPageSize = 24;
 const historyTotal = ref(0);
 const historyTotalBytes = ref(0);
 const historyRange = ref<any>(null);
-const historyFilters = reactive({ search: '', device_id: undefined as string | undefined });
+const historyFilters = reactive({
+  search: '',
+  device_id: undefined as string | undefined,
+  recording_kind: undefined as RecordingHistory['recording_kind'] | undefined,
+});
 const customSchemeForm = reactive({
   name: '',
   description: '',
@@ -463,10 +481,15 @@ function retentionMax(unit?: 'minute' | 'hour' | 'day') {
   return { minute: 5256000, hour: 87600, day: 3650 }[unit || 'day'];
 }
 
-function sourceLabel(source: RecordingHistory['source']) {
-  if (source === 'srs') return '连续录像';
-  if (source === 'archive') return '归档录像';
-  return '平台录像';
+function sourceLabel(kind: RecordingHistory['recording_kind']) {
+  return {
+    live: '原始流录像', ai: 'AI 分析回放', other: '其他 SRS 录像',
+    object: '平台录像', archive: '归档录像',
+  }[kind] || '录像';
+}
+
+function recordingKindColor(kind: RecordingHistory['recording_kind']) {
+  return { live: 'cyan', ai: 'geekblue', other: 'default', object: 'purple', archive: 'orange' }[kind];
 }
 
 function usageClass(percent: number) {
@@ -504,6 +527,7 @@ async function loadHistory(reset = false) {
       pageSize: historyPageSize,
       search: historyFilters.search || undefined,
       device_id: historyFilters.device_id,
+      recording_kind: historyFilters.recording_kind,
       start_time: historyRange.value?.[0]?.toISOString(),
       end_time: historyRange.value?.[1]?.toISOString(),
       refresh: reset,
@@ -639,7 +663,7 @@ function playHistory(item: RecordingHistory) {
     deviceName: item.device_name,
     eventTime: formatDateTime(item.event_time),
     sizeText: formatBytes(item.size),
-    sourceText: sourceLabel(item.source),
+    sourceText: sourceLabel(item.recording_kind),
   });
 }
 
@@ -677,8 +701,10 @@ h2 { font-size: 18px; }
 .disk-values { margin-top: 8px; color: #667085; font-size: 13px; }
 .disk-values b { color: #182230; }
 .target-list { margin-top: 14px; }
-.usage-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 18px; }
+.usage-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 18px; }
 .usage-summary div { padding: 14px 16px; border-radius: 10px; background: #f7f9fc; }
+.usage-summary .live-usage { background: #ecfeff; }
+.usage-summary .ai-usage { background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
 .usage-summary span, .usage-summary b { display: block; }
 .usage-summary span { color: #667085; font-size: 13px; }
 .usage-summary b { margin-top: 6px; font-size: 18px; }
@@ -721,7 +747,7 @@ h2 { font-size: 18px; }
 .form-tip { margin: 0; color: #98a2b3; font-size: 12px; }
 .history-filters {
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(220px, 300px) minmax(300px, 360px) auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(190px, 260px) minmax(160px, 200px) minmax(280px, 340px) auto;
   justify-content: initial;
   gap: 12px;
   margin-bottom: 18px;
@@ -731,6 +757,7 @@ h2 { font-size: 18px; }
 .history-card { overflow: hidden; border: 1px solid #e5eaf1; border-radius: 12px; background: #fff; cursor: pointer; transition: .2s ease; }
 .history-card:hover { transform: translateY(-2px); border-color: #91caff; box-shadow: 0 8px 22px rgba(22, 119, 255, .10); }
 .history-preview { position: relative; display: grid; place-items: center; height: 132px; color: #8ca3bd; font-size: 44px; background: linear-gradient(145deg, #eef4fb, #dfeaf7); }
+.history-preview.ai-preview { color: #818cf8; background: radial-gradient(circle at 75% 20%, #ddd6fe, transparent 36%), linear-gradient(145deg, #eef2ff, #e0e7ff); }
 .play-button { position: absolute; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: #fff; background: rgba(18, 34, 54, .72); font-size: 20px; }
 .source-tag { position: absolute; top: 10px; left: 10px; }
 .history-info { padding: 13px; }.history-info b, .history-info span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

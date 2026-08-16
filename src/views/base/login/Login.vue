@@ -150,6 +150,16 @@ html[data-theme='dark'] {
   .@{prefix-cls}-form {
     padding: 1.5rem 2.1rem .8rem 2.1rem;
     background-color: #fff;
+
+    .mask {
+      position: absolute;
+    }
+
+    .verifybox {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
   }
 
   @media (max-width: @screen-xl) {

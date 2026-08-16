@@ -4,7 +4,7 @@
       ref="container"
       :id="playerId"
       class="player-container"
-      :class="{ 'easy-wasm-active': !!easyPlayer }"
+      :class="[{ 'easy-wasm-active': !!easyPlayer }, `fit-${fitMode}`]"
       @dblclick="fullscreen"
       @mousemove="mouseenter"
     >
@@ -105,6 +105,11 @@ export default {
       type: Boolean,
       required: true,
     },
+    fitMode: {
+      type: String,
+      default: "stretch",
+      validator: (value) => ["cover", "contain", "stretch"].includes(value),
+    },
   },
   data() {
     return {
@@ -136,13 +141,19 @@ export default {
       kbs: 0,
       isFull: false,
       easyPlayer: null,
+      containerResizeObserver: null,
+      resizeAnimationFrame: 0,
       playerId: `easyaiot-player-${Date.now()}-${secureUint32() % 100000}`,
     };
   },
   mounted() {
     this.create();
+    this.observeContainerResize();
     // 首次挂载时 playUrl 已经存在不会触发 watch，等播放器容器完成渲染后主动启动播放。
-    this.$nextTick(() => this.play());
+    this.$nextTick(() => {
+      this.applyFitMode();
+      this.play();
+    });
     window.onerror = (msg) => (this.err = msg);
   },
   watch: {
@@ -153,6 +164,7 @@ export default {
     },
   },
   async unmounted() {
+    this.stopObservingContainerResize();
     await this.destroyPlayer();
   },
   methods: {
@@ -160,7 +172,43 @@ export default {
       return /\/(live|ai)\/.+\.flv($|\?)/i.test(url || "");
     },
     useEasyWasmPlayer() {
-      return this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+      return this.fitMode === "cover" && this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+    },
+    playerScaleMode() {
+      if (this.fitMode === "stretch") {
+        return 0;
+      }
+      return this.fitMode === "cover" ? 2 : 1;
+    },
+    applyFitMode() {
+      if (!this.jessibuca) {
+        return;
+      }
+      this.jessibuca.setScaleMode(this.playerScaleMode());
+      this.jessibuca.resize();
+    },
+    observeContainerResize() {
+      if (!window.ResizeObserver || !this.$refs.container) {
+        return;
+      }
+      this.containerResizeObserver = new ResizeObserver(() => {
+        if (this.resizeAnimationFrame) {
+          window.cancelAnimationFrame(this.resizeAnimationFrame);
+        }
+        this.resizeAnimationFrame = window.requestAnimationFrame(() => {
+          this.resizeAnimationFrame = 0;
+          this.applyFitMode();
+        });
+      });
+      this.containerResizeObserver.observe(this.$refs.container);
+    },
+    stopObservingContainerResize() {
+      this.containerResizeObserver?.disconnect();
+      this.containerResizeObserver = null;
+      if (this.resizeAnimationFrame) {
+        window.cancelAnimationFrame(this.resizeAnimationFrame);
+        this.resizeAnimationFrame = 0;
+      }
     },
     destroyEasyPlayer() {
       if (this.easyPlayer) {
@@ -190,9 +238,9 @@ export default {
             container: this.$refs.container,
             decoder: "/static/js/jessibuca/decoder.js",
             videoBuffer: 0.2, // 缓存时长
-            // 等比放大并裁切溢出区域，让画面填满播放器且不产生黑边。
-            isResize: true,
-            isFullResize: true,
+            // stretch 使用播放器原生拉伸模式，避免部分分辨率画面只绘制在左上角。
+            isResize: this.fitMode !== "stretch",
+            isFullResize: this.fitMode === "cover",
             useWCS: this.useWCS,
             useMSE: this.useMSE,
             text: "",
@@ -258,8 +306,8 @@ export default {
       // });
       this.jessibuca.on("videoInfo", function (info) {
         console.log("videoInfo", info);
-        // 视频尺寸可用后再次应用 cover 模式。
-        _this.jessibuca.setScaleMode(2);
+        // 视频尺寸可用后再次应用显示模式，确保首帧不会沿用播放器默认画布大小。
+        _this.applyFitMode();
       });
       this.jessibuca.on("error", function (error) {
         console.log("error", error);
@@ -528,5 +576,19 @@ export default {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
+}
+
+.player-container.fit-contain video,
+.player-container.fit-contain canvas {
+  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.player-container.fit-stretch video,
+.player-container.fit-stretch canvas {
+  object-fit: fill !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>

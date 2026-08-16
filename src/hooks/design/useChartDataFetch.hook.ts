@@ -64,8 +64,7 @@ export const useChartDataFetch = (
 
     try {
       // 处理地址
-      // @ts-ignore
-      if (requestUrl?.value) {
+      if (requestUrl.value) {
         // requestOriginUrl 允许为空
         const completePath = (requestOriginUrl.value || '') + requestUrl.value
         if (!completePath) return
@@ -103,9 +102,9 @@ export const useChartDataFetch = (
         )
 
         // 定时时间
-        const time = targetInterval && !isNil(targetInterval.value) ? targetInterval.value : globalRequestInterval.value
+        const time = !isNil(targetInterval.value) ? targetInterval.value : globalRequestInterval.value
         // 单位
-        const unit = targetInterval && !isNil(targetInterval.value) ? targetUnit.value : globalUnit.value
+        const unit = !isNil(targetInterval.value) ? targetUnit.value : globalUnit.value
         // 开启轮询
         if (time) {
           fetchInterval = setInterval(fetchFn, intervalUnitHandle(time, unit))

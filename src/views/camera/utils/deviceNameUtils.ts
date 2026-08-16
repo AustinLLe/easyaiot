@@ -6,7 +6,7 @@ export interface DeviceNameItem {
 }
 
 export function normalizeDeviceName(name: string | undefined | null): string {
-  return (name ?? '').trim();
+  return (name ?? '').trim().toLowerCase();
 }
 
 export function isDeviceNameDuplicate(
@@ -32,7 +32,7 @@ export function validateDeviceNameUnique(
   if (!normalized)
     return null;
   if (isDeviceNameDuplicate(normalized, devices, excludeId))
-    return `设备名称「${normalized}」已存在`;
+    return `设备名称「${(name ?? '').trim()}」已存在`;
   return null;
 }
 

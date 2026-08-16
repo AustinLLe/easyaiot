@@ -21,7 +21,7 @@
             <a-radio-button value="3">Video标签</a-radio-button>
           </a-radio-group>
           <div v-if="playerType == 1" style="width: 100%; height: 30.375vw">
-            <Jessibuca ref="jessibuca" :play-url="playUrl" :hasAudio="false" />
+            <Jessibuca ref="jessibuca" :play-url="playUrl" :hasAudio="false" fit-mode="stretch" />
           </div>
           <div v-if="playerType == 2" style="width: 100%; height: 30.375vw">
             <RtcPlayer ref="rtcPlayer" :play-url="playUrl" :hasAudio="false" />

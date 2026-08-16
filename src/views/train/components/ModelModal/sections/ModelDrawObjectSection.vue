@@ -242,6 +242,7 @@ import {
   itemHasDrawRegions,
   rectToCssStyle,
 } from '../../../utils/drawUtils';
+import type { DrawObjectImportSkippedItem } from '../../../utils/drawUtils';
 
 defineOptions({ name: 'ModelDrawObjectSection' });
 
@@ -421,7 +422,7 @@ function handleImport() {
   importVisible.value = true;
 }
 
-function handleImportSuccess(items: ModelDrawObjectItem[]) {
+function handleImportSuccess(items: ModelDrawObjectItem[], skipped: DrawObjectImportSkippedItem[] = []) {
   const error = validateImportDrawObjects(tableItems.value, items);
   if (error) {
     createMessage.warning(error);
@@ -429,7 +430,10 @@ function handleImportSuccess(items: ModelDrawObjectItem[]) {
   }
   tableItems.value = [...tableItems.value, ...items];
   syncDrawObjectDerivedState();
-  createMessage.success(`成功导入 ${items.length} 条绘制对象`);
+  const skippedText = skipped.length
+    ? `，已跳过 ${skipped.length} 条重复项（${skipped.slice(0, 5).map(item => item.class_key).join('、')}${skipped.length > 5 ? '等' : ''}）`
+    : '';
+  createMessage.success(`成功导入 ${items.length} 条绘制对象${skippedText}`);
 }
 
 function handleDelete(id: string) {

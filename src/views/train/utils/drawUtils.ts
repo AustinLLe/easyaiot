@@ -9,6 +9,13 @@ import {
 } from '../constants/drawObjectImportTemplate';
 import type { ModelDrawObjectItem, ModelDrawRegion, ModelPreviewRect } from '../modelDraft.types';
 import { translateClassLabel } from './classLabelUtils';
+import {
+  classifyDrawObjectDuplicate,
+  normalizeDrawObjectClassKey,
+} from './drawObjectImport';
+import type { DrawObjectImportResult, DrawObjectImportSkippedItem } from './drawObjectImport';
+
+export type { DrawObjectImportResult, DrawObjectImportSkippedItem } from './drawObjectImport';
 
 export const DEFAULT_MODEL_PREVIEW = '/images/model-preview.jpg';
 
@@ -266,7 +273,7 @@ export function downloadDrawObjectTemplate() {
 export async function parseDrawObjectExcel(
   file: File,
   existingClassKeys: Iterable<string> = [],
-): Promise<ModelDrawObjectItem[]> {
+): Promise<DrawObjectImportResult> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
   const sheetName = workbook.SheetNames[0];
@@ -287,8 +294,11 @@ export async function parseDrawObjectExcel(
 
   const items: ModelDrawObjectItem[] = [];
   const classKeySet = new Set<string>();
+  const skipped: DrawObjectImportSkippedItem[] = [];
   const reservedKeys = new Set(
-    [...existingClassKeys].map(key => String(key).trim()).filter(Boolean),
+    [...existingClassKeys]
+      .map(normalizeDrawObjectClassKey)
+      .filter(Boolean),
   );
 
   for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
@@ -301,13 +311,14 @@ export async function parseDrawObjectExcel(
     if (!classKey)
       throw new Error(`第 ${lineNo} 行 ClassID 不能为空`);
 
-    if (classKeySet.has(classKey))
-      throw new Error(`第 ${lineNo} 行 ClassID「${classKey}」在文件中重复`);
+    const normalizedClassKey = normalizeDrawObjectClassKey(classKey);
+    const duplicateReason = classifyDrawObjectDuplicate(classKey, classKeySet, reservedKeys);
+    if (duplicateReason) {
+      skipped.push({ class_key: classKey, row: lineNo, reason: duplicateReason });
+      continue;
+    }
 
-    if (reservedKeys.has(classKey))
-      throw new Error(`第 ${lineNo} 行 ClassID「${classKey}」与已有绘制对象重复`);
-
-    classKeySet.add(classKey);
+    classKeySet.add(normalizedClassKey);
 
     items.push(createDrawObjectItem({
       class_key: classKey,
@@ -319,8 +330,8 @@ export async function parseDrawObjectExcel(
     }));
   }
 
-  if (!items.length)
+  if (!items.length && !skipped.length)
     throw new Error('未解析到有效的绘制对象数据，请至少填写一行 ClassID');
 
-  return items;
+  return { items, skipped };
 }

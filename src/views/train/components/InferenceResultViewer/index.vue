@@ -40,6 +40,8 @@
               <a-table
                 :dataSource="detectionData"
                 :columns="detectionColumns"
+                :pagination="false"
+                :locale="{ emptyText: '未检测到目标' }"
                 size="small"
                 class="detection-table"
               />
@@ -148,7 +150,7 @@ const resultType = computed(() => {
   if (props.record.output_path?.includes('.json')) return 'keypoints';
   if (props.record.output_path?.includes('.mp4') || props.record.output_path?.includes('.avi')) return 'video';
   if (props.record.stream_output_url) return 'stream';
-  if (props.record.detection_results) return 'detection';
+  if (props.record.detection_results || props.record.detections || props.record.predictions) return 'detection';
   if (props.record.classification_results) return 'classification';
   return 'unknown';
 });
@@ -165,16 +167,26 @@ const classificationData = computed(() => {
 });
 
 const detectionData = computed(() => {
-  return props.record?.detection_results || [];
+  const raw = props.record?.detection_results || props.record?.detections || props.record?.predictions || [];
+  if (!Array.isArray(raw))
+    return [];
+  return raw.map((item, index) => ({
+    key: item.id || index,
+    class: item.class_name ?? item.label ?? item.class ?? item.class_id ?? '未知类别',
+    confidence: Number(item.confidence ?? 0),
+    bbox: Array.isArray(item.bbox) ? item.bbox : [],
+  }));
 });
 
 const detectionColumns = computed(() => [
   { title: '类别', dataIndex: 'class', key: 'class' },
   { title: '置信度', dataIndex: 'confidence', key: 'confidence',
-    customRender: ({ text }) => text ? `${(text * 100).toFixed(2)}%` : '0%'
+    customRender: ({ text }) => `${(Number(text) <= 1 ? Number(text) * 100 : Number(text)).toFixed(2)}%`
   },
   { title: '位置', dataIndex: 'bbox', key: 'bbox',
-    customRender: ({ text }) => text ? `[${text[0]}, ${text[1]}, ${text[2]}, ${text[3]}]` : '[]'
+    customRender: ({ text }) => Array.isArray(text) && text.length >= 4
+      ? `[${text[0]}, ${text[1]}, ${text[2]}, ${text[3]}]`
+      : '—'
   }
 ]);
 

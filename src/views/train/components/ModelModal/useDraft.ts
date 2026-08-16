@@ -302,9 +302,13 @@ export function parseClassLabelsText(text: string): ModelClassLabelDraft[] {
     .map(line => line.trim())
     .filter(Boolean)
     .map((line, index) => {
-      const match = line.match(/^(\d+|[A-Za-z_][\w.-]*)\s*[:=]\s*(.+)$/);
-      if (match)
-        return { class_key: match[1], label: match[2].trim() };
+      const sep = line.search(/[:=]/);
+      if (sep > 0) {
+        const classKey = line.slice(0, sep).trim();
+        const label = line.slice(sep + 1).trim();
+        if (label && (/^\d+$/.test(classKey) || /^[A-Za-z_][\w.-]*$/.test(classKey)))
+          return { class_key: classKey, label };
+      }
       return { class_key: String(index), label: line };
     });
   return normalizeClassLabelDrafts(parsed);
@@ -325,6 +329,10 @@ export function validateDrawObjectRow(row: ModelDrawObjectItem): string | null {
   return null;
 }
 
+function normalizeDrawObjectClassKey(value: string | undefined): string {
+  return value?.trim().toLowerCase() ?? '';
+}
+
 export function findDuplicateClassKey(
   items: ModelDrawObjectItem[],
   excludeId?: string,
@@ -333,7 +341,7 @@ export function findDuplicateClassKey(
   for (const item of items) {
     if (excludeId && item.id === excludeId)
       continue;
-    const classKey = item.class_key?.trim();
+    const classKey = normalizeDrawObjectClassKey(item.class_key);
     if (!classKey)
       continue;
     if (seen.has(classKey))
@@ -347,11 +355,11 @@ export function validateDrawObjectRowUnique(
   row: ModelDrawObjectItem,
   items: ModelDrawObjectItem[],
 ): string | null {
-  const classKey = row.class_key?.trim();
+  const classKey = normalizeDrawObjectClassKey(row.class_key);
   if (!classKey)
     return null;
   const duplicated = items.some(
-    item => item.id !== row.id && item.class_key?.trim() === classKey,
+    item => item.id !== row.id && normalizeDrawObjectClassKey(item.class_key) === classKey,
   );
   if (duplicated)
     return `类别ID「${classKey}」已存在`;
@@ -388,10 +396,10 @@ export function validateImportDrawObjects(
   }
 
   const existingKeys = new Set(
-    existing.map(item => item.class_key.trim()).filter(Boolean),
+    existing.map(item => normalizeDrawObjectClassKey(item.class_key)).filter(Boolean),
   );
   for (const item of imported) {
-    const classKey = item.class_key.trim();
+    const classKey = normalizeDrawObjectClassKey(item.class_key);
     if (existingKeys.has(classKey))
       return `类别ID「${classKey}」与已有绘制对象重复`;
     existingKeys.add(classKey);

@@ -28,6 +28,7 @@
                 ref="jessibuca"
                 :playUrl="state.currentUrl"
                 :hasAudio="false"
+                fit-mode="stretch"
               />
             </div>
           </div>
