@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { Tooltip } from 'ant-design-vue'
-import { menuTypeList } from '../enum'
+import { menuTypeList as menuTypeListOptions } from '../enum'
 import { useDesign } from '@/hooks/web/useDesign'
 
 defineOptions({ name: 'MenuTypePicker' })
 
 defineProps({
   menuTypeList: {
-    type: Array as PropType<typeof menuTypeList>,
+    type: Array as PropType<typeof menuTypeListOptions>,
     default: () => [],
   },
   handler: {

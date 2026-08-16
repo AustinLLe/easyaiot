@@ -17,7 +17,7 @@ const imagesModules: Record<string, { default: string }> = import.meta.glob('../
 })
 
 // * 所有图表
-export let packagesList: PackagesType = {
+export const packagesList: PackagesType = {
   // [PackagesCategoryEnum.CHARTS]: ChartList,
   [PackagesCategoryEnum.INFORMATIONS]: InformationList,
   // [PackagesCategoryEnum.TABLES]: TableList,

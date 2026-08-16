@@ -67,7 +67,7 @@ export const useChartDataFetch = (
       // @ts-ignore
       if (requestUrl?.value) {
         // requestOriginUrl 允许为空
-        const completePath = requestOriginUrl && requestOriginUrl.value + requestUrl.value
+        const completePath = (requestOriginUrl.value || '') + requestUrl.value
         if (!completePath) return
 
         clearInterval(fetchInterval)

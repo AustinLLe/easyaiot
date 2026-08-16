@@ -464,8 +464,9 @@ let lastVideoErrorMsg = '';
 const getVideoUrl = (videoUrl: string): string => {
   if (!videoUrl)
     return '';
-  const normalized = String(videoUrl).replaceAll(/\\/g, '/').trim();
-  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '');
+  const normalized = String(videoUrl).replaceAll('\\', '/').trim();
+  const apiBaseRaw = import.meta.env.VITE_GLOB_API_URL || '/dev-api';
+  const apiBase = apiBaseRaw.endsWith('/') ? apiBaseRaw.slice(0, -1) : apiBaseRaw;
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {
       const url = new URL(normalized);

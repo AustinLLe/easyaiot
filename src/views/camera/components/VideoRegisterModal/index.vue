@@ -15,11 +15,12 @@
           :wrapperCol="{ span: 21 }"
         >
           <FormItem label="设备名称" name="name" html-for="video-reg-name" v-bind=validateInfos.name>
-            <Input id="video-reg-name" v-model:value="modelRef.name"/>
+            <Input id="video-reg-name" aria-label="设备名称" v-model:value="modelRef.name"/>
           </FormItem>
           <FormItem label="分组" name="directory_id" html-for="video-reg-directory">
             <TreeSelect
               id="video-reg-directory"
+              aria-label="分组"
               v-model:value="modelRef.directory_id"
               placeholder="请选择分组（可选）"
               :tree-data="directoryTreeOptions"
@@ -32,6 +33,7 @@
           <FormItem label="码流索引" name="stream" html-for="video-reg-stream" v-bind=validateInfos.stream>
             <Select
               id="video-reg-stream"
+              aria-label="码流索引"
               placeholder="码流索引"
               :options="state.streamList"
               @change="handleCLickChange"
@@ -40,10 +42,10 @@
             />
           </FormItem>
           <FormItem label="用户名" name="username" html-for="video-reg-username" v-bind=validateInfos.userName>
-            <Input id="video-reg-username" v-model:value="modelRef.username"/>
+            <Input id="video-reg-username" aria-label="用户名" v-model:value="modelRef.username"/>
           </FormItem>
           <FormItem label="密码" name="password" html-for="video-reg-password" v-bind="validateInfos.password">
-            <Input.Password id="video-reg-password" v-model:value="modelRef.password" />
+            <Input.Password id="video-reg-password" aria-label="密码" v-model:value="modelRef.password" />
           </FormItem>
         </Form>
       </Spin>

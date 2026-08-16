@@ -792,7 +792,7 @@ function _dataURLToFile(dataURL) {
     const type = arr[0].replace("data:", "").replace(";base64", "")
     let n = bstr.length, u8arr = new Uint8Array(n);
     while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
+        u8arr[n] = bstr.codePointAt(n);
     }
     return new File([u8arr], 'file', {type});
 }

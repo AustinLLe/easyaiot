@@ -137,16 +137,18 @@ const linkOptions = computed(() => {
         <!--    循环遍历渲染组件属性      -->
 
         <div v-if="formConfig.currentItem && formConfig.currentItem.componentProps">
-          <FormItem v-for="item in inputOptions" :key="item.name" :label="item.label" :html-for="`comp-prop-${item.name}`">
+          <FormItem v-for="item in inputOptions" :key="item.name" :label="item.label" :html-for="item.children ? undefined : `comp-prop-${item.name}`">
             <!--     处理数组属性，placeholder       -->
 
             <div v-if="item.children">
               <template v-for="(child, index) of item.children" :key="index">
+                <label :for="`comp-prop-${item.name}-${index}`" class="sr-only">{{ item.label }}{{ index + 1 }}</label>
                 <component
                   v-bind="child.componentProps"
                   :is="child.component"
                   v-if="child.component"
                   :id="`comp-prop-${item.name}-${index}`"
+                  :aria-label="`${item.label}${index + 1}`"
                   v-model:value="formConfig.currentItem.componentProps[item.name][index]"
                 />
               </template>
@@ -155,6 +157,7 @@ const linkOptions = computed(() => {
             <component
               v-bind="item.componentProps" :is="item.component" v-else-if="item.component"
               :id="`comp-prop-${item.name}`"
+              :aria-label="item.label"
               v-model:value="formConfig.currentItem.componentProps[item.name]" class="component-prop"
             />
           </FormItem>
@@ -170,7 +173,7 @@ const linkOptions = computed(() => {
           </FormItem>
         </div>
         <FormItem label="关联字段" html-for="comp-prop-link">
-          <Select id="comp-prop-link" v-model:value="formConfig.currentItem.link" mode="multiple" :options="linkOptions" />
+          <Select id="comp-prop-link" aria-label="关联字段" v-model:value="formConfig.currentItem.link" mode="multiple" :options="linkOptions" />
         </FormItem>
 
         <FormItem
@@ -194,3 +197,17 @@ const linkOptions = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

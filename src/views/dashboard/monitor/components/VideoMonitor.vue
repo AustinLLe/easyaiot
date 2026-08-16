@@ -210,11 +210,20 @@ const setVideoRef = (el: any, index: number) => {
 
 // 获取视频列表（填充到需要的数量）
 const videoListWithPlaceholder = computed(() => {
-  // 合并内部列表和props列表
+  const maxCount = getMaxVideoCount(currentLayout.value)
+  return internalVideoList.value.slice(0, maxCount)
+})
+
+// 获取当前布局需要的最大视频数量
+const getMaxVideoCount = (layout: string) => {
+  const count = Number.parseInt(layout)
+  return Number.isNaN(count) ? 1 : count
+}
+
+const syncInternalVideoList = () => {
   const baseList = props.videoList || []
   const maxCount = getMaxVideoCount(currentLayout.value)
-  
-  // 初始化内部列表（如果为空）
+
   if (internalVideoList.value.length === 0 && baseList.length > 0) {
     internalVideoList.value = baseList.map((v, i) => ({
       ...v,
@@ -223,8 +232,7 @@ const videoListWithPlaceholder = computed(() => {
       name: v.name || `视频${i + 1}`
     }))
   }
-  
-  // 确保内部列表长度足够
+
   while (internalVideoList.value.length < maxCount) {
     internalVideoList.value.push({
       id: `placeholder-${internalVideoList.value.length}`,
@@ -232,14 +240,10 @@ const videoListWithPlaceholder = computed(() => {
       name: `视频${internalVideoList.value.length + 1}`
     })
   }
-  
-  return internalVideoList.value.slice(0, maxCount)
-})
 
-// 获取当前布局需要的最大视频数量
-const getMaxVideoCount = (layout: string) => {
-  const count = Number.parseInt(layout)
-  return Number.isNaN(count) ? 1 : count
+  if (internalVideoList.value.length > maxCount) {
+    internalVideoList.value = internalVideoList.value.slice(0, maxCount)
+  }
 }
 
 // 显示的视频列表
@@ -679,29 +683,13 @@ watch(() => props.device, (newDevice) => {
   }
 }, { immediate: true })
 
-// 监听视频列表变化
-watch(() => props.videoList, (newList) => {
-  if (newList && newList.length > 0) {
-    // 如果内部列表为空，则初始化内部列表
-    if (internalVideoList.value.length === 0) {
-      internalVideoList.value = newList.map((v, i) => ({
-        ...v,
-        id: v.id || `video-${i}`,
-        url: v.url || '',
-        name: v.name || `视频${i + 1}`
-      }))
-    }
-  }
-}, { immediate: true })
-
-// 监听布局变化，调整内部视频列表
-watch(() => currentLayout.value, (newLayout) => {
-  const maxCount = getMaxVideoCount(newLayout)
-  // 如果当前列表长度超过新布局的最大数量，截断
-  if (internalVideoList.value.length > maxCount) {
-    internalVideoList.value = internalVideoList.value.slice(0, maxCount)
-  }
-})
+watch(
+  [() => props.videoList, currentLayout],
+  () => {
+    syncInternalVideoList()
+  },
+  { immediate: true }
+)
 
 // 监听正在播放的视频列表变化，通知父组件
 watch(activeVideos, (newVideos) => {
