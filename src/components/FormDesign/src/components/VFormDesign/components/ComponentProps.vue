@@ -169,8 +169,8 @@ const linkOptions = computed(() => {
             </Col>
           </FormItem>
         </div>
-        <FormItem label="关联字段">
-          <Select v-model:value="formConfig.currentItem.link" mode="multiple" :options="linkOptions" />
+        <FormItem label="关联字段" html-for="comp-prop-link">
+          <Select id="comp-prop-link" v-model:value="formConfig.currentItem.link" mode="multiple" :options="linkOptions" />
         </FormItem>
 
         <FormItem

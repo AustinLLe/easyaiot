@@ -51,7 +51,7 @@
         >
           <FormItem label="摄像头类型" name="cameraType" html-for="video-camera-type" v-bind=validateInfos.cameraType>
             <Select
-              id="video-camera-type"
+              id="video-camera-type" aria-label="摄像头类型"
               v-model:value="modelRef.cameraType"
               placeholder="请选择摄像头类型"
               :options="state.cameraTypeList"
@@ -60,7 +60,7 @@
           </FormItem>
           <FormItem label="分组" name="directory_id" html-for="video-directory">
             <TreeSelect
-              id="video-directory"
+              id="video-directory" aria-label="分组"
               v-model:value="modelRef.directory_id"
               placeholder="请选择分组（可选）"
               :tree-data="directoryTreeOptions"
@@ -74,7 +74,7 @@
           <template v-if="modelRef.cameraType === 'custom'">
             <FormItem label="RTSP地址" name="source" html-for="video-custom-source" v-bind=validateInfos.source>
               <Input
-                id="video-custom-source"
+                id="video-custom-source" aria-label="RTSP地址"
                 v-model:value="modelRef.source" 
                 placeholder="请输入完整的RTSP取流地址，如：rtsp://username:password@ip:port/path"
                 style="width: 100%"
@@ -89,29 +89,29 @@
               </Input>
             </FormItem>
             <FormItem label="设备名称" name="name" html-for="video-custom-name" v-bind=validateInfos.name>
-              <Input id="video-custom-name" v-model:value="modelRef.name" placeholder="请输入设备名称"/>
+              <Input id="video-custom-name" aria-label="设备名称" v-model:value="modelRef.name" placeholder="请输入设备名称"/>
             </FormItem>
           </template>
           <!-- 海康/大华/宇视类型：显示IP、端口、用户名、密码输入框 -->
           <template v-else-if="modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview'">
             <FormItem label="设备名称" name="name" html-for="video-brand-name" v-bind=validateInfos.name>
-              <Input id="video-brand-name" v-model:value="modelRef.name" placeholder="请输入设备名称"/>
+              <Input id="video-brand-name" aria-label="设备名称" v-model:value="modelRef.name" placeholder="请输入设备名称"/>
             </FormItem>
             <FormItem label="摄像头IP" name="ip" html-for="video-brand-ip" v-bind=validateInfos.ip>
-              <Input id="video-brand-ip" v-model:value="modelRef.ip" placeholder="请输入摄像头IP地址" @blur="generateRtspUrl"/>
+              <Input id="video-brand-ip" aria-label="摄像头IP" v-model:value="modelRef.ip" placeholder="请输入摄像头IP地址" @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="摄像头端口" name="port" html-for="video-brand-port" v-bind=validateInfos.port>
-              <Input id="video-brand-port" v-model:value="modelRef.port" placeholder="请输入摄像头端口" type="number" @blur="generateRtspUrl"/>
+              <Input id="video-brand-port" aria-label="摄像头端口" v-model:value="modelRef.port" placeholder="请输入摄像头端口" type="number" @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="用户名" name="username" html-for="video-brand-username" v-bind=validateInfos.username>
-              <Input id="video-brand-username" v-model:value="modelRef.username" placeholder="请输入用户名" @blur="generateRtspUrl"/>
+              <Input id="video-brand-username" aria-label="用户名" v-model:value="modelRef.username" placeholder="请输入用户名" @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="密码" name="password" html-for="video-brand-password" v-bind=validateInfos.password>
-              <Input.Password id="video-brand-password" v-model:value="modelRef.password" placeholder="请输入密码" @blur="generateRtspUrl"/>
+              <Input.Password id="video-brand-password" aria-label="密码" v-model:value="modelRef.password" placeholder="请输入密码" @blur="generateRtspUrl"/>
             </FormItem>
             <FormItem label="码流类型" name="stream" html-for="video-brand-stream" v-bind=validateInfos.stream>
               <Select
-                id="video-brand-stream"
+                id="video-brand-stream" aria-label="码流类型"
                 v-model:value="modelRef.stream"
                 placeholder="请选择码流类型"
                 :options="state.streamList"
@@ -120,7 +120,7 @@
             </FormItem>
             <FormItem label="RTSP地址" name="source" html-for="video-brand-source" v-bind=validateInfos.source>
               <Input
-                id="video-brand-source"
+                id="video-brand-source" aria-label="RTSP地址"
                 v-model:value="modelRef.source" 
                 placeholder="根据输入信息自动生成" 
                 disabled
@@ -149,7 +149,7 @@
             <Col :span="12">
               <FormItem label="分组" name="directory_id" html-for="video-edit-directory">
                 <TreeSelect
-                  id="video-edit-directory"
+                  id="video-edit-directory" aria-label="分组"
                   v-model:value="modelRef.directory_id"
                   placeholder="请选择分组（可选）"
                   :tree-data="directoryTreeOptions"
@@ -162,28 +162,28 @@
             </Col>
             <Col :span="12">
               <FormItem label="设备名称" name="name" html-for="video-edit-name" v-bind=validateInfos.name>
-                <Input id="video-edit-name" v-model:value="modelRef.name"/>
+                <Input id="video-edit-name" aria-label="设备名称" v-model:value="modelRef.name"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="制造商" name="manufacturer" html-for="video-edit-manufacturer" v-bind=validateInfos.manufacturer>
-                <Input id="video-edit-manufacturer" v-model:value="modelRef.manufacturer"/>
+                <Input id="video-edit-manufacturer" aria-label="制造商" v-model:value="modelRef.manufacturer"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="设备型号" name="model" html-for="video-edit-model" v-bind=validateInfos.model>
-                <Input id="video-edit-model" v-model:value="modelRef.model"/>
+                <Input id="video-edit-model" aria-label="设备型号" v-model:value="modelRef.model"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="MAC地址" name="mac" html-for="video-edit-mac" v-bind=validateInfos.mac>
-                <Input id="video-edit-mac" v-model:value="modelRef.mac"/>
+                <Input id="video-edit-mac" aria-label="MAC地址" v-model:value="modelRef.mac"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="码流索引" name="stream" html-for="video-edit-stream" v-bind=validateInfos.stream>
                 <Select
-                  id="video-edit-stream"
+                  id="video-edit-stream" aria-label="码流索引"
                   placeholder="码流索引"
                   :options="state.streamList"
                   @change="handleCLickChange"
@@ -194,44 +194,44 @@
             </Col>
             <Col :span="12">
               <FormItem label="rtsp取流地址" name="source" html-for="video-edit-source" v-bind=validateInfos.source>
-                <Input id="video-edit-source" v-model:value="modelRef.source"/>
+                <Input id="video-edit-source" aria-label="rtsp取流地址" v-model:value="modelRef.source"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="rtmp推流地址" name="rtmp_stream" html-for="video-edit-rtmp" v-bind=validateInfos.rtmp_stream>
-                <Input id="video-edit-rtmp" v-model:value="modelRef.rtmp_stream"/>
+                <Input id="video-edit-rtmp" aria-label="rtmp推流地址" v-model:value="modelRef.rtmp_stream"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="http流地址" name="http_stream" html-for="video-edit-http" v-bind=validateInfos.http_stream>
-                <Input id="video-edit-http" v-model:value="modelRef.http_stream"/>
+                <Input id="video-edit-http" aria-label="http流地址" v-model:value="modelRef.http_stream"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="IP地址" name="ip" html-for="video-edit-ip" v-bind=validateInfos.ip>
-                <Input id="video-edit-ip" v-model:value="modelRef.ip"/>
+                <Input id="video-edit-ip" aria-label="IP地址" v-model:value="modelRef.ip"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="端口" name="port" html-for="video-edit-port" v-bind=validateInfos.port>
-                <Input id="video-edit-port" v-model:value="modelRef.port"/>
+                <Input id="video-edit-port" aria-label="端口" v-model:value="modelRef.port"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="用户名" name="username" html-for="video-edit-username" v-bind=validateInfos.username>
-                <Input id="video-edit-username" v-model:value="modelRef.username"/>
+                <Input id="video-edit-username" aria-label="用户名" v-model:value="modelRef.username"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="密码" name="password" html-for="video-edit-password" v-bind=validateInfos.password>
-                <Input id="video-edit-password" v-model:value="modelRef.password" type="password"/>
+                <Input id="video-edit-password" aria-label="密码" v-model:value="modelRef.password" type="password"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="支持云台" name="support_move" html-for="video-edit-support-move"
                         v-bind=validateInfos.support_move>
                 <Select
-                  id="video-edit-support-move"
+                  id="video-edit-support-move" aria-label="支持云台"
                   :options="state.supportMoveList"
                   @change="handleCLickChange"
                   v-model:value="modelRef.support_move"
@@ -243,7 +243,7 @@
               <FormItem label="支持变焦" name="support_zoom" html-for="video-edit-support-zoom"
                         v-bind=validateInfos.support_zoom>
                 <Select
-                  id="video-edit-support-zoom"
+                  id="video-edit-support-zoom" aria-label="支持变焦"
                   :options="state.supportZoomList"
                   @change="handleCLickChange"
                   v-model:value="modelRef.support_zoom"

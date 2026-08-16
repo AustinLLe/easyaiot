@@ -23,7 +23,7 @@
             v-bind="validateInfos.model_id"
           >
             <ApiSelect
-              id="inference-model-id"
+              id="inference-model-id" aria-label="选择模型"
               v-model:value="modelRef.model_id"
               :api="handleGetModelPage"
               result-field="items"
@@ -42,7 +42,7 @@
             v-bind="validateInfos.inference_type"
           >
             <Select
-              id="inference-type"
+              id="inference-type" aria-label="推理类型"
               v-model:value="modelRef.inference_type"
               placeholder="请选择"
               :disabled="state.isView"

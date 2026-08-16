@@ -7,7 +7,7 @@
     <Form layout="vertical" class="section-form">
       <FormItem label="任务名称" required html-for="task-name">
         <Input
-          id="task-name"
+          id="task-name" aria-label="任务名称"
           v-model:value="payload.task_name"
           placeholder="例如：安全帽检测任务"
           :allow-clear="!readonly"
@@ -18,7 +18,7 @@
       <div class="task-mode-row">
         <FormItem label="任务类型" required class="task-mode-item" html-for="task-type">
           <Select
-            id="task-type"
+            id="task-type" aria-label="任务类型"
             v-model:value="payload.task_type"
             :options="taskTypeOptions"
             :disabled="readonly"
@@ -27,7 +27,7 @@
         </FormItem>
         <FormItem label="分析模式" required class="task-mode-item" html-for="task-analysis-mode">
           <Select
-            id="task-analysis-mode"
+            id="task-analysis-mode" aria-label="分析模式"
             v-model:value="payload.analysis_mode"
             :options="analysisModeOptions"
             :disabled="readonly || payload.task_type === 'snap' || payload.task_type === 'patrol'"
@@ -37,7 +37,7 @@
       </div>
       <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required html-for="task-extract-interval">
         <InputNumber
-          id="task-extract-interval"
+          id="task-extract-interval" aria-label="抽帧间隔"
           v-model:value="payload.detection_config.extract_interval"
           :min="1"
           :max="1000"
@@ -52,7 +52,7 @@
         <div class="snap-interval-row">
           <label for="task-snap-interval" class="sr-only">抓拍间隔</label>
           <InputNumber
-            id="task-snap-interval"
+            id="task-snap-interval" aria-label="抓拍间隔"
             v-model:value="payload.snap_interval_value"
             :min="1"
             :max="snapIntervalMax"
@@ -62,7 +62,7 @@
           />
           <label for="task-snap-unit" class="sr-only">间隔单位</label>
           <Select
-            id="task-snap-unit"
+            id="task-snap-unit" aria-label="间隔单位"
             v-model:value="payload.snap_interval_unit"
             :options="snapUnitOptions"
             :disabled="readonly"

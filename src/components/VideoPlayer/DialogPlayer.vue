@@ -70,7 +70,9 @@
                   <div>
                     <label class="label" for="dialog-player-resource">资源地址：</label>
                     <span class="ant-input-group-wrapper">
+                      <label for="dialog-player-media-type" class="sr-only">播放类型</label>
                       <Select
+                        id="dialog-player-media-type"
                         v-model:value="state.mediaType"
                         :options="state.videoUrlList"
                         @change="handleChange"
@@ -502,6 +504,18 @@ function handleCancel() {
         }
 
         .real-time-info {
+          .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+          }
+
           .label {
             margin: 8px 0;
           }

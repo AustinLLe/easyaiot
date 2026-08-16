@@ -15,7 +15,7 @@
           <Form layout="vertical" class="base-form">
             <FormItem label="名称" required html-for="push-endpoint-name">
               <Input
-                id="push-endpoint-name"
+                id="push-endpoint-name" aria-label="名称"
                 v-model:value="localEndpoint.profile_name"
                 placeholder="例如：测试推送"
                 allow-clear
@@ -23,7 +23,7 @@
             </FormItem>
             <FormItem label="渠道类型" required html-for="push-endpoint-platform">
               <Select
-                id="push-endpoint-platform"
+                id="push-endpoint-platform" aria-label="渠道类型"
                 v-model:value="localEndpoint.platform"
                 :options="platformOptions"
                 :get-popup-container="getPopupContainer"
@@ -31,7 +31,7 @@
             </FormItem>
             <FormItem label="推送地址" required html-for="push-endpoint-url">
               <Input
-                id="push-endpoint-url"
+                id="push-endpoint-url" aria-label="推送地址"
                 v-model:value="localEndpoint.push_url"
                 :placeholder="pushUrlPlaceholder"
                 allow-clear

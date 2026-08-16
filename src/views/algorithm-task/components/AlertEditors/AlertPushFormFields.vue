@@ -2,7 +2,7 @@
   <Form layout="vertical" :class="formClass">
     <FormItem v-if="showRuleSelect" label="告警规则" required html-for="alert-push-rules">
       <Select
-        id="alert-push-rules"
+        id="alert-push-rules" aria-label="告警规则"
         v-model:value="pushModel.rule_ids"
         mode="multiple"
         placeholder="请选择要推送的告警规则"
@@ -18,7 +18,7 @@
 
     <FormItem v-if="showPushName" label="推送名称" required html-for="alert-push-name">
       <Input
-        id="alert-push-name"
+        id="alert-push-name" aria-label="推送名称"
         v-model:value="pushModel.push_name"
         placeholder="例如：高等级邮件通知"
         :allow-clear="!disabled"
@@ -45,7 +45,7 @@
 
     <FormItem label="发送平台" required html-for="alert-push-platform">
       <Input
-        id="alert-push-platform"
+        id="alert-push-platform" aria-label="发送平台"
         v-model:value="pushModel.content.platform_name"
         placeholder="默认使用当前平台名称"
         :maxlength="64"
@@ -80,7 +80,7 @@
 
       <FormItem label="推送标题" required html-for="alert-push-title">
         <Input
-          id="alert-push-title"
+          id="alert-push-title" aria-label="推送标题"
           v-model:value="pushModel.content.title_template"
           placeholder="例如：车间门口高等级告警"
           :allow-clear="!disabled"
@@ -98,7 +98,7 @@
 
       <FormItem label="补充说明（可选）" html-for="alert-push-remark">
         <Input.TextArea
-          id="alert-push-remark"
+          id="alert-push-remark" aria-label="补充说明"
           v-model:value="pushModel.content.remark"
           placeholder="附加在推送正文末尾"
           :rows="2"
@@ -114,7 +114,7 @@
     <template v-else>
       <FormItem label="推送地址" required html-for="alert-push-address">
         <Select
-          id="alert-push-address"
+          id="alert-push-address" aria-label="推送地址"
           v-model:value="pushModel.address_profile_ids"
           mode="multiple"
           placeholder="请选择推送地址"

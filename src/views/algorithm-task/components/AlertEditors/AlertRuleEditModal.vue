@@ -15,7 +15,7 @@
           <Form layout="vertical" class="rule-form">
             <FormItem label="规则名称" required html-for="alert-rule-name">
               <Input
-                id="alert-rule-name"
+                id="alert-rule-name" aria-label="规则名称"
                 v-model:value="localRule.rule_name"
                 placeholder="例如：未戴安全帽"
                 :allow-clear="!readonly"
@@ -51,7 +51,7 @@
                     <template v-else>
                       <label :for="`alert-rule-model-${condIndex}`" class="sr-only">算法</label>
                       <Select
-                        :id="`alert-rule-model-${condIndex}`"
+                        :id="`alert-rule-model-${condIndex}`" aria-label="算法"
                         v-model:value="record.model_id"
                         placeholder="请选择算法"
                         allow-clear
@@ -68,7 +68,7 @@
                     <template v-else>
                       <label :for="`alert-rule-class-${condIndex}`" class="sr-only">类别</label>
                       <Select
-                        :id="`alert-rule-class-${condIndex}`"
+                        :id="`alert-rule-class-${condIndex}`" aria-label="类别"
                         v-model:value="record.class_name"
                         placeholder="请选择"
                         allow-clear
@@ -84,7 +84,7 @@
                     <template v-else>
                       <label :for="`alert-rule-op-${condIndex}`" class="sr-only">运算符</label>
                       <Select
-                        :id="`alert-rule-op-${condIndex}`"
+                        :id="`alert-rule-op-${condIndex}`" aria-label="运算符"
                         v-model:value="record.operator"
                         placeholder="请选择"
                         allow-clear
@@ -100,7 +100,7 @@
                     <template v-else>
                       <label :for="`alert-rule-count-${condIndex}`" class="sr-only">数量</label>
                       <InputNumber
-                        :id="`alert-rule-count-${condIndex}`"
+                        :id="`alert-rule-count-${condIndex}`" aria-label="数量"
                         v-model:value="record.count"
                         placeholder="数量"
                         :min="0"
@@ -145,7 +145,7 @@
               <Col v-if="taskType === 'realtime'" :span="12">
                 <FormItem label="持续时间（秒）" required html-for="alert-rule-duration">
                   <InputNumber
-                    id="alert-rule-duration"
+                    id="alert-rule-duration" aria-label="持续时间（秒）"
                     v-model:value="localRule.duration_sec"
                     placeholder="例如 3"
                     :min="0"
@@ -157,7 +157,7 @@
               <Col :span="taskType === 'realtime' ? 12 : 24">
                 <FormItem label="告警抑制时间（秒）" required html-for="alert-rule-suppress">
                   <InputNumber
-                    id="alert-rule-suppress"
+                    id="alert-rule-suppress" aria-label="告警抑制时间（秒）"
                     v-model:value="localRule.alarm_suppress_time"
                     placeholder="例如 300"
                     :min="0"
@@ -182,7 +182,7 @@
               <Col :span="12">
                 <FormItem label="告警等级" required html-for="alert-rule-severity">
                   <Select
-                    id="alert-rule-severity"
+                    id="alert-rule-severity" aria-label="告警等级"
                     v-model:value="localRule.severity"
                     placeholder="请选择"
                     :allow-clear="!readonly"
@@ -200,7 +200,7 @@
               <div class="clip-duration-row">
                 <label class="clip-duration-label" for="alert-rule-clip-before">前</label>
                 <InputNumber
-                  id="alert-rule-clip-before"
+                  id="alert-rule-clip-before" aria-label="录像前秒"
                   v-model:value="localRule.clip_before_sec"
                   placeholder="10"
                   :min="0"
@@ -211,7 +211,7 @@
                 <span class="clip-duration-gap" aria-hidden="true" />
                 <label class="clip-duration-label" for="alert-rule-clip-after">后</label>
                 <InputNumber
-                  id="alert-rule-clip-after"
+                  id="alert-rule-clip-after" aria-label="录像后秒"
                   v-model:value="localRule.clip_after_sec"
                   placeholder="10"
                   :min="0"

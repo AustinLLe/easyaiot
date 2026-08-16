@@ -10,7 +10,7 @@
     <Form layout="vertical" class="patrol-group-form">
       <FormItem label="名称" required html-for="patrol-group-name">
         <Input
-          id="patrol-group-name"
+          id="patrol-group-name" aria-label="名称"
           v-model:value="formState.group_name"
           :maxlength="100"
           show-count
@@ -34,7 +34,7 @@
       <FormItem label="分析时长" required html-for="patrol-group-duration">
         <div class="duration-row">
           <InputNumber
-            id="patrol-group-duration"
+            id="patrol-group-duration" aria-label="分析时长"
             v-model:value="formState.analysis_duration_sec"
             :min="1"
             :max="3600"

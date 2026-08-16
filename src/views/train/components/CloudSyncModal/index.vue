@@ -16,7 +16,7 @@
       <Form layout="vertical">
         <FormItem label="选择云端算法" required html-for="cloud-sync-algorithm">
           <Select
-            id="cloud-sync-algorithm"
+            id="cloud-sync-algorithm" aria-label="选择云端算法"
             v-model:value="state.remoteId"
             placeholder="请先加载云端目录"
             :options="state.options"

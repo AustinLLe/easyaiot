@@ -93,11 +93,13 @@ const controlPropsList = computed(() => {
             </Checkbox>
           </Col>
         </FormItem>
-        <FormItem v-if="!['Grid'].includes(formConfig.currentItem.component)" label="是否必选" html-for="form-item-required-message">
+        <FormItem v-if="!['Grid'].includes(formConfig.currentItem.component)" label="是否必选">
           <Switch v-model:checked="formConfig.currentItem.itemProps.required" />
+          <label v-if="formConfig.currentItem.itemProps.required" for="form-item-required-message" class="sr-only">必选提示</label>
           <Input
             v-if="formConfig.currentItem.itemProps.required"
             id="form-item-required-message"
+            aria-label="必选提示"
             v-model:value="formConfig.currentItem.itemProps.message"
             placeholder="请输入必选提示"
           />
@@ -113,3 +115,18 @@ const controlPropsList = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+

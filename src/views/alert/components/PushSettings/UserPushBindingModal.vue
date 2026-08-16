@@ -11,7 +11,7 @@
     <Form layout="vertical">
       <FormItem label="用户" required html-for="user-push-user">
         <Select
-          id="user-push-user"
+          id="user-push-user" aria-label="用户"
           v-model:value="local.user_id"
           show-search
           option-filter-prop="label"
@@ -22,7 +22,7 @@
       </FormItem>
       <FormItem label="渠道" required html-for="user-push-channel">
         <Select
-          id="user-push-channel"
+          id="user-push-channel" aria-label="渠道"
           v-model:value="local.channel"
           :options="channelOptions"
           :get-popup-container="getPopupContainer"
@@ -31,7 +31,7 @@
       </FormItem>
       <FormItem label="Webhook 地址" required html-for="user-push-url">
         <Input
-          id="user-push-url"
+          id="user-push-url" aria-label="Webhook 地址"
           v-model:value="local.push_url"
           :placeholder="pushUrlPlaceholder"
           allow-clear

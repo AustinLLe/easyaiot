@@ -292,8 +292,8 @@ function emitValue(value) {
           </Row>
         </Col>
         <Col :span="6">
-          <div>近十次执行时间（不含年）</div>
-          <Textarea :value="preTimeList" :rows="5" />
+          <label for="cron-preview-times">近十次执行时间（不含年）</label>
+          <Textarea id="cron-preview-times" :value="preTimeList" :rows="5" />
         </Col>
       </Row>
     </div>

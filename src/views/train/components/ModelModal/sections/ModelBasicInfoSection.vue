@@ -33,21 +33,21 @@
       </FormItem>
 
       <FormItem label="模型名称" required html-for="model-name">
-        <Input id="model-name" v-model:value="draft.name" placeholder="请输入模型名称" />
+        <Input id="model-name" aria-label="模型名称" v-model:value="draft.name" placeholder="请输入模型名称" />
       </FormItem>
 
       <FormItem label="版本" required html-for="model-version">
-        <Input id="model-version" v-model:value="draft.version" placeholder="例如：V1.0.0" />
+        <Input id="model-version" aria-label="版本" v-model:value="draft.version" placeholder="例如：V1.0.0" />
       </FormItem>
 
       <FormItem label="描述" html-for="model-description">
-        <TextArea id="model-description" v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
+        <TextArea id="model-description" aria-label="描述" v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
       </FormItem>
 
       <FormItem label="模型格式" html-for="model-format">
         <template v-if="draft.filePath">
           <Select
-            id="model-format"
+            id="model-format" aria-label="模型格式"
             v-model:value="draft.model_format"
             :options="formatOptions"
             :disabled="isView"
@@ -60,7 +60,7 @@
       <FormItem label="基础模型" html-for="model-base">
         <template v-if="draft.filePath">
           <Input
-            id="model-base"
+            id="model-base" aria-label="基础模型"
             v-model:value="draft.base_model"
             :disabled="isView"
             placeholder="上传模型后自动识别"
@@ -72,7 +72,7 @@
       <FormItem label="类别标签" html-for="model-class-labels">
         <template v-if="draft.filePath">
           <TextArea
-            id="model-class-labels"
+            id="model-class-labels" aria-label="类别标签"
             v-model:value="draft.class_labels_text"
             :rows="4"
             :disabled="isView"
@@ -84,7 +84,7 @@
       </FormItem>
 
       <FormItem label="状态" html-for="model-status">
-        <Select id="model-status" v-model:value="draft.status" :options="statusOptions" />
+        <Select id="model-status" aria-label="状态" v-model:value="draft.status" :options="statusOptions" />
       </FormItem>
 
       <FormItem label="模型图片">

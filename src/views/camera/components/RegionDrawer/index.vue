@@ -86,10 +86,10 @@
         <div v-if="selectedRegion" class="config-content">
           <a-form :model="selectedRegion" layout="vertical" size="small">
             <a-form-item label="区域名称" html-for="region-name">
-              <a-input id="region-name" v-model:value="selectedRegion.region_name" placeholder="请输入区域名称" />
+              <a-input id="region-name" aria-label="区域名称" v-model:value="selectedRegion.region_name" placeholder="请输入区域名称" />
             </a-form-item>
             <a-form-item label="算法类型" html-for="region-algorithm-type">
-              <a-select id="region-algorithm-type" v-model:value="selectedRegion.algorithm_type" placeholder="请选择算法类型">
+              <a-select id="region-algorithm-type" aria-label="算法类型" v-model:value="selectedRegion.algorithm_type" placeholder="请选择算法类型">
                 <a-select-option value="FIRE">火焰烟雾检测</a-select-option>
                 <a-select-option value="CROWD">人群聚集计数</a-select-option>
                 <a-select-option value="SMOKE">吸烟检测</a-select-option>
@@ -97,7 +97,7 @@
             </a-form-item>
             <a-form-item label="算法模型ID" html-for="region-model-id">
               <a-input-number
-                id="region-model-id"
+                id="region-model-id" aria-label="算法模型ID"
                 v-model:value="selectedRegion.algorithm_model_id"
                 placeholder="请输入算法模型ID"
                 :min="1"
@@ -106,7 +106,7 @@
             </a-form-item>
             <a-form-item label="算法阈值" html-for="region-threshold">
               <a-input-number
-                id="region-threshold"
+                id="region-threshold" aria-label="算法阈值"
                 v-model:value="selectedRegion.algorithm_threshold"
                 placeholder="请输入算法阈值"
                 :min="0"
@@ -117,7 +117,7 @@
             </a-form-item>
             <a-form-item label="区域颜色" html-for="region-color">
               <input
-                id="region-color"
+                id="region-color" aria-label="区域颜色"
                 type="color"
                 v-model="selectedRegion.color"
                 @change="handleColorChange"
