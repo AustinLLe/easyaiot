@@ -107,7 +107,7 @@ export default {
     fitMode: {
       type: String,
       default: "cover",
-      validator: (value) => ["cover", "contain"].includes(value),
+      validator: (value) => ["cover", "contain", "stretch"].includes(value),
     },
   },
   data() {
@@ -164,7 +164,13 @@ export default {
       return /\/(live|ai)\/.+\.flv($|\?)/i.test(url || "");
     },
     useEasyWasmPlayer() {
-      return this.fitMode !== "contain" && this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+      return this.fitMode === "cover" && this.isHttpFlvUrl(this.normalizedPlayUrl()) && window.WasmPlayer;
+    },
+    playerScaleMode() {
+      if (this.fitMode === "stretch") {
+        return 0;
+      }
+      return this.fitMode === "cover" ? 2 : 1;
     },
     destroyEasyPlayer() {
       if (this.easyPlayer) {
@@ -194,8 +200,8 @@ export default {
             container: this.$refs.container,
             decoder: "/static/js/jessibuca/decoder.js",
             videoBuffer: 0.2, // 缓存时长
-            // 等比缩放，具体是填满裁切还是完整显示由 fitMode 控制。
-            isResize: true,
+            // stretch 使用播放器原生拉伸模式，避免部分分辨率画面只绘制在左上角。
+            isResize: this.fitMode !== "stretch",
             isFullResize: this.fitMode === "cover",
             useWCS: this.useWCS,
             useMSE: this.useMSE,
@@ -262,8 +268,8 @@ export default {
       // });
       this.jessibuca.on("videoInfo", function (info) {
         console.log("videoInfo", info);
-        // 视频尺寸可用后再次应用显示模式：cover 填满，contain 保持完整比例。
-        _this.jessibuca.setScaleMode(_this.fitMode === "cover" ? 2 : 1);
+        // 视频尺寸可用后再次应用显示模式，确保首帧不会沿用播放器默认画布大小。
+        _this.jessibuca.setScaleMode(_this.playerScaleMode());
       });
       this.jessibuca.on("error", function (error) {
         console.log("error", error);
@@ -537,6 +543,13 @@ export default {
 .player-container.fit-contain video,
 .player-container.fit-contain canvas {
   object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.player-container.fit-stretch video,
+.player-container.fit-stretch canvas {
+  object-fit: fill !important;
   width: 100% !important;
   height: 100% !important;
 }

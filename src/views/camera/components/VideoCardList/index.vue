@@ -24,7 +24,7 @@
             <ListItem :class="getStreamStatusClass(item)">
               <div class="camera-info">
                 <div class="status">{{ getStreamStatusLabel(item) }}</div>
-                <div class="title o2">{{ item.name || item.id }}</div>
+                <div class="title o2" :title="item.name || item.id">{{ item.name || item.id }}</div>
                 <div class="props">
                   <div class="flex" style="justify-content: space-between;">
                     <div class="prop">
@@ -406,6 +406,7 @@ defineExpose({
     .camera-info {
       flex-direction: column;
       max-width: calc(100% - 128px);
+      min-width: 0;
       padding-left: 16px;
 
       .status {
@@ -428,15 +429,26 @@ defineExpose({
         font-weight: 600;
         color: #050708;
         line-height: 20px;
-        height: 40px;
-        padding-right: 90px;
+        height: 20px;
+        max-width: 100%;
+        padding-right: 8px;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .props {
         margin-top: 10px;
 
+        > .flex {
+          min-width: 0;
+          gap: 12px;
+        }
+
         .prop {
           flex: 1;
+          min-width: 0;
           margin-bottom: 10px;
 
           .label {

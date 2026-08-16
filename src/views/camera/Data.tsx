@@ -12,7 +12,8 @@ export function getBasicColumns(): BasicColumn[] {
     {
       title: '设备名称',
       dataIndex: 'name',
-      width: 120,
+      width: 180,
+      ellipsis: true,
     },
     {
       title: '设备型号',

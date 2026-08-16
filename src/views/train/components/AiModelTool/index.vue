@@ -170,12 +170,22 @@
                 <div class="video-content video-content-scrollable">
                   <div v-if="state.detectionResult" class="detection-result">
                     <img :src="state.detectionResult" alt="检测结果" class="preview-image" @error="handleImageError">
-                    <div class="detection-overlay">
-                      <div class="detection-info">
-                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目标</div>
-                        <div class="confidence">平均置信度: {{ state.averageConfidence }}%</div>
+                    <div class="detection-summary" aria-live="polite">
+                      <span>检测到 {{ state.detectionCount }} 个目标</span>
+                      <span>平均置信度：{{ state.averageConfidence }}%</span>
+                    </div>
+                    <div v-if="state.detections.length" class="detection-details">
+                      <div class="detection-details-title">检测结果详情</div>
+                      <div class="detection-detail-list">
+                        <div v-for="(detection, index) in state.detections" :key="`${index}-${getDetectionLabel(detection)}`" class="detection-detail-row">
+                          <span class="detection-detail-index">{{ index + 1 }}</span>
+                          <span class="detection-detail-class">{{ getDetectionLabel(detection) }}</span>
+                          <span class="detection-detail-confidence">{{ formatDetectionConfidence(detection) }}</span>
+                          <span class="detection-detail-bbox">框：{{ formatDetectionBbox(detection) }}</span>
+                        </div>
                       </div>
                     </div>
+                    <div v-else class="detection-empty">未检测到目标</div>
                   </div>
                   <div v-else class="video-placeholder">
                     <ExperimentOutlined class="icon" />
@@ -192,12 +202,22 @@
                 <div class="video-content video-content-scrollable">
                   <div v-if="state.detectionResult" class="detection-result">
                     <img :src="state.detectionResult" alt="检测结果" class="preview-image" @error="handleImageError">
-                    <div class="detection-overlay">
-                      <div class="detection-info">
-                        <div class="detection-count">检测到 {{ state.detectionCount }} 个目标</div>
-                        <div class="confidence">平均置信度: {{ state.averageConfidence }}%</div>
+                    <div class="detection-summary" aria-live="polite">
+                      <span>检测到 {{ state.detectionCount }} 个目标</span>
+                      <span>平均置信度：{{ state.averageConfidence }}%</span>
+                    </div>
+                    <div v-if="state.detections.length" class="detection-details">
+                      <div class="detection-details-title">检测结果详情</div>
+                      <div class="detection-detail-list">
+                        <div v-for="(detection, index) in state.detections" :key="`${index}-${getDetectionLabel(detection)}`" class="detection-detail-row">
+                          <span class="detection-detail-index">{{ index + 1 }}</span>
+                          <span class="detection-detail-class">{{ getDetectionLabel(detection) }}</span>
+                          <span class="detection-detail-confidence">{{ formatDetectionConfidence(detection) }}</span>
+                          <span class="detection-detail-bbox">框：{{ formatDetectionBbox(detection) }}</span>
+                        </div>
                       </div>
                     </div>
+                    <div v-else class="detection-empty">未检测到目标</div>
                   </div>
                   <div v-else class="video-placeholder">
                     <ExperimentOutlined class="icon" />
@@ -378,6 +398,16 @@ interface InferenceHistoryRecord {
   processing_time: number | null;
 }
 
+interface DetectionResult {
+  class?: number | string;
+  class_id?: number | string;
+  class_name?: string;
+  label?: string;
+  confidence?: number | string;
+  bbox?: number[] | string[];
+  [key: string]: unknown;
+}
+
 interface AppState {
   activeSource: string;
   confidenceThreshold: number;
@@ -394,6 +424,7 @@ interface AppState {
   detectionResult: string | null;
   detectionCount: number;
   averageConfidence: number;
+  detections: DetectionResult[];
   selectedModelId: number | string | null;
   models: Model[];
   loading: boolean;
@@ -434,6 +465,7 @@ const state = reactive<AppState>({
   detectionResult: null,
   detectionCount: 0,
   averageConfidence: 0,
+  detections: [],
   selectedModelId: 'yolov11',
   models: [],
   loading: false,
@@ -529,6 +561,33 @@ const toFiniteNumber = (value: any, fallback = 0): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const normalizeDetections = (value: unknown): DetectionResult[] => {
+  if (!Array.isArray(value))
+    return [];
+  return value.filter((item): item is DetectionResult => !!item && typeof item === 'object');
+};
+
+const getDetectionLabel = (detection: DetectionResult): string => {
+  const label = detection.class_name ?? detection.label ?? detection.class ?? detection.class_id;
+  return label === undefined || label === null || label === '' ? '未知类别' : String(label);
+};
+
+const formatDetectionConfidence = (detection: DetectionResult): string => {
+  const confidence = toFiniteNumber(detection.confidence, 0);
+  const percentage = confidence <= 1 ? confidence * 100 : confidence;
+  return `${percentage.toFixed(2)}%`;
+};
+
+const formatDetectionBbox = (detection: DetectionResult): string => {
+  if (!Array.isArray(detection.bbox) || detection.bbox.length < 4)
+    return '—';
+  return `[${detection.bbox.slice(0, 4).map(value => toFiniteNumber(value).toFixed(1)).join(', ')}]`;
+};
+
+const resetDetectionDetails = () => {
+  state.detections = [];
+};
+
 const resetVideoInferenceProgress = () => {
   state.videoProcessedFrames = 0;
   state.videoTotalFrames = 0;
@@ -596,6 +655,7 @@ const startDetection = async () => {
   state.detectionStatus = 'running';
   state.statusText = '推理中...';
   state.detectionResult = null;
+  resetDetectionDetails();
   state.currentInferenceRecordId = null;
   if (state.activeSource === 'video') {
     resetVideoInferenceProgress();
@@ -671,15 +731,18 @@ const startDetection = async () => {
         // 使用 getMediaUrl 处理路径，确保可以正确访问
         state.detectionResult = imagePath || null;
         
-        // 设置检测数量
-        state.detectionCount = result.detection_count || 0;
+        // 保存明细，避免只能从图片上的重叠框猜测结果
+        state.detections = normalizeDetections(
+          result.detections || result.predictions || result.detection_results,
+        );
+        state.detectionCount = result.detection_count ?? state.detections.length;
         
         // 计算平均置信度（从 detections 数组中计算）
-        if (result.detections && Array.isArray(result.detections) && result.detections.length > 0) {
-          const totalConfidence = result.detections.reduce((sum: number, det: any) => {
-            return sum + (det.confidence || 0);
+        if (state.detections.length > 0) {
+          const totalConfidence = state.detections.reduce((sum: number, det: DetectionResult) => {
+            return sum + toFiniteNumber(det.confidence, 0);
           }, 0);
-          state.averageConfidence = Math.round((totalConfidence / result.detections.length) * 100);
+          state.averageConfidence = Math.round((totalConfidence / state.detections.length) * 100);
         } else {
           state.averageConfidence = result.average_confidence ? Math.round(result.average_confidence * 100) : 0;
         }
@@ -695,6 +758,10 @@ const startDetection = async () => {
         } else if (result.output_path) {
           // 如果立即返回了结果路径，直接使用
           state.detectionResult = result.output_path;
+          state.detections = normalizeDetections(
+            result.detections || result.predictions || result.detection_results,
+          );
+          state.detectionCount = result.detection_count ?? state.detections.length;
           state.detectionStatus = 'completed';
           state.statusText = '推理完成';
           createMessage.success('视频推理完成');
@@ -879,6 +946,7 @@ const handleModelChange = () => {
   state.detectionResult = null;
   state.detectionCount = 0;
   state.averageConfidence = 0;
+  resetDetectionDetails();
   resetVideoInferenceProgress();
   stopPollingInferenceResult();
 };
@@ -889,6 +957,7 @@ const handleSourceChange = () => {
   cleanupVideoUrl();
   state.historyInputSource = null; // 清除历史记录的 input_source
   state.detectionResult = null;
+  resetDetectionDetails();
   resetVideoInferenceProgress();
 };
 
@@ -1179,8 +1248,12 @@ const pollInferenceResult = async (recordId: number) => {
       // 获取结果路径并显示
       const outputPath = taskData.output_path;
       if (outputPath) {
-        state.detectionResult = outputPath;
-        createMessage.success('视频推理完成');
+      state.detectionResult = outputPath;
+      state.detections = normalizeDetections(
+        taskData.detections || taskData.predictions || taskData.detection_results,
+      );
+      state.detectionCount = taskData.detection_count ?? state.detections.length;
+      createMessage.success('视频推理完成');
         
         // 自动播放结果视频
         nextTick(() => {
@@ -1278,6 +1351,7 @@ const handleHistoryRecordChange = async () => {
     state.detectionResult = null;
     state.detectionCount = 0;
     state.averageConfidence = 0;
+    resetDetectionDetails();
     state.historyInputSource = null;
     return;
   }
@@ -1301,6 +1375,7 @@ const handleHistoryRecordChange = async () => {
     state.detectionResult = null;
     state.detectionCount = 0;
     state.averageConfidence = 0;
+    resetDetectionDetails();
     state.inferenceLoading = false;
     
     // 获取推理任务详情
@@ -1393,6 +1468,10 @@ const handleHistoryRecordChange = async () => {
     } else if (taskData.stream_output_url) {
       state.detectionResult = taskData.stream_output_url;
     }
+    state.detections = normalizeDetections(
+      taskData.detections || taskData.predictions || taskData.detection_results,
+    );
+    state.detectionCount = taskData.detection_count ?? state.detections.length;
 
     // 还原状态信息
     if (taskData.status === 'COMPLETED') {
@@ -2198,29 +2277,101 @@ body {
         }
 
         .detection-result {
-          position: relative;
+          height: auto;
+          min-height: 100%;
+          align-items: stretch;
+          justify-content: flex-start;
+          overflow: visible;
+          background: #fff;
 
-          .detection-overlay {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(44, 62, 80, 0.9);
-            color: #FFFFFF;
-            padding: 12px 18px;
+          > .preview-image {
+            width: 100%;
+            max-width: 100%;
+            max-height: 52%;
+            min-height: 180px;
+            object-fit: contain;
+            flex: 0 0 auto;
+            background: #111;
+          }
+
+          .detection-summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 8px 16px;
+            padding: 10px 14px;
+            color: @light-text;
+            background: #f5f7fa;
+            border-bottom: 1px solid @border-color;
+            font-size: 13px;
+            font-weight: 600;
+          }
+
+          .detection-details {
+            padding: 12px 14px 16px;
+            text-align: left;
+          }
+
+          .detection-details-title {
+            margin-bottom: 8px;
+            color: @light-text;
+            font-size: 13px;
+            font-weight: 600;
+          }
+
+          .detection-detail-list {
+            max-height: 180px;
+            overflow: auto;
+            border: 1px solid @border-color;
             border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
-            box-shadow: @shadow-lg;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            pointer-events: none;
-            z-index: 1;
+          }
 
-            .detection-info {
-              display: flex;
-              flex-direction: column;
-              gap: 6px;
+          .detection-detail-row {
+            display: grid;
+            grid-template-columns: 28px minmax(80px, 1fr) 82px minmax(150px, 1.8fr);
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 6px 10px;
+            color: @light-text;
+            font-size: 12px;
+            border-bottom: 1px solid #f0f0f0;
+
+            &:last-child {
+              border-bottom: 0;
             }
+          }
+
+          .detection-detail-index {
+            color: @text-muted;
+            text-align: center;
+          }
+
+          .detection-detail-class {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 600;
+          }
+
+          .detection-detail-confidence {
+            color: #1677ff;
+            font-variant-numeric: tabular-nums;
+          }
+
+          .detection-detail-bbox {
+            overflow: hidden;
+            color: @text-secondary;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .detection-empty {
+            padding: 20px 14px;
+            color: @text-secondary;
+            font-size: 13px;
+            text-align: center;
           }
         }
 

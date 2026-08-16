@@ -8,7 +8,8 @@ const route = useRoute()
 const router = useRouter()
 
 const tabRouteMap: Record<string, string> = {
-  events: '/alert/events',
+  'events': '/alert/events',
+  'camera-stream-alert': '/alert/camera-stream-alert',
   'server-alert': '/alert/server-alert',
   'push-settings': '/alert/push-settings',
   'message-config': '/alert/message-config',

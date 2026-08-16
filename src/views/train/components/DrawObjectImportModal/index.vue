@@ -48,6 +48,7 @@ import { CloudUploadOutlined } from '@ant-design/icons-vue';
 import { Button } from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import type { ModelDrawObjectItem } from '../../modelDraft.types';
+import type { DrawObjectImportSkippedItem } from '../../utils/drawUtils';
 import { DRAW_OBJECT_IMPORT_TEMPLATE_HINT } from '../../constants/drawObjectImportTemplate';
 import { downloadDrawObjectTemplate, parseDrawObjectExcel } from '../../utils/drawUtils';
 
@@ -60,7 +61,7 @@ const props = defineProps<{
 const visible = defineModel<boolean>('open', { default: false });
 
 const emit = defineEmits<{
-  success: [items: ModelDrawObjectItem[]];
+  success: [items: ModelDrawObjectItem[], skipped: DrawObjectImportSkippedItem[]];
 }>();
 
 const { createMessage } = useMessage();
@@ -101,8 +102,8 @@ async function handleFileChange(event: Event) {
 
   importing.value = true;
   try {
-    const items = await parseDrawObjectExcel(file, props.existingClassKeys ?? []);
-    emit('success', items);
+    const result = await parseDrawObjectExcel(file, props.existingClassKeys ?? []);
+    emit('success', result.items, result.skipped);
     visible.value = false;
   }
   catch (error) {

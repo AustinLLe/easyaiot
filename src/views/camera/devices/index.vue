@@ -34,7 +34,12 @@
           </template>
           <template #bodyCell="{ column, record }">
             <template v-if="['id', 'name', 'model', 'source', 'rtmp_stream'].includes(column.key)">
-              <span style="cursor: pointer" @click="handleCopy(record[column.key])">
+              <span
+                class="device-copy-cell"
+                :class="{ 'device-name-cell': column.key === 'name' }"
+                :title="record[column.key] || ''"
+                @click="handleCopy(record[column.key])"
+              >
                 <Icon icon="tdesign:copy-filled" color="#4287FCFF" /> {{ record[column.key] }}
               </span>
             </template>
@@ -93,7 +98,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -122,10 +127,6 @@ import { confirmDeleteDevice, preloadAlgorithmTaskUsageCache } from '@/views/alg
 
 defineOptions({ name: 'CameraDevices' })
 
-onMounted(() => {
-  preloadAlgorithmTaskUsageCache().catch(() => {});
-});
-
 const { createMessage } = useMessage()
 const [registerAddModel, { openModal }] = useModal()
 const [registerPlayerAddModel, { openModal: openPlayerAddModel }] = useModal()
@@ -135,6 +136,7 @@ const directorySidebarRef = ref()
 const selectedDirectoryId = ref<number | null>(null)
 const videoCardListRef = ref()
 const refreshingStreamStatus = ref(false)
+let streamStatusTimer: ReturnType<typeof setInterval> | undefined
 
 const fetchDeviceList = async (params: Record<string, any> = {}) => {
   const pageNo = params.pageNo || params.page || 1
@@ -263,7 +265,7 @@ const handleSuccess = () => {
   refreshCurrentView()
 }
 
-const handleRefreshStreamStatus = async () => {
+const handleRefreshStreamStatus = async (showMessage = true) => {
   if (refreshingStreamStatus.value)
     return
   refreshingStreamStatus.value = true
@@ -276,15 +278,33 @@ const handleRefreshStreamStatus = async () => {
       await reload()
     else if (videoCardListRef.value)
       await videoCardListRef.value.fetch()
-    createMessage.success('全部设备推流状态已刷新')
+    if (showMessage)
+      createMessage.success('全部设备推流状态已刷新')
   }
   catch {
-    createMessage.error('推流状态刷新失败')
+    if (showMessage)
+      createMessage.error('推流状态刷新失败')
   }
   finally {
     refreshingStreamStatus.value = false
   }
 }
+
+onMounted(() => {
+  preloadAlgorithmTaskUsageCache().catch(() => {})
+  // 进入设备列表立即从 SRS 获取一次全量状态，之后静默轮询。
+  void handleRefreshStreamStatus(false)
+  streamStatusTimer = setInterval(() => {
+    void handleRefreshStreamStatus(false)
+  }, 30_000)
+})
+
+onBeforeUnmount(() => {
+  if (streamStatusTimer) {
+    clearInterval(streamStatusTimer)
+    streamStatusTimer = undefined
+  }
+})
 
 const handleDelete = async (record) => {
   const canDelete = await confirmDeleteDevice(record.id, record.name)
@@ -324,6 +344,22 @@ const handleCardPlay = (record) => handlePlay(record)
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .device-copy-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .device-name-cell {
+    min-width: 0;
   }
 
   .device-list-layout {

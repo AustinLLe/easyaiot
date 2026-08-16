@@ -35,6 +35,15 @@ const alert: AppRouteModule = {
       },
     },
     {
+      path: 'camera-stream-alert',
+      name: 'AlertCameraStreamAlert',
+      component: () => import('@/views/alert/camera-stream/index.vue'),
+      meta: {
+        title: '摄像头断流告警',
+        icon: 'ant-design:video-camera-outlined',
+      },
+    },
+    {
       path: 'server-alert',
       name: 'AlertServerAlert',
       component: () => import('@/views/alert/server-alert/index.vue'),

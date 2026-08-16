@@ -156,22 +156,7 @@
             </Col>
             <Col :span="12">
               <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
-                <Input v-model:value="modelRef.name"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="制造商" name="manufacturer" v-bind=validateInfos.manufacturer>
-                <Input v-model:value="modelRef.manufacturer"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="设备型号" name="model" v-bind=validateInfos.model>
-                <Input v-model:value="modelRef.model"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="MAC地址" name="mac" v-bind=validateInfos.mac>
-                <Input v-model:value="modelRef.mac"/>
+                <Input v-model:value="modelRef.name" placeholder="请输入设备名称"/>
               </FormItem>
             </Col>
             <Col :span="12">
@@ -185,29 +170,27 @@
                 />
               </FormItem>
             </Col>
-            <Col :span="12">
-              <FormItem label="rtsp取流地址" name="source" v-bind=validateInfos.source>
-                <Input v-model:value="modelRef.source"/>
+            <Col :span="24">
+              <FormItem label="流地址" name="source" v-bind=validateInfos.source>
+                <Input v-model:value="modelRef.source" placeholder="rtsp://或rtmp://地址">
+                  <template #addonAfter>
+                    <CopyOutlined
+                      class="rtsp-copy-icon"
+                      @click="handleCopyRtsp"
+                      :style="{ cursor: modelRef.source ? 'pointer' : 'not-allowed', opacity: modelRef.source ? 1 : 0.5 }"
+                    />
+                  </template>
+                </Input>
               </FormItem>
             </Col>
             <Col :span="12">
-              <FormItem label="rtmp推流地址" name="rtmp_stream" v-bind=validateInfos.rtmp_stream>
-                <Input v-model:value="modelRef.rtmp_stream"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="http流地址" name="http_stream" v-bind=validateInfos.http_stream>
-                <Input v-model:value="modelRef.http_stream"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="IP地址" name="ip" v-bind=validateInfos.ip>
-                <Input v-model:value="modelRef.ip"/>
+              <FormItem label="IP/域名" name="ip" v-bind=validateInfos.ip>
+                <Input v-model:value="modelRef.ip" placeholder="可选，支持域名"/>
               </FormItem>
             </Col>
             <Col :span="12">
               <FormItem label="端口" name="port" v-bind=validateInfos.port>
-                <Input v-model:value="modelRef.port"/>
+                <Input v-model:value="modelRef.port" type="number" placeholder="1-65535"/>
               </FormItem>
             </Col>
             <Col :span="12">
@@ -217,29 +200,7 @@
             </Col>
             <Col :span="12">
               <FormItem label="密码" name="password" v-bind=validateInfos.password>
-                <Input v-model:value="modelRef.password" type="password"/>
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="支持云台" name="support_move"
-                        v-bind=validateInfos.support_move>
-                <Select
-                  :options="state.supportMoveList"
-                  @change="handleCLickChange"
-                  v-model:value="modelRef.support_move"
-                  allowClear
-                />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="支持变焦" name="support_zoom"
-                        v-bind=validateInfos.support_zoom>
-                <Select
-                  :options="state.supportZoomList"
-                  @change="handleCLickChange"
-                  v-model:value="modelRef.support_zoom"
-                  allowClear
-                />
+                <Input.Password v-model:value="modelRef.password" placeholder="可选" />
               </FormItem>
             </Col>
           </Row>
@@ -489,6 +450,42 @@ const [
   rowKey: 'ip',
 });
 
+function isValidHost(value: unknown): boolean {
+  const host = String(value ?? '').trim();
+  if (!host || host.toLowerCase() === 'localhost')
+    return Boolean(host);
+  if (host.includes(':'))
+    return /^[0-9a-f:]+$/i.test(host);
+  if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host))
+    return host.split('.').every(part => Number(part) >= 0 && Number(part) <= 255);
+  return /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(host);
+}
+
+function isValidStreamUrl(value: unknown): boolean {
+  const source = String(value ?? '').trim();
+  if (!source || /\s/.test(source))
+    return false;
+  try {
+    const parsed = new URL(source);
+    return ['rtsp:', 'rtmp:'].includes(parsed.protocol)
+      && Boolean(parsed.hostname)
+      && parsed.pathname.length > 1;
+  } catch {
+    return false;
+  }
+}
+
+function validatePort(value: unknown): string | null {
+  if (value === '' || value == null)
+    return '请输入摄像头端口';
+  const port = Number(value);
+  if (!Number.isInteger(port))
+    return '端口必须是数字';
+  if (port < 1 || port > 65535)
+    return '端口范围必须在1-65535之间';
+  return null;
+}
+
 // 动态验证规则函数
 const getRules = () => {
   const baseRules: any = {
@@ -504,7 +501,15 @@ const getRules = () => {
   // 根据摄像头类型动态设置验证规则
   if (modelRef.cameraType === 'custom') {
     // 自定义类型：source必填，ip和port不需要验证
-    baseRules.source = [{required: true, message: '请输入RTSP取流地址', trigger: ['change']}];
+    baseRules.source = [
+      {required: true, message: '请输入RTSP取流地址', trigger: ['change']},
+      {
+        validator: (_rule, value) => isValidStreamUrl(value)
+          ? Promise.resolve()
+          : Promise.reject('请输入有效的rtsp://或rtmp://流地址，并包含流路径'),
+        trigger: ['change', 'blur'],
+      },
+    ];
     baseRules.ip = [];
     baseRules.port = [];
   } else if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
@@ -516,13 +521,10 @@ const getRules = () => {
           if (!value || value === '') {
             return Promise.reject('请输入摄像头IP地址');
           }
-          // 接受localhost或IPv4地址格式
-          const isLocalhost = value.toLowerCase() === 'localhost';
-          const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-          if (isLocalhost || ipPattern.test(value)) {
+          if (isValidHost(value)) {
             return Promise.resolve();
           }
-          return Promise.reject('请输入正确的IP地址格式，localhost也是正确的');
+          return Promise.reject('请输入正确的IP或域名地址');
         },
         trigger: ['change']
       }
@@ -534,13 +536,9 @@ const getRules = () => {
           if (!value || value === '') {
             return Promise.reject('请输入摄像头端口');
           }
-          const numValue = Number(value);
-if (Number.isNaN(numValue)) {
-            return Promise.reject('端口必须是数字');
-          }
-          if (numValue < 1 || numValue > 65535) {
-            return Promise.reject('端口范围必须在1-65535之间');
-          }
+          const error = validatePort(value);
+          if (error)
+            return Promise.reject(error);
           return Promise.resolve();
         },
         trigger: ['change']
@@ -551,7 +549,15 @@ if (Number.isNaN(numValue)) {
     baseRules.source = [];
   } else {
     // 默认情况：所有字段都是可选的，但如果有值则需要符合格式
-    baseRules.source = [{required: false, message: '请输入RTSP取流地址', trigger: ['change']}];
+    baseRules.source = [
+      {required: false, message: '请输入流地址', trigger: ['change']},
+      {
+        validator: (_rule, value) => !value || isValidStreamUrl(value)
+          ? Promise.resolve()
+          : Promise.reject('请输入有效的rtsp://或rtmp://流地址，并包含流路径'),
+        trigger: ['change', 'blur'],
+      },
+    ];
     baseRules.ip = [
       {required: false, message: '请输入摄像头IP地址', trigger: ['change']},
       {
@@ -559,13 +565,10 @@ if (Number.isNaN(numValue)) {
           if (!value || value === '') {
             return Promise.resolve();
           }
-          // 接受localhost或IPv4地址格式
-          const isLocalhost = value.toLowerCase() === 'localhost';
-          const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-          if (isLocalhost || ipPattern.test(value)) {
+          if (isValidHost(value)) {
             return Promise.resolve();
           }
-          return Promise.reject('请输入正确的IP地址格式，localhost也是正确的');
+          return Promise.reject('请输入正确的IP或域名地址');
         },
         trigger: ['change']
       }
@@ -577,13 +580,9 @@ if (Number.isNaN(numValue)) {
           if (!value || value === '') {
             return Promise.resolve();
           }
-          const numValue = Number(value);
-if (Number.isNaN(numValue)) {
-            return Promise.reject('端口必须是数字');
-          }
-          if (numValue < 1 || numValue > 65535) {
-            return Promise.reject('端口范围必须在1-65535之间');
-          }
+          const error = validatePort(value);
+          if (error)
+            return Promise.reject(error);
           return Promise.resolve();
         },
         trigger: ['change']
