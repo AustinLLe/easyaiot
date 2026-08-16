@@ -188,6 +188,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { CameraOutlined, ClearOutlined, SaveOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { Icon } from '@/components/Icon';
+import { secureUint32 } from '@/utils/secureRandom';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
   captureDeviceSnapshot,
@@ -501,7 +502,7 @@ const generateRandomColor = (): string => {
     '#7a7a7a', '#6a6a6a', '#5c5c5c', '#4d4d4d', '#3d3d3d',
     '#8a8a8a', '#9f9f9f', '#b8b8b8', '#d1d1d1', '#e8e8e8'
   ];
-  return colors[Math.floor(Math.random() * colors.length)];
+  return colors[secureUint32() % colors.length];
 };
 
 // 设置活动工具

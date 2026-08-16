@@ -1,5 +1,6 @@
 // ---- from algorithmParamSchema.ts ----
 import { ref } from 'vue';
+import { secureUint32 } from '@/utils/secureRandom';
 import type { AlgorithmParamPreset } from '../algorithmTaskDraft.types';
 
 export type ParamFieldType = 'number' | 'integer';
@@ -1308,7 +1309,7 @@ export function getRegionTableRows(
 
 function generateRandomColor() {
   const colors = ['#1677ff', '#52c41a', '#faad14', '#eb2f96', '#722ed1', '#13c2c2'];
-  return colors[Math.floor(Math.random() * colors.length)];
+  return colors[secureUint32() % colors.length];
 }
 
 export function resolveDeviceIdsForModel(

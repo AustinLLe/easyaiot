@@ -121,9 +121,7 @@ let jessibuca = ref()
 const htmlVideo = ref<HTMLVideoElement | null>(null)
 const ptzControl = ref<{ stopMovement: () => boolean } | null>(null)
 let onCloseCallback: (() => void) | undefined
-//state.videoUrl
 const state = reactive({
-  video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
   videoUrl: '',
   activePlayer: "jessibuca",
   presetPos: '',

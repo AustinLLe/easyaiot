@@ -8,7 +8,6 @@ import {store} from '@/store'
 import type {AppRouteRecordRaw, Menu} from '@/router/types'
 import {asyncRoutes} from '@/router/routes'
 import dashboard from '@/router/routes/modules/dashboard'
-import {injectPrototypeRoutes} from '@/router/routes/prototypeRoutes'
 import {transformRouteToMenu} from '@/router/helper/menuHelper'
 import {flatMultiLevelRoutes, transformObjToRoute} from '@/router/helper/routeHelper'
 import {useI18n} from '@/hooks/web/useI18n'
@@ -221,7 +220,7 @@ export const usePermissionStore = defineStore('app-permission', {
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = []
           try {
-            routeList = injectPrototypeRoutes(filterBackendRouteDuplicates(userInfo.menus as AppRouteRecordRaw[]))
+            routeList = filterBackendRouteDuplicates(userInfo.menus as AppRouteRecordRaw[])
           } catch (error) {
             console.error(error)
             console.error(error)

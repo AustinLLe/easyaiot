@@ -1,5 +1,6 @@
 import { cloneDeep, isArray } from 'lodash-es';
 import { useMessage } from '@/hooks/web/useMessage';
+import { fillSecureUint32 } from '@/utils/secureRandom';
 
 const { createMessage } = useMessage();
 
@@ -69,8 +70,9 @@ export const randomString = (length?: number) => {
   const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
   const maxPos = chars.length;
   let pwd = '';
+  const randoms = fillSecureUint32(tempLength);
   for (let i = 0; i < tempLength; i += 1) {
-    pwd += chars.charAt(Math.floor(Math.random() * maxPos));
+    pwd += chars.charAt(randoms[i] % maxPos);
   }
   return pwd;
 };

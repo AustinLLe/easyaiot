@@ -88,16 +88,8 @@ const prefix = 'javascript:'
 export const translateStr = (target: string | object) => {
   if (typeof target === 'string') {
     if (target.startsWith(prefix)) {
-      const funcStr = target.split(prefix)[1]
-      let result;
-      try {
-        result = new Function(`${funcStr}`)()
-      }catch (error) {
-    console.error(error)
-        console.log(error)
-        createMessage.error('js内容解析有误！')
-      }
-      return result
+      console.warn('已忽略 javascript: 动态脚本')
+      return ''
     } else {
       return target
     }
@@ -215,7 +207,7 @@ export const customizeHttp = (targetParams: RequestConfigType, globalParams: Req
   }
 
   try {
-    const url =  (new Function("return `" + `${requestOriginUrl}${requestUrl}`.trim() + "`"))();
+    const url = `${requestOriginUrl ?? ''}${requestUrl ?? ''}`.trim()
     return axiosInstance({
         url,
         method: requestHttpType,

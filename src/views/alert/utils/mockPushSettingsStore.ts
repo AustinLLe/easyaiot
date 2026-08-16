@@ -6,6 +6,7 @@ import {
 } from '../pushOutputFieldCatalog';
 
 import { createEmptyFieldMappingGroup } from './pushUtils';
+import { secureUint32 } from '@/utils/secureRandom';
 
 const VALID_ALGORITHM_KEYS = new Set(ALGORITHM_OUTPUT_FIELDS.map(item => item.key));
 
@@ -102,7 +103,7 @@ export function deletePushProfile(profileId: string): boolean {
 
 export function createEmptyPushProfile(): AlarmPushEndpoint {
   return {
-    profile_id: `push_endpoint_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    profile_id: `push_endpoint_${Date.now()}_${(secureUint32() % 0xffffff).toString(36)}`,
     profile_name: '',
     platform: 'webhook',
     push_url: '',

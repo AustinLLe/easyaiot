@@ -91,6 +91,7 @@
 <script>
 import { Icon } from "@/components/Icon";
 import { ref } from "vue";
+import { secureUint32 } from "@/utils/secureRandom";
 
 export default {
   name: "Player",
@@ -135,7 +136,7 @@ export default {
       kbs: 0,
       isFull: false,
       easyPlayer: null,
-      playerId: `easyaiot-player-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+      playerId: `easyaiot-player-${Date.now()}-${secureUint32() % 100000}`,
     };
   },
   mounted() {

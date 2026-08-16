@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { Avatar, Dropdown, Menu, MenuDivider } from 'ant-design-vue'
+import { Avatar, Dropdown, Menu } from 'ant-design-vue'
 import { UserOutlined } from '@ant-design/icons-vue'
 import type { MenuInfo } from 'ant-design-vue/lib/menu/src/interface'
 import { computed } from 'vue'
-import { DOC_URL } from '@/settings/siteSetting'
 import { useUserStore } from '@/store/modules/user'
 import { useHeaderSetting } from '@/hooks/setting/useHeaderSetting'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -11,7 +10,6 @@ import { useDesign } from '@/hooks/web/useDesign'
 import { useModal } from '@/components/Modal'
 import headerImg from '@/assets/images/header.jpg'
 import { propTypes } from '@/utils/propTypes'
-import { openWindow } from '@/utils'
 import { useGo } from '@/hooks/web/usePage'
 import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
 
@@ -23,14 +21,14 @@ defineProps({
 
 const go = useGo()
 
-type MenuEvent = 'profile' | 'logout' | 'doc' | 'lock'
+type MenuEvent = 'profile' | 'logout' | 'lock'
 
 const MenuItem = createAsyncComponent(() => import('./DropMenuItem.vue'))
 const LockAction = createAsyncComponent(() => import('../lock/LockModal.vue'))
 
 const { prefixCls } = useDesign('header-user-dropdown')
 const { t } = useI18n()
-const { getShowDoc, getUseLockPage } = useHeaderSetting()
+const { getUseLockPage } = useHeaderSetting()
 const userStore = useUserStore()
 
 const getUserInfo = computed(() => {
@@ -49,11 +47,6 @@ function handleLoginOut() {
   userStore.confirmLoginOut()
 }
 
-// open doc
-function openDoc() {
-  openWindow(DOC_URL)
-}
-
 function openProfile() {
   go('/profile/index')
 }
@@ -65,9 +58,6 @@ function handleMenuClick(e: MenuInfo) {
       break
     case 'logout':
       handleLoginOut()
-      break
-    case 'doc':
-      openDoc()
       break
     case 'lock':
       handleLock()
@@ -94,11 +84,6 @@ function handleMenuClick(e: MenuInfo) {
     <template #overlay>
       <Menu @click="handleMenuClick">
         <MenuItem key="profile" :text="t('layout.header.accountCenter')" icon="ion:person-outline" />
-        <MenuItem
-          v-if="getShowDoc" key="doc" :text="t('layout.header.dropdownItemDoc')"
-          icon="ion:document-text-outline"
-        />
-        <MenuDivider v-if="getShowDoc" />
         <MenuItem
           v-if="getUseLockPage" key="lock" :text="t('layout.header.tooltipLock')"
           icon="ion:lock-closed-outline"

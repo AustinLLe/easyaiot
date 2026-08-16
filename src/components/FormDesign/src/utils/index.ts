@@ -1,5 +1,6 @@
 // import { VueConstructor } from 'vue';
 import { cloneDeep, isArray, isFunction, isNumber, uniqueId } from 'lodash-es'
+import { secureUuid } from '@/utils/secureRandom'
 import type { IFormConfig, IVFormComponent, IValidationRule } from '../typings/v-form-component'
 
 // import { del } from '@vue/composition-api';
@@ -70,10 +71,7 @@ export function getType(value: any): string {
  * @returns {string} 唯一id标识符
  */
 export function randomUUID(): string {
-  function S4() {
-    return Math.trunc((1 + Math.random()) * 0x10000).toString(16).substring(1)
-  }
-  return `${S4() + S4()}-${S4()}-${S4()}-${S4()}-${S4() + S4() + S4()}`
+  return secureUuid()
 }
 
 /**
@@ -193,16 +191,21 @@ export function strToReg(rules: IValidationRule[]) {
 }
 
 /**
- * 执行一段字符串代码，并返回执行结果，如果执行出错，则返回该参数
+ * 将校验规则中的正则字符串转为 RegExp，不执行任意代码
  * @param code
  * @return {any}
  */
 export function runCode<T>(code: any): T {
+  if (code instanceof RegExp)
+    return code as T
+  if (typeof code !== 'string')
+    return code as T
+
+  const literal = code.match(/^\/([\s\S]+)\/([gimsuy]*)$/)
   try {
-    // eslint-disable-next-line no-new-func
-    return new Function(`return ${code}`)()
+    return (literal ? new RegExp(literal[1], literal[2]) : new RegExp(code)) as T
   }
   catch {
-    return code
+    return code as T
   }
 }

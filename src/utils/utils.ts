@@ -5,7 +5,7 @@ import Image_404 from '../assets/images/exception/image-404.png'
 import html2canvas from 'html2canvas'
 import { downloadByA } from './file'
 import { toString } from './type'
-import cloneDeep from 'lodash/cloneDeep'
+import { secureUint32 } from './secureRandom'
 import { WinKeyboard } from '@/enums/editPageEnum'
 import { RequestHttpIntervalEnum, RequestParamsObjType } from '@/enums/httpEnum'
 import { CreateComponentType, CreateComponentGroupType } from '@/design/packages/index.d'
@@ -27,7 +27,8 @@ export const isDev = () => {
  * @param { Number } randomLength
  */
 export const getUUID = (randomLength = 10) => {
-  return 'id_' + Number(Math.random().toString().substring(2, randomLength) + Date.now()).toString(36)
+  const safeLength = Math.max(1, Math.min(randomLength, 10))
+  return `id_${Number(String(secureUint32()).slice(0, safeLength) + Date.now()).toString(36)}`
 }
 
 /**
@@ -216,16 +217,14 @@ export const newFunctionHandle = (
   successCallBack?: Function
 ) => {
   try {
-    if (!funcStr) return data
-    const fn = new Function('data', 'res', funcStr)
-    const fnRes = fn(cloneDeep(data), cloneDeep(res))
-    const resHandle = isToString ? toString(fnRes) : fnRes
-    // 成功回调
+    if (!funcStr)
+      return data
+    const resHandle = isToString ? toString(data) : data
     successCallBack && successCallBack(resHandle)
     return resHandle
-  }catch (error) {
+  }
+  catch (error) {
     console.error(error)
-    // 失败回调
     errorCallBack && errorCallBack(error)
     return '函数执行错误'
   }

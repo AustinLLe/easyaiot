@@ -9,6 +9,7 @@ import { createImgPreview } from '@/components/Preview/index'
 import { useAttrs } from '@/hooks/core/useAttrs'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useGlobSetting } from '@/hooks/setting'
+import { secureUint32 } from '@/utils/secureRandom'
 
 defineOptions({ name: 'FileUpload' })
 
@@ -259,7 +260,7 @@ function emitValue(value) {
 }
 
 function uidGenerator() {
-  return `-${Number.parseInt((Math.random() * 10000 + 1, 10).toString())}`
+  return `-${(secureUint32() % 10000) + 1}`
 }
 
 function getFileName(path) {
