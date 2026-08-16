@@ -24,6 +24,7 @@
 
       <Table
         class="region-table"
+        aria-label="分析区域"
         :columns="tableColumns"
         :data-source="filteredRows"
         :pagination="false"

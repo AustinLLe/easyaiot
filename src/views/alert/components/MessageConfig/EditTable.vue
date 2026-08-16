@@ -1,6 +1,7 @@
 <template>
   <div class="table-wrapper">
     <Table
+      aria-label="消息配置"
       :columns="displayColumns"
       :data-source="dataSource"
       bordered

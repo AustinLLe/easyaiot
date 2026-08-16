@@ -24,6 +24,7 @@
 
       <Table
         class="threshold-table"
+        aria-label="模型检测"
         :columns="tableColumns"
         :data-source="filteredRows"
         :pagination="false"

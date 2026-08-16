@@ -36,7 +36,7 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['options-change', 'change', 'update:value'])
-const options = ref<OptionsItem[]>([])
+const loadedOptions = ref<OptionsItem[]>([])
 const loading = ref(false)
 // 首次是否加载过了
 const isFirstLoaded = ref(false)
@@ -51,7 +51,7 @@ const [state] = useRuleFormItem(props, 'value', 'change', emitData)
 const getOptions = computed(() => {
   const { labelField, valueField, numberToString } = props
 
-  const data = unref(options).reduce((prev, next: any) => {
+  const data = unref(loadedOptions).reduce((prev, next: any) => {
     if (next) {
       const value = get(next, valueField)
       prev.push({
@@ -75,7 +75,7 @@ watch(
 watch(
   () => props.params,
   () => {
-    !unref(isFirstLoaded) && fetch()
+    fetch()
   },
   { deep: true, immediate: props.immediate },
 )
@@ -84,18 +84,18 @@ async function fetch() {
   const api = props.api
   if (!api || !isFunction(api) || loading.value)
     return
-  options.value = []
+  loadedOptions.value = []
   try {
     loading.value = true
     const res = await api(props.params)
     isFirstLoaded.value = true
     if (Array.isArray(res)) {
-      options.value = res
+      loadedOptions.value = res
       emitChange()
       return
     }
     if (props.resultField)
-      options.value = get(res, props.resultField) || []
+      loadedOptions.value = get(res, props.resultField) || []
 
     emitChange()
   }
@@ -105,8 +105,6 @@ async function fetch() {
   }
   finally {
     loading.value = false
-    // reset status
-    isFirstLoaded.value = false
   }
 }
 

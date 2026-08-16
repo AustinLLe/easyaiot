@@ -518,7 +518,7 @@ const setActiveTool = (toolId: string): void => {
 };
 
 function normalizeUrlBase(base: string) {
-  return base.replace(/\/+$/, '');
+  return base.replace(/\/$/, '');
 }
 
 function joinUrlPath(base: string, path: string) {

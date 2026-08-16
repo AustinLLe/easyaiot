@@ -16,7 +16,6 @@ export default function Jessibuca(opt) {
     }
     if (!this._opt.container) {
         throw new Error('Jessibuca need container option');
-        return;
     }
 
     this._canvasElement = document.createElement("canvas");
@@ -595,7 +594,7 @@ Jessibuca.prototype.audioResume = function () {
  * 设置旋转角度
  */
 Jessibuca.prototype.setRotate = function (deg) {
-    deg = parseInt(deg, 10)
+    deg = Number.parseInt(deg, 10)
     const list = [0, 90, 270];
     if (this._opt.rotate === deg || list.indexOf(deg) === -1) {
         return;
@@ -661,7 +660,7 @@ Jessibuca.prototype._updateStats = function (options) {
     if (timestamp < 1 * 1000) {
         this._bps += (options.bps || 0);
         this._stats.fps += 1;
-        this._stats.vbps += parseInt((options.bps || 0));
+        this._stats.vbps += Number.parseInt((options.bps || 0), 10);
         return;
     }
     this._stats.ts = options.ts;
@@ -810,7 +809,7 @@ function _bpsSize(value) {
     if (null == value || value === '') {
         return "0 KB/S";
     }
-    var srcsize = parseFloat(value);
+    var srcsize = Number.parseFloat(value);
     var size = srcsize / 1024;
     size = size.toFixed(2);
     return size + 'KB/S';
@@ -1570,8 +1569,8 @@ Jessibuca.prototype.setBufferTime = function (buffer) {
  */
 Jessibuca.prototype.setVolume = function (volume) {
     if (this._gainNode) {
-        volume = parseFloat(volume);
-        if (isNaN(volume)) {
+        volume = Number.parseFloat(volume);
+        if (Number.isNaN(volume)) {
             return;
         }
         this._isDebug() && console.log('set volume:', volume);

@@ -36,6 +36,7 @@
             <FormItem label="检测条件" required>
               <Table
                 class="condition-table"
+                aria-label="检测条件"
                 :columns="conditionColumns"
                 :data-source="localRule.conditions"
                 :pagination="false"

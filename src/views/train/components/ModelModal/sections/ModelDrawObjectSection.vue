@@ -22,6 +22,7 @@
         </div>
 
         <Table
+          aria-label="绘制对象"
           :columns="columns"
           :data-source="tableItems"
           :pagination="false"

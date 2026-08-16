@@ -178,10 +178,10 @@ async function handleReset() {
         <p>{{ t('pageDescription') }}</p>
       </div>
       <div class="actions">
-        <button v-auth="['dashboard:config:reset']" class="secondary-btn" :disabled="saving" @click="handleReset">
+        <button v-auth="['dashboard:config:reset']" type="button" class="secondary-btn" :disabled="saving" @click="handleReset">
           {{ t('resetDefaults') }}
         </button>
-        <button v-auth="['dashboard:config:update']" class="primary-btn" :disabled="saving" @click="handleSave">
+        <button v-auth="['dashboard:config:update']" type="button" class="primary-btn" :disabled="saving" @click="handleSave">
           {{ saving ? t('saving') : t('save') }}
         </button>
       </div>

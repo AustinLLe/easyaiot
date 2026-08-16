@@ -19,6 +19,7 @@
 
       <Table
         class="alert-rule-table"
+        aria-label="告警规则"
         :columns="tableColumns"
         :data-source="payload.alert_rules"
         :pagination="false"

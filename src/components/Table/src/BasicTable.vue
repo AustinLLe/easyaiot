@@ -308,6 +308,7 @@ emit('register', tableAction, formActions)
       ref="tableElRef"
       v-bind="getBindValues"
       :row-class-name="getRowClassName"
+      aria-label="数据列表"
       @change="handleTableChange"
       @resize-column="setColumnWidth"
     >

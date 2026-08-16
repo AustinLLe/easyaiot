@@ -11,7 +11,7 @@
     <div class="modal-content">
       <div class="control-bar">
         <div class="control-right">
-          <button class="export-button" @click="refreshLogs">刷新日志</button>
+          <button type="button" class="export-button" @click="refreshLogs">刷新日志</button>
         </div>
       </div>
 

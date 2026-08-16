@@ -10,6 +10,7 @@
     </div>
 
     <Table
+      aria-label="推送配置"
       :columns="columns"
       :data-source="endpointList"
       :pagination="false"
@@ -58,6 +59,7 @@
     </div>
 
     <Table
+      aria-label="用户默认地址"
       :columns="bindingColumns"
       :data-source="bindingList"
       :pagination="false"

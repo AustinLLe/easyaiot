@@ -298,11 +298,11 @@ function normalizeClassLabelDrafts(labels?: ModelClassLabelDraft[]): Array<{ cla
 
 export function parseClassLabelsText(text: string): ModelClassLabelDraft[] {
   const parsed = text
-    .split(/[\r\n,;]+/)
+    .split(/[\r\n,;]/)
     .map(line => line.trim())
     .filter(Boolean)
     .map((line, index) => {
-      const match = line.match(/^(\d+|[A-Za-z_][\w.-]*)\s*[:=\s]\s*(.+)$/);
+      const match = line.match(/^(\d+|[A-Za-z_][\w.-]*)\s*[:=]\s*(.+)$/);
       if (match)
         return { class_key: match[1], label: match[2].trim() };
       return { class_key: String(index), label: line };

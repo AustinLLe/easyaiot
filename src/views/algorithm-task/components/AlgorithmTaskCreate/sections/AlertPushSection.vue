@@ -15,6 +15,7 @@
 
       <Table
         class="alert-push-table"
+        aria-label="告警推送"
         :columns="tableColumns"
         :data-source="payload.alert_push_configs"
         :pagination="false"

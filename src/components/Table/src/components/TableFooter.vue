@@ -82,6 +82,7 @@ const getColumns = computed(() => {
   <Table
     v-if="summaryFunc || summaryData"
     class="basic-table-summary"
+    aria-label="汇总"
     :show-header="true"
     :bordered="false"
     :pagination="false"

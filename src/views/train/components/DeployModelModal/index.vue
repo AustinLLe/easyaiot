@@ -6,7 +6,7 @@
           <!-- 头部区域 -->
           <div class="modal-header">
             <h3>{{ modelId ? '更新模型部署' : '部署新模型服务' }}</h3>
-            <button class="close-button" @click="closeModal">×</button>
+            <button type="button" class="close-button" @click="closeModal">×</button>
           </div>
 
           <!-- 表单区域 -->

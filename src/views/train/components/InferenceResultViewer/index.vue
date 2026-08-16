@@ -179,8 +179,8 @@ const detectionColumns = computed(() => [
 ]);
 
 function joinUrlPath(base: string, path: string): string {
-  const normalizedBase = (base || '').replace(/\/+$/, '')
-  const normalizedPath = (path || '').replace(/^\/+/, '')
+  const normalizedBase = (base || '').replace(/\/$/, '')
+  const normalizedPath = (path || '').replace(/^\//, '')
   if (!normalizedBase)
     return `/${normalizedPath}`
   return `${normalizedBase}/${normalizedPath}`
@@ -197,7 +197,7 @@ function getMediaUrl(path: string) {
   if (path.startsWith('//'))
     return `${window.location.protocol}${path}`
 
-  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/+$/, '')
+  const apiBase = (import.meta.env.VITE_GLOB_API_URL || '/dev-api').replace(/\/$/, '')
   if (apiBase && !apiBase.startsWith('http://') && !apiBase.startsWith('https://')) {
     if (path === apiBase || path.startsWith(`${apiBase}/`))
       return `${window.location.origin}${path}`

@@ -1,6 +1,6 @@
 <template>
   <div class="apply">
-    <Table :dataSource="dataSource" :columns="columns" :pagination="false" bordered />
+    <Table aria-label="配置项" :dataSource="dataSource" :columns="columns" :pagination="false" bordered />
   </div>
 </template>
 <script lang="ts" setup>
@@ -23,7 +23,6 @@
   });
 
   const dataSource = ref([]);
-  const columns = ref([]);
   const common = [
     {
       title: 'Name',
@@ -34,6 +33,7 @@
       dataIndex: 'value',
     },
   ];
+  const columns = ref(common);
   const weixinConfig = [
     {
       title: '应用名称',

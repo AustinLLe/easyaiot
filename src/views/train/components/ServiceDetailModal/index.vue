@@ -6,7 +6,7 @@
           <!-- 头部区域 -->
           <div class="modal-header">
             <h3>模型服务详情 - {{ service.model_name }}</h3>
-            <button class="close-button" @click="closeModal">×</button>
+            <button type="button" class="close-button" @click="closeModal">×</button>
           </div>
 
           <!-- 详情内容 -->
@@ -102,6 +102,7 @@
                     <div class="endpoint-value">
                       <code>{{ service.rest_endpoint }}</code>
                       <button
+                        type="button"
                         class="copy-btn"
                         @click="copyToClipboard(service.rest_endpoint)"
                       >
@@ -114,6 +115,7 @@
                     <div class="endpoint-value">
                       <code>{{ service.grpc_endpoint }}</code>
                       <button
+                        type="button"
                         class="copy-btn"
                         @click="copyToClipboard(service.grpc_endpoint)"
                       >
@@ -129,6 +131,7 @@
             <div class="modal-footer">
               <button
                 v-if="service.status === 'running'"
+                type="button"
                 class="btn-action btn-stop"
                 @click="stopService"
               >
@@ -136,18 +139,21 @@
               </button>
               <button
                 v-else
+                type="button"
                 class="btn-action btn-start"
                 @click="startService"
               >
                 <i class="icon-play"></i> 启动服务
               </button>
               <button
+                type="button"
                 class="btn-action btn-delete"
                 @click="deleteService"
               >
                 <i class="icon-delete"></i> 删除服务
               </button>
               <button
+                type="button"
                 class="btn-action"
                 @click="viewLogs"
               >
