@@ -52,6 +52,7 @@
             v-else
             :playUrl="video.url"
             :hasAudio="false"
+            fit-mode="stretch"
             :ref="el => setVideoRef(el, index)"
             class="video-player"
           />

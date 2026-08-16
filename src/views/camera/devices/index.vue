@@ -20,6 +20,10 @@
                 <template #icon><SyncOutlined /></template>
                 刷新全部推流状态
               </a-button>
+              <span class="auto-refresh-note" title="进入页面立即刷新一次，之后每 30 秒自动刷新；手动刷新按钮继续保留">
+                <span class="auto-refresh-dot"></span>
+                自动刷新已开启 · 每 30 秒
+              </span>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -76,6 +80,10 @@
                 <template #icon><SyncOutlined /></template>
                 刷新全部推流状态
               </a-button>
+              <span class="auto-refresh-note" title="进入页面立即刷新一次，之后每 30 秒自动刷新；手动刷新按钮继续保留">
+                <span class="auto-refresh-dot"></span>
+                自动刷新已开启 · 每 30 秒
+              </span>
               <!-- 暂时隐藏 ONVIF 相关按钮
               <a-button v-auth="['camera:devices:refresh-onvif']" @click="handleUpdateOnvifDevice">
                 <template #icon><SyncOutlined /></template>
@@ -344,6 +352,28 @@ const handleCardPlay = (record) => handlePlay(record)
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .auto-refresh-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    color: #4d6859;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+    background: #f1f8f4;
+    border: 1px solid #d5eadc;
+    border-radius: 12px;
+  }
+
+  .auto-refresh-dot {
+    width: 7px;
+    height: 7px;
+    background: #39a96b;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgb(57 169 107 / 12%);
   }
 
   .device-copy-cell {
