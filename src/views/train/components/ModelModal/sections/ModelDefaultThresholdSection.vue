@@ -22,8 +22,10 @@
             <div class="param-card-desc">{{ field.desc }}</div>
           </div>
           <div class="param-card-input">
+            <label :for="`model-threshold-${field.key}`" class="sr-only">{{ field.label }}</label>
             <InputNumber
               v-if="field.type === 'number'"
+              :id="`model-threshold-${field.key}`"
               v-model:value="draft.detection_config[field.key]"
               :min="field.min"
               :max="field.max"
@@ -33,6 +35,7 @@
             />
             <Select
               v-else
+              :id="`model-threshold-${field.key}`"
               v-model:value="draft.detection_config[field.key]"
               :options="field.options"
               class="param-input"
@@ -166,6 +169,18 @@ const paramFields: ParamFieldDef[] = [
 </script>
 
 <style lang="less" scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .section-panel {
   max-width: 760px;
 }

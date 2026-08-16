@@ -1,6 +1,8 @@
 <template>
   <div class="class-whitelist-select">
+    <label for="class-whitelist-select" class="sr-only">参与检测类别</label>
     <Select
+      id="class-whitelist-select"
       v-model:value="modelValue"
       mode="multiple"
       placeholder="选择参与检测类别（不选=保留全部输出）"
@@ -43,6 +45,18 @@ function getPopupContainer() {
   :deep(.ant-select) {
     width: 100%;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .class-hint {

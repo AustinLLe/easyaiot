@@ -137,7 +137,7 @@ const linkOptions = computed(() => {
         <!--    循环遍历渲染组件属性      -->
 
         <div v-if="formConfig.currentItem && formConfig.currentItem.componentProps">
-          <FormItem v-for="item in inputOptions" :key="item.name" :label="item.label">
+          <FormItem v-for="item in inputOptions" :key="item.name" :label="item.label" :html-for="`comp-prop-${item.name}`">
             <!--     处理数组属性，placeholder       -->
 
             <div v-if="item.children">
@@ -146,6 +146,7 @@ const linkOptions = computed(() => {
                   v-bind="child.componentProps"
                   :is="child.component"
                   v-if="child.component"
+                  :id="`comp-prop-${item.name}-${index}`"
                   v-model:value="formConfig.currentItem.componentProps[item.name][index]"
                 />
               </template>
@@ -153,6 +154,7 @@ const linkOptions = computed(() => {
             <!--     如果不是数组，则正常处理属性值       -->
             <component
               v-bind="item.componentProps" :is="item.component" v-else-if="item.component"
+              :id="`comp-prop-${item.name}`"
               v-model:value="formConfig.currentItem.componentProps[item.name]" class="component-prop"
             />
           </FormItem>

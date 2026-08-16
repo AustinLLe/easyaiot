@@ -2,19 +2,19 @@
   <div ref="container" class="region-drawer-container">
     <!-- 工具栏 -->
     <div class="toolbar">
-      <a-button type="primary" @click="handleCapture" :loading="capturing">
+      <a-button type="primary" html-type="button" @click="handleCapture" :loading="capturing">
         <template #icon>
           <CameraOutlined />
         </template>
         抓拍图片
       </a-button>
-      <a-button @click="handleClear" :disabled="!currentImage">
+      <a-button html-type="button" @click="handleClear" :disabled="!currentImage">
         <template #icon>
           <ClearOutlined />
         </template>
         清空画布
       </a-button>
-      <a-button @click="handleSave" :disabled="regions.length === 0 || !currentImage">
+      <a-button html-type="button" @click="handleSave" :disabled="regions.length === 0 || !currentImage">
         <template #icon>
           <SaveOutlined />
         </template>
@@ -42,6 +42,7 @@
             <div class="region-actions">
               <a-button
                 type="text"
+                html-type="button"
                 size="small"
                 danger
                 @click.stop="deleteRegion(region.id || index)"
@@ -84,26 +85,28 @@
         </div>
         <div v-if="selectedRegion" class="config-content">
           <a-form :model="selectedRegion" layout="vertical" size="small">
-            <a-form-item label="区域名称">
-              <a-input v-model:value="selectedRegion.region_name" placeholder="请输入区域名称" />
+            <a-form-item label="区域名称" html-for="region-name">
+              <a-input id="region-name" v-model:value="selectedRegion.region_name" placeholder="请输入区域名称" />
             </a-form-item>
-            <a-form-item label="算法类型">
-              <a-select v-model:value="selectedRegion.algorithm_type" placeholder="请选择算法类型">
+            <a-form-item label="算法类型" html-for="region-algorithm-type">
+              <a-select id="region-algorithm-type" v-model:value="selectedRegion.algorithm_type" placeholder="请选择算法类型">
                 <a-select-option value="FIRE">火焰烟雾检测</a-select-option>
                 <a-select-option value="CROWD">人群聚集计数</a-select-option>
                 <a-select-option value="SMOKE">吸烟检测</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item label="算法模型ID">
+            <a-form-item label="算法模型ID" html-for="region-model-id">
               <a-input-number
+                id="region-model-id"
                 v-model:value="selectedRegion.algorithm_model_id"
                 placeholder="请输入算法模型ID"
                 :min="1"
                 style="width: 100%"
               />
             </a-form-item>
-            <a-form-item label="算法阈值">
+            <a-form-item label="算法阈值" html-for="region-threshold">
               <a-input-number
+                id="region-threshold"
                 v-model:value="selectedRegion.algorithm_threshold"
                 placeholder="请输入算法阈值"
                 :min="0"
@@ -112,8 +115,9 @@
                 style="width: 100%"
               />
             </a-form-item>
-            <a-form-item label="区域颜色">
+            <a-form-item label="区域颜色" html-for="region-color">
               <input
+                id="region-color"
                 type="color"
                 v-model="selectedRegion.color"
                 @change="handleColorChange"

@@ -73,8 +73,9 @@
                 <div class="card-action-row">
                   <div class="card-status-row">
                     <div class="alert-meta__line">
-                      <span class="alert-meta__label">处理状态</span>
+                      <label class="alert-meta__label" :for="`alert-process-${item.id}`">处理状态</label>
                       <Select
+                        :id="`alert-process-${item.id}`"
                         size="small"
                         :bordered="false"
                         class="status-select"
@@ -86,8 +87,9 @@
                       />
                     </div>
                     <div class="alert-meta__line">
-                      <span class="alert-meta__label">归档状态</span>
+                      <label class="alert-meta__label" :for="`alert-archive-${item.id}`">归档状态</label>
                       <Select
+                        :id="`alert-archive-${item.id}`"
                         size="small"
                         :bordered="false"
                         class="status-select"

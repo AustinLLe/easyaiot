@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { Select } from 'ant-design-vue'
 import { baseHandler } from '../handler'
 import type { HandlerEnum } from '../enum'
+import { getUUID } from '@/utils'
 
 defineOptions({ name: 'SelectItem' })
 
@@ -28,6 +29,8 @@ const props = defineProps({
     default: () => [],
   },
 })
+const selectId = `setting-select-${getUUID(6)}`
+
 const getBindValue = computed(() => {
   return props.def ? { value: props.def, defaultValue: props.initValue || props.def } : {}
 })
@@ -39,7 +42,7 @@ function handleChange(e) {
 
 <template>
   <div class="my-4 flex justify-between">
-    <span> {{ title }}</span>
-    <Select v-bind="getBindValue" class="max-w-32 w-30" :disabled="disabled" :options="options" @change="handleChange" />
+    <label :for="selectId"> {{ title }}</label>
+    <Select :id="selectId" v-bind="getBindValue" class="max-w-32 w-30" :disabled="disabled" :options="options" @change="handleChange" />
   </div>
 </template>

@@ -39,7 +39,8 @@ function deleteGridOptions(index: number) {
     <div v-if="['Grid'].includes(formConfig.currentItem!.component)">
       <div v-for="(item, index) of formConfig.currentItem!.columns" :key="index">
         <div class="options-box">
-          <Input v-model:value="item.span" class="options-value" />
+          <label :for="`form-option-span-${index}`" class="sr-only">栅格宽度</label>
+          <Input :id="`form-option-span-${index}`" v-model:value="item.span" class="options-value" />
           <a class="options-delete" @click="deleteGridOptions(index)">
             <Icon icon="ant-design:delete-outlined" />
           </a>
@@ -53,8 +54,10 @@ function deleteGridOptions(index: number) {
     <div v-else>
       <div v-for="(item, index) of formConfig.currentItem!.componentProps![key]" :key="index">
         <div class="mb-1.5 flex items-center">
-          <Input v-model:value="item.label" />
-          <Input v-model:value="item.value" class="mx-2" />
+          <label :for="`form-option-label-${index}`" class="sr-only">选项名</label>
+          <Input :id="`form-option-label-${index}`" v-model:value="item.label" />
+          <label :for="`form-option-value-${index}`" class="sr-only">选项值</label>
+          <Input :id="`form-option-value-${index}`" v-model:value="item.value" class="mx-2" />
           <a class="h-7.5 w-7.5 rounded-full bg-light-50 text-center text-gray-500 hover:bg-red-500" @click="deleteOptions(index)">
             <Icon icon="ant-design:delete-outlined" />
           </a>
@@ -67,3 +70,17 @@ function deleteGridOptions(index: number) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

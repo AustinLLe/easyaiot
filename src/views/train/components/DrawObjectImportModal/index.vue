@@ -22,14 +22,16 @@
             {{ templateHint }}
           </p>
           <div class="draw-object-import-actions">
-            <Button :loading="downloading" @click="handleDownloadTemplate">
+            <Button html-type="button" :loading="downloading" @click="handleDownloadTemplate">
               下载模板
             </Button>
-            <Button type="primary" :loading="importing" @click="handleSelectFile">
+            <Button type="primary" html-type="button" :loading="importing" @click="handleSelectFile">
               选择文件导入
             </Button>
           </div>
+          <label for="draw-object-import-file" class="sr-only">选择导入文件</label>
           <input
+            id="draw-object-import-file"
             ref="fileInputRef"
             type="file"
             accept=".xls,.xlsx"
@@ -197,6 +199,18 @@ async function handleFileChange(event: Event) {
   display: flex;
   justify-content: center;
   gap: 12px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .draw-object-import-file {

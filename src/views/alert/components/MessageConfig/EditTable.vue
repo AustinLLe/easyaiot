@@ -24,7 +24,8 @@
             ].includes(column.dataIndex)
           "
         >
-          <Input v-model:value="record[column.dataIndex]" :disabled="readonly" />
+          <label :for="`edit-table-${column.dataIndex}-${record.id}`" class="sr-only">{{ column.title || column.dataIndex }}</label>
+          <Input :id="`edit-table-${column.dataIndex}-${record.id}`" v-model:value="record[column.dataIndex]" :disabled="readonly" />
         </template>
         <template v-else-if="column.dataIndex === 'time'">
           <DatePicker
@@ -36,7 +37,7 @@
           />
         </template>
         <template v-else-if="column.dataIndex === 'operation' && !readonly">
-          <Button type="text" danger @click="handleDelete(record.id)">
+          <Button type="text" html-type="button" danger @click="handleDelete(record.id)">
             <template #icon>
               <DeleteOutlined />
             </template>
@@ -44,7 +45,7 @@
         </template>
       </template>
     </Table>
-    <Button v-if="!readonly" type="dashed" @click="handleAdd" style="width: 100%; margin-top: 5px">
+    <Button v-if="!readonly" type="dashed" html-type="button" @click="handleAdd" style="width: 100%; margin-top: 5px">
       <template #icon>
         <PlusOutlined />
       </template>
@@ -119,4 +120,16 @@
   };
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

@@ -120,8 +120,10 @@ async function getSmsCode() {
     <LoginFormTitle class="enter-x" />
     <Form ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules">
       <FormItem name="tenantName" class="enter-x">
+        <label v-if="tenantEnable === 'true'" for="mobile-tenant-name" class="sr-only">{{ t('sys.login.tenantName') }}</label>
         <Input
           v-if="tenantEnable === 'true'"
+          id="mobile-tenant-name"
           v-model:value="formData.tenantName"
           size="large"
           :placeholder="t('sys.login.tenantName')"
@@ -129,7 +131,8 @@ async function getSmsCode() {
         />
       </FormItem>
       <FormItem name="mobile" class="enter-x">
-        <Input v-model:value="formData.mobile" size="large" :placeholder="t('sys.login.mobile')" class="fix-auto-fill" />
+        <label for="mobile-login-phone" class="sr-only">{{ t('sys.login.mobile') }}</label>
+        <Input id="mobile-login-phone" v-model:value="formData.mobile" size="large" :placeholder="t('sys.login.mobile')" class="fix-auto-fill" />
       </FormItem>
       <FormItem name="mobileCode" class="enter-x">
         <CountdownInput
@@ -143,10 +146,10 @@ async function getSmsCode() {
       </FormItem>
 
       <FormItem class="enter-x">
-        <a-button type="primary" size="large" block :loading="loading" @click="getCode">
+        <a-button type="primary" html-type="button" size="large" block :loading="loading" @click="getCode">
           {{ t('sys.login.loginButton') }}
         </a-button>
-        <a-button size="large" block class="mt-4" @click="handleBackLogin">
+        <a-button html-type="button" size="large" block class="mt-4" @click="handleBackLogin">
           {{ t('sys.login.backSignIn') }}
         </a-button>
       </FormItem>
@@ -154,3 +157,17 @@ async function getSmsCode() {
     <Verify ref="verify" mode="pop" :captcha-type="captchaType" :img-size="{ width: '400px', height: '200px' }" @success="handleLogin" />
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

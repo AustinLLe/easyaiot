@@ -30,6 +30,7 @@
               <button
                 v-for="item in periodOptions"
                 :key="item.value"
+                type="button"
                 :class="['period-tab', { active: selectedPeriod === item.value }]"
                 role="tab"
                 :aria-selected="selectedPeriod === item.value"
@@ -38,7 +39,7 @@
                 {{ item.label }}
               </button>
             </div>
-            <button class="refresh-button" :disabled="loading" @click="refreshDashboard">
+            <button type="button" class="refresh-button" :disabled="loading" @click="refreshDashboard">
               <Icon icon="ant-design:reload-outlined" :size="16" />
               {{ loading ? '刷新中' : '刷新数据' }}
             </button>
@@ -103,7 +104,9 @@
 
         <div class="video-stage">
           <div class="video-filters video-filters--overlay">
+            <label for="monitor-task-select" class="sr-only">选择算法任务</label>
             <Select
+              id="monitor-task-select"
               v-model:value="selectedTaskId"
               class="filter-select"
               placeholder="选择算法任务"
@@ -111,14 +114,18 @@
               :options="taskOptions"
               @change="handleTaskChange"
             />
+            <label for="monitor-camera-select" class="sr-only">选择任务摄像头</label>
             <Select
+              id="monitor-camera-select"
               v-model:value="selectedCameraId"
               class="filter-select"
               placeholder="选择任务摄像头"
               :disabled="!selectedTaskId"
               :options="cameraOptions"
             />
+            <label for="monitor-algorithm-select" class="sr-only">选择任务算法</label>
             <Select
+              id="monitor-algorithm-select"
               v-model:value="selectedAlgorithm"
               class="filter-select"
               placeholder="选择任务算法"
@@ -214,8 +221,8 @@
             </div>
             <div class="ranking-title-actions">
               <div class="mode-toggle">
-                <button :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
-                <button :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
+                <button type="button" :class="{ active: rankingMode === 'camera' }" @click="rankingMode = 'camera'">摄像头</button>
+                <button type="button" :class="{ active: rankingMode === 'directory' }" @click="rankingMode = 'directory'">分组</button>
               </div>
             </div>
           </div>
@@ -816,6 +823,18 @@ onUnmounted(() => {
 </script>
 
 <style lang="less" scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .overview-dashboard {
   position: relative;
   box-sizing: border-box;

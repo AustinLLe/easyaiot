@@ -13,8 +13,9 @@
 
         <div class="alert-rule-edit-body" :class="{ 'form-readonly': readonly }">
           <Form layout="vertical" class="rule-form">
-            <FormItem label="规则名称" required>
+            <FormItem label="规则名称" required html-for="alert-rule-name">
               <Input
+                id="alert-rule-name"
                 v-model:value="localRule.rule_name"
                 placeholder="例如：未戴安全帽"
                 :allow-clear="!readonly"
@@ -47,59 +48,72 @@
                   </template>
                   <template v-else-if="column.key === 'model_id'">
                     <span v-if="readonly">{{ getModelLabel(record.model_id) }}</span>
-                    <Select
-                      v-else
-                      v-model:value="record.model_id"
-                      placeholder="请选择算法"
-                      allow-clear
-                      style="width: 100%"
-                      :options="modelOptions"
-                      :get-popup-container="selectPopupContainer"
-                      :dropdown-style="SELECT_DROPDOWN_STYLE"
-                      @change="(value: number) => handleModelChange(record as AlertRuleConditionDraft, value)"
-                    />
+                    <template v-else>
+                      <label :for="`alert-rule-model-${condIndex}`" class="sr-only">算法</label>
+                      <Select
+                        :id="`alert-rule-model-${condIndex}`"
+                        v-model:value="record.model_id"
+                        placeholder="请选择算法"
+                        allow-clear
+                        style="width: 100%"
+                        :options="modelOptions"
+                        :get-popup-container="selectPopupContainer"
+                        :dropdown-style="SELECT_DROPDOWN_STYLE"
+                        @change="(value: number) => handleModelChange(record as AlertRuleConditionDraft, value)"
+                      />
+                    </template>
                   </template>
                   <template v-else-if="column.key === 'class_name'">
                     <span v-if="readonly">{{ record.class_name || '—' }}</span>
-                    <Select
-                      v-else
-                      v-model:value="record.class_name"
-                      placeholder="请选择"
-                      allow-clear
-                      style="width: 100%"
-                      :options="getClassOptions(record.model_id)"
-                      :get-popup-container="selectPopupContainer"
-                      :dropdown-style="SELECT_DROPDOWN_STYLE"
-                    />
+                    <template v-else>
+                      <label :for="`alert-rule-class-${condIndex}`" class="sr-only">类别</label>
+                      <Select
+                        :id="`alert-rule-class-${condIndex}`"
+                        v-model:value="record.class_name"
+                        placeholder="请选择"
+                        allow-clear
+                        style="width: 100%"
+                        :options="getClassOptions(record.model_id)"
+                        :get-popup-container="selectPopupContainer"
+                        :dropdown-style="SELECT_DROPDOWN_STYLE"
+                      />
+                    </template>
                   </template>
                   <template v-else-if="column.key === 'operator'">
                     <span v-if="readonly">{{ getOperatorLabel(record.operator) }}</span>
-                    <Select
-                      v-else
-                      v-model:value="record.operator"
-                      placeholder="请选择"
-                      allow-clear
-                      style="width: 100%"
-                      :options="OPERATOR_OPTIONS"
-                      :get-popup-container="selectPopupContainer"
-                      :dropdown-style="SELECT_DROPDOWN_STYLE"
-                    />
+                    <template v-else>
+                      <label :for="`alert-rule-op-${condIndex}`" class="sr-only">运算符</label>
+                      <Select
+                        :id="`alert-rule-op-${condIndex}`"
+                        v-model:value="record.operator"
+                        placeholder="请选择"
+                        allow-clear
+                        style="width: 100%"
+                        :options="OPERATOR_OPTIONS"
+                        :get-popup-container="selectPopupContainer"
+                        :dropdown-style="SELECT_DROPDOWN_STYLE"
+                      />
+                    </template>
                   </template>
                   <template v-else-if="column.key === 'count'">
                     <span v-if="readonly">{{ record.count ?? '—' }}</span>
-                    <InputNumber
-                      v-else
-                      v-model:value="record.count"
-                      placeholder="数量"
-                      :min="0"
-                      style="width: 100%"
-                    />
+                    <template v-else>
+                      <label :for="`alert-rule-count-${condIndex}`" class="sr-only">数量</label>
+                      <InputNumber
+                        :id="`alert-rule-count-${condIndex}`"
+                        v-model:value="record.count"
+                        placeholder="数量"
+                        :min="0"
+                        style="width: 100%"
+                      />
+                    </template>
                   </template>
                   <template v-else-if="column.key === 'action'">
                     <Button
                       type="link"
                       danger
                       size="small"
+                      html-type="button"
                       class="btn-link-compact"
                       :disabled="localRule.conditions.length <= 1"
                       @click="handleRemoveCondition(condIndex)"
@@ -109,7 +123,7 @@
                   </template>
                 </template>
               </Table>
-              <Button v-if="!readonly" type="dashed" block class="add-condition-btn" @click="handleAddCondition">
+              <Button v-if="!readonly" type="dashed" block html-type="button" class="add-condition-btn" @click="handleAddCondition">
                 <PlusOutlined />
                 添加条件
               </Button>
@@ -129,8 +143,9 @@
 
             <Row :gutter="16">
               <Col v-if="taskType === 'realtime'" :span="12">
-                <FormItem label="持续时间（秒）" required>
+                <FormItem label="持续时间（秒）" required html-for="alert-rule-duration">
                   <InputNumber
+                    id="alert-rule-duration"
                     v-model:value="localRule.duration_sec"
                     placeholder="例如 3"
                     :min="0"
@@ -140,8 +155,9 @@
                 </FormItem>
               </Col>
               <Col :span="taskType === 'realtime' ? 12 : 24">
-                <FormItem label="告警抑制时间（秒）" required>
+                <FormItem label="告警抑制时间（秒）" required html-for="alert-rule-suppress">
                   <InputNumber
+                    id="alert-rule-suppress"
                     v-model:value="localRule.alarm_suppress_time"
                     placeholder="例如 300"
                     :min="0"
@@ -164,8 +180,9 @@
                 </FormItem>
               </Col>
               <Col :span="12">
-                <FormItem label="告警等级" required>
+                <FormItem label="告警等级" required html-for="alert-rule-severity">
                   <Select
+                    id="alert-rule-severity"
                     v-model:value="localRule.severity"
                     placeholder="请选择"
                     :allow-clear="!readonly"
@@ -181,8 +198,9 @@
 
             <div v-if="localRule.clip_record_enabled" class="clip-duration-block">
               <div class="clip-duration-row">
-                <span class="clip-duration-label">前</span>
+                <label class="clip-duration-label" for="alert-rule-clip-before">前</label>
                 <InputNumber
+                  id="alert-rule-clip-before"
                   v-model:value="localRule.clip_before_sec"
                   placeholder="10"
                   :min="0"
@@ -191,8 +209,9 @@
                 />
                 <span class="clip-duration-unit">秒</span>
                 <span class="clip-duration-gap" aria-hidden="true" />
-                <span class="clip-duration-label">后</span>
+                <label class="clip-duration-label" for="alert-rule-clip-after">后</label>
                 <InputNumber
+                  id="alert-rule-clip-after"
                   v-model:value="localRule.clip_after_sec"
                   placeholder="10"
                   :min="0"
@@ -212,8 +231,8 @@
         </div>
 
         <div class="alert-rule-edit-footer">
-          <Button @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</Button>
-          <Button v-if="!readonly" type="primary" @click="handleSave">保存</Button>
+          <Button html-type="button" @click="handleCancel">{{ readonly ? '关闭' : '取消' }}</Button>
+          <Button v-if="!readonly" type="primary" html-type="button" @click="handleSave">保存</Button>
         </div>
       </div>
     </div>
@@ -581,5 +600,17 @@ function handleSave() {
   :deep(.ant-select-selector) {
     background: #fafafa;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

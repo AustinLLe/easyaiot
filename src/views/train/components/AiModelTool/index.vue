@@ -13,7 +13,8 @@
           </div>
           <div class="config-options">
             <div class="input-group">
-              <select class="select-field" v-model="state.selectedModelId" @change="handleModelChange">
+              <label for="aimodel-model-select" class="sr-only">算法选择</label>
+              <select id="aimodel-model-select" class="select-field" v-model="state.selectedModelId" @change="handleModelChange">
                 <option value="">请选择算法</option>
                 <option value="yolov8">Yolov8模型</option>
                 <option value="yolov11">Yolov11模型</option>
@@ -34,7 +35,8 @@
           </div>
           <div class="config-options">
             <div class="input-group">
-              <select class="select-field" v-model="state.selectedHistoryRecordId" @change="handleHistoryRecordChange">
+              <label for="aimodel-history-select" class="sr-only">历史推理记录</label>
+              <select id="aimodel-history-select" class="select-field" v-model="state.selectedHistoryRecordId" @change="handleHistoryRecordChange">
                 <option value="">请选择历史记录</option>
                 <option v-for="record in state.inferenceHistory" :key="record.id" :value="record.id">
                   {{ formatHistoryRecordLabel(record) }}
@@ -52,7 +54,8 @@
           </div>
           <div class="config-options">
             <div class="input-group">
-              <select class="select-field" v-model="state.activeSource" @change="handleSourceChange">
+              <label for="aimodel-source-select" class="sr-only">输入源选择</label>
+              <select id="aimodel-source-select" class="select-field" v-model="state.activeSource" @change="handleSourceChange">
                 <option v-for="option in sourceOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
@@ -103,7 +106,7 @@
           </div>
           <div class="config-options">
             <div class="button-group">
-              <button class="btn btn-primary" @click="startDetection" :disabled="getStartButtonDisabled()">
+              <button type="button" class="btn btn-primary" @click="startDetection" :disabled="getStartButtonDisabled()">
                 <PlayCircleOutlined class="icon" />
                 <span v-if="state.inferenceLoading">推理中...</span>
                 <span v-else>开始检测</span>
@@ -122,11 +125,11 @@
                   <span>耗时 {{ formatVideoElapsedTime(state.videoElapsedSeconds) }}</span>
                 </div>
               </div>
-              <button class="btn btn-success" @click="state.showOriginal = true" v-if="!state.showOriginal">
+              <button type="button" class="btn btn-success" @click="state.showOriginal = true" v-if="!state.showOriginal">
                 <EyeOutlined class="icon" />
                 <span>显示原始对照</span>
               </button>
-              <button class="btn btn-white" @click="state.showOriginal = false" v-if="state.showOriginal">
+              <button type="button" class="btn btn-white" @click="state.showOriginal = false" v-if="state.showOriginal">
                 <CloseOutlined class="icon" />
                 <span>关闭原始对照</span>
               </button>
@@ -1433,6 +1436,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="less">
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 // 变量定义 - 专业简洁配色方案
 @primary-color: #2C3E50;
 @secondary-color: #34495E;

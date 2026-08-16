@@ -230,60 +230,62 @@ function emitValue(value) {
         <Col :span="18" style="margin-top: 22px">
           <Row :gutter="8">
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.second" @blur="onInputBlur">
+              <Input id="cron-second" v-model:value="inputValues.second" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'second'">秒</span>
+                  <label class="allow-click" for="cron-second" @click="activeKey = 'second'">秒</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.minute" @blur="onInputBlur">
+              <Input id="cron-minute" v-model:value="inputValues.minute" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'minute'">分</span>
+                  <label class="allow-click" for="cron-minute" @click="activeKey = 'minute'">分</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.hour" @blur="onInputBlur">
+              <Input id="cron-hour" v-model:value="inputValues.hour" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'hour'">时</span>
+                  <label class="allow-click" for="cron-hour" @click="activeKey = 'hour'">时</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.day" @blur="onInputBlur">
+              <Input id="cron-day" v-model:value="inputValues.day" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'day'">日</span>
+                  <label class="allow-click" for="cron-day" @click="activeKey = 'day'">日</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.month" @blur="onInputBlur">
+              <Input id="cron-month" v-model:value="inputValues.month" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'month'">月</span>
+                  <label class="allow-click" for="cron-month" @click="activeKey = 'month'">月</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8" style="margin-bottom: 12px">
-              <Input v-model:value="inputValues.week" @blur="onInputBlur">
+              <Input id="cron-week" v-model:value="inputValues.week" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'week'">周</span>
+                  <label class="allow-click" for="cron-week" @click="activeKey = 'week'">周</label>
                 </template>
               </Input>
             </Col>
             <Col :span="8">
-              <Input v-model:value="inputValues.year" @blur="onInputBlur">
+              <Input id="cron-year" v-model:value="inputValues.year" @blur="onInputBlur">
                 <template #addonBefore>
-                  <span class="allow-click" @click="activeKey = 'year'">年</span>
+                  <label class="allow-click" for="cron-year" @click="activeKey = 'year'">年</label>
                 </template>
               </Input>
             </Col>
             <Col :span="16">
-              <Input v-model:value="inputValues.cron" @blur="onInputCronBlur">
+              <Input id="cron-expr" v-model:value="inputValues.cron" @blur="onInputCronBlur">
                 <template #addonBefore>
-                  <Tooltip title="Cron表达式">
-                    式
-                  </Tooltip>
+                  <label for="cron-expr">
+                    <Tooltip title="Cron表达式">
+                      式
+                    </Tooltip>
+                  </label>
                 </template>
               </Input>
             </Col>

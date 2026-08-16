@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <a-button type="primary" @click="openTargetModal()">添加</a-button>
+        <a-button type="primary" html-type="button" @click="openTargetModal()">添加</a-button>
         <PopConfirmButton
           @confirm="deleteAll"
           type="primary"

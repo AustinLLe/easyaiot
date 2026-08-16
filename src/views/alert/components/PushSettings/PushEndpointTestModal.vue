@@ -14,19 +14,20 @@
         <div class="push-endpoint-test-body">
           <div class="test-content-section">
             <div class="test-content-toolbar">
-              <span class="section-label">测试内容：</span>
+              <label class="section-label" for="push-test-payload">测试内容：</label>
               <div class="toolbar-actions">
-                <Button type="link" size="small" :loading="pushing" @click="handlePush">
+                <Button type="link" size="small" html-type="button" :loading="pushing" @click="handlePush">
                   <SendOutlined />
                   推送
                 </Button>
-                <Button type="link" size="small" :disabled="pushing" @click="handleReset">
+                <Button type="link" size="small" html-type="button" :disabled="pushing" @click="handleReset">
                   <ReloadOutlined />
                   重置
                 </Button>
               </div>
             </div>
             <Textarea
+              id="push-test-payload"
               v-model:value="payloadText"
               class="payload-editor"
               :rows="14"

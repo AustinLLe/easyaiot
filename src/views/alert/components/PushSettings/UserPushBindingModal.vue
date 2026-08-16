@@ -9,8 +9,9 @@
     @ok="handleSave"
   >
     <Form layout="vertical">
-      <FormItem label="用户" required>
+      <FormItem label="用户" required html-for="user-push-user">
         <Select
+          id="user-push-user"
           v-model:value="local.user_id"
           show-search
           option-filter-prop="label"
@@ -19,16 +20,18 @@
           :get-popup-container="getPopupContainer"
         />
       </FormItem>
-      <FormItem label="渠道" required>
+      <FormItem label="渠道" required html-for="user-push-channel">
         <Select
+          id="user-push-channel"
           v-model:value="local.channel"
           :options="channelOptions"
           :get-popup-container="getPopupContainer"
           @change="local.push_url = ''"
         />
       </FormItem>
-      <FormItem label="Webhook 地址" required>
+      <FormItem label="Webhook 地址" required html-for="user-push-url">
         <Input
+          id="user-push-url"
           v-model:value="local.push_url"
           :placeholder="pushUrlPlaceholder"
           allow-clear

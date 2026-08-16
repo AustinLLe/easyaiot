@@ -9,6 +9,7 @@ import { isFunction } from '@/utils/is'
 import { useRuleFormItem } from '@/hooks/component/useFormItem'
 import { useI18n } from '@/hooks/web/useI18n'
 import { propTypes } from '@/utils/propTypes'
+import { getUUID } from '@/utils'
 
 interface OptionsItem { label: string; value: string; disabled?: boolean }
 
@@ -42,6 +43,7 @@ const isFirstLoaded = ref(false)
 const emitData = ref<OptionsItem[]>([])
 
 const { t } = useI18n()
+const selectId = `api-select-${getUUID(6)}`
 
 // Embedded in the form, just use the hook binding to perform form verification
 const [state] = useRuleFormItem(props, 'value', 'change', emitData)
@@ -127,7 +129,10 @@ function handleChange(_, ...args) {
 </script>
 
 <template>
+  <label :for="selectId" class="sr-only">选择</label>
   <Select
+    :id="selectId"
+    aria-label="选择"
     v-bind="$attrs"
     v-model:value="state"
     :options="getOptions"
@@ -148,3 +153,17 @@ function handleChange(_, ...args) {
     </template>
   </Select>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

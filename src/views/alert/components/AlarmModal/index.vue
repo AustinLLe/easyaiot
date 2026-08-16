@@ -15,26 +15,26 @@
           :wrapperCol="{ span: 21 }"
           :disabled="state.isView"
         >
-          <FormItem label="告警时间" name="time" v-bind=validateInfos.time>
-            <Input v-model:value="modelRef.time"/>
+          <FormItem label="告警时间" name="time" html-for="alarm-time" v-bind=validateInfos.time>
+            <Input id="alarm-time" v-model:value="modelRef.time"/>
           </FormItem>
-          <FormItem label="告警设备" name="device_name" v-bind=validateInfos.device_name>
-            <Input v-model:value="modelRef.device_name"/>
+          <FormItem label="告警设备" name="device_name" html-for="alarm-device-name" v-bind=validateInfos.device_name>
+            <Input id="alarm-device-name" v-model:value="modelRef.device_name"/>
           </FormItem>
-          <FormItem label="告警事件" name="event" v-bind=validateInfos.event>
-            <Input v-model:value="modelRef.event"/>
+          <FormItem label="告警事件" name="event" html-for="alarm-event" v-bind=validateInfos.event>
+            <Input id="alarm-event" v-model:value="modelRef.event"/>
           </FormItem>
-          <FormItem label="告警对象" name="object" v-bind=validateInfos.object>
-            <Input v-model:value="modelRef.object"/>
+          <FormItem label="告警对象" name="object" html-for="alarm-object" v-bind=validateInfos.object>
+            <Input id="alarm-object" v-model:value="modelRef.object"/>
           </FormItem>
-          <FormItem label="检测区域" name="region" v-bind=validateInfos.region>
-            <Input v-model:value="modelRef.region"/>
+          <FormItem label="检测区域" name="region" html-for="alarm-region" v-bind=validateInfos.region>
+            <Input id="alarm-region" v-model:value="modelRef.region"/>
           </FormItem>
-          <FormItem label="告警图片" name="image_path" v-bind=validateInfos.image_path>
-            <Input v-model:value="modelRef.image_path"/>
+          <FormItem label="告警图片" name="image_path" html-for="alarm-image-path" v-bind=validateInfos.image_path>
+            <Input id="alarm-image-path" v-model:value="modelRef.image_path"/>
           </FormItem>
-          <FormItem label="告警录像" name="record_path" v-bind=validateInfos.record_path>
-            <Input v-model:value="modelRef.record_path"/>
+          <FormItem label="告警录像" name="record_path" html-for="alarm-record-path" v-bind=validateInfos.record_path>
+            <Input id="alarm-record-path" v-model:value="modelRef.record_path"/>
           </FormItem>
         </Form>
       </Spin>

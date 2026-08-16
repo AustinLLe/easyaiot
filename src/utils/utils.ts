@@ -9,7 +9,6 @@ import { secureUint32 } from './secureRandom'
 import { WinKeyboard } from '@/enums/editPageEnum'
 import { RequestHttpIntervalEnum, RequestParamsObjType } from '@/enums/httpEnum'
 import { CreateComponentType, CreateComponentGroupType } from '@/design/packages/index.d'
-import { excludeParseEventKeyList, excludeParseEventValueList } from '@/enums/eventEnum'
 import {useMessage} from "@/hooks/web/useMessage";
 
 const { createMessage, createConfirm } = useMessage()
@@ -316,40 +315,15 @@ export const JSONStringify = <T>(data: T) => {
   )
 }
 
-export const evalFn = (fn: string) => {
-  var Fun = Function // 一个变量指向Function，防止前端编译工具报错
-  return new Fun('return ' + fn)()
-}
+export const evalFn = (_fn: string) => undefined
 
 /**
- * * JSON反序列化，支持函数和 undefined
+ * * JSON反序列化。不再把函数字符串还原成可执行函数，避免 new Function 代码注入。
  * @param data
  */
 export const JSONParse = (data: string) => {
   if (data.trim() === '') return
-  return JSON.parse(data, (k, v) => {
-    // // 过滤函数字符串
-    // if (excludeParseEventKeyList.includes(k)) return v
-    // // 过滤函数值表达式
-    // if (typeof v === 'string') {
-    //   const someValue = excludeParseEventValueList.some(excludeValue => v.indexOf(excludeValue) > -1)
-    //   if (someValue) return v
-    // }
-    if (k !== 'formatter') {
-      return v
-    }
-    // 还原函数值
-    if (typeof v === 'string' && v.indexOf && (v.indexOf('function') > -1 || v.indexOf('=>') > -1)) {
-      return evalFn(`(function(){return ${v}})()`)
-    } else if (typeof v === 'string' && v.indexOf && v.indexOf('return ') > -1) {
-      const baseLeftIndex = v.indexOf('(')
-      if (baseLeftIndex > -1) {
-        const newFn = `function ${v.substring(baseLeftIndex)}`
-        return evalFn(`(function(){return ${newFn}})()`)
-      }
-    }
-    return v
-  })
+  return JSON.parse(data)
 }
 
 /**

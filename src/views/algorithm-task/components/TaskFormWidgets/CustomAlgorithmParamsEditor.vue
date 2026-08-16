@@ -5,6 +5,7 @@
       <Button
         v-if="mode === 'define'"
         type="link"
+        html-type="button"
         size="small"
         class="add-param-link"
         :disabled="disabled || !!editingRowId"
@@ -35,8 +36,10 @@
       >
         <template v-if="mode === 'define'">
           <div class="col-name">
+            <label v-if="isRowEditing(row.id)" :for="`param-key-${row.id}`" class="sr-only">参数名</label>
             <Input
               v-if="isRowEditing(row.id)"
+              :id="`param-key-${row.id}`"
               v-model:value="row.key"
               placeholder="参数名"
               :disabled="disabled"
@@ -44,8 +47,10 @@
             <span v-else class="cell-text">{{ row.key || '-' }}</span>
           </div>
           <div class="col-desc">
+            <label v-if="isRowEditing(row.id)" :for="`param-desc-${row.id}`" class="sr-only">参数描述</label>
             <Input
               v-if="isRowEditing(row.id)"
+              :id="`param-desc-${row.id}`"
               v-model:value="row.description"
               placeholder="参数描述"
               :disabled="disabled"
@@ -53,8 +58,10 @@
             <span v-else class="cell-text cell-text-muted">{{ row.description || '-' }}</span>
           </div>
           <div class="col-value">
+            <label v-if="isRowEditing(row.id)" :for="`param-value-${row.id}`" class="sr-only">参数值</label>
             <Input
               v-if="isRowEditing(row.id)"
+              :id="`param-value-${row.id}`"
               v-model:value="row.value"
               placeholder="参数值"
               :disabled="disabled"
@@ -64,7 +71,7 @@
           <div class="col-action">
             <template v-if="isRowEditing(row.id)">
               <Button
-                type="link"
+                type="link" html-type="button"
                 size="small"
                 danger
                 class="action-link"
@@ -74,7 +81,7 @@
                 删除
               </Button>
               <Button
-                type="link"
+                type="link" html-type="button"
                 size="small"
                 class="action-link action-save"
                 :disabled="disabled"
@@ -85,7 +92,7 @@
             </template>
             <Button
               v-else
-              type="link"
+              type="link" html-type="button"
               size="small"
               class="action-link"
               :disabled="disabled || !!editingRowId"
@@ -106,7 +113,9 @@
             </span>
           </div>
           <div class="col-value">
+            <label :for="`param-inherit-value-${row.id}`" class="sr-only">参数值</label>
             <Input
+              :id="`param-inherit-value-${row.id}`"
               v-model:value="row.value"
               placeholder="参数值"
               :disabled="disabled"
@@ -347,6 +356,18 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .custom-params-title {

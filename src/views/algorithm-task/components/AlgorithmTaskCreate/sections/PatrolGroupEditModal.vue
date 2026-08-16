@@ -8,8 +8,9 @@
     @cancel="handleCancel"
   >
     <Form layout="vertical" class="patrol-group-form">
-      <FormItem label="名称" required>
+      <FormItem label="名称" required html-for="patrol-group-name">
         <Input
+          id="patrol-group-name"
           v-model:value="formState.group_name"
           :maxlength="100"
           show-count
@@ -30,9 +31,10 @@
         />
       </FormItem>
 
-      <FormItem label="分析时长" required>
+      <FormItem label="分析时长" required html-for="patrol-group-duration">
         <div class="duration-row">
           <InputNumber
+            id="patrol-group-duration"
             v-model:value="formState.analysis_duration_sec"
             :min="1"
             :max="3600"
@@ -46,8 +48,8 @@
     </Form>
 
     <template #footer>
-      <a-button @click="handleCancel">取消</a-button>
-      <a-button type="primary" @click="handleSave">保存</a-button>
+      <a-button html-type="button" @click="handleCancel">取消</a-button>
+      <a-button type="primary" html-type="button" @click="handleSave">保存</a-button>
     </template>
   </Modal>
 </template>

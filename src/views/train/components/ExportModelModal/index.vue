@@ -6,7 +6,7 @@
           <!-- 头部区域 -->
           <div class="modal-header">
             <h3>导出模型</h3>
-            <button class="close-button" @click="closeModal">×</button>
+            <button type="button" class="close-button" @click="closeModal">×</button>
           </div>
 
           <!-- 表单区域 -->
@@ -62,19 +62,23 @@
                   </div>
                   <div class="dynamic-axes">
                     <div v-for="(axis, index) in form.dynamic_axes" :key="index" class="axis-item">
+                      <label :for="`export-axis-name-${index}`" class="sr-only">轴名称</label>
                       <input
+                        :id="`export-axis-name-${index}`"
                         type="text"
                         v-model="axis.name"
                         placeholder="轴名称"
                       />
+                      <label :for="`export-axis-dim-${index}`" class="sr-only">维度名称</label>
                       <input
+                        :id="`export-axis-dim-${index}`"
                         type="text"
                         v-model="axis.dim"
                         placeholder="维度名称"
                       />
-                      <button @click="removeAxis(index)" class="remove-axis">×</button>
+                      <button type="button" @click="removeAxis(index)" class="remove-axis">×</button>
                     </div>
-                    <button @click="addAxis" class="add-axis">+ 添加动态轴</button>
+                    <button type="button" @click="addAxis" class="add-axis">+ 添加动态轴</button>
                   </div>
                 </div>
 
@@ -97,8 +101,9 @@
 
           <!-- 操作按钮 -->
           <div class="modal-footer">
-            <button class="btn-cancel" @click="closeModal">取消</button>
+            <button type="button" class="btn-cancel" @click="closeModal">取消</button>
             <button
+              type="button"
               class="btn-confirm"
               @click="exportModel"
               :disabled="!isFormValid || isExporting"
@@ -239,6 +244,18 @@ const closeModal = () => {
 </script>
 
 <style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

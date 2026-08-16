@@ -25,28 +25,29 @@
           :disabled="isView"
           @change="handleFileUpload"
         >
-          <a-button type="primary" :disabled="isView">上传模型</a-button>
+          <a-button type="primary" html-type="button" :disabled="isView">上传模型</a-button>
         </Upload>
         <div v-if="draft.filePath" class="file-path">
           {{ draft.filePath }}
         </div>
       </FormItem>
 
-      <FormItem label="模型名称" required>
-        <Input v-model:value="draft.name" placeholder="请输入模型名称" />
+      <FormItem label="模型名称" required html-for="model-name">
+        <Input id="model-name" v-model:value="draft.name" placeholder="请输入模型名称" />
       </FormItem>
 
-      <FormItem label="版本" required>
-        <Input v-model:value="draft.version" placeholder="例如：V1.0.0" />
+      <FormItem label="版本" required html-for="model-version">
+        <Input id="model-version" v-model:value="draft.version" placeholder="例如：V1.0.0" />
       </FormItem>
 
-      <FormItem label="描述">
-        <TextArea v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
+      <FormItem label="描述" html-for="model-description">
+        <TextArea id="model-description" v-model:value="draft.description" :rows="4" placeholder="请输入描述" />
       </FormItem>
 
-      <FormItem label="模型格式">
+      <FormItem label="模型格式" html-for="model-format">
         <template v-if="draft.filePath">
           <Select
+            id="model-format"
             v-model:value="draft.model_format"
             :options="formatOptions"
             :disabled="isView"
@@ -56,9 +57,10 @@
         <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
-      <FormItem label="基础模型">
+      <FormItem label="基础模型" html-for="model-base">
         <template v-if="draft.filePath">
           <Input
+            id="model-base"
             v-model:value="draft.base_model"
             :disabled="isView"
             placeholder="上传模型后自动识别"
@@ -67,9 +69,10 @@
         <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
-      <FormItem label="类别标签">
+      <FormItem label="类别标签" html-for="model-class-labels">
         <template v-if="draft.filePath">
           <TextArea
+            id="model-class-labels"
             v-model:value="draft.class_labels_text"
             :rows="4"
             :disabled="isView"
@@ -80,8 +83,8 @@
         <div v-else class="auto-detect-placeholder">上传模型后自动显示识别结果</div>
       </FormItem>
 
-      <FormItem label="状态">
-        <Select v-model:value="draft.status" :options="statusOptions" />
+      <FormItem label="状态" html-for="model-status">
+        <Select id="model-status" v-model:value="draft.status" :options="statusOptions" />
       </FormItem>
 
       <FormItem label="模型图片">
@@ -94,7 +97,7 @@
           :disabled="isView"
           @change="handleImageUpload"
         >
-          <a-button type="primary" :disabled="isView">上传图片</a-button>
+          <a-button type="primary" html-type="button" :disabled="isView">上传图片</a-button>
         </Upload>
         <div v-if="draft.imageUrl" class="image-preview">
           <img :src="draft.imageUrl" alt="模型预览" />

@@ -52,32 +52,35 @@ const controlPropsList = computed(() => {
       <Empty v-if="!formConfig.currentItem.key" class="hint-box" description="未选择控件" />
       <Form v-else label-align="left" layout="vertical">
         <div v-for="item of baseFormItemProps" :key="item.name">
-          <FormItem v-if="showProps(item.exclude)" :label="item.label">
+          <FormItem v-if="showProps(item.exclude)" :label="item.label" :html-for="`form-item-base-${item.name}`">
             <component
               v-bind="item.componentProps"
               :is="item.component"
               v-if="item.component"
+              :id="`form-item-base-${item.name}`"
               v-model:value="formConfig.currentItem[item.name]"
               class="component-props"
             />
           </FormItem>
         </div>
         <div v-for="item of advanceFormItemProps" :key="item.name">
-          <FormItem v-if="showProps(item.exclude)" :label="item.label">
+          <FormItem v-if="showProps(item.exclude)" :label="item.label" :html-for="`form-item-adv-${item.name}`">
             <component
               v-bind="item.componentProps"
               :is="item.component"
               v-if="item.component"
+              :id="`form-item-adv-${item.name}`"
               v-model:value="formConfig.currentItem.itemProps[item.name]"
               class="component-props"
             />
           </FormItem>
         </div><div v-for="item of advanceFormItemColProps" :key="item.name">
-          <FormItem v-if="showProps(item.exclude)" :label="item.label">
+          <FormItem v-if="showProps(item.exclude)" :label="item.label" :html-for="`form-item-col-${item.name}`">
             <component
               v-bind="item.componentProps"
               :is="item.component"
               v-if="item.component"
+              :id="`form-item-col-${item.name}`"
               v-model:value="formConfig.currentItem.itemProps[item.name].span"
               class="component-props"
             />
@@ -90,10 +93,11 @@ const controlPropsList = computed(() => {
             </Checkbox>
           </Col>
         </FormItem>
-        <FormItem v-if="!['Grid'].includes(formConfig.currentItem.component)" label="是否必选">
+        <FormItem v-if="!['Grid'].includes(formConfig.currentItem.component)" label="是否必选" html-for="form-item-required-message">
           <Switch v-model:checked="formConfig.currentItem.itemProps.required" />
           <Input
             v-if="formConfig.currentItem.itemProps.required"
+            id="form-item-required-message"
             v-model:value="formConfig.currentItem.itemProps.message"
             placeholder="请输入必选提示"
           />

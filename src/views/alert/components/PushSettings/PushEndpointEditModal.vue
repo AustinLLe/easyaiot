@@ -13,22 +13,25 @@
 
         <div class="push-endpoint-edit-body">
           <Form layout="vertical" class="base-form">
-            <FormItem label="名称" required>
+            <FormItem label="名称" required html-for="push-endpoint-name">
               <Input
+                id="push-endpoint-name"
                 v-model:value="localEndpoint.profile_name"
                 placeholder="例如：测试推送"
                 allow-clear
               />
             </FormItem>
-            <FormItem label="渠道类型" required>
+            <FormItem label="渠道类型" required html-for="push-endpoint-platform">
               <Select
+                id="push-endpoint-platform"
                 v-model:value="localEndpoint.platform"
                 :options="platformOptions"
                 :get-popup-container="getPopupContainer"
               />
             </FormItem>
-            <FormItem label="推送地址" required>
+            <FormItem label="推送地址" required html-for="push-endpoint-url">
               <Input
+                id="push-endpoint-url"
                 v-model:value="localEndpoint.push_url"
                 :placeholder="pushUrlPlaceholder"
                 allow-clear
@@ -59,8 +62,8 @@
         </div>
 
         <div class="push-endpoint-edit-footer">
-          <Button @click="handleCancel">取消</Button>
-          <Button type="primary" @click="handleSave">保存</Button>
+          <Button html-type="button" @click="handleCancel">取消</Button>
+          <Button type="primary" html-type="button" @click="handleSave">保存</Button>
         </div>
       </div>
     </div>

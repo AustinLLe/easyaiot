@@ -36,7 +36,8 @@ function showConfigModal() {
 
 <template>
   <div>
-    <Input v-model:value="editCronValue" :placeholder="placeholder" :disabled="disabled">
+    <label for="cron-tab-input" class="sr-only">Cron 表达式</label>
+    <Input id="cron-tab-input" v-model:value="editCronValue" :placeholder="placeholder" :disabled="disabled">
       <template #addonAfter>
         <a class="cursor-pointer" :disabled="disabled ? 'disabled' : null" @click="showConfigModal">
           <Icon class="relative right-0.5 top-0.25" icon="ant-design:setting-outlined" />
@@ -54,3 +55,17 @@ function showConfigModal() {
     />
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

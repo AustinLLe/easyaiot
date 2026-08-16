@@ -14,8 +14,9 @@
     />
     <Spin :spinning="state.loading">
       <Form layout="vertical">
-        <FormItem label="选择云端算法" required>
+        <FormItem label="选择云端算法" required html-for="cloud-sync-algorithm">
           <Select
+            id="cloud-sync-algorithm"
             v-model:value="state.remoteId"
             placeholder="请先加载云端目录"
             :options="state.options"

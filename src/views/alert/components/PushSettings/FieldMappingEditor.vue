@@ -7,7 +7,7 @@
       class="mapping-alert"
     />
 
-    <Button class="add-btn" @click="addGroup">
+    <Button class="add-btn" html-type="button" @click="addGroup">
       <PlusOutlined />
       新增
     </Button>
@@ -28,7 +28,9 @@
         <div class="map-table-row">
           <span class="col-type type-label">key</span>
           <div class="col-source field-control">
+            <label :for="`field-map-key-source-${index}`" class="sr-only">key 原始值</label>
             <Select
+              :id="`field-map-key-source-${index}`"
               :value="group.key_source || undefined"
               :options="fieldKeyOptions"
               placeholder="请输入key值"
@@ -41,18 +43,21 @@
             />
           </div>
           <div class="col-target field-control">
+            <label :for="`field-map-key-target-${index}`" class="sr-only">key 映射值</label>
             <Input
+              :id="`field-map-key-target-${index}`"
               v-model:value="group.key_target"
               placeholder="请输入key值"
               :disabled="group.locked"
             />
           </div>
           <div class="col-action action-cell">
-            <Button type="link" danger size="small" @click="removeGroup(index)">删除</Button>
+            <Button type="link" danger size="small" html-type="button" @click="removeGroup(index)">删除</Button>
             <Button
               v-if="!group.locked"
               type="link"
               size="small"
+              html-type="button"
               @click="confirmGroup(index)"
             >
               完成
@@ -63,14 +68,18 @@
         <div class="map-table-row">
           <span class="col-type type-label">value</span>
           <div class="col-source field-control">
+            <label :for="`field-map-value-source-${index}`" class="sr-only">value 原始值</label>
             <Input
+              :id="`field-map-value-source-${index}`"
               v-model:value="group.value_source"
               placeholder="请输入value值"
               :disabled="group.locked"
             />
           </div>
           <div class="col-target field-control">
+            <label :for="`field-map-value-target-${index}`" class="sr-only">value 映射值</label>
             <Input
+              :id="`field-map-value-target-${index}`"
               v-model:value="group.value_target"
               placeholder="请输入value值"
               :disabled="group.locked"
@@ -206,6 +215,18 @@ function confirmGroup(index: number) {
 
 .map-table-head .col-action {
   text-align: right;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .action-cell {

@@ -31,14 +31,14 @@
           <input v-model="attr.modelHex" class="value" @blur="inputHex" />
         </div> -->
         <div class="color-type">
-          <span class="name"> RGB </span>
-          <input v-model="attr.modelRgb" class="value" @blur="inputRgb" />
+          <label class="name" for="color-picker-rgb"> RGB </label>
+          <input id="color-picker-rgb" v-model="attr.modelRgb" class="value" @blur="inputRgb" />
         </div>
       </div>
     </div>
     <div class="btn">
-      <button>清空</button>
-      <button @click="changeColor">确认</button>
+      <button type="button">清空</button>
+      <button type="button" @click="changeColor">确认</button>
     </div>
   </div>
 </template>

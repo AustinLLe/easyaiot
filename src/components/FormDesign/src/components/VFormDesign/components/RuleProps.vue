@@ -207,11 +207,11 @@ const patternDataSource = ref([
     <Form v-if="formConfig.currentItem && formConfig.currentItem.rules">
       <div v-for="(item, index) of formConfig.currentItem.rules" :key="index" class="rule-props-item">
         <Icon icon="ant-design:close-circle-filled" class="rule-props-item-close" @click="removeRule(index)" />
-        <FormItem label="正则" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <AutoComplete v-model:value="item.pattern" placeholder="请输入正则表达式" :data-source="patternDataSource" />
+        <FormItem label="正则" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }" :html-for="`rule-pattern-${index}`">
+          <AutoComplete :id="`rule-pattern-${index}`" v-model:value="item.pattern" placeholder="请输入正则表达式" :data-source="patternDataSource" />
         </FormItem>
-        <FormItem label="文案" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <Input v-model:value="item.message" placeholder="请输入提示文案" />
+        <FormItem label="文案" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }" :html-for="`rule-message-${index}`">
+          <Input :id="`rule-message-${index}`" v-model:value="item.message" placeholder="请输入提示文案" />
         </FormItem>
       </div>
     </Form>

@@ -208,16 +208,18 @@ onMounted(loadProfiles)
   <div class="input-processing-page">
     <div class="query-bar">
       <div class="query-fields">
-        <span class="query-label">设备名称</span>
+        <label class="query-label" for="input-processing-query-name">设备名称</label>
         <a-input
+          id="input-processing-query-name"
           v-model:value="filters.search"
           class="query-input"
           allow-clear
           placeholder="请输入"
           @press-enter="search"
         />
-        <span class="query-label">启用状态</span>
+        <label class="query-label" for="input-processing-query-enabled">启用状态</label>
         <Select
+          id="input-processing-query-enabled"
           v-model:value="filters.enabled"
           class="query-select"
           allow-clear
@@ -226,10 +228,10 @@ onMounted(loadProfiles)
         />
       </div>
       <div class="query-actions">
-        <a-button @click="reset">
+        <a-button html-type="button" @click="reset">
           重置
         </a-button>
-        <a-button type="primary" @click="search">
+        <a-button type="primary" html-type="button" @click="search">
           查询
         </a-button>
       </div>
@@ -240,7 +242,7 @@ onMounted(loadProfiles)
         <h2>视频输入处理</h2>
         <span>每个流媒体设备自动对应一个处理模块</span>
       </div>
-      <a-button :loading="loading" @click="loadProfiles">
+      <a-button html-type="button" :loading="loading" @click="loadProfiles">
         <template #icon>
           <ReloadOutlined />
         </template>
@@ -329,6 +331,7 @@ onMounted(loadProfiles)
           <div class="card-actions">
             <a-button
               v-auth="['camera:input-processing:restart']"
+              html-type="button"
               :disabled="!profile.enabled"
               :loading="isRestarting(profile.device_id)"
               @click="restart(profile)"
@@ -338,6 +341,7 @@ onMounted(loadProfiles)
             <a-button
               v-auth="['camera:input-processing:update']"
               type="primary"
+              html-type="button"
               :disabled="!profile.enabled"
               :loading="isSaving(profile.device_id)"
               @click="save(profile)"

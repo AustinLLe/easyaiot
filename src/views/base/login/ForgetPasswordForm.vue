@@ -35,24 +35,40 @@ async function handleReset() {
     <LoginFormTitle class="enter-x" />
     <Form ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules">
       <FormItem name="account" class="enter-x">
-        <Input v-model:value="formData.account" size="large" :placeholder="t('sys.login.userName')" />
+        <label for="forget-account" class="sr-only">{{ t('sys.login.userName') }}</label>
+        <Input id="forget-account" v-model:value="formData.account" size="large" :placeholder="t('sys.login.userName')" />
       </FormItem>
 
       <FormItem name="mobile" class="enter-x">
-        <Input v-model:value="formData.mobile" size="large" :placeholder="t('sys.login.mobile')" />
+        <label for="forget-mobile" class="sr-only">{{ t('sys.login.mobile') }}</label>
+        <Input id="forget-mobile" v-model:value="formData.mobile" size="large" :placeholder="t('sys.login.mobile')" />
       </FormItem>
       <FormItem name="sms" class="enter-x">
         <CountdownInput v-model:value="formData.sms" size="large" :placeholder="t('sys.login.smsCode')" />
       </FormItem>
 
       <FormItem class="enter-x">
-        <a-button type="primary" size="large" block :loading="loading" @click="handleReset">
+        <a-button type="primary" html-type="button" size="large" block :loading="loading" @click="handleReset">
           {{ t('common.resetText') }}
         </a-button>
-        <a-button size="large" block class="mt-4" @click="handleBackLogin">
+        <a-button html-type="button" size="large" block class="mt-4" @click="handleBackLogin">
           {{ t('sys.login.backSignIn') }}
         </a-button>
       </FormItem>
     </Form>
   </template>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

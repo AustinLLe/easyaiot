@@ -8,14 +8,14 @@
     <div class="draw-object-layout">
       <div class="draw-object-left">
         <div class="table-toolbar">
-          <Button type="primary" size="small" :disabled="isView" @click="handleSave">
+          <Button type="primary" html-type="button" size="small" :disabled="isView" @click="handleSave">
             保存
           </Button>
-          <Button type="link" size="small" :disabled="isView" @click="handleAdd">
+          <Button type="link" html-type="button" size="small" :disabled="isView" @click="handleAdd">
             <PlusOutlined />
             新增
           </Button>
-          <Button type="link" size="small" :disabled="isView" @click="handleImport">
+          <Button type="link" html-type="button" size="small" :disabled="isView" @click="handleImport">
             <ImportOutlined />
             导入
           </Button>
@@ -33,36 +33,45 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'class_key'">
-              <Input
-                v-if="isRowEditing(record.id)"
-                v-model:value="record.class_key"
-                size="small"
-                class="cell-input"
-                placeholder="类别ID"
-                :disabled="isView"
-              />
+              <template v-if="isRowEditing(record.id)">
+                <label :for="`draw-class-key-${record.id}`" class="sr-only">类别ID</label>
+                <Input
+                  :id="`draw-class-key-${record.id}`"
+                  v-model:value="record.class_key"
+                  size="small"
+                  class="cell-input"
+                  placeholder="类别ID"
+                  :disabled="isView"
+                />
+              </template>
               <span v-else class="cell-text">{{ record.class_key || '-' }}</span>
             </template>
             <template v-else-if="column.key === 'class_label'">
-              <Input
-                v-if="isRowEditing(record.id)"
-                v-model:value="record.class_label"
-                size="small"
-                class="cell-input"
-                placeholder="class label"
-                :disabled="isView"
-              />
+              <template v-if="isRowEditing(record.id)">
+                <label :for="`draw-class-label-${record.id}`" class="sr-only">class label</label>
+                <Input
+                  :id="`draw-class-label-${record.id}`"
+                  v-model:value="record.class_label"
+                  size="small"
+                  class="cell-input"
+                  placeholder="class label"
+                  :disabled="isView"
+                />
+              </template>
               <span v-else class="cell-text">{{ record.class_label || '-' }}</span>
             </template>
             <template v-else-if="column.key === 'label'">
-              <Input
-                v-if="isRowEditing(record.id)"
-                v-model:value="record.label"
-                size="small"
-                class="cell-input"
-                placeholder="描述文本"
-                :disabled="isView"
-              />
+              <template v-if="isRowEditing(record.id)">
+                <label :for="`draw-label-${record.id}`" class="sr-only">描述文本</label>
+                <Input
+                  :id="`draw-label-${record.id}`"
+                  v-model:value="record.label"
+                  size="small"
+                  class="cell-input"
+                  placeholder="描述文本"
+                  :disabled="isView"
+                />
+              </template>
               <span v-else class="cell-text">{{ record.label || '-' }}</span>
             </template>
             <template v-else-if="column.key === 'color'">
@@ -99,6 +108,7 @@
                 <template v-if="isRowEditing(record.id)">
                   <Button
                     type="link"
+                    html-type="button"
                     size="small"
                     class="action-link"
                     :disabled="isView"
@@ -108,6 +118,7 @@
                   </Button>
                   <Button
                     type="link"
+                    html-type="button"
                     size="small"
                     class="action-link action-done"
                     :disabled="isView"
@@ -119,6 +130,7 @@
                 <template v-else>
                   <Button
                     type="link"
+                    html-type="button"
                     size="small"
                     class="action-link"
                     :disabled="isView"
@@ -128,6 +140,7 @@
                   </Button>
                   <Button
                     type="link"
+                    html-type="button"
                     size="small"
                     class="action-link"
                     danger
@@ -180,7 +193,7 @@
             </template>
           </div>
         </div>
-        <Button class="preview-btn" @click="handlePreview">
+        <Button html-type="button" class="preview-btn" @click="handlePreview">
           预览绘制效果
         </Button>
       </div>
@@ -468,6 +481,18 @@ function titleBoxStyle(item: ModelDrawObjectItem, region: ModelDrawRegion) {
 </script>
 
 <style lang="less" scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .draw-object-section {
   display: flex;
   flex-direction: column;

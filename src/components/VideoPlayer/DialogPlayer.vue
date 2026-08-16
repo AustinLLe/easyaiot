@@ -36,10 +36,10 @@
               <TabPane key="info" tab="实时视频">
                 <div class="real-time-info">
                   <div>
-                    <div class="label" style="margin: 0 0 8px 0;">播放地址：</div>
+                    <label class="label" for="dialog-player-url" style="margin: 0 0 8px 0;">播放地址：</label>
                     <span class="ant-input-group-wrapper"><span
                       class="ant-input-wrapper ant-input-group">
-                      <input type="text"
+                      <input id="dialog-player-url" type="text"
                              :disabled="true"
                              class="ant-input ant-input-disabled" :value="state.currentUrl"><span
                       class="ant-input-group-addon">
@@ -51,10 +51,10 @@
                     </span></span></span>
                   </div>
                   <div>
-                    <div class="label">iframe：</div>
+                    <label class="label" for="dialog-player-iframe">iframe：</label>
                     <span class="ant-input-group-wrapper">
                       <span class="ant-input-wrapper ant-input-group">
-                      <input type="text"
+                      <input id="dialog-player-iframe" type="text"
                              :disabled="true"
                              class="ant-input ant-input-disabled" :value="state.iframeUrl"><span
                         class="ant-input-group-addon">
@@ -68,7 +68,7 @@
                     </span>
                   </div>
                   <div>
-                    <div class="label">资源地址：</div>
+                    <label class="label" for="dialog-player-resource">资源地址：</label>
                     <span class="ant-input-group-wrapper">
                       <Select
                         v-model:value="state.mediaType"
@@ -77,7 +77,7 @@
                         style="width: 150px;"
                       />
                       <span class="ant-input-wrapper ant-input-group">
-                      <input type="text"
+                      <input id="dialog-player-resource" type="text"
                              :disabled="true"
                              class="ant-input ant-input-disabled" :value="state.currentUrl"><span
                         class="ant-input-group-addon">

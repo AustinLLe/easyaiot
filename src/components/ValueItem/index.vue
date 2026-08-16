@@ -1,8 +1,10 @@
 <!-- 参数类型输入组件 -->
 <template>
   <div class="value-item-warp">
+    <label :for="fieldId" class="sr-only">参数值</label>
     <Select
       v-if="typeMap.get(itemType) === 'select'"
+      :id="fieldId"
       v-model:value="myValue"
       :options="options"
       allowClear
@@ -11,6 +13,7 @@
     />
     <TimePicker
       v-else-if="typeMap.get(itemType) === 'time'"
+      :id="fieldId"
       v-model:value="myValue"
       allowClear
       valueFormat="HH:mm:ss"
@@ -19,6 +22,7 @@
     />
     <DatePicker
       v-else-if="typeMap.get(itemType) === 'date'"
+      :id="fieldId"
       v-model:value="myValue"
       allowClear
       showTime
@@ -28,12 +32,14 @@
     />
     <InputNumber
       v-else-if="typeMap.get(itemType) === 'inputNumber'"
+      :id="fieldId"
       v-model:value="myValue"
       allowClear
       style="width: 100%"
       @change="inputChange"
     />
     <Input
+      :id="fieldId"
       allowClear
       v-else-if="typeMap.get(itemType) === 'object'"
       v-model:value="myValue"
@@ -51,6 +57,7 @@
     /> -->
 
     <Input
+      :id="fieldId"
       v-else-if="typeMap.get(itemType) === 'file'"
       v-model:value="myValue"
       placeholder="请输入链接"
@@ -71,6 +78,7 @@
     </Input>
 
     <InputPassword
+      :id="fieldId"
       v-else-if="typeMap.get(itemType) === 'password'"
       allowClear
       type="password"
@@ -79,6 +87,7 @@
       @change="inputChange"
     />
     <Input
+      :id="fieldId"
       v-else
       allowClear
       type="text"
@@ -126,6 +135,9 @@
   import { BasicUpload } from '../Upload';
   import { BasicModal, useModal } from '@/components/Modal/index';
   import { CodeEditor } from '@/components/CodeEditor';
+  import { getUUID } from '@/utils';
+
+  const fieldId = `value-item-${getUUID(6)}`;
 
   //   import { FILE_UPLOAD } from '@/api/comm';
   //   import { Upload } from 'jetlinks-ui-components';
@@ -249,4 +261,16 @@
   }
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

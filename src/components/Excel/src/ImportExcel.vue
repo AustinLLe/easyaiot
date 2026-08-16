@@ -212,9 +212,24 @@ function handleUpload() {
 
 <template>
   <div>
-    <input v-show="false" ref="inputRef" type="file" accept=".xlsx, .xls" @change="handleInputClick">
+    <label for="import-excel-file" class="sr-only">导入 Excel</label>
+    <input id="import-excel-file" v-show="false" ref="inputRef" type="file" accept=".xlsx, .xls" @change="handleInputClick">
     <div @click="handleUpload">
       <slot />
     </div>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

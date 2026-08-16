@@ -14,11 +14,12 @@
           :model="validateInfos"
           :wrapperCol="{ span: 21 }"
         >
-          <FormItem label="设备名称" name="name" v-bind=validateInfos.name>
-            <Input v-model:value="modelRef.name"/>
+          <FormItem label="设备名称" name="name" html-for="video-reg-name" v-bind=validateInfos.name>
+            <Input id="video-reg-name" v-model:value="modelRef.name"/>
           </FormItem>
-          <FormItem label="分组" name="directory_id">
+          <FormItem label="分组" name="directory_id" html-for="video-reg-directory">
             <TreeSelect
+              id="video-reg-directory"
               v-model:value="modelRef.directory_id"
               placeholder="请选择分组（可选）"
               :tree-data="directoryTreeOptions"
@@ -28,8 +29,9 @@
               style="width: 100%"
             />
           </FormItem>
-          <FormItem label="码流索引" name="stream" v-bind=validateInfos.stream>
+          <FormItem label="码流索引" name="stream" html-for="video-reg-stream" v-bind=validateInfos.stream>
             <Select
+              id="video-reg-stream"
               placeholder="码流索引"
               :options="state.streamList"
               @change="handleCLickChange"
@@ -37,11 +39,11 @@
               allowClear
             />
           </FormItem>
-          <FormItem label="用户名" name="username" v-bind=validateInfos.userName>
-            <Input v-model:value="modelRef.username"/>
+          <FormItem label="用户名" name="username" html-for="video-reg-username" v-bind=validateInfos.userName>
+            <Input id="video-reg-username" v-model:value="modelRef.username"/>
           </FormItem>
-          <FormItem label="密码" name="password" v-bind="validateInfos.password">
-            <Input.Password v-model:value="modelRef.password" />
+          <FormItem label="密码" name="password" html-for="video-reg-password" v-bind="validateInfos.password">
+            <Input.Password id="video-reg-password" v-model:value="modelRef.password" />
           </FormItem>
         </Form>
       </Spin>

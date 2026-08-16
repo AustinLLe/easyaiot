@@ -5,8 +5,9 @@
       <p>配置任务名称、任务类型等基础属性。</p>
     </div>
     <Form layout="vertical" class="section-form">
-      <FormItem label="任务名称" required>
+      <FormItem label="任务名称" required html-for="task-name">
         <Input
+          id="task-name"
           v-model:value="payload.task_name"
           placeholder="例如：安全帽检测任务"
           :allow-clear="!readonly"
@@ -15,16 +16,18 @@
         />
       </FormItem>
       <div class="task-mode-row">
-        <FormItem label="任务类型" required class="task-mode-item">
+        <FormItem label="任务类型" required class="task-mode-item" html-for="task-type">
           <Select
+            id="task-type"
             v-model:value="payload.task_type"
             :options="taskTypeOptions"
             :disabled="readonly"
             class="field-control"
           />
         </FormItem>
-        <FormItem label="分析模式" required class="task-mode-item">
+        <FormItem label="分析模式" required class="task-mode-item" html-for="task-analysis-mode">
           <Select
+            id="task-analysis-mode"
             v-model:value="payload.analysis_mode"
             :options="analysisModeOptions"
             :disabled="readonly || payload.task_type === 'snap' || payload.task_type === 'patrol'"
@@ -32,8 +35,9 @@
           />
         </FormItem>
       </div>
-      <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required>
+      <FormItem v-if="payload.task_type === 'realtime' && payload.analysis_mode !== 'dynamic'" label="抽帧间隔" required html-for="task-extract-interval">
         <InputNumber
+          id="task-extract-interval"
           v-model:value="payload.detection_config.extract_interval"
           :min="1"
           :max="1000"
@@ -46,7 +50,9 @@
       </FormItem>
       <FormItem v-if="payload.task_type === 'snap'" label="抓拍间隔" required>
         <div class="snap-interval-row">
+          <label for="task-snap-interval" class="sr-only">抓拍间隔</label>
           <InputNumber
+            id="task-snap-interval"
             v-model:value="payload.snap_interval_value"
             :min="1"
             :max="snapIntervalMax"
@@ -54,7 +60,9 @@
             placeholder="间隔"
             class="snap-interval-value"
           />
+          <label for="task-snap-unit" class="sr-only">间隔单位</label>
           <Select
+            id="task-snap-unit"
             v-model:value="payload.snap_interval_unit"
             :options="snapUnitOptions"
             :disabled="readonly"
@@ -255,5 +263,17 @@ watch(
 .snap-interval-unit {
   width: 96px;
   flex-shrink: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

@@ -4,17 +4,18 @@
       <div class="container-shell-title">jessibuca demo player</div>
       <div id="container" ref="container"></div>
       <div class="input">
-        <div>输入URL：</div>
+        <label for="jessibuca-play-url">输入URL：</label>
         <input
-          type="input"
+          id="jessibuca-play-url"
+          type="text"
           autocomplete="on"
           :value="playUrl"
         />
-        <button v-if="!playing" @click="play">播放</button>
-        <button v-else @click="pause">停止</button>
+        <button type="button" v-if="!playing" @click="play">播放</button>
+        <button type="button" v-else @click="pause">停止</button>
       </div>
       <div class="input" v-if="loaded">
-        <button @click="destroy">销毁</button>
+        <button type="button" @click="destroy">销毁</button>
 
       </div>
     </div>

@@ -19,9 +19,11 @@
           <FormItem
             label="选择模型"
             name="model_id"
+            html-for="inference-model-id"
             v-bind="validateInfos.model_id"
           >
             <ApiSelect
+              id="inference-model-id"
               v-model:value="modelRef.model_id"
               :api="handleGetModelPage"
               result-field="items"
@@ -36,9 +38,11 @@
           <FormItem
             label="推理类型"
             name="inference_type"
+            html-for="inference-type"
             v-bind="validateInfos.inference_type"
           >
             <Select
+              id="inference-type"
               v-model:value="modelRef.inference_type"
               placeholder="请选择"
               :disabled="state.isView"
@@ -52,6 +56,7 @@
           <FormItem
             label="输入源"
             name="input_source"
+            html-for="inference-input-source"
             v-bind="validateInfos.input_source"
           >
             <Upload
@@ -64,7 +69,7 @@
               :disabled="state.isView"
               @change="handleFileUpload"
             >
-              <a-button type="primary">点击上传</a-button>
+              <a-button id="inference-input-source" type="primary" html-type="button">点击上传</a-button>
             </Upload>
             <div v-if="modelRef.input_source" style="margin-top: 8px">
               已上传文件: {{ fileName }}

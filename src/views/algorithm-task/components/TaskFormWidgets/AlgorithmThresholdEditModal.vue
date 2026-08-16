@@ -49,8 +49,10 @@
                     <div class="param-card-desc">{{ field.desc }}</div>
                   </div>
                   <div class="param-card-input">
+                    <label :for="`threshold-field-${field.key}`" class="sr-only">{{ field.label }}</label>
                     <InputNumber
                       v-if="field.type === 'number'"
+                      :id="`threshold-field-${field.key}`"
                       v-model:value="localConfig.detection_config[field.key]"
                       :min="field.min"
                       :max="field.max"
@@ -60,6 +62,7 @@
                     />
                     <Select
                       v-else-if="field.type === 'select'"
+                      :id="`threshold-field-${field.key}`"
                       v-model:value="localConfig.detection_config[field.key]"
                       :options="field.options"
                       :disabled="readonly"
@@ -577,5 +580,17 @@ function handleSave() {
   .param-input {
     width: 100% !important;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

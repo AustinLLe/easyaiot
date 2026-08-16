@@ -126,13 +126,17 @@ async function handleLogin(params) {
     @keypress.enter="getCode"
   >
     <FormItem name="username" class="enter-x">
+      <label for="login-username" class="sr-only">{{ t('sys.login.userName') }}</label>
       <Input
+        id="login-username"
         v-model:value="formData.username" size="large" :placeholder="t('sys.login.userName')"
         class="fix-auto-fill"
       />
     </FormItem>
     <FormItem name="password" class="enter-x">
+      <label for="login-password" class="sr-only">{{ t('sys.login.password') }}</label>
       <InputPassword
+        id="login-password"
         v-model:value="formData.password"
         size="large"
         visibility-toggle
@@ -153,7 +157,7 @@ async function handleLogin(params) {
       <Col :span="12">
         <FormItem :style="{ 'text-align': 'right' }">
           <!-- No logic, you need to deal with it yourself -->
-          <a-button type="link" size="small" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
+          <a-button type="link" html-type="button" size="small" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
             {{ t('sys.login.forgetPassword') }}
           </a-button>
         </FormItem>
@@ -161,7 +165,7 @@ async function handleLogin(params) {
     </Row>
 
     <FormItem class="enter-x">
-      <a-button type="primary" size="large" block :loading="loading" @click="getCode">
+      <a-button type="primary" html-type="button" size="large" block :loading="loading" @click="getCode">
         {{ t('sys.login.loginButton') }}
       </a-button>
       <!-- <a-button size="large" class="mt-4 enter-x" block @click="handleRegister">
@@ -171,3 +175,17 @@ async function handleLogin(params) {
   </Form>
   <Verify ref="verify" mode="pop" :captcha-type="captchaType" :img-size="{ width: '360px', height: '180px' }" @success="handleLogin" />
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

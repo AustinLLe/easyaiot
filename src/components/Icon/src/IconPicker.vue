@@ -12,6 +12,7 @@ import { ScrollContainer } from '@/components/Container'
 import { usePagination } from '@/hooks/web/usePagination'
 import { useI18n } from '@/hooks/web/useI18n'
 import { copyText } from '@/utils/copyTextToClipboard'
+import { getUUID } from '@/utils'
 
 export interface Props {
   value?: string
@@ -56,6 +57,8 @@ const currentList = ref(icons)
 
 const { t } = useI18n()
 const { prefixCls } = useDesign('icon-picker')
+const valueId = `icon-picker-value-${getUUID(6)}`
+const searchId = `icon-picker-search-${getUUID(6)}`
 
 const debounceHandleSearchChange = useDebounceFn(handleSearchChange, 100)
 
@@ -95,7 +98,9 @@ function handleSearchChange(e: ChangeEvent) {
 </script>
 
 <template>
+  <label :for="valueId" class="sr-only">{{ t('component.icon.placeholder') }}</label>
   <Input
+    :id="valueId"
     v-model:value="currentSelect" disabled :style="{ width }" :placeholder="t('component.icon.placeholder')"
     :class="prefixCls"
   >
@@ -103,7 +108,8 @@ function handleSearchChange(e: ChangeEvent) {
       <Popover v-model="open" placement="bottomLeft" trigger="click" :overlay-class-name="`${prefixCls}-popover`">
         <template #title>
           <div class="flex justify-between">
-            <Input :placeholder="t('component.icon.search')" allow-clear @change="debounceHandleSearchChange" />
+            <label :for="searchId" class="sr-only">{{ t('component.icon.search') }}</label>
+            <Input :id="searchId" :placeholder="t('component.icon.search')" allow-clear @change="debounceHandleSearchChange" />
           </div>
         </template>
 
@@ -162,5 +168,17 @@ function handleSearchChange(e: ChangeEvent) {
       height: 220px;
     }
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>
